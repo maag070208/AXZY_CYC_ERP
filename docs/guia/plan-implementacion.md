@@ -47,9 +47,9 @@ reglas complejas (M07, M08, M09, M16) ≈ 1.5–2 sprints.
 | Módulo | Estado | Nota |
 |---|---|---|
 | M01 | Documentado | Falta aprobación del cliente por escrito |
-| M02 | Andamiaje | `api/` y `web/` con login/sesión/RBAC/bitácora; falta migración inicial, seed y pruebas en verde |
+| M02 | En desarrollo (F0 ✅) | Login → `/auth/me` → logout funcionando en local y Docker; RBAC/ABAC + bitácora; 20 pruebas unitarias en verde |
 | M03–M21 | Documentado | Sin código |
-| Infra | Inicial | Monorepo + `docker-compose` + Dockerfiles por proyecto |
+| F0 — Infra | ✅ Completada | Monorepo + Docker por proyecto + `docker-compose` + CI; migración inicial `init` + seed; login por proxy de nginx verificado |
 
 ## 3. Detalle por fase
 

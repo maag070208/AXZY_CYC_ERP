@@ -75,6 +75,7 @@ export const es = {
     // --- Matriz ---
     CHANGES_ARRAY_REQUIRED: "changes debe ser un arreglo no vacío",
     TOO_MANY_CHANGES: "changes admite máximo {{max}} filas por petición",
+    CHANGES_REQUIRED: "Debe enviar al menos un cambio en la matriz",
     INVALID_CHANGE_ROLE: "changes[{{index}}].role inválido: {{role}}",
     CHANGE_PERMISSION_REQUIRED: "changes[{{index}}].permission es obligatorio",
     CHANGE_PERMISSION_TOO_LONG: "changes[{{index}}].permission excede {{max}} caracteres",

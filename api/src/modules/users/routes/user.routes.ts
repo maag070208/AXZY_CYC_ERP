@@ -15,7 +15,7 @@ import {
 import type { UserController } from "../controllers/user.controller";
 
 const bearer = [{ bearerAuth: [] }];
-const idParam = { in: "path" as const, name: "id", required: true, schema: { type: "string" } };
+const idParam = { in: "path" as const, name: "id", required: true, schema: { type: "string" as const } };
 
 export const createUserRouter = (controller: UserController): Router => {
   const router = Router();
@@ -117,7 +117,7 @@ export const createUserRouter = (controller: UserController): Router => {
     tags: ["Users"],
     summary: "Quita una excepción de permiso",
     security: bearer,
-    parameters: [idParam, { in: "path", name: "permission", required: true, schema: { type: "string" } }],
+    parameters: [idParam, { in: "path" as const, name: "permission", required: true, schema: { type: "string" as const } }],
     responses: {
       200: { description: "Permisos actualizados", content: { "application/json": { schema: UserPermissionsViewSchema } } },
     },

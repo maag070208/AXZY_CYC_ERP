@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>CYC Lottie preview</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>body{font-family:system-ui;margin:0;padding:24px;background:#fff;color:#17181C}
+.row{display:flex;gap:24px;flex-wrap:wrap}.card{flex:1 1 360px;border:1px solid #e5e7eb;border-radius:12px;padding:16px;text-align:center}
+.dark{background:#0E1117;color:#fff}button{margin-top:8px;padding:6px 14px;border-radius:8px;border:1px solid #3172F3;background:#3172F3;color:#fff;cursor:pointer}</style></head>
+<body><h2>CYC · Lottie preview</h2>
+<p>Abre este archivo con los .json en la misma carpeta (usa un servidor local: <code>python3 -m http.server</code>).</p>
+<div class="row">
+<div class="card"><div id="a"></div><button onclick="A.goToAndPlay(0,true)">Repetir</button></div>
+<div class="card dark"><div id="b"></div><button onclick="B.goToAndPlay(0,true)">Repetir</button></div>
+<div class="card"><div id="c" style="max-width:300px;margin:auto"></div><button onclick="C.goToAndPlay(0,true)">Repetir</button></div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.12.2/lottie.min.js"></script>
+<script>
+const o=(el,p)=>lottie.loadAnimation({container:document.getElementById(el),renderer:'svg',loop:false,autoplay:true,path:p});
+var A=o('a','cyc-logo-animated.json'),B=o('b','cyc-logo-animated.json'),C=o('c','cyc-logo-mark-animated.json');
+</script></body></html>

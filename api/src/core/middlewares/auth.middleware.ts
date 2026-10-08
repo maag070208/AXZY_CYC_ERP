@@ -11,7 +11,6 @@ import { isPermission, permissionsOf, scopeOf, type Scope } from "@core/permissi
 import { logger } from "@core/utils/logger";
 
 declare global {
-  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
     interface Request {
       user?: AuthenticatedUser;

@@ -3,7 +3,7 @@ import { useSelector } from "react-redux";
 import { Navigate, useNavigate } from "react-router-dom";
 import type { RootState } from "@app/store";
 import { LoginForm, useLogin } from "@features/auth/login";
-import cycLogo from "@shared/assets/cyc-logo.svg";
+import { LottieLoader } from "@shared/ui/lottie-loader";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -26,11 +26,11 @@ export default function LoginPage() {
       className="relative min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 p-4"
     >
       <ITFlex direction="column" align="center" gap={6} className="w-full max-w-md">
-        <img
-          src={cycLogo}
-          alt="CYC — Sistema de Gestión Escolar"
-          className="h-24 w-auto rounded-2xl bg-[#1D4ED8] p-3 shadow-lg"
-        />
+        <LottieLoader animation="logo" size={150} />
+
+        <ITText as="h1" className="text-center text-lg font-semibold text-slate-700">
+          Sistema de Gestión Escolar
+        </ITText>
 
         <LoginForm
           username={login.username}

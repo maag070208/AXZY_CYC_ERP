@@ -14,30 +14,33 @@ if (!localStorage.getItem("it-theme-dark-mode")) {
   localStorage.setItem("it-theme-dark-mode", "light");
 }
 
+
 const customTheme: ITThemePalette = {
-  primary: "#1D4ED8",
-  secondary: "#2563EB",
+  primary: "#2563EB",
+  secondary: "#1D4ED8",
   ternary: "#EFF6FF",
-  alert: "#F59E0B",
+
+  alert: "#F97316",
   warning: "#F59E0B",
   danger: "#DC2626",
   info: "#0EA5E9",
   success: "#16A34A",
+
   layout: {
-    sidebarBg: "#ffffff",
-    sidebarText: "#334155",
-    navbarBg: "#1D4ED8",
-    navbarText: "#ffffff",
+    sidebarBg: "#FFFFFF",
+    sidebarText: "#27272A",
+    navbarBg: "#18181B",
+    navbarText: "#FFFFFF",
   },
+
   table: {
-    headerBg: "#dbeafe9d",
+    headerBg: "#DBEAFE",
     headerText: "#1D4ED8",
-    rowBg: "#ffffff",
-    rowText: "#0F172A",
-    rowHover: "#1d4ed8c4",
+    rowBg: "#FFFFFF",
+    rowText: "#27272A",
+    rowHover: "#DBEAFE",
   },
 };
-
 createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <Provider store={store}>

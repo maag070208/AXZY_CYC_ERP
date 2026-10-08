@@ -63,5 +63,12 @@
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.3.3",
     "typescript-eslint": "^8.70.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@prisma/client",
+      "prisma",
+      "@prisma/engines"
+    ]
   }
 }

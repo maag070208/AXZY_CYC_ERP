@@ -10,12 +10,10 @@ WORKDIR /app
 # pnpm con caché de npm para no re-descargarlo en cada build.
 RUN --mount=type=cache,target=/root/.npm npm install -g pnpm@10
 
-# Dependencias. Se instala a partir de package.json (no se exige lockfile para
-# que el build funcione en un checkout limpio); una vez generado
-# `api/pnpm-lock.yaml` puedes endurecerlo a `--frozen-lockfile`.
-COPY package.json ./
+# Dependencias (reproducible con el lockfile).
+COPY package.json pnpm-lock.yaml ./
 RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
-    pnpm install --no-frozen-lockfile --store-dir=/pnpm/store
+    pnpm install --frozen-lockfile --store-dir=/pnpm/store
 
 # Esquema de Prisma y cliente generado (los binarios se cachean entre builds).
 COPY prisma ./prisma

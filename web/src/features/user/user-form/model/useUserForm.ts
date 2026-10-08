@@ -27,6 +27,7 @@ const EMPTY: UserFormValues = {
 export interface RoleOption {
   value: string;
   label: string;
+  [key: string]: string;
 }
 
 /**

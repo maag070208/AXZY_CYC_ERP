@@ -70,6 +70,7 @@ export const en: Messages = {
 
     CHANGES_ARRAY_REQUIRED: "changes must be a non-empty array",
     TOO_MANY_CHANGES: "changes accepts at most {{max}} rows per request",
+    CHANGES_REQUIRED: "At least one matrix change is required",
     INVALID_CHANGE_ROLE: "changes[{{index}}].role is invalid: {{role}}",
     CHANGE_PERMISSION_REQUIRED: "changes[{{index}}].permission is required",
     CHANGE_PERMISSION_TOO_LONG: "changes[{{index}}].permission exceeds {{max}} characters",

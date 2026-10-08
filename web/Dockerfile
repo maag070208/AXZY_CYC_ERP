@@ -9,12 +9,10 @@ WORKDIR /app
 
 RUN --mount=type=cache,target=/root/.npm npm install -g pnpm@10
 
-# Dependencias primero (capa cacheable). No se exige lockfile para que el build
-# funcione en un checkout limpio; con `web/pnpm-lock.yaml` presente puedes usar
-# `--frozen-lockfile`.
-COPY package.json ./
+# Dependencias primero (capa cacheable, reproducible con el lockfile).
+COPY package.json pnpm-lock.yaml ./
 RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
-    pnpm install --no-frozen-lockfile --store-dir=/pnpm/store
+    pnpm install --frozen-lockfile --store-dir=/pnpm/store
 
 # Código y build. La imagen solo necesita el artefacto: `vite` (esbuild) compila
 # sin tipar; el typecheck (`tsc -b`) corre en `pnpm run build` (local/CI).

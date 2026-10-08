@@ -7,11 +7,10 @@ import {
   catalogFromRows,
   seedCatalog,
   type CatalogRow,
-  type PermissionDef,
 } from "./catalog";
-import { rolesFromRows, type RoleDef, type RoleRow } from "./roles";
+import { rolesFromRows, type RoleRow } from "./roles";
 import { loadPermissionsFromDb } from "./matrix";
-import { SCOPES, type Scope } from "./types";
+import { SCOPES, type Scope, type PermissionDef, type RoleDef } from "./types";
 
 /**
  * Fixtures del catálogo de roles, del catálogo de permisos y de la matriz

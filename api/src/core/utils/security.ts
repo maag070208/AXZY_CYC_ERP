@@ -53,6 +53,7 @@ export const randomToken = (): string => crypto.randomBytes(32).toString("hex");
 export const signToken = (payload: JwtPayload): string => {
   const opts: SignOptions = {
     expiresIn: env.JWT_EXPIRES_IN as SignOptions["expiresIn"],
+    jwtid: crypto.randomUUID(),
   };
   return jwt.sign(payload, env.JWT_SECRET, opts);
 };
@@ -72,6 +73,7 @@ export interface RefreshPayload {
 export const signRefreshToken = (payload: { id: string; username: string }): string => {
   const opts: SignOptions = {
     expiresIn: env.JWT_REFRESH_EXPIRES_IN as SignOptions["expiresIn"],
+    jwtid: crypto.randomUUID(),
   };
   return jwt.sign({ ...payload, type: "refresh" }, env.JWT_SECRET, opts);
 };

@@ -11,7 +11,7 @@ import { useTranslation } from "react-i18next";
 import type { AppDispatch, RootState } from "@app/store";
 import { authApi, logout, meThunk } from "@entities/user";
 import { APP_SCREENS, isScreenVisible, type AppScreen } from "@entities/permission";
-import cycLogo from "@shared/assets/cyc-logo.svg";
+import cycMark from "@shared/assets/logos/logo-mark.svg";
 
 /** Icono del menú por pantalla (el catálogo vive en `@entities/permission`). */
 const NAV_ICONS: Record<string, ReactNode> = {
@@ -40,6 +40,12 @@ export default function PrivateRoutes() {
     }
   }, [user, i18n]);
 
+  const handleLogout = useCallback(() => {
+    authApi.logout().catch(() => undefined);
+    dispatch(logout());
+    navigate("/login");
+  }, [dispatch, navigate]);
+
   if (!token) {
     return <Navigate to="/login" replace state={{ from: location }} />;
   }
@@ -66,19 +72,13 @@ export default function PrivateRoutes() {
     isActive: isScreenActive(screen),
   }));
 
-  const handleLogout = useCallback(() => {
-    authApi.logout().catch(() => undefined);
-    dispatch(logout());
-    navigate("/login");
-  }, [dispatch, navigate]);
-
   const sidebar: ITSidebarProps = {
     navigationItems,
     isCollapsed: true,
   };
 
   const topBar = {
-    logo: <img src={cycLogo} alt="CYC" className="h-10 w-auto object-contain" />,
+    logo: <img src={cycMark} alt="CYC" className="h-10 w-auto object-contain" />,
     logoText: "CYC",
     userMenu: user
       ? {
