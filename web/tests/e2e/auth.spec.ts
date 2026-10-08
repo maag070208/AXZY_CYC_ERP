@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { E2E, route } from "./support/env";
+import { E2E, apiBase, route } from "./support/env";
 
 /**
  * Acceso al sistema (M02). Corre sin sesión guardada: aquí justamente se prueba
@@ -76,3 +76,68 @@ test.describe("Sesión", () => {
     expect((await savedSession(page))?.token).toBeTruthy();
   });
 });
+
+test.describe("Cierre de sesión y renovación", () => {
+  test("cerrar sesión limpia la sesión y revoca el refresh", async ({ page, request }) => {
+    await goToLogin(page);
+    await enter(page, E2E.admin.username);
+    await expect(page).not.toHaveURL(/#\/login/);
+    const before = await savedSession(page);
+    const refreshToken = (before as { refreshToken?: string } | null)?.refreshToken;
+    expect(refreshToken).toBeTruthy();
+
+    await page.getByText(E2E.admin.name).first().click();
+    await page.getByText(/cerrar sesión/i).first().click();
+
+    await expect(page).toHaveURL(/#\/login/);
+    expect((await savedSession(page))?.token ?? null).toBeNull();
+
+    // El refresh de la sesión cerrada ya no sirve en la API.
+    const reused = await request.post(`${apiBase}auth/refresh`, { data: { refreshToken } });
+    expect(reused.status()).toBe(401);
+  });
+
+  test("un access vencido se renueva solo con el refresh", async ({ page }) => {
+    await goToLogin(page);
+    await enter(page, E2E.admin.username);
+    await expect(page).not.toHaveURL(/#\/login/);
+
+    // Se corrompe el access persistido: la app debe renovarlo y seguir dentro.
+    await page.evaluate((key) => {
+      const session = JSON.parse(localStorage.getItem(key) ?? "{}");
+      session.token = "access-vencido";
+      localStorage.setItem(key, JSON.stringify(session));
+    }, E2E.storageKey);
+    await page.reload();
+
+    await expect(page.getByText(E2E.admin.name).first()).toBeVisible();
+    await expect(page).not.toHaveURL(/#\/login/);
+    const session = await savedSession(page);
+    expect(session?.token).toBeTruthy();
+    expect(session?.token).not.toBe("access-vencido");
+  });
+});
+
+test.describe("Menú y rutas por permiso", () => {
+  test("ADMIN entra por URL a /users y /roles", async ({ page }) => {
+    await goToLogin(page);
+    await enter(page, E2E.admin.username);
+    await expect(page).not.toHaveURL(/#\/login/);
+    await page.goto(route("/users"));
+    await expect(page).toHaveURL(/#\/users/);
+    await page.goto(route("/roles"));
+    await expect(page).toHaveURL(/#\/roles/);
+  });
+
+  test("PROFESOR no entra por URL a /users ni /roles", async ({ page }) => {
+    await goToLogin(page);
+    await enter(page, E2E.teacher.username);
+    await expect(page).not.toHaveURL(/#\/login/);
+
+    await page.goto(route("/users"));
+    await expect(page).toHaveURL(/#\/$/);
+    await page.goto(route("/roles"));
+    await expect(page).toHaveURL(/#\/$/);
+  });
+});
+

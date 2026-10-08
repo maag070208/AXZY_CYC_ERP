@@ -34,6 +34,20 @@ npm run test:e2e:report      # abrir el último reporte HTML
 - `POST /auth/forgot-password`: responde `200` aunque el usuario no exista.
 - `POST /auth/reset-password`: token inválido → `422 RESET_TOKEN_INVALID`;
   contraseña corta → `400 VALIDATION_ERROR` con `details` por campo.
+- Autorización: cuenta dada de baja (`401 ACCOUNT_DEACTIVATED`), login por email,
+  refresh usado como access (`401 INVALID_TOKEN`), header mal formado, `403
+  INSUFFICIENT_PERMISSIONS` registrado como `ACCESS_DENIED`, `200` con permiso y
+  bitácora `AUTH_LOGIN` sin secretos.
+
+## Provisión para la suite web
+
+La suite de navegador (`web/tests/e2e`) usa usuarios fijos por rol. Este paquete
+es el dueño de la base, así que los crea y borra:
+
+```bash
+npm run test:e2e:provision   # e2e_admin, e2e_control, e2e_profesor
+npm run test:e2e:clean       # borra todo lo que lleva el prefijo e2e_
+```
 
 ## Aislamiento y limpieza
 

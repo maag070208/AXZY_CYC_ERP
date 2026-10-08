@@ -25,7 +25,7 @@ export default function PrivateRoutes() {
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch<AppDispatch>();
-  const { token, user } = useSelector((s: RootState) => s.auth);
+  const { token, refreshToken, user } = useSelector((s: RootState) => s.auth);
 
   // Al abrir la app (o iniciar sesión) se refresca `/auth/me`: el usuario
   // guardado puede traer permisos o idioma viejos.
@@ -40,11 +40,13 @@ export default function PrivateRoutes() {
     }
   }, [user, i18n]);
 
-  const handleLogout = useCallback(() => {
-    authApi.logout().catch(() => undefined);
+  // Primero se revoca el refresh en la API (con el access aún vigente) y
+  // después se limpia la sesión local; al revés, la petición saldría sin token.
+  const handleLogout = useCallback(async () => {
+    await authApi.logout(refreshToken).catch(() => undefined);
     dispatch(logout());
     navigate("/login");
-  }, [dispatch, navigate]);
+  }, [dispatch, navigate, refreshToken]);
 
   if (!token) {
     return <Navigate to="/login" replace state={{ from: location }} />;

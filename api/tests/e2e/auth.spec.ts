@@ -1,6 +1,13 @@
 import { test, expect, request as playwrightRequest, type APIRequestContext } from "@playwright/test";
 import { E2E, E2E_PREFIX, assertSafeDatabase, newRunId } from "./support/env";
-import { activeRefreshTokens, clearAuthE2E, createAuthUser, lockState } from "./support/db";
+import {
+  activeRefreshTokens,
+  clearAuthE2E,
+  createAuthUser,
+  deactivateUser,
+  lastAudit,
+  lockState,
+} from "./support/db";
 
 /**
  * E2E de contrato de M02 contra la API real: login, bloqueo, refresh rotado,
@@ -12,8 +19,26 @@ assertSafeDatabase();
 const RUN = newRunId();
 const ADMIN = { username: `${E2E_PREFIX}admin_${RUN}`, name: "E2E Admin", roleKey: "ADMIN" };
 const LOCKED = { username: `${E2E_PREFIX}lock_${RUN}`, name: "E2E Bloqueo", roleKey: "ALUMNO" };
+const TEACHER = { username: `${E2E_PREFIX}prof_${RUN}`, name: "E2E Profesor", roleKey: "PROFESOR" };
+const GONE = { username: `${E2E_PREFIX}baja_${RUN}`, name: "E2E Baja", roleKey: "ALUMNO" };
 
 let adminId: string;
+let teacherId: string;
+
+const loginAs = async (username: string) => {
+  const ctx = await anon();
+  const res = await ctx.post("auth/login", { data: { username, password: E2E.password } });
+  expect(res.status()).toBe(200);
+  const body = await res.json();
+  await ctx.dispose();
+  return body as { token: string; refreshToken: string };
+};
+
+const bearer = (token: string) =>
+  playwrightRequest.newContext({
+    baseURL: E2E.baseURL,
+    extraHTTPHeaders: { Authorization: `Bearer ${token}` },
+  });
 
 const anon = async (): Promise<APIRequestContext> =>
   playwrightRequest.newContext({ baseURL: E2E.baseURL });
@@ -21,6 +46,9 @@ const anon = async (): Promise<APIRequestContext> =>
 test.beforeAll(async () => {
   adminId = (await createAuthUser({ ...ADMIN, password: E2E.password })).id;
   await createAuthUser({ ...LOCKED, password: E2E.password });
+  teacherId = (await createAuthUser({ ...TEACHER, password: E2E.password })).id;
+  await createAuthUser({ ...GONE, password: E2E.password });
+  await deactivateUser(GONE.username);
 });
 
 test.afterAll(async () => {
@@ -203,3 +231,84 @@ test.describe("recuperación de contraseña", () => {
     await ctx.dispose();
   });
 });
+
+test.describe("autorización por endpoint", () => {
+  test("cuenta dada de baja → 401 ACCOUNT_DEACTIVATED", async () => {
+    const ctx = await anon();
+    const res = await ctx.post("auth/login", {
+      data: { username: GONE.username, password: E2E.password },
+    });
+    expect(res.status()).toBe(401);
+    expect((await res.json()).code).toBe("ACCOUNT_DEACTIVATED");
+    await ctx.dispose();
+  });
+
+  test("login por email también funciona", async () => {
+    const ctx = await anon();
+    const res = await ctx.post("auth/login", {
+      data: { username: `${ADMIN.username}@e2e.local`, password: E2E.password },
+    });
+    expect(res.status()).toBe(200);
+    await ctx.dispose();
+  });
+
+  test("un refresh token no sirve como access → 401 INVALID_TOKEN", async () => {
+    const { refreshToken } = await loginAs(ADMIN.username);
+    const ctx = await bearer(refreshToken);
+    const res = await ctx.get("auth/me");
+    expect(res.status()).toBe(401);
+    expect((await res.json()).code).toBe("INVALID_TOKEN");
+    await ctx.dispose();
+  });
+
+  test("token basura → 401 INVALID_TOKEN; header mal formado → 401", async () => {
+    const ctx = await bearer("no-es-un-jwt");
+    expect((await (await ctx.get("users")).json()).code).toBe("INVALID_TOKEN");
+    await ctx.dispose();
+    const raw = await playwrightRequest.newContext({
+      baseURL: E2E.baseURL,
+      extraHTTPHeaders: { Authorization: "Token abc" },
+    });
+    const res = await raw.get("users");
+    expect(res.status()).toBe(401);
+    expect((await res.json()).code).toBe("INVALID_AUTHORIZATION_HEADER");
+    await raw.dispose();
+  });
+
+  test("PROFESOR sin users.view → 403 INSUFFICIENT_PERMISSIONS y queda en bitácora", async () => {
+    const { token } = await loginAs(TEACHER.username);
+    const ctx = await bearer(token);
+    const res = await ctx.post("users/query", { data: { page: 1, limit: 10 } });
+    expect(res.status()).toBe(403);
+    expect((await res.json()).code).toBe("INSUFFICIENT_PERMISSIONS");
+    await ctx.dispose();
+
+    // El registro se escribe en segundo plano.
+    await expect
+      .poll(async () => (await lastAudit("ACCESS_DENIED", teacherId))?.entityId ?? null)
+      .toBe("users.view");
+  });
+
+  test("ADMIN con users.view → 200 en /users/query", async () => {
+    const { token } = await loginAs(ADMIN.username);
+    const ctx = await bearer(token);
+    const res = await ctx.post("users/query", {
+      data: { page: 1, limit: 5, filters: { username: ADMIN.username } },
+    });
+    expect(res.status()).toBe(200);
+    const body = await res.json();
+    expect(body.total).toBe(1);
+    expect(body.data[0].username).toBe(ADMIN.username);
+    await ctx.dispose();
+  });
+
+  test("el login exitoso queda en bitácora (AUTH_LOGIN) sin secretos", async () => {
+    await loginAs(ADMIN.username);
+    const log = await lastAudit("AUTH_LOGIN", adminId);
+    expect(log).not.toBeNull();
+    const dump = JSON.stringify(log);
+    expect(dump).not.toContain(E2E.password);
+    expect(dump).not.toMatch(/passwordHash|refreshToken/);
+  });
+});
+

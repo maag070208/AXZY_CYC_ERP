@@ -15,7 +15,10 @@
     "seed": "npx prisma db seed",
     "test": "playwright test",
     "test:unit": "playwright test -c playwright.unit.config.ts",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:e2e:provision": "ts-node -T tests/e2e/support/provision.ts",
+    "test:e2e:clean": "ts-node -T tests/e2e/support/clean.ts",
+    "test:e2e:report": "playwright show-report"
   },
   "prisma": {
     "seed": "ts-node -r tsconfig-paths/register prisma/seed.ts"

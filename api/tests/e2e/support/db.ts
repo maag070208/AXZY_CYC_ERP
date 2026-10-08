@@ -54,3 +54,18 @@ export const lockState = async (
 export const activeRefreshTokens = async (userId: string): Promise<number> => {
   return db.refreshToken.count({ where: { userId, revokedAt: null } });
 };
+
+/** Da de baja (lógica) a un usuario E2E directo en la base. */
+export const deactivateUser = async (username: string): Promise<void> => {
+  await db.user.update({
+    where: { username },
+    data: { active: false, deactivatedAt: new Date(), deactivationReason: "e2e" },
+  });
+};
+
+/** Último registro de bitácora de una acción para un usuario (o cualquiera). */
+export const lastAudit = async (action: string, userId?: string) =>
+  db.auditLog.findFirst({
+    where: { action, ...(userId ? { userId } : {}) },
+    orderBy: { createdAt: "desc" },
+  });

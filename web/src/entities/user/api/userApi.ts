@@ -19,7 +19,9 @@ export const authApi = {
   me: () => api.get<MeResponse>(`/auth/me`),
   refresh: (refreshToken: string) =>
     api.post<RefreshResponse>(`/auth/refresh`, { refreshToken }),
-  logout: () => api.post<void>(`/auth/logout`),
+  /** Revoca el refresh de esta sesión (sin él, la API revoca todos los del usuario). */
+  logout: (refreshToken?: string | null) =>
+    api.post<void>(`/auth/logout`, refreshToken ? { refreshToken } : {}),
 };
 
 export const usersApi = {

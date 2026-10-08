@@ -8,7 +8,7 @@ Cubre el módulo **M02** (autenticación, sesión, permisos y usuarios):
 
 | Archivo | Pantalla | Flujo |
 |---|---|---|
-| `auth.spec.ts` | `/login` | Acceso válido/ inválido, guard de rutas, persistencia de sesión |
+| `auth.spec.ts` | `/login` | Acceso válido/inválido, guard de rutas, persistencia de sesión, logout (revoca el refresh), renovación de un access vencido, rutas por permiso |
 | `insecure-context.spec.ts` | todas | Sin `crypto.randomUUID` (cliente por `http://IP:8080`) |
 
 ## Cómo correrlas
@@ -35,7 +35,8 @@ npm run test:e2e:report               # abrir el último reporte HTML
 **Se prueba la pantalla; el escenario se siembra por API.** Los usuarios de
 prueba (`e2e_admin`, `e2e_control`, `e2e_profesor`) los provisiona el paquete
 `api/`, que es el dueño de la base; aquí solo se invocan sus scripts
-`test:e2e:provision` / `test:e2e:clean` (ver `support/global-teardown.ts`).
+`test:e2e:provision` / `test:e2e:clean` (ver `support/global-setup.ts` y
+`support/global-teardown.ts`).
 
 **HashRouter.** Todas las rutas de la app cuelgan de `#`; el helper `route()`
 en `support/env.ts` arma la URL.
@@ -54,5 +55,7 @@ Salen del mismo `web/.env` que consume la app.
 | `E2E_WEB_URL` | `http://localhost:5173` | Apuntar a otra instancia de la app |
 | `E2E_API_URL` | `VITE_API_URL` | Apuntar a otra API |
 | `E2E_PASSWORD` | `e2e-Test-2026!` | Contraseña de los usuarios de prueba |
+| `E2E_CHROMIUM_PATH` | — | Ejecutable de Chromium ya instalado (sin `playwright install`) |
+| `E2E_VIDEO` | — | `off` para no grabar video (sin ffmpeg de Playwright) |
 
 La sesión de la app vive en `localStorage["cyc_auth_v1"]` (`E2E.storageKey`).
