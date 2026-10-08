@@ -3,6 +3,10 @@
 Regla de oro: **un módulo a la vez, en el orden indicado**. No se avanza sin que
 el módulo anterior funcione y tenga pruebas.
 
+> Para la vista de gestión del proyecto (fases, iteraciones, hitos de aceptación y
+> riesgos) ver el [Plan de implementación por fases](plan-implementacion.md). Este
+> documento define el **orden técnico y las dependencias**.
+
 ## 1. Fases y dependencias
 
 ```

@@ -39,7 +39,7 @@ Detalle en [`docs/arquitectura/stack.md`](docs/arquitectura/stack.md).
 |---|---|
 | El mapa completo de la documentación | [`docs/README.md`](docs/README.md) |
 | Entender el alcance y la visión | [`docs/guia/vision-alcance.md`](docs/guia/vision-alcance.md) |
-| Cómo se organiza el trabajo | [`docs/guia/roadmap.md`](docs/guia/roadmap.md) |
+| Cómo se organiza el trabajo | [`docs/guia/roadmap.md`](docs/guia/roadmap.md) · [`plan por fases`](docs/guia/plan-implementacion.md) |
 | Los estándares de la casa | [`docs/guia/convenciones.md`](docs/guia/convenciones.md) |
 | Arquitectura y stack | [`docs/arquitectura/`](docs/arquitectura/) |
 | API modular / Web FSD / UI kit | [`api-modular.md`](docs/arquitectura/api-modular.md) · [`web-fsd.md`](docs/arquitectura/web-fsd.md) · [`axzy-ui-system.md`](docs/arquitectura/axzy-ui-system.md) |

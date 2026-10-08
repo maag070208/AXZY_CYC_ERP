@@ -16,6 +16,7 @@ Mapa maestro de la documentación del Sistema de Gestión Escolar (SGE). Refleja
 | [`guia/glosario.md`](guia/glosario.md) | Términos del dominio escolar y del sistema |
 | [`guia/convenciones.md`](guia/convenciones.md) | **Estándares de la casa** (API, BD, web, UI, pruebas) |
 | [`guia/roadmap.md`](guia/roadmap.md) | Orden de construcción por fases y dependencias |
+| [`guia/plan-implementacion.md`](guia/plan-implementacion.md) | Plan por fases: iteraciones, hitos de aceptación, riesgos y flujos transversales |
 
 ## 2. Arquitectura
 
