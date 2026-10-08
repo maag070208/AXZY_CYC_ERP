@@ -1,0 +1,50 @@
+{
+  "actions": {
+    "new": "New",
+    "edit": "Edit",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "view": "View details",
+    "save": "Save",
+    "search": "Search...",
+    "back": "Back",
+    "reload": "Reload",
+    "logout": "Sign out"
+  },
+  "breadcrumbs": {
+    "home": "Home"
+  },
+  "nav": {
+    "home": "Home",
+    "settings": "Settings",
+    "users": "Users",
+    "roles": "Roles and permissions",
+    "notifications": "Notifications",
+    "logout": "Sign out"
+  },
+  "errors": {
+    "network": "Network or server error",
+    "load": "Error loading",
+    "save": "Error saving"
+  },
+  "labels": {
+    "inactive": "inactive",
+    "active": "active",
+    "role": "Role",
+    "permissions": "Permissions",
+    "processing": "Processing..."
+  },
+  "validation": {
+    "required": "{{label}} is required",
+    "minLength": "{{label}} must have at least {{min}} characters",
+    "thisField": "This field",
+    "invalidEmail": "Invalid email",
+    "invalidCurp": "CURP must have 18 alphanumeric characters",
+    "reviewFields": "Check the highlighted fields"
+  },
+  "home": {
+    "title": "Home",
+    "description": "School Management System dashboard",
+    "welcome": "Welcome, {{name}}"
+  }
+}

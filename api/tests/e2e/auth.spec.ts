@@ -1,0 +1,205 @@
+import { test, expect, request as playwrightRequest, type APIRequestContext } from "@playwright/test";
+import { E2E, E2E_PREFIX, assertSafeDatabase, newRunId } from "./support/env";
+import { activeRefreshTokens, clearAuthE2E, createAuthUser, lockState } from "./support/db";
+
+/**
+ * E2E de contrato de M02 contra la API real: login, bloqueo, refresh rotado,
+ * `/auth/me`, logout y recuperación de contraseña. Los usuarios se crean aquí
+ * (prefijo `e2e_`) y se borran al terminar.
+ */
+assertSafeDatabase();
+
+const RUN = newRunId();
+const ADMIN = { username: `${E2E_PREFIX}admin_${RUN}`, name: "E2E Admin", roleKey: "ADMIN" };
+const LOCKED = { username: `${E2E_PREFIX}lock_${RUN}`, name: "E2E Bloqueo", roleKey: "ALUMNO" };
+
+let adminId: string;
+
+const anon = async (): Promise<APIRequestContext> =>
+  playwrightRequest.newContext({ baseURL: E2E.baseURL });
+
+test.beforeAll(async () => {
+  adminId = (await createAuthUser({ ...ADMIN, password: E2E.password })).id;
+  await createAuthUser({ ...LOCKED, password: E2E.password });
+});
+
+test.afterAll(async () => {
+  await clearAuthE2E();
+});
+
+test.describe("POST /auth/login", () => {
+  test("login feliz devuelve tokens y usuario con permisos", async () => {
+    const ctx = await anon();
+    const res = await ctx.post("auth/login", {
+      data: { username: ADMIN.username, password: E2E.password },
+    });
+    expect(res.status()).toBe(200);
+    const body = await res.json();
+    expect(body.token).toBeTruthy();
+    expect(body.refreshToken).toBeTruthy();
+    expect(body.user).toMatchObject({
+      id: adminId,
+      username: ADMIN.username,
+      name: ADMIN.name,
+      role: "ADMIN",
+      roles: ["ADMIN"],
+    });
+    expect(body.user.permissions["users.view"]).toBe("ALL");
+    expect(body.user.password ?? body.user.passwordHash).toBeUndefined();
+    await ctx.dispose();
+  });
+
+  test("credenciales inválidas → 401 INVALID_CREDENTIALS", async () => {
+    const ctx = await anon();
+    const res = await ctx.post("auth/login", {
+      data: { username: ADMIN.username, password: "incorrecta" },
+    });
+    expect(res.status()).toBe(401);
+    expect((await res.json()).code).toBe("INVALID_CREDENTIALS");
+    await ctx.dispose();
+  });
+
+  test("bloqueo temporal tras 5 intentos → 429 ACCOUNT_LOCKED", async () => {
+    const ctx = await anon();
+    for (let i = 1; i <= 4; i++) {
+      const res = await ctx.post("auth/login", {
+        data: { username: LOCKED.username, password: "incorrecta" },
+      });
+      expect(res.status()).toBe(401);
+    }
+    const fifth = await ctx.post("auth/login", {
+      data: { username: LOCKED.username, password: "incorrecta" },
+    });
+    expect(fifth.status()).toBe(429);
+
+    // Incluso con la contraseña correcta sigue bloqueada.
+    const correct = await ctx.post("auth/login", {
+      data: { username: LOCKED.username, password: E2E.password },
+    });
+    expect(correct.status()).toBe(429);
+
+    const state = await lockState(LOCKED.username);
+    expect(state?.failedAttempts).toBeGreaterThanOrEqual(5);
+    expect(state?.lockedUntil).not.toBeNull();
+    await ctx.dispose();
+  });
+});
+
+test.describe("GET /auth/me", () => {
+  test("sin token → 401", async () => {
+    const ctx = await anon();
+    expect((await ctx.get("auth/me")).status()).toBe(401);
+    await ctx.dispose();
+  });
+
+  test("con token devuelve usuario, roles, permisos e idioma", async () => {
+    const ctx = await anon();
+    const login = await ctx.post("auth/login", {
+      data: { username: ADMIN.username, password: E2E.password },
+    });
+    const { token } = await login.json();
+    await ctx.dispose();
+
+    const authed = await playwrightRequest.newContext({
+      baseURL: E2E.baseURL,
+      extraHTTPHeaders: { Authorization: `Bearer ${token}` },
+    });
+    const res = await authed.get("auth/me");
+    expect(res.status()).toBe(200);
+    const body = await res.json();
+    expect(body.user).toMatchObject({ username: ADMIN.username, role: "ADMIN" });
+    expect(body.roles).toContain("ADMIN");
+    expect(body.permissions["audit.view"]).toBe("ALL");
+    expect(["es", "en"]).toContain(body.language);
+    await authed.dispose();
+  });
+});
+
+test.describe("refresh rotado", () => {
+  test("el refresh emite uno nuevo e invalida el anterior", async () => {
+    const ctx = await anon();
+    const login = await ctx.post("auth/login", {
+      data: { username: ADMIN.username, password: E2E.password },
+    });
+    const { refreshToken } = await login.json();
+
+    const rotated = await ctx.post("auth/refresh", { data: { refreshToken } });
+    expect(rotated.status()).toBe(200);
+    const fresh = await rotated.json();
+    expect(fresh.token).toBeTruthy();
+    expect(fresh.refreshToken).not.toBe(refreshToken);
+
+    // Reusar el refresh viejo falla.
+    const reused = await ctx.post("auth/refresh", { data: { refreshToken } });
+    expect(reused.status()).toBe(401);
+    expect((await reused.json()).code).toBe("INVALID_REFRESH_TOKEN");
+
+    await ctx.dispose();
+  });
+
+  test("logout revoca el refresh vigente", async () => {
+    const ctx = await anon();
+    const login = await ctx.post("auth/login", {
+      data: { username: ADMIN.username, password: E2E.password },
+    });
+    const { token, refreshToken } = await login.json();
+
+    const authed = await playwrightRequest.newContext({
+      baseURL: E2E.baseURL,
+      extraHTTPHeaders: { Authorization: `Bearer ${token}` },
+    });
+    const logout = await authed.post("auth/logout", { data: { refreshToken } });
+    expect(logout.status()).toBe(204);
+    await authed.dispose();
+
+    const refreshed = await ctx.post("auth/refresh", { data: { refreshToken } });
+    expect(refreshed.status()).toBe(401);
+    await ctx.dispose();
+  });
+
+  test("solo queda un refresh vigente tras rotar", async () => {
+    const ctx = await anon();
+    const login = await ctx.post("auth/login", {
+      data: { username: ADMIN.username, password: E2E.password },
+    });
+    const { refreshToken } = await login.json();
+    const activeBefore = await activeRefreshTokens(adminId);
+    await ctx.post("auth/refresh", { data: { refreshToken } });
+    const activeAfter = await activeRefreshTokens(adminId);
+    // El anterior se revoca y se crea uno nuevo: el total vigente no crece.
+    expect(activeAfter).toBeLessThanOrEqual(activeBefore);
+    await ctx.dispose();
+  });
+});
+
+test.describe("recuperación de contraseña", () => {
+  test("forgot-password responde 200 siempre (usuario inexistente incluido)", async () => {
+    const ctx = await anon();
+    const res = await ctx.post("auth/forgot-password", {
+      data: { username: `${E2E_PREFIX}noexiste_${RUN}` },
+    });
+    expect(res.status()).toBe(200);
+    expect((await res.json()).ok).toBe(true);
+    await ctx.dispose();
+  });
+
+  test("reset-password con token inválido → 422 RESET_TOKEN_INVALID", async () => {
+    const ctx = await anon();
+    const res = await ctx.post("auth/reset-password", {
+      data: { token: "token-invalido", password: `${E2E.password}-nueva` },
+    });
+    expect(res.status()).toBe(422);
+    expect((await res.json()).code).toBe("RESET_TOKEN_INVALID");
+    await ctx.dispose();
+  });
+
+  test("reset-password con contraseña corta → 400 VALIDATION_ERROR", async () => {
+    const ctx = await anon();
+    const res = await ctx.post("auth/reset-password", {
+      data: { token: "x", password: "corta" },
+    });
+    expect(res.status()).toBe(400);
+    expect((await res.json()).code).toBe("VALIDATION_ERROR");
+    await ctx.dispose();
+  });
+});

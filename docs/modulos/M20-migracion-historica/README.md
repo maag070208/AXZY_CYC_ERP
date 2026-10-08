@@ -1,0 +1,290 @@
+# M20 — Migración de datos históricos
+
+| Campo | Valor |
+|---|---|
+| **Código** | M20 |
+| **Versión** | 0.1 |
+| **Estado** | Planeado |
+| **Fase** | Extras |
+| **Depende de** | M02 (auth/roles), M03 (alumnos), M04 (profesores), M07 (cursos/grupos), M08 (calificaciones), M09 (cargos/pagos), M11 (catálogos) |
+| **Habilita a** | Puesta en producción / *onboarding* de cliente con datos del sistema previo |
+| **Permisos** | `migration.execute` (con alcance) |
+
+## 1. Objetivo
+
+Importar de forma **repetible, idempotente y auditable** los datos históricos de
+sistemas previos (Excel/CSV/base anterior) al SGE, con simulación previa,
+limpieza, importación por lotes y conciliación con el cliente antes de dar por
+cerrada la migración.
+
+## 2. Alcance
+
+**Incluye**
+- Recepción y documentación de la estructura de los archivos fuente.
+- Mapeo origen → destino y script de importación con **modo simulación
+  (`dry-run`)** que reporta sin escribir.
+- Limpieza y normalización: nombres, fechas, montos, **CURP** y detección de
+  duplicados.
+- Importación real **en lotes transaccionales** con registro de filas rechazadas.
+- Validación por muestreo y **conciliación de totales** (alumnos, pagos,
+  calificaciones).
+- Trazabilidad de cada lote (`MigrationBatch`) y cada fila (`MigrationRow`).
+
+**No incluye (en este módulo)**
+- La operación de respaldo/restauración de la base ni el *cutover* (viven en
+  [`respaldos.md`](../../operacion/respaldos.md)).
+- Reglas de negocio propias de cada entidad importada (M03, M08, M09…): aquí solo
+  se invocan sus servicios/validadores.
+- Depuración de datos en el sistema origen ni captura manual de lo rechazado.
+- Migración de adjuntos/archivos binarios fuera de la importación de metadatos.
+
+## 3. Modelo de datos (Prisma)
+
+Tablas **auxiliares de trazabilidad** del proceso (el dataset final vive en cada
+módulo destino). `MigrationBatch` es el lote (una ejecución *dry-run* o real);
+`MigrationRow` es el resultado fila a fila.
+
+```prisma
+enum MigrationMode {
+  DRY_RUN
+  EXECUTE
+}
+
+enum MigrationBatchStatus {
+  EN_PROCESO
+  COMPLETADO
+  FALLIDO
+  CANCELADO
+}
+
+enum MigrationRowStatus {
+  ACEPTADA
+  RECHAZADA
+  OMITIDA
+}
+
+model MigrationBatch {
+  id             String                @id @default(uuid())
+  entidad        String                                 // Student, Payment, Grade…
+  archivo        String                                 // nombre/objeto del origen
+  checksum       String                                 // sha256 del archivo
+  mode           MigrationMode
+  status         MigrationBatchStatus  @default(EN_PROCESO)
+  idempotencyKey String?               @unique          // ligado al lote
+  totalsJson     Json                  @default("{}")   // { read, valid, rejected }
+  createdBy      String                                 // users.id
+  executedAt     DateTime?
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+
+  rows MigrationRow[]
+
+  @@index([entidad, status])
+  @@index([createdAt])
+  @@map("migration_batches")
+}
+
+model MigrationRow {
+  id         String               @id @default(uuid())
+  batchId    String
+  batch      MigrationBatch       @relation(fields: [batchId], references: [id])
+  rowNumber  Int                                        // fila en el archivo origen
+  entidad    String
+  naturalKey String?                                    // CURP, matrícula, folio…
+  status     MigrationRowStatus
+  reason     String?                                    // INVALID_CURP, DUPLICATE_CURP…
+  raw        Json?                                      // snapshot de la fila
+  createdAt  DateTime             @default(now())
+
+  @@index([batchId, status])
+  @@index([naturalKey])
+  @@map("migration_rows")
+}
+```
+
+**Índices:** `migration_batches(entidad, status)` y `(createdAt)`;
+`migration_rows(batchId, status)` y `(naturalKey)`.
+**Relaciones:** `MigrationRow.batchId → MigrationBatch.id` (1:N). `createdBy` es el
+`users.id` que dispara la ejecución (no FK obligatoria para no acoplar el módulo
+de auditoría/usuarios). Idempotencia por `idempotencyKey` único ligado al lote.
+
+## 4. Reglas de negocio
+
+1. **Seis pasos del proceso:** (1) recibir y documentar el origen; (2) mapear
+   columnas origen→destino; (3) `dry-run` que reporta sin escribir; (4) limpieza y
+   normalización; (5) importación real por lotes con filas rechazadas; (6)
+   validación por muestreo y conciliación de totales.
+2. **Repetible e idempotente:** reejecutar no duplica; la clave es la **clave
+   natural** de cada entidad (CURP/matrícula para alumnos, folio de recibo para
+   pagos, `assessmentId + enrollmentId` para calificaciones) con *upsert* /
+   *insert-missing*.
+3. **Preview y confirmación comparten el mismo `plan()`:** el `dry-run` y la
+   ejecución derivan del mismo cálculo, de modo que lo previsualizado coincide con
+   lo aplicado.
+4. **La confirmación reprocesa el archivo:** el servidor **no confía** en lo que
+   el navegador dice que leyó; vuelve a leer y normalizar el origen (validando el
+   `checksum`) antes de escribir.
+5. **`Idempotency-Key` ligado al lote:** `POST /migration/execute` exige la
+   cabecera; repetir la misma clave devuelve el lote previo sin reimportar; reusar
+   la clave con otro usuario → `IDEMPOTENCY_KEY_REUSED`.
+6. **Respaldo previo obligatorio:** antes de una importación real debe existir un
+   respaldo reciente (ver [`respaldos.md`](../../operacion/respaldos.md)); sin él,
+   la ejecución se rechaza.
+7. **Lotes transaccionales:** cada lote se aplica en transacción; filas rechazadas
+   se registran con motivo y **no** abortan las aceptadas.
+8. **Orden de importación:** catálogos → alumnos/tutores → profesores →
+   cursos/términos/grupos → inscripciones → calificaciones → cargos → pagos →
+   asistencia.
+9. **Conciliación:** no se cierra un lote real sin cuadrar conteos origen/destino,
+   suma de montos y muestreo aceptado por el cliente.
+10. **Auditoría:** cada lote ejecutado se registra con modo, totales y actor.
+
+## 5. API
+
+Módulo bajo `api/src/modules/migration/`
+(`routes/ · controllers/ · services/ · models/{dto,entity}/`). El servicio central
+es `MigrationService` con `plan(archivo)` y `execute(plan)`.
+
+| Método | Ruta | Descripción | Permiso |
+|---|---|---|---|
+| POST | `/api/v1/migration/preview` | Simulación (`dry-run`): reporte sin escribir | `migration.execute` |
+| POST | `/api/v1/migration/execute` | Importación real por lotes (`Idempotency-Key`) | `migration.execute` |
+| POST | `/api/v1/migration/batches/query` | Listado server-side de lotes | `migration.execute` |
+| GET | `/api/v1/migration/batches/:id` | Detalle de lote (totales y filas) | `migration.execute` |
+
+> La especificación original mencionaba `GET /migration/batches/query`; se unifica
+> a **`POST …/query`** por el contrato de tablas server-side
+> ([`api/convenciones.md`](../../api/convenciones.md) §3).
+
+**`POST /migration/preview`** (multipart con el archivo o referencia al objeto):
+
+```jsonc
+// Request  { "entidad": "Student", "archivoId": "…" }
+// Response 200
+{
+  "batchId": "…", "mode": "DRY_RUN",
+  "totals": { "read": 1200, "valid": 1180, "rejected": 20 },
+  "rejected": [
+    { "row": 15, "entidad": "Student", "reason": "INVALID_CURP", "value": "XAXX…" },
+    { "row": 42, "entidad": "Student", "reason": "DUPLICATE_CURP" }
+  ]
+}
+```
+
+**`POST /migration/execute`** (cabecera `Idempotency-Key` obligatoria; reprocesa
+el archivo en servidor):
+
+```jsonc
+// Request  { "entidad": "Student", "archivoId": "…", "confirm": true }
+// Response 201
+{ "batchId": "…", "mode": "EXECUTE", "status": "COMPLETADO",
+  "totals": { "read": 1200, "inserted": 1175, "updated": 5, "rejected": 20 } }
+```
+
+## 6. Web
+
+| Elemento | Capa FSD | Descripción |
+|---|---|---|
+| `migration-batch` | `entities/migration-batch` | API + tipos + hooks de lotes |
+| `migration/preview` | `features/migration/preview` | Carga de archivo y simulación (`dry-run`) |
+| `migration/execute` | `features/migration/execute` | Confirmación y ejecución con `Idempotency-Key` |
+| Asistente | `pages/migration/wizard` | Flujo de 6 pasos con `ITStepper` |
+| Historial | `pages/migration/batches` | Listado de lotes con `ITDataTable` |
+
+El asistente usa `ITPage` + `ITStepper` + `ITDropfile` para el archivo y
+`ITDataTable` para el reporte de filas; confirmación con `ITConfirmDialog`. i18n
+con namespace **`migration`**.
+
+## 7. Permisos y alcance
+
+- `migration.execute` — ejecutar `preview`/`execute` y consultar lotes. Por
+  defecto solo ADMIN (`ALL`); puede delegarse por excepción temporal
+  (`user_permissions` con vigencia) al personal de control escolar durante el
+  *onboarding*.
+- Es una acción sensible: se recomienda política ABAC que exija
+  `migration.execute` + contexto de ambiente no productivo, y registro de
+  `ACCESS_DENIED` ante intentos sin permiso. Ver
+  [`roles-permisos.md`](../../seguridad/roles-permisos.md).
+
+## 8. Validaciones
+
+Zod en `models/dto`:
+
+- `entidad` ∈ catálogo de entidades migrables (`INVALID_FORMAT`).
+- Archivo presente y tipo/tamaño permitidos (`FILE_TYPE_NOT_ALLOWED` /
+  `FILE_TOO_LARGE`); `checksum` calculable.
+- `Idempotency-Key` con formato `^[A-Za-z0-9_-]{8,100}$` (`INVALID_IDEMPOTENCY_KEY`)
+  y presente en `execute` (`REQUIRED_FIELD`).
+- Validación por entidad: CURP (`INVALID_CURP`), matrícula (`AAAA-NNNN`), fechas
+  ISO, montos `Decimal`; duplicados por clave natural → `DUPLICATE_CURP`,
+  `DUPLICATE_MATRICULA`, `DUPLICATE_RECORD`.
+- Filtros de tabla inválidos → `INVALID_FILTER`; rango invertido → `INVALID_RANGE`.
+- El reporte de `dry-run` nunca oculta rechazos: toda fila no aceptada queda en
+  `MigrationRow` con su `reason`.
+
+## 9. Bitácora
+
+Acciones registradas vía `AuditPort`:
+
+- `MIGRATION_BATCH_PREVIEWED` (modo `dry-run`, entidad, totales).
+- `MIGRATION_BATCH_EXECUTED` (modo real, lote, entidad, totales
+  `{ read, inserted, updated, rejected }`).
+- `MIGRATION_BATCH_FAILED`, `MIGRATION_BATCH_CANCELLED`.
+- `ACCESS_DENIED` ante intentos sin `migration.execute`.
+
+El `previousState`/`newState` no incluye los datasets completos (solo totales y
+metadatos); las filas quedan en `MigrationRow`. Ver
+[`bitacora.md`](../../seguridad/bitacora.md).
+
+## 10. Pruebas (Playwright)
+
+- **Unitarias** (`api/tests/unit`): normalización de nombres/fechas/CURP; detección
+  de duplicados por clave natural; `plan()` determinista (preview == execute para
+  la misma entrada); cálculo de totales.
+- **Contrato** (`api/tests/e2e`): `preview` no escribe; `execute` con
+  `Idempotency-Key` repetida no duplica; reproceso del archivo valida `checksum`;
+  rechazo de `execute` sin respaldo previo; contrato de tabla de lotes; permisos
+  401/403; bitácora `MIGRATION_BATCH_EXECUTED`.
+- **Navegador** (`web/tests/e2e`): asistente de 6 pasos, subida de archivo,
+  revisión de reporte y confirmación.
+- **Spec(s) del módulo:** `api/tests/e2e/migration.spec.ts`,
+  `web/tests/e2e/migration.spec.ts` (una prueba por regla numerada de §4).
+
+## 11. Criterios de aceptación
+
+- [ ] Migración y modelo Prisma (`MigrationBatch`, `MigrationRow`).
+- [ ] Módulo API (routes/controller/service/dto/entity) con `plan()` único,
+      permisos e idempotencia por lote.
+- [ ] `dry-run` y `execute` ligados al respaldo previo y a la bitácora.
+- [ ] Reporte de filas rechazadas con motivo y conciliación de totales.
+- [ ] Pantallas web (asistente + historial) con UI kit.
+- [ ] Specs pasando (solo los del módulo).
+- [ ] Este README completo.
+
+## 12. Decisiones abiertas
+
+- Formato(s) de origen soportados en la primera entrega (CSV/XLSX/base anterior) y
+  estrategia para `prisma/legacy/` si proviene del modelo viejo.
+- Volumen máximo por lote y tamaño de lote transaccional óptimo.
+- ¿La conciliación con el cliente requiere firma/acta digital dentro del sistema?
+- Política de retención de `MigrationRow` (incluye `raw` con datos personales).
+- Integración fina con `restore` / `seed:from-backup` / `cutover` y momento exacto
+  del *cutover*.
+- Enlazar en [`DECISIONES.md`](../../../DECISIONES.md) al cerrarse.
+
+## 13. Referencias
+
+- Plantilla: [`plantilla-modulo.md`](../../plantillas/plantilla-modulo.md).
+- Operación: [`migracion-datos.md`](../../operacion/migracion-datos.md),
+  [`respaldos.md`](../../operacion/respaldos.md) (`restore`, `seed:from-backup`,
+  `cutover`).
+- Convenciones: [`convenciones.md`](../../guia/convenciones.md),
+  [`api/convenciones.md`](../../api/convenciones.md).
+- Arquitectura: [`api-modular.md`](../../arquitectura/api-modular.md),
+  [`web-fsd.md`](../../arquitectura/web-fsd.md),
+  [`axzy-ui-system.md`](../../arquitectura/axzy-ui-system.md).
+- Errores: [`errores.md`](../../api/errores.md).
+- Seguridad: [`roles-permisos.md`](../../seguridad/roles-permisos.md),
+  [`bitacora.md`](../../seguridad/bitacora.md).
+- Pruebas: [`estrategia-pruebas.md`](../../pruebas/estrategia-pruebas.md).
+- Datos: [`diccionario-datos.md`](../../modelo-datos/diccionario-datos.md).

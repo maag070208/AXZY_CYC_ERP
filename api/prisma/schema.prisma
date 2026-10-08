@@ -1,0 +1,180 @@
+// Esquema Prisma del SGE (CYC). Módulo M02: autenticación, roles y bitácora.
+// Convenciones: `id String @id @default(uuid())` (catálogos de seguridad usan
+// clave natural `key`), `createdAt`/`updatedAt`, `active` donde aplique y
+// `@@map("snake_case_plural")`.
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Alcance de un permiso: NONE < OWN < AREA < ALL.
+enum Scope {
+  NONE
+  OWN
+  AREA
+  ALL
+}
+
+model User {
+  id                 String    @id @default(uuid())
+  username           String    @unique
+  email              String    @unique
+  passwordHash       String    @map("password_hash")
+  name               String
+  phone              String?
+  active             Boolean   @default(true)
+  lastLoginAt        DateTime? @map("last_login_at")
+  deactivatedAt      DateTime? @map("deactivated_at")
+  deactivationReason String?   @map("deactivation_reason")
+  failedAttempts     Int       @default(0) @map("failed_attempts")
+  lockedUntil        DateTime? @map("locked_until")
+  mustChangePassword Boolean   @default(false) @map("must_change_password")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+
+  roles         UserRole[]
+  permissions   UserPermission[]
+  refreshTokens RefreshToken[]
+  resetTokens   PasswordResetToken[]
+  auditLogs     AuditLog[]
+
+  @@index([active])
+  @@map("users")
+}
+
+model Role {
+  key       String   @id
+  name      String
+  module    String?
+  staff     Boolean  @default(false)
+  system    Boolean  @default(false)
+  active    Boolean  @default(true)
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  permissions RolePermission[]
+  users       UserRole[]
+
+  @@map("roles")
+}
+
+model Permission {
+  key       String   @id
+  module    String
+  name      String
+  scopes    Scope[]  @default([NONE, OWN, AREA, ALL])
+  sensitive Boolean  @default(false)
+  active    Boolean  @default(true)
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  roles          RolePermission[]
+  userExceptions UserPermission[]
+
+  @@index([module])
+  @@map("permissions")
+}
+
+model RolePermission {
+  id            String   @id @default(uuid())
+  roleKey       String   @map("role_key")
+  permissionKey String   @map("permission_key")
+  scope         Scope    @default(NONE)
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  role       Role       @relation(fields: [roleKey], references: [key], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionKey], references: [key], onDelete: Cascade)
+
+  @@unique([roleKey, permissionKey])
+  @@map("role_permissions")
+}
+
+/// Multi-rol: un usuario puede tener varios roles (la unión toma el alcance mayor).
+model UserRole {
+  userId  String @map("user_id")
+  roleKey String @map("role_key")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleKey], references: [key], onDelete: Cascade)
+
+  @@id([userId, roleKey])
+  @@index([roleKey])
+  @@map("user_roles")
+}
+
+/// Excepción de permiso por persona: reemplaza lo que dice su rol.
+model UserPermission {
+  id            String    @id @default(uuid())
+  userId        String    @map("user_id")
+  permissionKey String    @map("permission_key")
+  scope         Scope
+  reason        String?
+  expiresAt     DateTime? @map("expires_at")
+  grantedById   String?   @map("granted_by_id")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionKey], references: [key], onDelete: Cascade)
+
+  @@unique([userId, permissionKey])
+  @@map("user_permissions")
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid())
+  userId    String    @map("user_id")
+  tokenHash String    @unique @map("token_hash")
+  expiresAt DateTime  @map("expires_at")
+  revokedAt DateTime? @map("revoked_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+model PasswordResetToken {
+  id        String    @id @default(uuid())
+  userId    String    @map("user_id")
+  tokenHash String    @unique @map("token_hash")
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("password_reset_tokens")
+}
+
+model AuditLog {
+  id            String   @id @default(uuid())
+  action        String
+  entityType    String   @map("entity_type")
+  entityId      String?  @map("entity_id")
+  userId        String?  @map("user_id")
+  userName      String?  @map("user_name")
+  previousState Json?    @map("previous_state")
+  newState      Json?    @map("new_state")
+  metadata      Json?
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([action])
+  @@index([entityType, entityId])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}

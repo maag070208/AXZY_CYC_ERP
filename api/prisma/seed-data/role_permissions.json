@@ -1,0 +1,12 @@
+[
+  { "roleKey": "ADMIN", "permissionKey": "users.view", "scope": "ALL" },
+  { "roleKey": "ADMIN", "permissionKey": "users.create", "scope": "ALL" },
+  { "roleKey": "ADMIN", "permissionKey": "users.edit", "scope": "ALL" },
+  { "roleKey": "ADMIN", "permissionKey": "users.delete", "scope": "ALL" },
+  { "roleKey": "ADMIN", "permissionKey": "users.permissions", "scope": "ALL" },
+  { "roleKey": "ADMIN", "permissionKey": "roles.manage", "scope": "ALL" },
+  { "roleKey": "ADMIN", "permissionKey": "audit.view", "scope": "ALL" },
+  { "roleKey": "ADMIN", "permissionKey": "config.view", "scope": "ALL" },
+  { "roleKey": "ADMIN", "permissionKey": "config.manage", "scope": "ALL" },
+  { "roleKey": "CONTROL_ESCOLAR", "permissionKey": "config.view", "scope": "ALL" }
+]

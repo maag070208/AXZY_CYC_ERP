@@ -1,0 +1,86 @@
+# Despliegue
+
+Ver también [`stack.md`](stack.md) y [`../operacion/entornos.md`](../operacion/entornos.md).
+
+## 1. Topología
+
+| Ambiente | Uso | Composición |
+|---|---|---|
+| **Desarrollo** | Local | `docker-compose.yml` (raíz): postgres + api + web |
+| **Producción** | Institución | docker-compose o equivalente gestionado; nginx sirve la web y hace proxy `/api` |
+
+El despliegue sigue el estándar PTNV: **dos imágenes** (`api` y `web`), publicadas
+por separado, con **nginx** delante de la web.
+
+## 2. Docker
+
+El monorepo trae **un Dockerfile por proyecto** y un `docker-compose.yml` raíz
+para desplegar con un comando.
+
+```bash
+cp .env.example .env        # ajusta credenciales/secretos
+docker compose up --build -d
+# web:  http://localhost:8080
+# api:  http://localhost:4001/api/v1/health
+```
+
+- **API** (`api/Dockerfile`): multi-stage con **BuildKit** (`# syntax=docker/dockerfile:1`)
+  y **cache mounts** para la caché de pnpm; la capa de dependencias va **antes**
+  del código. Runtime bullseye-slim; `CMD`:
+  ```
+  npx prisma migrate deploy && node dist/src/index.js
+  ```
+  **El seed no corre al arrancar** (ver [D-017](../../DECISIONES.md)).
+- **Web** (`web/Dockerfile`): builder Vite → runtime **`nginx:1.27-alpine`**.
+  La imagen usa `build:image` (`vite build` sin `tsc`; el typecheck corre en
+  local/CI).
+- `.dockerignore` excluye lo que infla el contexto (tests, reportes, artefactos
+  de Electron, `.sql` crudos).
+
+> Primera puesta en marcha: genera la migración inicial con
+> `pnpm --dir api prisma:migrate:dev` (o `npm run db:migrate`) contra Postgres, y
+> siembra con `npm run db:seed`. Luego `docker compose up` aplica `migrate deploy`.
+
+## 3. nginx y configuración runtime
+
+- SPA fallback `try_files $uri $uri/ /index.html`.
+- Proxy `/api/` al servicio `api`, con **`resolver`** (Docker DNS) y `proxy_pass`
+  por variable para re-resolver y evitar 502 al recrear el contenedor.
+- `render-config.sh` genera `/config.js` con
+  `window.__APP_CONFIG__ = { API_URL: "$WEB_API_URL" }`, consumido por
+  `index.html` (mismo contrato que Electron).
+
+## 4. CI/CD
+
+- Por repo (`api/`, `web/`): workflow que publica la imagen a Docker Hub
+  **solo `linux/amd64`**, con caché `type=gha` y sin atestaciones
+  (`provenance/sbom: false`). En Mac ARM la imagen corre emulada; para desarrollo
+  nativo, `docker compose build`.
+- El job de la API corre `prisma migrate deploy` contra una base vacía para
+  detectar migraciones rotas.
+- Typecheck (`npm run build`) y lint en cada paquete antes de merge.
+
+## 5. Cabeceras, HTTPS y CORS
+
+- HTTPS obligatorio en producción; cabeceras de seguridad (`helmet`), HSTS, CSP,
+  `X-Content-Type-Options`, `X-Frame-Options`.
+- CORS restringido al origen del frontend (`WEB_ORIGIN`).
+- Rate limiting en login y endpoints públicos.
+
+## 6. Escritorio (opcional)
+
+La web se empaqueta como app de escritorio (Electron): carga el mismo `dist/`
+por protocolo `app://` y resuelve la URL de la API por
+`window.__APP_CONFIG__` / `config.json` (menú Servidor). Instaladores con
+`electron-builder` (firma ad-hoc en mac).
+
+## 7. Checklist de despliegue
+
+- [ ] `.env` con secretos reales (nunca en el repo).
+- [ ] HTTPS y cabeceras de seguridad activas.
+- [ ] CORS restringido al origen del frontend.
+- [ ] Rate limiting en login y endpoints públicos.
+- [ ] `prisma migrate deploy` aplicado (sin seed en arranque).
+- [ ] Backfills insert-missing (permisos/roles/políticas/sys_config) al arrancar.
+- [ ] Respaldos automáticos configurados (ver [`../operacion/respaldos.md`](../operacion/respaldos.md)).
+- [ ] Healthchecks (`/api/v1/health`, `/health/ready`) y monitoreo.

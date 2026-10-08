@@ -1,0 +1,81 @@
+name: axzy-cyc-erp
+
+# Monorepo AXZY CYC ERP — Sistema de Gestión Escolar.
+# Levanta todo con:  docker compose up --build -d
+# Variables configurables en `.env` (copia `.env.example`).
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: cyc-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-cyc}
+      POSTGRES_USER: ${POSTGRES_USER:-cyc}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-cyc_dev_pwd}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-cyc} -d ${POSTGRES_DB:-cyc}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: ./api
+    image: axzy-cyc-api:local
+    container_name: cyc-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: "4001"
+      DATABASE_URL: postgresql://${POSTGRES_USER:-cyc}:${POSTGRES_PASSWORD:-cyc_dev_pwd}@postgres:5432/${POSTGRES_DB:-cyc}?schema=public
+      JWT_SECRET: ${JWT_SECRET:-cambia-este-secreto-en-produccion}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-30d}
+      MAX_LOGIN_ATTEMPTS: ${MAX_LOGIN_ATTEMPTS:-5}
+      LOGIN_LOCK_MINUTES: ${LOGIN_LOCK_MINUTES:-15}
+      PASSWORD_MIN_LENGTH: ${PASSWORD_MIN_LENGTH:-10}
+      INITIAL_ADMIN_USERNAME: ${INITIAL_ADMIN_USERNAME:-admin}
+      INITIAL_ADMIN_PASSWORD: ${INITIAL_ADMIN_PASSWORD:-Cambiar-2026!}
+      WEB_ORIGIN: ${WEB_ORIGIN:-http://localhost:8080}
+      APP_URL: ${APP_URL:-http://localhost:8080}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      AWS_BUCKET_NAME: ${AWS_BUCKET_NAME:-}
+      AWS_REGION: ${AWS_REGION:-us-east-2}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      RESEND_FROM_EMAIL: ${RESEND_FROM_EMAIL:-}
+      ABLY_API_KEY: ${ABLY_API_KEY:-}
+    ports:
+      - "${API_PORT:-4001}:4001"
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:4001/api/v1/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+
+  web:
+    build:
+      context: ./web
+      args:
+        VITE_API_URL: ${VITE_API_URL:-/api/v1}
+    image: axzy-cyc-web:local
+    container_name: cyc-web
+    restart: unless-stopped
+    depends_on:
+      - api
+    environment:
+      WEB_API_URL: ${WEB_API_URL:-/api/v1}
+    ports:
+      - "${WEB_PORT:-8080}:80"
+
+volumes:
+  pgdata:

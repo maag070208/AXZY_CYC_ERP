@@ -1,0 +1,20 @@
+{
+  "name": "axzy-cyc-erp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Monorepo del Sistema de Gestión Escolar (SGE) — AXZY CYC ERP. API Express+Prisma y Web React+FSD con Axzy UI System.",
+  "scripts": {
+    "install:all": "pnpm --dir api install && pnpm --dir web install",
+    "dev:api": "pnpm --dir api dev",
+    "dev:web": "pnpm --dir web dev",
+    "build": "pnpm --dir api build && pnpm --dir web build",
+    "lint": "pnpm --dir api lint && pnpm --dir web lint",
+    "docker:up": "docker compose up --build -d",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f",
+    "docker:reset": "docker compose down -v && docker compose up --build -d",
+    "db:migrate": "pnpm --dir api prisma:migrate:dev",
+    "db:deploy": "pnpm --dir api prisma:migrate",
+    "db:seed": "pnpm --dir api seed"
+  }
+}

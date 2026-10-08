@@ -1,0 +1,50 @@
+{
+  "actions": {
+    "new": "Nuevo",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "cancel": "Cancelar",
+    "view": "Ver detalle",
+    "save": "Guardar",
+    "search": "Buscar...",
+    "back": "Volver",
+    "reload": "Recargar",
+    "logout": "Cerrar sesión"
+  },
+  "breadcrumbs": {
+    "home": "Inicio"
+  },
+  "nav": {
+    "home": "Inicio",
+    "settings": "Configuración",
+    "users": "Usuarios",
+    "roles": "Roles y permisos",
+    "notifications": "Notificaciones",
+    "logout": "Cerrar sesión"
+  },
+  "errors": {
+    "network": "Error de red o del servidor",
+    "load": "Error al cargar",
+    "save": "Error al guardar"
+  },
+  "labels": {
+    "inactive": "inactivo",
+    "active": "activo",
+    "role": "Rol",
+    "permissions": "Permisos",
+    "processing": "Procesando..."
+  },
+  "validation": {
+    "required": "{{label}} es obligatorio",
+    "minLength": "{{label}} debe tener al menos {{min}} caracteres",
+    "thisField": "Este campo",
+    "invalidEmail": "Email inválido",
+    "invalidCurp": "CURP debe tener 18 caracteres alfanuméricos",
+    "reviewFields": "Revisa los campos marcados"
+  },
+  "home": {
+    "title": "Inicio",
+    "description": "Panel del Sistema de Gestión Escolar",
+    "welcome": "Bienvenido, {{name}}"
+  }
+}

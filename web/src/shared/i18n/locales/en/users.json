@@ -1,0 +1,45 @@
+{
+  "list": {
+    "title": "Users",
+    "description": "{{count}} user(s)",
+    "breadcrumb": "Users",
+    "new": "New user"
+  },
+  "table": {
+    "username": "Username",
+    "name": "Name",
+    "role": "Role",
+    "status": "Status",
+    "statusActive": "Active",
+    "statusInactive": "Inactive"
+  },
+  "form": {
+    "titleNew": "New user",
+    "titleEdit": "Edit user",
+    "username": "Username",
+    "name": "Name",
+    "email": "Email",
+    "password": "Password",
+    "role": "Role",
+    "active": "Active",
+    "save": "Save",
+    "saving": "Saving…",
+    "cancel": "Cancel",
+    "saved": "User saved successfully",
+    "errorLoad": "Could not load the user",
+    "validation": {
+      "usernameRequired": "Username is required",
+      "usernameMin": "Username must have at least {{min}} characters",
+      "usernameMax": "Username must have at most {{max}} characters",
+      "nameRequired": "Name is required",
+      "passwordRequired": "Password is required",
+      "passwordMin": "Password must have at least {{min}} characters"
+    }
+  },
+  "roles": {
+    "ADMIN": "Administrator",
+    "CONTROL_ESCOLAR": "School Control",
+    "PROFESOR": "Teacher",
+    "ALUMNO": "Student"
+  }
+}

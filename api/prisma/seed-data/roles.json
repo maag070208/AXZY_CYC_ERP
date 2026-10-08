@@ -1,0 +1,38 @@
+[
+  {
+    "key": "ADMIN",
+    "name": "ADMIN",
+    "module": "Sistema",
+    "staff": false,
+    "system": true,
+    "active": true,
+    "sortOrder": 1
+  },
+  {
+    "key": "CONTROL_ESCOLAR",
+    "name": "CONTROL ESCOLAR",
+    "module": "Académico",
+    "staff": false,
+    "system": true,
+    "active": true,
+    "sortOrder": 2
+  },
+  {
+    "key": "PROFESOR",
+    "name": "PROFESOR",
+    "module": "Académico",
+    "staff": false,
+    "system": true,
+    "active": true,
+    "sortOrder": 3
+  },
+  {
+    "key": "ALUMNO",
+    "name": "ALUMNO",
+    "module": "Alumnos",
+    "staff": false,
+    "system": true,
+    "active": true,
+    "sortOrder": 4
+  }
+]

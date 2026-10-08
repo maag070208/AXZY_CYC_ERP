@@ -1,0 +1,83 @@
+[
+  {
+    "key": "users.view",
+    "module": "Usuarios",
+    "name": "Ver usuarios",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 1
+  },
+  {
+    "key": "users.create",
+    "module": "Usuarios",
+    "name": "Crear usuarios",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 2
+  },
+  {
+    "key": "users.edit",
+    "module": "Usuarios",
+    "name": "Editar usuarios",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 3
+  },
+  {
+    "key": "users.delete",
+    "module": "Usuarios",
+    "name": "Dar de baja usuarios",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 4
+  },
+  {
+    "key": "users.permissions",
+    "module": "Usuarios",
+    "name": "Administrar permisos por persona",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": true,
+    "active": true,
+    "sortOrder": 5
+  },
+  {
+    "key": "roles.manage",
+    "module": "Roles",
+    "name": "Administrar roles y permisos",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": true,
+    "active": true,
+    "sortOrder": 1
+  },
+  {
+    "key": "audit.view",
+    "module": "Bitácora",
+    "name": "Ver bitácora",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 1
+  },
+  {
+    "key": "config.view",
+    "module": "Configuración",
+    "name": "Ver configuración",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 1
+  },
+  {
+    "key": "config.manage",
+    "module": "Configuración",
+    "name": "Administrar configuración",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": true,
+    "active": true,
+    "sortOrder": 2
+  }
+]

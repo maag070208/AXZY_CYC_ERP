@@ -1,0 +1,38 @@
+# syntax=docker/dockerfile:1
+
+# =========================
+# Builder
+# =========================
+FROM node:20-bullseye-slim AS builder
+
+WORKDIR /app
+
+RUN --mount=type=cache,target=/root/.npm npm install -g pnpm@10
+
+# Dependencias primero (capa cacheable). No se exige lockfile para que el build
+# funcione en un checkout limpio; con `web/pnpm-lock.yaml` presente puedes usar
+# `--frozen-lockfile`.
+COPY package.json ./
+RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
+    pnpm install --no-frozen-lockfile --store-dir=/pnpm/store
+
+# Código y build. La imagen solo necesita el artefacto: `vite` (esbuild) compila
+# sin tipar; el typecheck (`tsc -b`) corre en `pnpm run build` (local/CI).
+COPY . .
+ARG VITE_API_URL=/api/v1
+ENV VITE_API_URL=$VITE_API_URL
+RUN pnpm run build:image
+
+
+# =========================
+# Runtime — nginx
+# =========================
+FROM nginx:1.27-alpine AS runtime
+
+COPY --from=builder /app/dist /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY --chmod=755 render-config.sh /docker-entrypoint.d/10-render-config.sh
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]

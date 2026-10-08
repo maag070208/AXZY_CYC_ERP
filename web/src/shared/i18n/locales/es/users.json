@@ -1,0 +1,45 @@
+{
+  "list": {
+    "title": "Usuarios",
+    "description": "{{count}} usuario(s)",
+    "breadcrumb": "Usuarios",
+    "new": "Nuevo usuario"
+  },
+  "table": {
+    "username": "Username",
+    "name": "Nombre",
+    "role": "Rol",
+    "status": "Estatus",
+    "statusActive": "Activo",
+    "statusInactive": "Inactivo"
+  },
+  "form": {
+    "titleNew": "Nuevo usuario",
+    "titleEdit": "Editar usuario",
+    "username": "Usuario",
+    "name": "Nombre",
+    "email": "Correo",
+    "password": "Contraseña",
+    "role": "Rol",
+    "active": "Activo",
+    "save": "Guardar",
+    "saving": "Guardando…",
+    "cancel": "Cancelar",
+    "saved": "Usuario guardado correctamente",
+    "errorLoad": "No se pudo cargar el usuario",
+    "validation": {
+      "usernameRequired": "El usuario es obligatorio",
+      "usernameMin": "El usuario debe tener al menos {{min}} caracteres",
+      "usernameMax": "El usuario debe tener máximo {{max}} caracteres",
+      "nameRequired": "El nombre es obligatorio",
+      "passwordRequired": "La contraseña es obligatoria",
+      "passwordMin": "La contraseña debe tener al menos {{min}} caracteres"
+    }
+  },
+  "roles": {
+    "ADMIN": "Administrador",
+    "CONTROL_ESCOLAR": "Control Escolar",
+    "PROFESOR": "Profesor",
+    "ALUMNO": "Alumno"
+  }
+}

@@ -1,0 +1,20 @@
+@layer theme, base, axzy-ui-system, components, utilities;
+
+@import "tailwindcss";
+@import "@axzydev/axzy_ui_system/dist/index.css" layer(axzy-ui-system);
+
+@source "../node_modules/@axzydev/axzy_ui_system/src/**/*.{ts,tsx}";
+
+:root {
+  --layout-bg: #f1f5f9;
+}
+
+/* Forzar que el modal sea más ancho para que quepan 2 columnas */
+.it-dialog-panel {
+  width: min(94vw, 900px) !important;
+}
+
+html {
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+}

@@ -1,0 +1,34 @@
+# Dependencias
+node_modules/
+
+# Builds
+dist/
+build/
+dist-electron/
+release/
+*.tsbuildinfo
+
+# Entorno (nunca versionar valores reales)
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Sistema operativo / editor
+.DS_Store
+.idea/
+.vscode/
+
+# Pruebas
+/test-results
+/playwright-report
+/blob-report
+playwright/.cache
+
+# Prisma / migraciones locales
+api/prisma/legacy/*.sql
+api/prisma/*.dump
