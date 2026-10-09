@@ -10,8 +10,8 @@ import { HttpError } from "@core/middlewares/error.middleware";
  * validan permiso y alcance.
  *
  * Driver (ver D-023, resuelve A-004 de forma provisional):
- * - `s3`    → si hay credenciales y bucket (AWS o compatible: **Cloudflare R2**,
- *   MinIO… con `S3_ENDPOINT`).
+ * - `s3`    → si hay credenciales y bucket (AWS o endpoint compatible con
+ *   `S3_ENDPOINT`).
  * - `local` → directorio privado en disco (`STORAGE_LOCAL_DIR`, por defecto
  *   `./storage/private`). Es el driver por defecto fuera de producción y se
  *   puede forzar con `STORAGE_DRIVER=local` (on-premise / Docker con volumen).

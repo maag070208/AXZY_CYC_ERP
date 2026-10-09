@@ -53,7 +53,7 @@ services:
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
       AWS_BUCKET_NAME: ${AWS_BUCKET_NAME:-}
       AWS_REGION: ${AWS_REGION:-us-east-2}
-      # S3 compatible (Cloudflare R2/MinIO); vacío = AWS.
+      # S3 compatible alterno (MinIO/otros); vacío = AWS.
       S3_ENDPOINT: ${S3_ENDPOINT:-}
       S3_FORCE_PATH_STYLE: ${S3_FORCE_PATH_STYLE:-}
       RESEND_API_KEY: ${RESEND_API_KEY:-}
