@@ -189,7 +189,9 @@ export const parseStudentRow = (values: Record<string, string>, today: string): 
   const enrollmentDate = optional(values, "enrollment_date") ?? today;
   if (!isRealDay(enrollmentDate)) return problem("INVALID_DATE", enrollmentDate);
 
-  const gender = optional(values, "gender");
+  const genderRaw = optional(values, "gender");
+  // El origen suele venir en español: `OTRO` se acepta como alias de `OTHER`.
+  const gender = genderRaw?.toUpperCase() === "OTRO" ? "OTHER" : genderRaw;
   if (gender && !(GENDERS as readonly string[]).includes(gender.toUpperCase())) return problem("INVALID_FORMAT", gender);
 
   const email = optional(values, "email");

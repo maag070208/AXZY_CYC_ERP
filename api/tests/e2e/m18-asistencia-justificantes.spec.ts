@@ -125,7 +125,7 @@ test("reglas 2–3: el pase incluye a todos los inscritos, rechaza inscripciones
   expect((await lastAudit("ATTENDANCE_RECORDED", profUserId))?.newState).toMatchObject({ records: expect.arrayContaining([{ enrollmentId: beto.enrollmentId, status: "LATE" }]) });
 
   const view = await (await prof.get(`attendance-sessions/${sessions[0]}`)).json();
-  expect(view.rows.map((r: { status: string }) => r.status).sort()).toEqual(["PRESENT", "LATE"]);
+  expect(view.rows.map((r: { status: string }) => r.status).sort()).toEqual(["LATE", "PRESENT"]);
 });
 
 test("reglas 4–5: porcentaje (retardo cuenta) y alerta al cruzar el umbral, una sola vez y con aviso", async () => {

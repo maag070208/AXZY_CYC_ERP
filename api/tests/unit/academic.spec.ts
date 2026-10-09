@@ -44,7 +44,7 @@ test.describe("horario (M07)", () => {
 
   test("orden estable y lectura defensiva del JSON guardado", () => {
     const sorted = sortSchedule([s("FRIDAY", "07:00", "08:00"), s("MONDAY", "10:00", "11:00"), s("MONDAY", "08:00", "09:00")]);
-    expect(sorted.map((x) => `${x.day} ${x.startTime}`)).toEqual(["LUNES 08:00", "LUNES 10:00", "VIERNES 07:00"]);
+    expect(sorted.map((x) => `${x.day} ${x.startTime}`)).toEqual(["MONDAY 08:00", "MONDAY 10:00", "FRIDAY 07:00"]);
     expect(parseSchedule([s("MONDAY", "08:00", "09:00"), { day: "FERIADO", startTime: "x" }, null])).toHaveLength(1);
     expect(parseSchedule({ no: "array" })).toEqual([]);
   });

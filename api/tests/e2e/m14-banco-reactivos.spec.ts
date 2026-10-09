@@ -96,7 +96,7 @@ test.describe("reglas de opciones", () => {
       expect((await res.json()).code).toBe(code);
     }
     const zero = await prof.post("questions", { data: question({ points: 0, text: "" }) });
-    expect(Object.keys((await zero.json()).details.fieldErrors).sort()).toEqual(["text", "points"]);
+    expect(Object.keys((await zero.json()).details.fieldErrors).sort()).toEqual(["points", "text"]);
   });
 });
 
