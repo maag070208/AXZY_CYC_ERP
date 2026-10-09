@@ -77,15 +77,15 @@ erDiagram
 
 ## 3. Notas de integridad
 
-- **Unicidad:** `users.username`, `users.email`, `students.matricula`,
-  `students.curp`, `teachers.email`, `payments.reciboFolio`, `roles.key`,
+- **Unicidad:** `users.username`, `users.email`, `students.studentNumber`,
+  `students.curp`, `teachers.email`, `payments.receiptNumber`, `roles.key`,
   `permissions.key`.
 - **Claves foráneas:** sin `DELETE` físico de datos de negocio; el estándar usa
   `active` y borrado lógico **por dominio** (`deletedAt`, `cancelledAt`,
   `voidedAt`). Las relaciones usan `onDelete: Restrict` salvo cascadas explícitas
   en tablas puente/dependientes (ver [D-003](../../DECISIONES.md)).
 - **Índices recomendados:**
-  - `students(matricula)`, `students(curp)`, `students(status)`;
+  - `students(studentNumber)`, `students(curp)`, `students(status)`;
   - `enrollments(studentId, groupId)` único parcial (estatus activo);
   - `charges(studentId, status)`;
   - `attendance(sessionId, enrollmentId)` único;

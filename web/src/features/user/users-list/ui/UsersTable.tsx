@@ -7,7 +7,7 @@ import type {
 import { FaEdit, FaKey, FaLockOpen, FaUndo, FaUserShield, FaUserSlash } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
 import { useCan, type User } from "@entities/user";
-import type { RoleAdmin } from "@entities/permission";
+import { roleLabel, type RoleAdmin } from "@entities/permission";
 import type { UseUsersTable } from "../model/useUsersTable";
 
 export type UserAction = "edit" | "deactivate" | "reactivate" | "unlock" | "resetPassword" | "permissions";
@@ -28,7 +28,7 @@ export default function UsersTable({ fx, roles, currentUserId, onAction }: Props
   const canEdit = useCan("users.edit");
   const canDelete = useCan("users.delete");
   const canPermissions = useCan("users.permissions");
-  const roleName = (key: string) => roles.find((role) => role.key === key)?.name ?? key;
+  const roleName = (key: string) => roleLabel(roles.find((role) => role.key === key) ?? { key });
 
   const actionButton = (action: UserAction, user: User, icon: React.ReactNode, color = "secondary") => (
     <ITButton
@@ -78,7 +78,7 @@ export default function UsersTable({ fx, roles, currentUserId, onAction }: Props
       type: "catalog",
       width: 200,
       filter: "catalog",
-      catalogOptions: { data: roles.map((role) => ({ id: role.key, name: role.name })) },
+      catalogOptions: { data: roles.map((role) => ({ id: role.key, name: roleLabel(role) })) },
       render: (u) => (
         <ITFlex gap={1} wrap="wrap">
           {u.roles.map((role) => (

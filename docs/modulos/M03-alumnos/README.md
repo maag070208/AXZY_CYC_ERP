@@ -16,14 +16,14 @@
 
 | Método | Ruta | Permiso | Nota |
 |---|---|---|---|
-| POST | `/api/v1/students/query` | `students.view` | Filtros `nombre` (por palabras), `matricula`, `curp`, `status`, `fechaIngreso` (rango); alcance por registro |
+| POST | `/api/v1/students/query` | `students.view` | Filtros `name` (por palabras), `studentNumber`, `curp`, `status`, `enrollmentDate` (rango); alcance por registro |
 | GET | `/api/v1/students/summary` | `students.view` | Totales activos/baja dentro del alcance |
 | POST | `/api/v1/students` | `students.create` | Genera la matrícula; `confirmDuplicate` para homónimos |
 | GET · PATCH | `/api/v1/students/:id` | `students.view` · `students.edit` | Tutores se reemplazan completos; la matrícula no es editable |
 | DELETE | `/api/v1/students/:id` | `students.delete` | Baja lógica = movimiento de baja con motivo (M05) |
 | POST | `/api/v1/students/export` | `students.export` | Excel con los filtros vigentes; audita `STUDENTS_EXPORTED` |
 
-Diferencias con el borrador: el homónimo responde `409 DUPLICATE_STUDENT` (con `details.matches`) en lugar de `DUPLICATE_RECORD`; la matrícula usa un consecutivo atómico por año (`matricula_sequences`); el alcance `AREA` del profesor queda listo para M07 (sin grupos no ve alumnos). Decisiones: [D-023](../../../DECISIONES.md), [D-026](../../../DECISIONES.md).
+Diferencias con el borrador: el homónimo responde `409 DUPLICATE_STUDENT` (con `details.matches`) en lugar de `DUPLICATE_RECORD`; la matrícula usa un consecutivo atómico por año (`student_number_sequences`); el alcance `AREA` del profesor queda listo para M07 (sin grupos no ve alumnos). Decisiones: [D-023](../../../DECISIONES.md), [D-026](../../../DECISIONES.md).
 
 ## 1. Objetivo
 
@@ -38,7 +38,7 @@ sistema (inscripciones, kardex, cobranza) parta de datos confiables.
 - Detección de duplicados por CURP y por nombre + fecha de nacimiento.
 - Captura de tutores (uno o más, con marca de responsable de pago).
 - Búsqueda server-side por nombre, matrícula, CURP y estatus.
-- Edición y baja lógica (`status = baja`), exportación del listado.
+- Edición y baja lógica (`status = WITHDRAWN`), exportación del listado.
 - Vínculo opcional a una cuenta de usuario (`User`) para el portal.
 
 **No incluye (en este módulo)**
@@ -54,56 +54,63 @@ dominio, `@@map`, enums `UPPER_SNAKE`); ver [D-003](../../../DECISIONES.md) y el
 
 ```prisma
 enum StudentStatus {
-  ACTIVO
-  BAJA
+  ACTIVE
+  WITHDRAWN
 }
 
 model Student {
   id              String        @id @default(uuid())
-  matricula       String        @unique              // formato AAAA-NNNN
-  nombres         String
-  apellidoPaterno String        @map("apellido_paterno")
-  apellidoMaterno String?       @map("apellido_materno")
+  /// `AAAA-NNNN`: año de ingreso + consecutivo. Inmutable.
+  studentNumber   String        @unique @map("student_number")
+  firstNames      String        @map("first_names")
+  paternalSurname String        @map("paternal_surname")
+  maternalSurname String?       @map("maternal_surname")
   curp            String        @unique
-  fechaNacimiento DateTime      @db.Date @map("fecha_nacimiento")
-  genero          String?                            // M / F / otro
+  birthDate       DateTime      @map("birth_date") @db.Date
+  gender          String?
   email           String?
-  telefono        String?
-  direccion       String?
-  status          StudentStatus @default(ACTIVO)
-  fechaIngreso    DateTime      @db.Date @map("fecha_ingreso")
+  phone           String?
+  address         String?
+  status          StudentStatus @default(ACTIVE)
+  enrollmentDate  DateTime      @map("enrollment_date") @db.Date
   userId          String?       @unique @map("user_id")
   createdAt       DateTime      @default(now()) @map("created_at")
   updatedAt       DateTime      @updatedAt @map("updated_at")
 
-  guardians Guardian[]
-  user      User?      @relation(fields: [userId], references: [id])
+  user        User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
+  guardians   Guardian[]
+  movements   StudentMovement[]
+  documents   Document[]
+  enrollments Enrollment[]
+  charges     Charge[]
+  attempts    ExamAttempt[]
+  plans       StudentPlan[]
 
   @@index([status])
-  @@index([apellidoPaterno, apellidoMaterno, nombres])
+  @@index([paternalSurname, maternalSurname, firstNames])
   @@map("students")
 }
 
 model Guardian {
-  id                  String   @id @default(uuid())
-  studentId           String   @map("student_id")
-  nombre              String
-  parentesco          String
-  telefono            String
-  email               String?
-  esResponsablePago   Boolean  @default(false) @map("es_responsable_pago")
-  createdAt           DateTime @default(now()) @map("created_at")
-  updatedAt           DateTime @updatedAt @map("updated_at")
+  id                   String   @id @default(uuid())
+  studentId            String   @map("student_id")
+  name                 String
+  relationship         String
+  phone                String
+  email                String?
+  isPaymentResponsible Boolean  @default(false) @map("is_payment_responsible")
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
 
-  student Student @relation(fields: [studentId], references: [id])
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   @@index([studentId])
   @@map("guardians")
 }
 ```
 
-**Índices:** `students.matricula`, `students.curp` y `students.userId` únicos;
-`students.status`; `students(apellidoPaterno, apellidoMaterno, nombres)`;
+**Índices:** `students.studentNumber`, `students.curp` y `students.userId` únicos;
+`students.status`; `students(paternalSurname, maternalSurname, firstNames)`;
 `guardians.studentId`.
 **Relaciones:** `Student 1—N Guardian`; `Student N—1 User` (opcional, único).
 La **matrícula** es inmutable tras el alta; la **baja** es lógica (`status`), nunca
@@ -112,20 +119,20 @@ La **matrícula** es inmutable tras el alta; la **baja** es lógica (`status`), 
 ## 4. Reglas de negocio
 
 1. La **matrícula** es autogenerada con formato `AAAA-NNNN` (año de ingreso +
-   consecutivo); es única → `409 DUPLICATE_MATRICULA`.
+   consecutivo); es única → `409 DUPLICATE_STUDENT_NUMBER`.
 2. La **CURP** debe tener formato válido (18 caracteres y patrón oficial) →
    `400 INVALID_CURP`.
 3. No se permite CURP repetida → `409 DUPLICATE_CURP`.
 4. Se advierte el duplicado por **nombre(s) + apellidos + fecha de nacimiento** →
    `409 DUPLICATE_RECORD` (requiere confirmación explícita para continuar).
 5. Si el alumno es **menor de edad** (< 18 años) se exige **al menos un tutor**.
-6. A lo sumo **un tutor** por alumno con `esResponsablePago = true`.
+6. A lo sumo **un tutor** por alumno con `isPaymentResponsible = true`.
 7. La matrícula **no se puede modificar** en edición; la CURP solo se corrige con
    auditoría (`previousState`/`newState`).
-8. La **baja** es lógica: `status = BAJA`; el registro y sus tutores se conservan.
-9. `fechaIngreso` por defecto es la fecha del alta (si no se envía).
+8. La **baja** es lógica: `status = WITHDRAWN`; el registro y sus tutores se conservan.
+9. `enrollmentDate` por defecto es la fecha del alta (si no se envía).
 10. `userId` es **opcional y único**: un alumno puede tener cuenta de portal (A-007).
-11. El alumno en `BAJA` no puede inscribirse (lo valida M07 con `STUDENT_INACTIVE`).
+11. El alumno en `WITHDRAWN` no puede inscribirse (lo valida M07 con `STUDENT_INACTIVE`).
 
 ## 5. API
 
@@ -138,36 +145,36 @@ models/{dto,entity}/`), con `requiresPermission` y alcance por registro.
 | POST | `/api/v1/students` | Alta de alumno (tutores anidados) | `students.create` |
 | GET | `/api/v1/students/:id` | Detalle con tutores | `students.view` |
 | PATCH | `/api/v1/students/:id` | Edición (tutores anidados) | `students.edit` |
-| DELETE | `/api/v1/students/:id` | Baja lógica (`status = BAJA`) | `students.delete` |
+| DELETE | `/api/v1/students/:id` | Baja lógica (`status = WITHDRAWN`) | `students.delete` |
 | POST | `/api/v1/students/export` | Exportación con filtros vigentes | `students.export` |
 
 **Alta** (`POST /students`)
 ```json
 {
-  "nombres": "Juan",
-  "apellidoPaterno": "Pérez",
-  "apellidoMaterno": "López",
+  "firstNames": "Juan",
+  "paternalSurname": "Pérez",
+  "maternalSurname": "López",
   "curp": "PELJ100101HDFRXN01",
-  "fechaNacimiento": "2010-01-01",
-  "genero": "M",
+  "birthDate": "2010-01-01",
+  "gender": "M",
   "email": "juan@example.com",
-  "telefono": "5512345678",
-  "direccion": "…",
-  "fechaIngreso": "2026-08-01",
+  "phone": "5512345678",
+  "address": "…",
+  "enrollmentDate": "2026-08-01",
   "guardians": [
-    { "nombre": "María López", "parentesco": "Madre",
-      "telefono": "5598765432", "email": "maria@example.com",
-      "esResponsablePago": true }
+    { "name": "María López", "relationship": "Madre",
+      "phone": "5598765432", "email": "maria@example.com",
+      "isPaymentResponsible": true }
   ]
 }
 ```
 La respuesta incluye el `id` y la **matrícula generada**. Errores:
-`DUPLICATE_CURP`, `DUPLICATE_MATRICULA`, `DUPLICATE_RECORD`, `INVALID_CURP`,
+`DUPLICATE_CURP`, `DUPLICATE_STUDENT_NUMBER`, `DUPLICATE_RECORD`, `INVALID_CURP`,
 `REQUIRED_FIELD`, `VALIDATION_ERROR`.
 
 **Listado** (`POST /students/query`): contrato de tabla
-`{ page, limit, filters, sort }` → `{ data, total, … }` con filtros por `nombres`,
-`matricula`, `curp`, `status` y fechas como rango ISO con zona local
+`{ page, limit, filters, sort }` → `{ data, total, … }` con filtros por `firstNames`,
+`studentNumber`, `curp`, `status` y fechas como rango ISO con zona local
 (ver [`../../api/convenciones.md`](../../api/convenciones.md)).
 
 ## 6. Web
@@ -204,11 +211,11 @@ Ver [`../../seguridad/roles-permisos.md`](../../seguridad/roles-permisos.md).
 
 ## 8. Validaciones
 
-- **Zod** en `models/dto`: `nombres`/`apellidoPaterno` requeridos
+- **Zod** en `models/dto`: `firstNames`/`paternalSurname` requeridos
   (`REQUIRED_FIELD`); `curp` de 18 con patrón y dígito verificador (`INVALID_CURP`);
-  `email` (`INVALID_EMAIL`); `telefono` (`INVALID_FORMAT`); `fechaNacimiento` no
-  futura; `genero` en `{M, F, otro}`.
-- Tutores: si el alumno es menor, arreglo no vacío; un solo `esResponsablePago`.
+  `email` (`INVALID_EMAIL`); `phone` (`INVALID_FORMAT`); `birthDate` no
+  futura; `gender` en `{M, F, otro}`.
+- Tutores: si el alumno es menor, arreglo no vacío; un solo `isPaymentResponsible`.
 - Web con `@shared/validation` (`validateCurp`, `validateEmail`, `validatePhone`)
   que devuelve `string | null`; validación en el hook del formulario.
 - Mensajes como códigos traducibles; `ZodError` → `400 VALIDATION_ERROR`.
@@ -231,7 +238,7 @@ reingreso con motivo/historial pertenecen a M05. Ver
   CURP, detección de duplicado por nombre + fecha, regla «menor exige tutor»,
   responsable de pago único.
 - Contrato (`api/tests/e2e`): alta, detalle, edición, baja, contrato de
-  `/students/query`, `DUPLICATE_CURP`/`DUPLICATE_MATRICULA`/`DUPLICATE_RECORD`,
+  `/students/query`, `DUPLICATE_CURP`/`DUPLICATE_STUDENT_NUMBER`/`DUPLICATE_RECORD`,
   permisos (401/403) y bitácora verificada.
 - Navegador (`web/tests/e2e`): alta de alumno con tutor, búsqueda y edición;
   gate por permiso; `insecure-context` sin truenos.

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { ITBadget, ITButton, ITConfirmDialog, ITFlex, ITText } from "@axzydev/axzy_ui_system";
 import { FaEdit, FaPlus, FaTrash } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
-import { permissionApi, type RoleAdmin } from "@entities/permission";
+import { permissionApi, roleLabel, type RoleAdmin } from "@entities/permission";
 import { errorMessage, useNotify } from "@app/toast/useNotify";
 import { PanelCard } from "@shared/ui/panel-card";
 import RoleFormDialog from "./RoleFormDialog";
@@ -59,7 +59,7 @@ export default function RolesManager({ roles, onChanged }: Props) {
           >
             <ITFlex direction="column">
               <ITFlex align="center" gap={2}>
-                <ITText className="text-[12px] font-black text-slate-700">{role.name}</ITText>
+                <ITText className="text-[12px] font-black text-slate-700">{roleLabel(role)}</ITText>
                 <ITText className="text-[10px] uppercase tracking-wide text-slate-400">{role.key}</ITText>
               </ITFlex>
               {role.module && <ITText className="text-[11px] text-slate-400">{role.module}</ITText>}

@@ -149,9 +149,9 @@ se dé de baja a una cuenta ADMIN. Ver [D-018](../../DECISIONES.md).
 Los módulos siguientes registran sus acciones (p. ej. `payments.approve` con
 `amount` y `createdById` en M09).
 
-> **Políticas ABAC de cobranza (F4):** `charges.create` expone `monto`, `descuento`,
-> `porcentajeDescuento`, `conceptTipo` y `masivo` (p. ej. «nadie descuenta más del 50 %»);
-> `payments.cancel` expone `monto`, `metodo` y `diasDesdeRegistro` (p. ej. «solo ADMIN
+> **Políticas ABAC de cobranza (F4):** `charges.create` expone `amount`, `discount`,
+> `discountPercent`, `conceptType` y `bulk` (p. ej. «nadie descuenta más del 50 %»);
+> `payments.cancel` expone `amount`, `method` y `daysSinceRegistered` (p. ej. «solo ADMIN
 > cancela pagos de más de 3 días»). `payments.cancel` es un permiso sensible.
 
 ## 7. Implementación

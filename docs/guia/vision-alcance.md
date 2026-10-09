@@ -51,10 +51,10 @@ Detalle en [`roadmap.md`](roadmap.md) y en [`../modulos/README.md`](../modulos/R
 
 | Rol | Necesidad principal |
 |---|---|
-| `admin` | Configurar el sistema, gestionar usuarios y ver todo |
-| `control_escolar` | Altas/bajas, expediente, inscripciones, cobranza |
-| `profesor` | Sus grupos: calificaciones, asistencia, exámenes |
-| `alumno` | (si se habilita) consultar calificaciones, pagos, exámenes en línea |
+| `ADMIN` | Configurar el sistema, gestionar usuarios y ver todo |
+| `SCHOOL_CONTROL` | Altas/bajas, expediente, inscripciones, cobranza |
+| `TEACHER` | Sus grupos: calificaciones, asistencia, exámenes |
+| `STUDENT` | (si se habilita) consultar calificaciones, pagos, exámenes en línea |
 
 Ver [`../seguridad/roles-permisos.md`](../seguridad/roles-permisos.md).
 

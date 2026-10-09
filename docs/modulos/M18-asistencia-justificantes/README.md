@@ -30,7 +30,7 @@
 
 Decisiones (sección 12):
 - Sesión única vigente por grupo/fecha/hora con anulación lógica; el pase guarda a todos los inscritos y respeta los justificantes vigentes. Solo la falta resta en el porcentaje (retardo y justificada no penalizan). Ver [D-042](../../../DECISIONES.md).
-- La alerta cruza `ATTENDANCE_THRESHOLD` (M11; 80 % por defecto) una sola vez y se limpia al recuperarlo, disparando `ALERTA_INASISTENCIA` por M19. Resuelve [A-006](../../../DECISIONES.md).
+- La alerta cruza `ATTENDANCE_THRESHOLD` (M11; 80 % por defecto) una sola vez y se limpia al recuperarlo, disparando `ABSENCE_ALERT` por M19. Resuelve [A-006](../../../DECISIONES.md).
 - Un justificante por falta con archivo validado por contenido (S3/disco, D-023); aprobar cambia la falta a JUSTIFICADA, rechazar permite nueva solicitud. Ver [D-043](../../../DECISIONES.md).
 - Reporte `attendance-by-group` en M10 y bitácora de sesión creada/anulada y asistencia registrada.
 
@@ -43,8 +43,8 @@ que convierten una falta en falta justificada.
 ## 2. Alcance
 
 **Incluye**
-- Creación de sesiones de asistencia por grupo (`fecha`, `hora`).
-- Pase de lista (`presente` / `falta` / `retardo` / `justificada`) por inscripción.
+- Creación de sesiones de asistencia por grupo (`date`, `time`).
+- Pase de lista (`PRESENT` / `ABSENT` / `LATE` / `JUSTIFIED`) por inscripción.
 - Cálculo del porcentaje de asistencia por alumno y **alerta por umbral**.
 - Solicitud de justificantes con archivo (S3) y su resolución (aprobar/rechazar).
 - Reporte de asistencia filtrable y exportable.
@@ -65,44 +65,48 @@ resuelve por `status`, no se borra.
 
 ```prisma
 enum AttendanceStatus {
-  PRESENTE
-  FALTA
-  RETARDO
-  JUSTIFICADA
+  PRESENT
+  ABSENT
+  LATE
+  JUSTIFIED
 }
 
 enum JustificationStatus {
-  PENDIENTE
-  APROBADA
-  RECHAZADA
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 model AttendanceSession {
-  id        String    @id @default(uuid())
-  groupId   String
-  fecha     DateTime  @db.Date
-  hora      String?   @db.Time
-  createdBy String
-  deletedAt DateTime? // anulación lógica de la sesión
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id           String    @id @default(uuid())
+  groupId      String    @map("group_id")
+  date         DateTime  @db.Date
+  /// `HH:mm` opcional (varias sesiones el mismo día).
+  time         String?   @db.VarChar(5)
+  topic        String?   @db.VarChar(200)
+  createdBy    String    @map("created_by")
+  /// Anulación lógica: la sesión deja de contar para el porcentaje.
+  deletedAt    DateTime? @map("deleted_at")
+  deletedBy    String?   @map("deleted_by")
+  deleteReason String?   @map("delete_reason") @db.VarChar(300)
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
 
-  group     Group      @relation(fields: [groupId], references: [id])
-  createdByUser User   @relation(fields: [createdBy], references: [id])
-  attendances Attendance[]
+  group   Group        @relation(fields: [groupId], references: [id])
+  records Attendance[]
 
-  @@unique([groupId, fecha, hora])
-  @@index([groupId, fecha])
+  @@index([groupId, date])
   @@map("attendance_sessions")
 }
 
 model Attendance {
   id           String           @id @default(uuid())
-  sessionId    String
-  enrollmentId String
+  sessionId    String           @map("session_id")
+  enrollmentId String           @map("enrollment_id")
   status       AttendanceStatus
-  createdAt    DateTime         @default(now())
-  updatedAt    DateTime         @updatedAt
+  recordedBy   String?          @map("recorded_by")
+  createdAt    DateTime         @default(now()) @map("created_at")
+  updatedAt    DateTime         @updatedAt @map("updated_at")
 
   session       AttendanceSession @relation(fields: [sessionId], references: [id])
   enrollment    Enrollment        @relation(fields: [enrollmentId], references: [id])
@@ -115,17 +119,22 @@ model Attendance {
 
 model Justification {
   id           String              @id @default(uuid())
-  attendanceId String              @unique
-  motivo       String
-  archivo      String?             // ruta privada en S3
-  status       JustificationStatus @default(PENDIENTE)
-  resueltoPor  String?
-  resolvedAt   DateTime?
-  createdAt    DateTime            @default(now())
-  updatedAt    DateTime            @updatedAt
+  attendanceId String              @unique @map("attendance_id")
+  reason       String              @db.VarChar(1000)
+  /// Clave privada en el almacenamiento (S3 o disco); nunca una URL pública.
+  fileKey      String?             @map("file_key")
+  fileName     String?             @map("file_name") @db.VarChar(255)
+  fileMime     String?             @map("file_mime") @db.VarChar(100)
+  fileSize     Int?                @map("file_size")
+  status       JustificationStatus @default(PENDING)
+  requestedBy  String              @map("requested_by")
+  resolvedBy   String?             @map("resolved_by")
+  resolvedAt   DateTime?           @map("resolved_at")
+  note         String?             @db.VarChar(500)
+  createdAt    DateTime            @default(now()) @map("created_at")
+  updatedAt    DateTime            @updatedAt @map("updated_at")
 
-  attendance     Attendance @relation(fields: [attendanceId], references: [id])
-  resolvedByUser User?      @relation(fields: [resueltoPor], references: [id])
+  attendance Attendance @relation(fields: [attendanceId], references: [id])
 
   @@index([status])
   @@map("justifications")
@@ -133,8 +142,8 @@ model Justification {
 ```
 
 **Índices:**
-- `attendance_sessions`: único `(groupId, fecha, hora)` (según el diccionario);
-  como `hora` admite `NULL`, el único parcial sobre sesiones vigentes
+- `attendance_sessions`: único `(groupId, date, time)` (según el diccionario);
+  como `time` admite `NULL`, el único parcial sobre sesiones vigentes
   (`deletedAt IS NULL`) se agrega en migración SQL.
 - `attendance`: único `(sessionId, enrollmentId)`; `(enrollmentId, status)` para
   calcular porcentajes por alumno.
@@ -145,7 +154,7 @@ model Justification {
 - `AttendanceSession.group → Group` (M07) y `createdBy → User` (M02).
 - `Attendance.enrollment → Enrollment` (M07) — la falta pertenece a la
   inscripción (alumno+grupo), no directamente al alumno.
-- `Justification.attendance → Attendance` (1:1) y `resueltoPor → User`.
+- `Justification.attendance → Attendance` (1:1) y `resolvedBy → User`.
 
 > Detalle en
 > [`../../modelo-datos/diccionario-datos.md`](../../modelo-datos/diccionario-datos.md#m18--asistencia-y-justificantes).
@@ -163,16 +172,16 @@ Numeradas y verificables (cada una mapea a una prueba de §10):
 3. **Pertenencia.** Solo se registra asistencia de `enrollments` del grupo de la
    sesión; un `enrollmentId` ajeno → 400 `INVALID_REFERENCE`.
 4. **Porcentaje de asistencia.** Por alumno/periodo:
-   `% = (PRESENTE + RETARDO + JUSTIFICADA) / total de sesiones del grupo`.
-   `FALTA` es la única que resta (`RETARDO` cuenta como asistencia; `JUSTIFICADA`
+   `% = (PRESENT + LATE + JUSTIFIED) / total de sessions del group`.
+   `ABSENT` es la única que resta (`LATE` cuenta como asistencia; `JUSTIFIED`
    no penaliza).
 5. **Alerta por umbral.** Si el `%` cae por debajo del umbral configurable en
    `settings` (por defecto 80 %), se emite el evento de alerta (consumido por
    M19) y el alumno aparece marcado en el reporte. El umbral es configurable, no
    hardcodeado.
 6. **Justificante aprobado.** `PATCH /justifications/:id/resolve` con
-   `APROBADA` cambia el `status` del `Attendance` de `FALTA` a `JUSTIFICADA` y
-   registra `resueltoPor`/`resolvedAt`. `RECHAZADA` deja la falta como `FALTA`.
+   `APPROVED` cambia el `status` del `Attendance` de `ABSENT` a `JUSTIFIED` y
+   registra `resolvedBy`/`resolvedAt`. `REJECTED` deja la falta como `ABSENT`.
 7. **Archivo del justificante.** Solo PDF/JPG/PNG y ≤ 5 MB; el archivo se guarda
    en S3 (ruta privada con nombre aleatorio) y solo se persiste la ruta.
    Sin S3 configurado → 503 `STORAGE_NOT_CONFIGURED`.
@@ -200,15 +209,15 @@ server-side.
 **Crear sesión** `POST /api/v1/groups/:id/sessions`:
 
 ```json
-{ "fecha": "2026-06-01", "hora": "08:00" }
+{ "date": "2026-06-01", "time": "08:00" }
 ```
 
 **Pase de lista** `PUT /api/v1/sessions/:id/attendance`:
 
 ```json
 { "items": [
-  { "enrollmentId": "…", "status": "PRESENTE" },
-  { "enrollmentId": "…", "status": "FALTA" }
+  { "enrollmentId": "…", "status": "PRESENT" },
+  { "enrollmentId": "…", "status": "ABSENT" }
 ] }
 ```
 
@@ -216,16 +225,16 @@ Responde `200` con `{ "sessionId": "…", "saved": 2 }`; `upsert` por
 `(sessionId, enrollmentId)`.
 
 **Justificante** `POST /api/v1/justifications` (`multipart/form-data`):
-campos `attendanceId`, `motivo`, `archivo` (opcional). El archivo va a S3 y se
+campos `attendanceId`, `reason`, `file` (opcional). El archivo va a S3 y se
 guarda la ruta.
 
 **Resolución** `PATCH /api/v1/justifications/:id/resolve`:
 
 ```json
-{ "status": "APROBADA", "nota": "Comprobante válido" }
+{ "status": "APPROVED", "note": "Comprobante válido" }
 ```
 
-Al aprobar, la `Attendance` asociada pasa a `JUSTIFICADA` (regla 6).
+Al aprobar, la `Attendance` asociada pasa a `JUSTIFIED` (regla 6).
 
 ## 6. Web
 
@@ -252,9 +261,9 @@ Ver [`../../seguridad/roles-permisos.md`](../../seguridad/roles-permisos.md).
 
 | Permiso | Roles | Alcance | Notas |
 |---|---|---|---|
-| `attendance.view` | `ADMIN`/`CONTROL_ESCOLAR` (`ALL`), `PROFESOR` (`AREA`), `ALUMNO` (`OWN`) | por rol | El alumno solo ve sus faltas. |
-| `attendance.manage` | `ADMIN`/`CONTROL_ESCOLAR` (`ALL`), `PROFESOR` (`AREA`) | por rol | Crear sesiones y pasar lista en sus grupos. |
-| `attendance.justify` | `ALUMNO` (`OWN`), `PROFESOR` (`AREA`) | por rol | El alumno solicita; el profesor/control resuelve. |
+| `attendance.view` | `ADMIN`/`SCHOOL_CONTROL` (`ALL`), `TEACHER` (`AREA`), `STUDENT` (`OWN`) | por rol | El alumno solo ve sus faltas. |
+| `attendance.manage` | `ADMIN`/`SCHOOL_CONTROL` (`ALL`), `TEACHER` (`AREA`) | por rol | Crear sesiones y pasar lista en sus grupos. |
+| `attendance.justify` | `STUDENT` (`OWN`), `TEACHER` (`AREA`) | por rol | El alumno solicita; el profesor/control resuelve. |
 
 Scoping en el servicio (`withinScope` por `group_id` del profesor, o por
 `studentId` del alumno) aplicado en `AND`; fuera de alcance → 403
@@ -268,10 +277,10 @@ Zod en `models/dto`; `ZodError` → 400 `VALIDATION_ERROR`. Validación de archi
 
 | DTO | Campos | Reglas / código |
 |---|---|---|
-| `CreateSessionSchema` | `fecha` (`YYYY-MM-DD`), `hora` (`HH:mm`?) | `REQUIRED_FIELD`, `INVALID_FORMAT` |
+| `CreateSessionSchema` | `date` (`YYYY-MM-DD`), `time` (`HH:mm`?) | `REQUIRED_FIELD`, `INVALID_FORMAT` |
 | `SaveAttendanceSchema` | `items[] { enrollmentId (uuid), status }` | `1..N`; enum `AttendanceStatus` → `INVALID_FORMAT` |
-| `CreateJustificationSchema` | `attendanceId` (uuid), `motivo` (≥ 5), `archivo`? | `REQUIRED_FIELD`; archivo PDF/JPG/PNG ≤ 5 MB |
-| `ResolveJustificationSchema` | `status` (`APROBADA`/`RECHAZADA`), `nota`? | enum → `INVALID_FORMAT` |
+| `CreateJustificationSchema` | `attendanceId` (uuid), `reason` (≥ 5), `file`? | `REQUIRED_FIELD`; archivo PDF/JPG/PNG ≤ 5 MB |
+| `ResolveJustificationSchema` | `status` (`APPROVED`/`REJECTED`), `note`? | enum → `INVALID_FORMAT` |
 | `AttendanceQuerySchema` | `page`, `limit`, `filters`, `sort` | tope `limit` 200; `INVALID_FILTER` / `INVALID_RANGE` |
 
 ## 9. Bitácora
@@ -281,12 +290,12 @@ Vía `AuditPort` ([`../../seguridad/bitacora.md`](../../seguridad/bitacora.md)) 
 
 | Acción | `entityType` | `previousState` / `newState` |
 |---|---|---|
-| `ATTENDANCE_SESSION_CREATED` | `AttendanceSession` | `null` → `{ groupId, fecha, hora }` |
+| `ATTENDANCE_SESSION_CREATED` | `AttendanceSession` | `null` → `{ groupId, date, time }` |
 | `ATTENDANCE_RECORDED` | `Attendance` | `{ status: null }` → `{ status }` (o previo → nuevo) |
-| `JUSTIFICATION_CREATED` | `Justification` | `null` → `{ attendanceId, status: PENDIENTE }` |
-| `JUSTIFICATION_APPROVED` | `Justification` + `Attendance` | `PENDIENTE` → `APROBADA`; `FALTA` → `JUSTIFICADA` |
-| `JUSTIFICATION_REJECTED` | `Justification` | `PENDIENTE` → `RECHAZADA` |
-| `ATTENDANCE_ALERT_TRIGGERED` | `Enrollment` | `{ porcentaje, umbral }` (al cruzar el umbral) |
+| `JUSTIFICATION_CREATED` | `Justification` | `null` → `{ attendanceId, status: PENDING }` |
+| `JUSTIFICATION_APPROVED` | `Justification` + `Attendance` | `PENDING` → `APPROVED`; `ABSENT` → `JUSTIFIED` |
+| `JUSTIFICATION_REJECTED` | `Justification` | `PENDING` → `REJECTED` |
+| `ATTENDANCE_ALERT_TRIGGERED` | `Enrollment` | `{ percentage, threshold }` (al cruzar el umbral) |
 
 Nunca se registra el contenido del archivo, solo su ruta y metadatos.
 
@@ -296,7 +305,7 @@ Nunca se registra el contenido del archivo, solo su ruta y metadatos.
   umbral (regla 5), transición de falta a justificada (regla 6) y validación de
   archivo (regla 7).
 - **Contrato** (`api/tests/e2e`): sesiones/pase de lista/justificantes con
-  `ctxProfesor` y `ctxAlumno`; 401/403 fuera de alcance, 409 `DUPLICATE_RECORD`,
+  `teacher` y `student`; 401/403 fuera de alcance, 409 `DUPLICATE_RECORD`,
   400 `INVALID_REFERENCE`, archivo inválido (reglas 1–7).
 - **Navegador** (`web/tests/e2e`): pase de lista con `ITDataTable`, carga de
   justificante y resolución con `ITDialog`; verifica el cálculo del % en pantalla.
@@ -317,8 +326,8 @@ Nunca se registra el contenido del archivo, solo su ruta y metadatos.
 
 ## 12. Decisiones abiertas
 
-- **Fórmula del porcentaje:** confirmar si `RETARDO` cuenta como asistencia
-  completa o ponderada, y si `JUSTIFICADA` se excluye del denominador.
+- **Fórmula del porcentaje:** confirmar si `LATE` cuenta como asistencia
+  completa o ponderada, y si `JUSTIFIED` se excluye del denominador.
 - **Umbral:** valor por defecto (80 %) y si puede variar por grupo/periodo, no
   solo global en `settings`.
 - **Multiple justificantes:** ¿restringir a uno vigente por falta (como el índice

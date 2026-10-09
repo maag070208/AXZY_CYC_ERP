@@ -17,19 +17,19 @@
 | Método | Ruta | Permiso | Nota |
 |---|---|---|---|
 | POST · GET | `/api/v1/courses/query` · `/courses/options` | `courses.view` | AREA = cursos de sus grupos |
-| POST · GET · PATCH | `/api/v1/courses` · `/courses/:id` | `courses.manage` · `courses.view` | Clave única normalizada a mayúsculas (`409 COURSE_CLAVE_TAKEN`) |
+| POST · GET · PATCH | `/api/v1/courses` · `/courses/:id` | `courses.manage` · `courses.view` | Clave única normalizada a mayúsculas (`409 COURSE_CODE_TAKEN`) |
 | DELETE · POST | `/api/v1/courses/:id` · `/:id/reactivate` | `courses.manage` | Baja lógica: no se abren grupos de un curso inactivo |
 | POST · GET | `/api/v1/groups/query` · `/groups/options` | `groups.view` | AREA = sus grupos (profesor); OWN = donde está inscrito (alumno) |
-| POST · GET · PATCH | `/api/v1/groups` · `/groups/:id` | `groups.manage` · `groups.view` | Curso y ciclo inmutables; `409 CUPO_BELOW_ENROLLED`, `GROUP_NAME_TAKEN` |
+| POST · GET · PATCH | `/api/v1/groups` · `/groups/:id` | `groups.manage` · `groups.view` | Curso y ciclo inmutables; `409 CAPACITY_BELOW_ENROLLED`, `GROUP_NAME_TAKEN` |
 | DELETE · POST | `/api/v1/groups/:id` · `/:id/reactivate` | `groups.manage` | Solo sin inscritos (`409 GROUP_HAS_ENROLLMENTS`) |
 | POST | `/api/v1/groups/:id/enroll` | `enrollments.create` | Transacción `Serializable` con reintento acotado |
-| POST | `/api/v1/enrollments/query` | `enrollments.view` | Filtros `groupId`, `studentId`, `termId`, `status`, `matricula`, `nombre` |
+| POST | `/api/v1/enrollments/query` | `enrollments.view` | Filtros `groupId`, `studentId`, `termId`, `status`, `studentNumber`, `name` |
 | DELETE | `/api/v1/enrollments/:id` | `enrollments.delete` | Baja lógica con motivo opcional |
 | POST | `/api/v1/enrollments/:id/change-group` | `enrollments.edit` | Mismo curso y ciclo; origen en BAJA apuntando al destino |
 
 Diferencias con el borrador:
-- `Course` lleva `clave` única y `levelId` (FK al catálogo de niveles de M11) en lugar de `nivel` texto; solo `active` (sin `status` duplicado). `Group` agrega `closedAt/closedBy` (cierre de M08) y único `(courseId, termId, nombre)`. `Enrollment` agrega `finalGrade`, `bajaAt`, `bajaMotivo`, `transferredToId` y `createdBy`.
-- Días del horario en mayúsculas sin acento (`LUNES…DOMINGO`), horas `HH:mm`, intervalos semiabiertos `[inicio, fin)`: bloques contiguos no se empalman. El empalme se revisa contra las inscripciones `INSCRITO` del alumno en el **mismo ciclo**.
+- `Course` lleva `code` única y `levelId` (FK al catálogo de niveles de M11) en lugar de `nivel` texto; solo `active` (sin `status` duplicado). `Group` agrega `closedAt/closedBy` (cierre de M08) y único `(courseId, termId, name)`. `Enrollment` agrega `finalGrade`, `withdrawnAt`, `withdrawalReason`, `transferredToId` y `createdBy`.
+- Días del horario en mayúsculas sin acento (`MONDAY…SUNDAY`), horas `HH:mm`, intervalos semiabiertos `[inicio, fin)`: bloques contiguos no se empalman. El empalme se revisa contra las inscripciones `ENROLLED` del alumno en el **mismo ciclo**.
 - `Idempotency-Key` no se implementó: el índice único parcial y la transacción serializable ya impiden la doble inscripción (un reintento responde `409 ALREADY_ENROLLED`).
 - El ámbito `AREA` del profesor (sus grupos) se registra como resolvedor `groups` y publica también el `AREA` de `students`: expediente y kardex del profesor quedan limitados a los alumnos de sus grupos. Ver [D-027](../../../DECISIONES.md) y [D-028](../../../DECISIONES.md).
 - La baja del alumno (M05) cancela sus inscripciones vigentes en la misma transacción (puerto `setEnrollmentCanceller`).
@@ -61,57 +61,73 @@ exámenes y asistencia, y se generan cargos de colegiatura.
 
 ```prisma
 model Course {
-  id          String        @id @default(uuid())
-  nombre      String
-  nivel       String?
-  descripcion String?
-  status      CourseStatus  @default(ACTIVO)
-  active      Boolean       @default(true)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  id          String   @id @default(uuid())
+  /// Clave corta e inmutable en la práctica (p. ej. `MAT-101`).
+  code        String   @unique
+  name        String
+  levelId     String?  @map("level_id")
+  description String?
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
-  groups Group[]
+  level           Level?           @relation(fields: [levelId], references: [id])
+  groups          Group[]
+  questions       Question[]
+  programSubjects ProgramSubject[]
 
-  @@index([status])
   @@index([active])
+  @@index([name])
   @@map("courses")
 }
 
+/// Ciclo escolar. Solo uno `active` a la vez (índice único parcial en SQL).
+/// M07 lo amplía con sus relaciones (grupos).
 model Term {
-  id          String   @id @default(uuid())
-  nombre      String
-  fechaInicio DateTime @map("fecha_inicio") @db.Date
-  fechaFin    DateTime @map("fecha_fin") @db.Date
-  activo      Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(uuid())
+  name      String   @unique
+  startDate DateTime @map("start_date") @db.Date
+  endDate   DateTime @map("end_date") @db.Date
+  active    Boolean  @default(false)
+  /// Calendario/periodos configurables (M22): [{ name, startDate, endDate }].
+  calendar  Json?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  groups Group[]
+  groups  Group[]
   charges Charge[]
+  plans   StudentPlan[]
 
-  @@index([activo])
+  @@index([active])
   @@map("terms")
 }
 
 model Group {
-  id        String   @id @default(uuid())
-  courseId  String   @map("course_id")
-  termId    String   @map("term_id")
-  teacherId String?  @map("teacher_id")
-  nombre    String
-  cupo      Int
-  horario   Json     // [{ "dia": "lunes", "horaInicio": "08:00", "horaFin": "09:00" }]
-  aula      String?
-  active    Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id        String    @id @default(uuid())
+  courseId  String    @map("course_id")
+  termId    String    @map("term_id")
+  teacherId String?   @map("teacher_id")
+  name      String
+  capacity  Int
+  /// `[{ dia: "LUNES", horaInicio: "08:00", horaFin: "09:00" }]`
+  schedule  Json
+  classroom String?
+  active    Boolean   @default(true)
+  /// Cierre de calificaciones (M08): finales escritas y estatus aplicados.
+  closedAt  DateTime? @map("closed_at")
+  closedBy  String?   @map("closed_by")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
 
-  course      Course       @relation(fields: [courseId], references: [id])
-  term        Term         @relation(fields: [termId], references: [id])
-  teacher     Teacher?     @relation(fields: [teacherId], references: [id])
-  enrollments Enrollment[]
+  course             Course              @relation(fields: [courseId], references: [id])
+  term               Term                @relation(fields: [termId], references: [id])
+  teacher            Teacher?            @relation(fields: [teacherId], references: [id])
+  enrollments        Enrollment[]
+  assessments        Assessment[]
+  onlineExams        OnlineExam[]
+  attendanceSessions AttendanceSession[]
 
-  @@index([courseId])
+  @@unique([courseId, termId, name])
   @@index([termId])
   @@index([teacherId])
   @@index([active])
@@ -119,61 +135,68 @@ model Group {
 }
 
 model Enrollment {
-  id        String           @id @default(uuid())
-  studentId String           @map("student_id")
-  groupId   String           @map("group_id")
-  fecha     DateTime         @db.Date
-  status    EnrollmentStatus @default(INSCRITO)
-  createdAt DateTime         @default(now())
-  updatedAt DateTime         @updatedAt
+  id               String           @id @default(uuid())
+  studentId        String           @map("student_id")
+  groupId          String           @map("group_id")
+  date             DateTime         @db.Date
+  status           EnrollmentStatus @default(ENROLLED)
+  /// Calificación final escrita al cerrar el grupo (M08).
+  finalGrade       Decimal?         @map("final_grade") @db.Decimal(5, 2)
+  withdrawnAt      DateTime?        @map("withdrawn_at")
+  withdrawalReason String?          @map("withdrawal_reason")
+  /// Si la baja fue por cambio de grupo, la inscripción destino.
+  transferredToId  String?          @unique @map("transferred_to_id")
+  createdBy        String?          @map("created_by")
+  createdAt        DateTime         @default(now()) @map("created_at")
+  updatedAt        DateTime         @updatedAt @map("updated_at")
 
-  student Student @relation(fields: [studentId], references: [id])
-  group   Group   @relation(fields: [groupId], references: [id])
-  grades  Grade[]
+  student           Student      @relation(fields: [studentId], references: [id])
+  group             Group        @relation(fields: [groupId], references: [id])
+  transferredTo     Enrollment?  @relation("EnrollmentTransfer", fields: [transferredToId], references: [id])
+  transferredFrom   Enrollment?  @relation("EnrollmentTransfer")
+  grades            Grade[]
+  attendance        Attendance[]
+  /// Cuándo se emitió la alerta de inasistencia vigente (M18); se limpia al recuperar el umbral.
+  attendanceAlertAt DateTime?    @map("attendance_alert_at")
 
   @@index([studentId, status])
   @@index([groupId, status])
   @@map("enrollments")
 }
 
-enum CourseStatus {
-  ACTIVO
-  INACTIVO
-}
-
 enum EnrollmentStatus {
-  INSCRITO
-  BAJA
-  ACREDITADO
-  REPROBADO
+  ENROLLED
+  WITHDRAWN
+  PASSED
+  FAILED
 }
 ```
 
-- `active` en `Course`/`Group` para desactivación lógica; `Term.activo` (regla de
-  dominio: **un solo ciclo activo**); `Enrollment.status = BAJA` es la baja lógica
+- `active` en `Course`/`Group` para desactivación lógica; `Term.ACTIVE` (regla de
+  dominio: **un solo ciclo activo**); `Enrollment.status = WITHDRAWN` es la baja lógica
   (nunca `DELETE` físico).
-- `horario` es `Json`/`jsonb` con nombres en español (`dia`, `horaInicio`,
-  `horaFin`) según el spec.
-- `cupo` es entero; dinero/medidas decimales no aplican aquí.
+- `schedule` es `Json`/`jsonb` con nombres en español (`day`, `startTime`,
+  `endTime`) según el spec.
+- `capacity` es entero; dinero/medidas decimales no aplican aquí.
 
 **Índices / restricciones (incluyen SQL de migración):**
-- Único parcial `(student_id, group_id) WHERE status <> 'BAJA'` → evita doble
+- Único parcial `(student_id, group_id) WHERE status <> 'WITHDRAWN'` → evita doble
   inscripción activa al mismo grupo (Prisma no lo modela; va en migración SQL).
-- Único parcial `(activo) WHERE activo = true` sobre `terms` → un solo ciclo activo.
+- Único parcial `(ACTIVE) WHERE ACTIVE = true` sobre `terms` → un solo ciclo activo.
 
 **Relaciones:** `Course 1—N Group`; `Term 1—N Group`; `Teacher 1—N Group`;
 `Group 1—N Enrollment`; `Student 1—N Enrollment`; `Enrollment 1—N Grade` (M08).
 
 ## 4. Reglas de negocio
 
-1. **Cupo**: no se inscribe si el grupo alcanzó `cupo` (conteo de inscripciones
-   activas `status <> BAJA`) → `GROUP_FULL`.
+1. **Cupo**: no se inscribe si el grupo alcanzó `capacity` (conteo de inscripciones
+   activas `status <> WITHDRAWN`) → `GROUP_FULL`.
 2. **Doble inscripción**: el mismo alumno no puede tener dos inscripciones activas
    al mismo grupo → `ALREADY_ENROLLED` (protegido además por índice único parcial).
 3. **Empalme de horarios**: un alumno no puede inscribirse a dos grupos cuyos
-   horarios se solapen (mismo `dia` e intervalo `[horaInicio, horaFin)` con
+   horarios se solapen (mismo `day` e intervalo `[startTime, endTime)` con
    intersección) en el mismo ciclo → `SCHEDULE_CONFLICT`.
-4. **Alumno en baja**: no se inscribe a un alumno con `Student.status = baja`
+4. **Alumno en baja**: no se inscribe a un alumno con `Student.status = WITHDRAWN`
    → `STUDENT_INACTIVE` (regla provista por M05).
 5. **Transacción serializable con reintento**: cupo, doble inscripción y empalme se
    evalúan dentro de una transacción con nivel `Serializable`; ante choque se
@@ -182,11 +205,11 @@ enum EnrollmentStatus {
 6. **Change-group** es atómico: da de baja (lógica) la inscripción origen y crea la
    destino revalidando cupo/duplicidad/empalme; si falla, no cambia nada.
 7. **Solo un ciclo activo**: activar un `Term` desactiva el anterior.
-8. **Baja de inscripción**: `DELETE /enrollments/:id` cambia `status` a `BAJA`
+8. **Baja de inscripción**: `DELETE /enrollments/:id` cambia `status` a `WITHDRAWN`
    (borrado lógico, conserva historial y calificaciones).
 9. **Integridad referencial**: un grupo pertenece a un curso y a un ciclo; el
    profesor es opcional; el aula es informativa.
-10. **Horario válido**: `horaInicio < horaFin` y días en el catálogo permitido.
+10. **Horario válido**: `startTime < endTime` y días en el catálogo permitido.
 11. **Alcance por registro**: el profesor solo ve/edita sus grupos (`AREA`); el
     alumno solo sus inscripciones (`OWN`).
 
@@ -223,14 +246,14 @@ Request/response (Zod + resultado):
 // POST /api/v1/groups/:id/enroll
 export const EnrollSchema = z.object({
   studentId: z.string().uuid(),
-  fecha: z.string().date().optional(),   // por defecto hoy (America/Mexico_City)
+  date: z.string().date().optional(),   // por defecto hoy (America/Mexico_City)
 }).openapi("Enroll");
 
 // 201 Created
-{ "id": "…", "studentId": "…", "groupId": "…", "status": "INSCRITO" }
+{ "id": "…", "studentId": "…", "groupId": "…", "status": "ENROLLED" }
 
 // POST /api/v1/enrollments/:id/change-group
-{ "toGroupId": "a1b2c3d4-…" }  // revalida cupo/duplicidad/empalme
+{ "toGroupId": "a1b2c3d4-…" }  // revalida capacity/duplicidad/empalme
 ```
 
 - Errores del catálogo (ver [`errores.md`](../../api/errores.md)): `GROUP_FULL`,
@@ -255,8 +278,8 @@ export const EnrollSchema = z.object({
 | Grupos | `pages/groups/GroupsPage.tsx` | Listado y alta/edición de grupos |
 | Roster del grupo | `pages/groups/GroupDetailPage.tsx` | Inscritos + acciones |
 
-- Horario editado con `ITFormBuilder` (arreglo de renglones: `dia`,
-  `horaInicio`, `horaFin`).
+- Horario editado con `ITFormBuilder` (arreglo de renglones: `day`,
+  `startTime`, `endTime`).
 - `ITDataTable` con filtro y orden por columna (regla de la casa: toda columna con
   datos lleva filtro/orden; las de acciones no).
 - `KpiTile` con cupo ocupado/disponible; `PanelCard` para secciones.
@@ -284,12 +307,12 @@ export const EnrollSchema = z.object({
 
 ## 8. Validaciones
 
-- `Course.nombre` requerido; `status` ∈ `CourseStatus`; `nivel`/`descripcion`
+- `Course.name` requerido; `status` ∈ `CourseStatus`; `nivel`/`description`
   opcionales con longitud máxima.
-- `Term`: `nombre` requerido; `fechaInicio < fechaFin` (si no → `INVALID_RANGE`).
-- `Group`: `cupo` entero `≥ 1`; `horario` arreglo de `{ dia, horaInicio, horaFin }`
-  con `horaInicio < horaFin` (formato `HH:mm`); `teacherId`/`aula` opcionales.
-- `Enrollment`: `studentId`/`groupId` UUID; `fecha` `YYYY-MM-DD`.
+- `Term`: `name` requerido; `startDate < endDate` (si no → `INVALID_RANGE`).
+- `Group`: `capacity` entero `≥ 1`; `schedule` arreglo de `{ day, startTime, endTime }`
+  con `startTime < endTime` (formato `HH:mm`); `teacherId`/`classroom` opcionales.
+- `Enrollment`: `studentId`/`groupId` UUID; `date` `YYYY-MM-DD`.
 - Códigos: `REQUIRED_FIELD`, `INVALID_FORMAT`, `INVALID_RANGE`,
   `VALIDATION_ERROR`.
 
@@ -300,9 +323,9 @@ del cambio (ver [`bitacora.md`](../../seguridad/bitacora.md)).
 
 | Acción | `entityType` | `previousState` → `newState` | `metadata` |
 |---|---|---|---|
-| `ENROLLMENT_CREATED` | `Enrollment` | `null` → `{ studentId, groupId, status: "INSCRITO" }` | `{ termId, courseId }` |
-| `ENROLLMENT_DELETED` | `Enrollment` | `{ status: "INSCRITO" }` → `{ status: "BAJA" }` | `{ reason }` |
-| `ENROLLMENT_GROUP_CHANGED` | `Enrollment` | `{ groupId: <origen> }` → `{ groupId: <destino> }` | `{ fromGroupId, toGroupId }` |
+| `ENROLLMENT_CREATED` | `Enrollment` | `null` → `{ studentId, groupId, status: "ENROLLED" }` | `{ termId, courseId }` |
+| `ENROLLMENT_DELETED` | `Enrollment` | `{ status: "ENROLLED" }` → `{ status: "WITHDRAWN" }` | `{ reason }` |
+| `ENROLLMENT_GROUP_CHANGED` | `Enrollment` | `{ groupId: <origin> }` → `{ groupId: <destino> }` | `{ fromGroupId, toGroupId }` |
 
 Las acciones de catálogo (`courses`, `terms`, `groups`) registran sus altas y
 ediciones bajo sus propios `entityType` con el mismo patrón.

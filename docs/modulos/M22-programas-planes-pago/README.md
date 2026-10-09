@@ -39,11 +39,12 @@ cálculos manuales**.
 ## 3. Modelo de datos (Prisma)
 
 ```prisma
+/// Esquema de periodos de una carrera (cuántos meses dura cada periodo).
 enum PeriodType {
-  BIMONTHLY    // 2 meses
-  TRIMESTER    // 3 meses
-  QUADRIMESTER // 4 meses
-  SEMESTER     // 6 meses
+  BIMONTHLY
+  TRIMESTER
+  QUADRIMESTER
+  SEMESTER
 }
 
 enum PlanStatus {
@@ -55,7 +56,7 @@ enum PlanStatus {
 /// Carrera/programa: costos y esquema de periodos.
 model Program {
   id              String     @id @default(uuid())
-  code            String     @unique            // MEC-DIESEL
+  code            String     @unique @db.VarChar(30)
   name            String
   description     String?
   periodType      PeriodType @map("period_type")
@@ -63,7 +64,8 @@ model Program {
   /// Meses por periodo (2/3/4/6). Null = derivado de `periodType`.
   monthsPerPeriod Int?       @map("months_per_period")
   monthlyFee      Decimal    @map("monthly_fee") @db.Decimal(12, 2)
-  enrollmentFee   Decimal    @map("enrollment_fee") @db.Decimal(12, 2) // reinscripción (por periodo)
+  /// Reinscripción cobrada una vez por periodo (0 = no se cobra).
+  enrollmentFee   Decimal    @map("enrollment_fee") @db.Decimal(12, 2)
   active          Boolean    @default(true)
   createdAt       DateTime   @default(now()) @map("created_at")
   updatedAt       DateTime   @updatedAt @map("updated_at")
@@ -75,17 +77,17 @@ model Program {
   @@map("programs")
 }
 
-/// Plan de estudios: materia (curso de M07) en un periodo.
+/// Plan de estudios: materia (curso de M07) en un periodo de la carrera.
 model ProgramSubject {
   id          String   @id @default(uuid())
   programId   String   @map("program_id")
   courseId    String   @map("course_id")
-  periodIndex Int      @map("period_index")   // 1..periodCount
+  periodIndex Int      @map("period_index")
   sortOrder   Int      @default(0) @map("sort_order")
   createdAt   DateTime @default(now()) @map("created_at")
 
   program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
-  course  Course  @relation(fields: [courseId], references: [id])
+  course  Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
 
   @@unique([programId, courseId])
   @@index([programId, periodIndex])
@@ -103,18 +105,18 @@ model StudentPlan {
   periodCount     Int        @map("period_count")
   monthlyFee      Decimal    @map("monthly_fee") @db.Decimal(12, 2)
   enrollmentFee   Decimal    @map("enrollment_fee") @db.Decimal(12, 2)
-  /// Descuento: porcentaje o monto (uno de los dos) + motivo (becas).
+  /// Descuento/beca: porcentaje (0..100) o monto; el porcentaje gana si ambos.
   discountPercent Decimal?   @map("discount_percent") @db.Decimal(5, 2)
   discountAmount  Decimal?   @map("discount_amount") @db.Decimal(12, 2)
-  discountReason  String?    @map("discount_reason")
+  discountReason  String?    @map("discount_reason") @db.VarChar(200)
   status          PlanStatus @default(ACTIVE)
   createdBy       String?    @map("created_by")
   createdAt       DateTime   @default(now()) @map("created_at")
   updatedAt       DateTime   @updatedAt @map("updated_at")
 
-  student Student @relation(fields: [studentId], references: [id])
-  program Program @relation(fields: [programId], references: [id])
-  term    Term?   @relation(fields: [termId], references: [id])
+  student Student  @relation(fields: [studentId], references: [id])
+  program Program  @relation(fields: [programId], references: [id])
+  term    Term?    @relation(fields: [termId], references: [id])
   charges Charge[]
 
   @@index([studentId, status])
@@ -289,7 +291,7 @@ reinscripción pone `enrollmentFee = 0`.)*
 - Reinscripción **una vez por periodo** (`$0` la desactiva).
 - Día de vencimiento fijo **`settings.PAYMENT_DUE_DAY`** (default 5).
 - Asignar plan e **inscribir son pasos separados** (acción opcional que llama a ambos).
-- **Dos conceptos genéricos** `INSCRIPCION`/`COLEGIATURA`; monto del plan.
+- **Dos conceptos genéricos** `ENROLLMENT`/`TUITION`; monto del plan.
 - **Sin prorrateo** automático (ajuste manual con motivo; regla futura).
 - **Descuentos por plan** (`discountPercent`/`discountAmount` + motivo).
 - **Calendario/periodos configurables** en `Term` (natural en español por defecto).

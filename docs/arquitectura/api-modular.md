@@ -60,7 +60,7 @@ handler async va envuelto en `asyncHandler`.
 En `models/dto`, importando `{ z, registry } from "@core/swagger/registry"`:
 ```ts
 export const CreateStudentSchema = z.object({
-  nombres: z.string().min(1, "REQUIRED_FIELD"),
+  firstNames: z.string().min(1, "REQUIRED_FIELD"),
   curp: z.string().length(18, "INVALID_CURP"),
   // ...
 }).openapi("CreateStudent");

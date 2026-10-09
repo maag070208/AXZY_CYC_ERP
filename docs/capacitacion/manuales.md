@@ -6,10 +6,10 @@ Plan de documentación de usuario y capacitación previa al lanzamiento.
 
 | Manual | Audiencia | Contenido principal |
 |---|---|---|
-| Administrador | `admin` | Usuarios y roles, catálogos, configuración, bitácora, respaldos |
-| Control escolar | `control_escolar` | Altas/bajas/reingresos, expediente, grupos e inscripciones, cobranza, reportes |
-| Profesor | `profesor` | Sus grupos, calificaciones, asistencia, banco de reactivos, exámenes en línea, revisión |
-| Alumno | `alumno` | (si se habilita) consulta de kardex, pagos y presentación de exámenes |
+| Administrador | `ADMIN` | Usuarios y roles, catálogos, configuración, bitácora, respaldos |
+| Control escolar | `SCHOOL_CONTROL` | Altas/bajas/reingresos, expediente, grupos e inscripciones, cobranza, reportes |
+| Profesor | `TEACHER` | Sus grupos, calificaciones, asistencia, banco de reactivos, exámenes en línea, revisión |
+| Alumno | `STUDENT` | (si se habilita) consulta de kardex, pagos y presentación de exámenes |
 
 Cada manual incluye: capturas de pantalla, pasos numerados, mensajes de error
 comunes y qué hacer.

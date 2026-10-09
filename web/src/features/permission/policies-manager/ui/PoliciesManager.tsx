@@ -2,7 +2,7 @@ import { useState } from "react";
 import { ITAlert, ITBadget, ITButton, ITConfirmDialog, ITFlex, ITLoader, ITText } from "@axzydev/axzy_ui_system";
 import { FaEdit, FaPlus, FaTrash } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
-import { permissionApi, type Policy, type RoleAdmin } from "@entities/permission";
+import { permissionApi, roleLabel, type Policy, type RoleAdmin } from "@entities/permission";
 import { dyn } from "@shared/i18n";
 import { errorMessage, useNotify } from "@app/toast/useNotify";
 import { PanelCard } from "@shared/ui/panel-card";
@@ -42,7 +42,7 @@ export default function PoliciesManager({ roles, onChanged }: Props) {
     }
   };
 
-  const roleName = (key: string) => roles.find((role) => role.key === key)?.name ?? key;
+  const roleName = (key: string) => roleLabel(roles.find((role) => role.key === key) ?? { key });
 
   return (
     <PanelCard

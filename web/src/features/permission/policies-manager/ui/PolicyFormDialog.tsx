@@ -20,6 +20,7 @@ import {
   type PolicyEffect,
   type PolicyOperator,
   type RoleAdmin,
+  roleLabel,
 } from "@entities/permission";
 import { dyn } from "@shared/i18n";
 import { errorMessage } from "@app/toast/useNotify";
@@ -196,7 +197,7 @@ export default function PolicyFormDialog({ isOpen, policy, actions, roles, onClo
                 <ITCheckbox
                   key={role.key}
                   name={`policy-role-${role.key}`}
-                  label={role.name}
+                  label={roleLabel(role)}
                   checked={policyRoles.includes(role.key)}
                   onChange={(checked) =>
                     setPolicyRoles((prev) =>

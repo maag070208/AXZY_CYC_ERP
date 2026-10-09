@@ -144,8 +144,8 @@ de exámenes).
   permisos). Umbral de cobertura **70 %** en servicios.
 - **Contrato API E2E** (`api/tests/e2e`): endpoints reales contra
   `localhost:PORT`; validación, permisos (401/403), contrato de tabla
-  (`POST /…/query`), idempotencia y bitácora. Fixtures `ctxAdmin`, `ctxProfesor`,
-  `ctxAlumno`, `ctxAnonymous` por login real; **no** fijan `Content-Type` a nivel
+  (`POST /…/query`), idempotencia y bitácora. Fixtures `ctxAdmin`, `teacher`,
+  `student`, `ctxAnonymous` por login real; **no** fijan `Content-Type` a nivel
   de contexto (rompe `multipart/form-data`).
 - **Navegador Web E2E** (`web/tests/e2e`): flujos por pantalla contra app + API
   reales, incluido `insecure-context.spec.ts`.

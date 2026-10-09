@@ -22,10 +22,10 @@ obligatorios; registrar el diccionario origen → destino.
 | Entidad destino | Campo destino | Columna origen |
 |---|---|---|
 | `students` | `curp` | `CURP` |
-| `students` | `nombres` | `NOMBRE(S)` |
-| `students` | `fechaNacimiento` | `FECHA_NAC` |
-| `charges` | `monto` | `IMPORTE` |
-| `payments` | `reciboFolio` | `FOLIO` |
+| `students` | `firstNames` | `NOMBRE(S)` |
+| `students` | `birthDate` | `FECHA_NAC` |
+| `charges` | `amount` | `IMPORTE` |
+| `payments` | `receiptNumber` | `FOLIO` |
 
 ### 3. Script en modo simulación (`dry-run`)
 Lee, normaliza y valida **sin escribir**; genera reporte de filas válidas y
@@ -52,10 +52,10 @@ aceptación.
 
 | Entidad | Llave natural |
 |---|---|
-| `students` | `curp` (o `matricula`) |
+| `students` | `curp` (o `studentNumber`) |
 | `teachers` | `email` |
-| `charges` | `studentId + conceptId + termId + fechaVencimiento` |
-| `payments` | `reciboFolio` |
+| `charges` | `studentId + conceptId + termId + dueDate` |
+| `payments` | `receiptNumber` |
 | `grades` | `assessmentId + enrollmentId` |
 
 ## 4. Reporte de errores (ejemplo)

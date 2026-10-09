@@ -33,8 +33,8 @@
 
 Decisiones (sección 12):
 - Plantillas por clave+canal con variables `{{var}}`; el outbox reclama con `FOR UPDATE SKIP LOCKED` y aplica backoff exponencial hasta `maxAttempts`. Ver [D-044](../../../DECISIONES.md).
-- Correo por Resend/SMTP o simulado; SMS/WhatsApp simulados hasta definir proveedor ([A-001](../../../DECISIONES.md)). Canal `INTERNO` con bandeja propia y aviso en tiempo real best-effort (Ably).
-- El puerto `Notifier` dispara `ALERTA_INASISTENCIA`, `JUSTIFICANTE_RESUELTO`, `EXAMEN_PUBLICADO`, `PAGO_RECIBIDO` y `PAGO_POR_VENCER` (barrido horario idempotente).
+- Correo por Resend/SMTP o simulado; SMS/WhatsApp simulados hasta definir proveedor ([A-001](../../../DECISIONES.md)). Canal `IN_APP` con bandeja propia y aviso en tiempo real best-effort (Ably).
+- El puerto `Notifier` dispara `ABSENCE_ALERT`, `JUSTIFICATION_RESOLVED`, `EXAM_PUBLISHED`, `PAYMENT_RECEIVED` y `PAYMENT_DUE_SOON` (barrido horario idempotente).
 - Las bajas (opt-out) no aplican a los avisos obligatorios.
 
 ## 1. Objetivo
@@ -74,109 +74,132 @@ enum NotificationChannel {
   EMAIL
   SMS
   WHATSAPP
+  /// Bandeja dentro de la app (campana); se entrega al encolar.
+  IN_APP
 }
 
 enum NotificationStatus {
-  EN_COLA
-  ENVIADO
-  FALLIDO
+  QUEUED
+  SENT
+  FAILED
+  /// No se envió por baja del destinatario (opt-out).
+  SKIPPED
 }
 
 model NotificationTemplate {
   id        String              @id @default(uuid())
-  clave     String              @unique          // p. ej. "PAGO_POR_VENCER"
-  canal     NotificationChannel
-  asunto    String?                              // solo correo
-  cuerpo    String                               // variables {{nombre}}, {{monto}}
-  variables Json                @default("[]")   // variables declaradas por la plantilla
+  /// Evento que la dispara (p. ej. `ALERTA_INASISTENCIA`); una por canal.
+  code      String              @db.VarChar(60)
+  name      String              @db.VarChar(150)
+  channel   NotificationChannel
+  subject   String?             @db.VarChar(200)
+  body      String
+  /// Variables declaradas que el payload debe cubrir (`["nombre", "monto"]`).
+  variables Json                @default("[]")
+  /// Transaccional obligatorio: ignora la baja (opt-out).
+  required  Boolean             @default(false)
   active    Boolean             @default(true)
-  createdAt DateTime            @default(now())
-  updatedAt DateTime            @updatedAt
+  createdAt DateTime            @default(now()) @map("created_at")
+  updatedAt DateTime            @updatedAt @map("updated_at")
 
   notifications Notification[]
 
-  @@index([canal, active])
+  @@unique([code, channel])
+  @@index([channel, active])
   @@map("notification_templates")
 }
 
 model Notification {
   id                String              @id @default(uuid())
-  destinatario      String                               // email o teléfono
-  canal             NotificationChannel
-  templateId        String?
-  template          NotificationTemplate? @relation(fields: [templateId], references: [id])
-  payload           Json                                 // variables resueltas
-  asunto            String?                              // render final (correo)
-  cuerpo            String?                              // render final
-  status            NotificationStatus  @default(EN_COLA)
+  /// Correo, teléfono o `user:<id>` para la bandeja interna.
+  recipient         String              @db.VarChar(200)
+  channel           NotificationChannel
+  templateId        String?             @map("template_id")
+  /// Cuenta destinataria (bandeja y tiempo real), si se conoce.
+  userId            String?             @map("user_id")
+  /// Evento o módulo de origen (`ALERTA_INASISTENCIA`, `MANUAL`…).
+  origin            String              @default("MANUAL") @db.VarChar(60)
+  payload           Json                @default("{}")
+  subject           String?             @db.VarChar(200)
+  body              String
+  status            NotificationStatus  @default(QUEUED)
   attempts          Int                 @default(0)
-  maxAttempts       Int                 @default(5)
-  nextRetryAt       DateTime?
-  error             String?
-  providerMessageId String?
-  idempotencyKey    String?             @unique
-  sentAt            DateTime?
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
+  maxAttempts       Int                 @default(5) @map("max_attempts")
+  nextRetryAt       DateTime            @default(now()) @map("next_retry_at")
+  /// Reclamo del worker (evita que dos instancias envíen lo mismo).
+  lockedUntil       DateTime?           @map("locked_until")
+  error             String?             @db.VarChar(500)
+  providerMessageId String?             @map("provider_message_id")
+  /// Enviado en modo simulado (sin proveedor real configurado).
+  dryRun            Boolean             @default(false) @map("dry_run")
+  idempotencyKey    String?             @unique @map("idempotency_key") @db.VarChar(200)
+  readAt            DateTime?           @map("read_at")
+  sentAt            DateTime?           @map("sent_at")
+  createdBy         String?             @map("created_by")
+  createdAt         DateTime            @default(now()) @map("created_at")
+  updatedAt         DateTime            @updatedAt @map("updated_at")
 
-  @@index([status, nextRetryAt])   // drenado del worker
-  @@index([destinatario])
+  template NotificationTemplate? @relation(fields: [templateId], references: [id])
+
+  @@index([status, nextRetryAt])
+  @@index([recipient])
+  @@index([userId, channel, createdAt])
   @@index([templateId])
   @@map("notifications")
 }
 
 model NotificationPreference {
-  id           String              @id @default(uuid())
-  destinatario String
-  canal        NotificationChannel
-  optOut       Boolean             @default(false)      // baja del canal
-  motivo       String?
-  active       Boolean             @default(true)
-  createdAt    DateTime            @default(now())
-  updatedAt    DateTime            @updatedAt
+  id        String              @id @default(uuid())
+  recipient String              @db.VarChar(200)
+  channel   NotificationChannel
+  optOut    Boolean             @default(false) @map("opt_out")
+  reason    String?             @db.VarChar(300)
+  updatedBy String?             @map("updated_by")
+  createdAt DateTime            @default(now()) @map("created_at")
+  updatedAt DateTime            @updatedAt @map("updated_at")
 
-  @@unique([destinatario, canal])
+  @@unique([recipient, channel])
   @@map("notification_preferences")
 }
 ```
 
 **Índices:** `notifications(status, nextRetryAt)` para el barrido del worker;
-`notifications(destinatario)` e `(templateId)` para consulta e historial;
-`notification_templates(canal, active)`; `notification_preferences` único por
-`(destinatario, canal)`.
+`notifications(recipient)` e `(templateId)` para consulta e historial;
+`notification_templates(channel, active)`; `notification_preferences` único por
+`(recipient, channel)`.
 **Relaciones:** `Notification.templateId → NotificationTemplate.id` (opcional, se
 puede enviar sin plantilla como mensaje libre). `NotificationPreference` no tiene
-FK a alumnos/usuarios: la clave es el `destinatario` (desacopla el módulo).
+FK a alumnos/usuarios: la clave es el `recipient` (desacopla el módulo).
 
 > Nota de diccionario: [`diccionario-datos.md`](../../modelo-datos/diccionario-datos.md)
-> describe `canal` y `status` como `varchar` con literales en minúsculas
-> (`correo`, `en_cola`…). El estándar Prisma de la casa los modela como enums
+> describe `channel` y `status` como `varchar` con literales en minúsculas
+> (`EMAIL`, `QUEUED`…). El estándar Prisma de la casa los modela como enums
 > `UPPER_SNAKE`; el mapeo a la representación en minúsculas es 1:1 en los *mappers*.
 
 ## 4. Reglas de negocio
 
 1. **Envío asíncrono (outbox):** encolar un aviso solo persiste un `Notification`
-   en `EN_COLA` dentro de la misma transacción del disparador; la API nunca envía
+   en `QUEUED` dentro de la misma transacción del disparador; la API nunca envía
    en el hilo del request.
-2. **Drenado con reintentos:** un worker reclama los `EN_COLA` con `nextRetryAt`
+2. **Drenado con reintentos:** un worker reclama los `QUEUED` con `nextRetryAt`
    vencido y aplica **backoff exponencial**; al superar `maxAttempts` marca
-   `FALLIDO` y guarda `error`. No hay reintento automático de `FALLIDO` salvo
+   `FAILED` y guarda `error`. No hay reintento automático de `FAILED` salvo
    reencolado explícito.
 3. **Proveedores intercambiables:** todos implementan la interfaz
    `NotificationProvider` (`send(Notification): Promise<ProviderResult>`); el
    proveedor por canal se resuelve por configuración (M11 `sys_config`).
-4. **Render de plantillas:** `cuerpo`/`asunto` admiten variables `{{clave}}`; el
+4. **Render de plantillas:** `body`/`subject` admiten variables `{{code}}`; el
    envío valida que el `payload` cubra las variables declaradas; si falta alguna,
    no se encola y responde `VALIDATION_ERROR`.
 5. **Preferencias y baja:** si el destinatario tiene `optOut` para el canal, no se
-   envía (queda `FALLIDO`/omitido con motivo `OPT_OUT`). Los avisos marcados como
+   envía (queda `FAILED`/omitido con motivo `OPT_OUT`). Los avisos marcados como
    transaccionales obligatorios (p. ej. estado de cuenta) están exentos.
 6. **Disparadores desacoplados:** M09 (pago próximo a vencer, adeudo vencido), M15
    (examen publicado), M18 (inasistencias) y avisos generales invocan el
    `NotificationPort`; nunca importan modelos de M19 directamente.
 7. **Idempotencia:** `POST /notifications/send` acepta `Idempotency-Key`; repetir
    la solicitud devuelve el `Notification` previamente creado sin reenviar.
-8. **Tiempo real:** cada transición de estado (`EN_COLA → ENVIADO/FALLIDO`) se
+8. **Tiempo real:** cada transición de estado (`QUEUED → SENT/FAILED`) se
    publica en el canal Ably del usuario para reflejarlo en la UI sin recargar.
 9. **Aislamiento por canal:** un fallo del proveedor de un canal no detiene el
    drenado de los demás; el worker procesa por canal.
@@ -201,7 +224,7 @@ subdirectorio `providers/` contiene las implementaciones (`resend`, `smtp`,
 | POST | `/api/v1/notification-templates/query` | Listado server-side | `notifications.view` |
 | POST | `/api/v1/notifications/query` | Historial de envíos (server-side) | `notifications.view` |
 | POST | `/api/v1/notifications/send` | Envía/encola manualmente | `notifications.manage` |
-| POST | `/api/v1/notifications/:id/retry` | Reencola un `FALLIDO` | `notifications.manage` |
+| POST | `/api/v1/notifications/:id/retry` | Reencola un `FAILED` | `notifications.manage` |
 
 > La especificación original mencionaba `GET /notifications/query`; se unifica a
 > **`POST …/query`** para respetar el contrato de tablas server-side
@@ -212,23 +235,23 @@ subdirectorio `providers/` contiene las implementaciones (`resend`, `smtp`,
 ```jsonc
 // Request
 {
-  "canal": "EMAIL",
-  "destinatario": "tutor@example.com",
-  "templateClave": "PAGO_POR_VENCER",   // o "cuerpo" libre si no hay plantilla
-  "payload": { "nombre": "Ana López", "monto": "1500.00", "fecha": "2026-10-15" }
+  "channel": "EMAIL",
+  "recipient": "tutor@example.com",
+  "templateCode": "PAYMENT_DUE_SOON",   // o "body" libre si no hay plantilla
+  "payload": { "name": "Ana López", "amount": "1500.00", "date": "2026-10-15" }
 }
 // Response 201
 {
-  "id": "…", "canal": "EMAIL", "status": "EN_COLA",
-  "asunto": "Pago por vencer", "cuerpo": "Hola Ana López, tu pago de $1500.00 vence el 2026-10-15.",
-  "destinatario": "tutor@example.com", "sentAt": null
+  "id": "…", "channel": "EMAIL", "status": "QUEUED",
+  "subject": "Pago por vencer", "body": "Hola Ana López, tu pago de $1500.00 dueDate el 2026-10-15.",
+  "recipient": "tutor@example.com", "sentAt": null
 }
 ```
 
 **`POST /notifications/query`** — contrato ITDataTable estándar
 (`{ page, limit, filters, sort }`; respuesta `{ data, total, page, pageIndex,
 totalPages, totalCount, limit, hasPreviousPage, hasNextPage }`), con filtros por
-`canal`, `status`, `destinatario` y rango de `createdAt`/`sentAt`.
+`channel`, `status`, `recipient` y rango de `createdAt`/`sentAt`.
 
 ## 6. Web
 
@@ -266,15 +289,15 @@ matriz cargada, `NONE`).
 Zod en `models/dto` (whitelist estricta) y validadores puros en la web vía
 `@shared/validation`:
 
-- `canal` ∈ `{EMAIL, SMS, WHATSAPP}` → `INVALID_FORMAT` si no.
-- `destinatario` obligatorio; correo válido para `EMAIL`, teléfono válido para
+- `channel` ∈ `{EMAIL, SMS, WHATSAPP}` → `INVALID_FORMAT` si no.
+- `recipient` obligatorio; correo válido para `EMAIL`, teléfono válido para
   `SMS`/`WHATSAPP` (`REQUIRED_FIELD` / `INVALID_EMAIL` / `INVALID_FORMAT`).
-- `cuerpo` no vacío (`REQUIRED_FIELD`); `asunto` requerido solo si `canal = EMAIL`.
-- Sistema de variables: `{{clave}}` debe existir en `payload` (`VALIDATION_ERROR`
+- `body` no vacío (`REQUIRED_FIELD`); `subject` requerido solo si `channel = EMAIL`.
+- Sistema de variables: `{{code}}` debe existir en `payload` (`VALIDATION_ERROR`
   con `details` por variable faltante).
-- `clave` de plantilla única → `DUPLICATE_RECORD`; `Idempotency-Key` inválida →
+- `code` de plantilla única → `DUPLICATE_RECORD`; `Idempotency-Key` inválida →
   `INVALID_IDEMPOTENCY_KEY`; clave reusada por otro usuario → `IDEMPOTENCY_KEY_REUSED`.
-- Fallo de proveedor → el `Notification` queda `FALLIDO` con `error`; nunca 500 al
+- Fallo de proveedor → el `Notification` queda `FAILED` con `error`; nunca 500 al
   cliente por un envío asíncrono.
 
 ## 9. Bitácora
@@ -294,7 +317,7 @@ Los secretos del proveedor (API keys) nunca se guardan en `previousState`/
 ## 10. Pruebas (Playwright)
 
 - **Unitarias** (`api/tests/unit`): render de plantillas con variables (falta una
-  variable → error); cálculo de backoff y transición a `FALLIDO`; evaluación de
+  variable → error); cálculo de backoff y transición a `FAILED`; evaluación de
   `optOut`; mapeo de enums; resolución de proveedor por canal.
 - **Contrato** (`api/tests/e2e`): CRUD de plantillas; `POST /notifications/send`
   con `Idempotency-Key` (repetir no duplica); `POST /notifications/query` contrato

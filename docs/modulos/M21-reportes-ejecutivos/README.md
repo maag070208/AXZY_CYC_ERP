@@ -54,9 +54,9 @@ M18). Para optimizar se agregan, vía migración SQL, **índices de apoyo** y
 //   CREATE MATERIALIZED VIEW mv_ocupacion_grupo AS …
 ```
 
-**Índices:** `charges(status, fecha_vencimiento)`,
+**Índices:** `charges(status, due_date)`,
 `enrollments(group_id, status)`, `grades(assessment_id)`,
-`student_movements(tipo, fecha)` para los agregados de M21.
+`student_movements(type, date)` para los agregados de M21.
 **Relaciones:** no aplica (sin FKs nuevas). Las vistas materializadas tienen
 **refresh** programado (ver §12) y se leen con permiso de solo lectura.
 
@@ -77,7 +77,7 @@ M18). Para optimizar se agregan, vía migración SQL, **índices de apoyo** y
 6. **Consultas optimizadas:** los indicadores que escanean grandes volúmenes se
    sirven desde **vistas materializadas** o con **índices** dedicados; el tablero
    nunca dispara *full scans* sobre `grades`, `payments` o `enrollments`.
-7. **Alcance `AREA` para profesor:** un `PROFESOR` solo ve indicadores de sus
+7. **Alcance `AREA` para profesor:** un `TEACHER` solo ve indicadores de sus
    grupos/curso (`AREA`); CONTROL_ESCOLAR y ADMIN ven el consolidado (`ALL`).
 8. **Filas del tablero = indicadores:** cada KPI del tablero se alimenta de un
    endpoint de reporte; el fallo de un indicador no derriba el resto del tablero.
@@ -94,11 +94,11 @@ Módulo bajo `api/src/modules/reports/` (reutiliza servicios de M10)
 
 | Método | Ruta | Descripción | Permiso |
 |---|---|---|---|
-| GET | `/api/v1/reports/:tipo` | Indicador/reporte con filtros y `?format=json\|xlsx\|pdf` | `reports.view` (export: `reports.export`) |
-| POST | `/api/v1/reports/:tipo/query` | Variante de tabla/consulta server-side | `reports.view` |
+| GET | `/api/v1/reports/:type` | Indicador/reporte con filtros y `?format=json\|xlsx\|pdf` | `reports.view` (export: `reports.export`) |
+| POST | `/api/v1/reports/:type/query` | Variante de tabla/consulta server-side | `reports.view` |
 | GET | `/api/v1/reports/dashboard` | Consolidado de KPIs del tablero | `reports.view` |
 
-Tipos (`:tipo`): `desercion`, `morosidad`, `ingresos-vs-proyeccion`,
+Tipos (`:type`): `desercion`, `morosidad`, `ingresos-vs-proyeccion`,
 `rendimiento-curso`, `rendimiento-profesor`, `ocupacion-grupo`,
 `tendencia-inscripciones`.
 
@@ -108,11 +108,11 @@ Tipos (`:tipo`): `desercion`, `morosidad`, `ingresos-vs-proyeccion`,
 // GET /reports/morosidad?ciclo=2025-2026&nivel=Secundaria&grupo=…&format=json
 // Response 200
 {
-  "tipo": "morosidad",
-  "filtros": { "ciclo": "2025-2026", "nivel": "Secundaria", "curso": null, "grupo": null },
+  "type": "morosidad",
+  "filtros": { "term": "2025-2026", "nivel": "Secundaria", "course": null, "group": null },
   "comparativo": { "periodo": "2024-2025", "variacionPct": -3.2 },
-  "resumen": { "porcentaje": 18.4, "montoPendiente": 254300.00, "cargosVencidos": 132 },
-  "detalle": [ { "grupo": "A", "porcentaje": 12.0, "monto": 40200.00 } ],
+  "resumen": { "percentage": 18.4, "montoPendiente": 254300.00, "cargosVencidos": 132 },
+  "detalle": [ { "group": "A", "percentage": 12.0, "amount": 40200.00 } ],
   "actualizadoEn": "2026-10-08T15:00:00Z"
 }
 ```
@@ -150,9 +150,9 @@ PDF se apoya en `widgets/*-pdf` con `@react-pdf/renderer` y descarga con
 
 Zod en `models/dto`:
 
-- `:tipo` ∈ catálogo de reportes (`INVALID_FORMAT`).
+- `:type` ∈ catálogo de reportes (`INVALID_FORMAT`).
 - `format` ∈ `{json, xlsx, pdf}` (`INVALID_FORMAT`); defecto `json`.
-- `ciclo`, `nivel`, `curso`, `grupo` del catálogo (M11); valor no admitido →
+- `term`, `nivel`, `course`, `group` del catálogo (M11); valor no admitido →
   `INVALID_FILTER`; rango de fechas invertido → `INVALID_RANGE`.
 - Paginación de desglose: `page`, `limit` (tope 200); filtros inválidos →
   `INVALID_FILTER`.
@@ -175,7 +175,7 @@ vistas materializadas bajo demanda se registra como `REPORT_VIEW_REFRESHED`. Ver
 - **Unitarias** (`api/tests/unit`): fórmulas de cada indicador (deserción,
   morosidad, ocupación, rendimiento, tendencia) con casos límite (división por
   cero, periodos vacíos); comparativa entre periodos; aplicación de alcance `AREA`.
-- **Contrato** (`api/tests/e2e`): `GET /reports/:tipo` respeta filtros y devuelve
+- **Contrato** (`api/tests/e2e`): `GET /reports/:type` respeta filtros y devuelve
   el contrato; `?format=xlsx|pdf` produce binarios no vacíos; tipo/filtro inválido
   → 400; permisos 401/403; scope `AREA` del profesor devuelve solo sus grupos;
   `REPORT_EXPORTED` en bitácora.

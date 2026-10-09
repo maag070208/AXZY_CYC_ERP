@@ -17,7 +17,7 @@
 | Método | Ruta | Permiso | Nota |
 |---|---|---|---|
 | GET | `/api/v1/reports` | `reports.view` | Catálogo según el alcance (sin reportes de montos para AREA) |
-| GET | `/api/v1/reports/:tipo?format=json\|xlsx\|pdf&termId&groupId&from&to&status` | `reports.view` (+ `reports.export` para archivos) | Exportación auditada `REPORT_EXPORTED` |
+| GET | `/api/v1/reports/:type?format=json\|xlsx\|pdf&termId&groupId&from&to&status` | `reports.view` (+ `reports.export` para archivos) | Exportación auditada `REPORT_EXPORTED` |
 | GET | `/api/v1/dashboard` | `reports.view` | KPIs en vivo; montos solo con alcance ALL |
 
 Tipos: `students-active`, `students-inactive`, `enrollments-by-group`, `grades-by-group`, `payments-period`, `debts`. **`attendance-list` no está disponible** hasta M18 (responde `404 REPORT_NOT_FOUND`).
@@ -66,7 +66,7 @@ Las fuentes de datos son:
 | Calificaciones por grupo | `grades` + `assessments` + `enrollments` (M08) |
 | Pagos del periodo | `payments` (M09) |
 | Adeudos | `charges` con saldo > 0 (M09) |
-| Ocupación de grupos | `groups.cupo` vs. inscripciones vigentes (M07) |
+| Ocupación de grupos | `groups.capacity` vs. inscripciones vigentes (M07) |
 | Ingresos del mes | suma de `payments` vigentes del mes (M09) |
 
 Los datos se leen con consultas de agregación (`groupBy`, `_sum`, `_count`) y
@@ -85,8 +85,8 @@ Los datos se leen con consultas de agregación (`groupBy`, `_sum`, `_count`) y
    y se resuelven server-side.
 7. `?format=xlsx|pdf` aplica **exactamente los mismos filtros** que la consulta
    JSON vigente (sin divergencia de criterio).
-8. Los reportes de adeudos excluyen cargos `cancelado` y pagos cancelados.
-9. Un `:tipo` de reporte desconocido responde `NOT_FOUND` (404).
+8. Los reportes de adeudos excluyen cargos `CANCELLED` y pagos cancelados.
+9. Un `:type` de reporte desconocido responde `NOT_FOUND` (404).
 10. La exportación requiere además el permiso `reports.export`.
 
 ## 5. API
@@ -96,10 +96,10 @@ Módulo bajo `api/src/modules/reports/`
 
 | Método | Ruta | Descripción | Permiso |
 |---|---|---|---|
-| GET | `/api/v1/reports/:tipo` | Ejecuta un reporte con filtros y `?format=json\|xlsx\|pdf` | `reports.view` (exportar: `reports.export`) |
+| GET | `/api/v1/reports/:type` | Ejecuta un reporte con filtros y `?format=json\|xlsx\|pdf` | `reports.view` (exportar: `reports.export`) |
 | GET | `/api/v1/dashboard` | KPIs del tablero (alumnos activos, ocupación, ingresos del mes, adeudos) | `reports.view` |
 
-`:tipo` ∈ `students-active` · `students-inactive` · `enrollments-by-group` ·
+`:type` ∈ `students-active` · `students-inactive` · `enrollments-by-group` ·
 `attendance-list` · `grades-by-group` · `payments-period` · `debts`.
 
 **Reporte** `GET /api/v1/reports/grades-by-group?termId=…&groupId=…&format=json`:
@@ -109,8 +109,8 @@ Módulo bajo `api/src/modules/reports/`
   "report": "grades-by-group",
   "generatedAt": "2026-02-01T15:04:05.000Z",
   "filters": { "termId": "…", "groupId": "…" },
-  "columns": [ { "key": "matricula", "label": "Matrícula" }, { "key": "final", "label": "Final" } ],
-  "rows": [ { "matricula": "2026-0001", "nombre": "…", "final": 85.5, "status": "acreditado" } ],
+  "columns": [ { "key": "studentNumber", "label": "Matrícula" }, { "key": "final", "label": "Final" } ],
+  "rows": [ { "studentNumber": "2026-0001", "name": "…", "final": 85.5, "status": "PASSED" } ],
   "totals": { "rows": 42 }
 }
 ```
@@ -155,7 +155,7 @@ aplica en la consulta (`AND`) para que ningún filtro lo amplíe. El alumno tien
 
 ## 8. Validaciones
 
-- `:tipo` debe pertenecer al catálogo de reportes (`NOT_FOUND` si no existe).
+- `:type` debe pertenecer al catálogo de reportes (`NOT_FOUND` si no existe).
 - `format` ∈ `json|xlsx|pdf` (`VALIDATION_ERROR`); por defecto `json`.
 - `termId`, `groupId`, `status`: valores válidos; referencias inexistentes →
   `INVALID_REFERENCE`.

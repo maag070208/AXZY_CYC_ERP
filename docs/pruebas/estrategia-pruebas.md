@@ -31,7 +31,7 @@ contra servicios reales y unitarias de lógica pura. Ver [D-011](../../DECISIONE
   `E2E_ALLOW_REMOTE_DB=1`) y nunca con `NODE_ENV=production`.
 - La **API es dueña de la BD**: expone `test:e2e:provision` y `test:e2e:clean`, que
   la suite web reutiliza.
-- Fixtures de API: contexts autenticados (`ctxAdmin`, `ctxProfesor`, `ctxAlumno`,
+- Fixtures de API: contexts autenticados (`ctxAdmin`, `teacher`, `student`,
   `ctxAnonymous`) por login real; **no** fijan `Content-Type` a nivel de contexto
   (rompe `multipart/form-data`).
 

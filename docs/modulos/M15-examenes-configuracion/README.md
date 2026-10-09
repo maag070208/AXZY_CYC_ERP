@@ -24,7 +24,7 @@
 | POST | `/api/v1/online-exams/:id/close` | `exams.manage` | Envía y califica los intentos en curso |
 
 Decisiones (sección 12):
-- Configuración: ventana (apertura/cierre), duración, intentos, barajar preguntas/opciones, mostrar resultado, puntaje aprobatorio y criterio `MEJOR`/`ULTIMO`.
+- Configuración: ventana (apertura/cierre), duración, intentos, barajar preguntas/opciones, mostrar resultado, puntaje aprobatorio y criterio `BEST`/`LAST`.
 - Con el primer intento solo cambian instrucciones, cierre y mostrar resultado. Ver [D-038](../../../DECISIONES.md).
 - La web captura fecha (calendario del kit) y hora en pasos de 15 min.
 
@@ -38,11 +38,11 @@ de M08 y publicarlo para su aplicación. Lo usa el profesor; lo consume M16.
 ## 2. Alcance
 
 **Incluye**
-- CRUD de exámenes en estado `BORRADOR`.
+- CRUD de exámenes en estado `DRAFT`.
 - Constructor de examen: selección de reactivos, orden, puntos y aleatorización.
 - Configuración de reglas (duración, intentos, ventana de fechas, mostrar
   resultado, puntaje aprobatorio).
-- **Publicación** (`BORRADOR → PUBLICADO`) y **cierre** (`CERRADO`).
+- **Publicación** (`DRAFT → PUBLISHED`) y **cierre** (`CLOSED`).
 - Vínculo opcional a una evaluación (`assessmentId`, M08).
 
 **No incluye (en este módulo)**
@@ -58,48 +58,52 @@ no se hace `DELETE` físico de exámenes publicados.
 
 ```prisma
 enum OnlineExamStatus {
-  BORRADOR
-  PUBLICADO
-  CERRADO
+  DRAFT
+  PUBLISHED
+  CLOSED
 }
 
 model OnlineExam {
-  id                   String           @id @default(uuid())
-  groupId              String
-  titulo               String
-  instrucciones        String?          @db.Text
-  duracionMin          Int
-  intentosMax          Int              @default(1)
-  fechaApertura        DateTime         @db.Timestamptz
-  fechaCierre          DateTime         @db.Timestamptz
-  aleatorizarPreguntas Boolean          @default(false)
-  aleatorizarOpciones  Boolean          @default(false)
-  mostrarResultado     Boolean          @default(true)
-  puntajeAprobatorio   Decimal          @db.Decimal(6, 2)
-  assessmentId         String?          // vínculo con M08
-  status               OnlineExamStatus @default(BORRADOR)
-  createdAt            DateTime         @default(now())
-  updatedAt            DateTime         @updatedAt
+  id               String           @id @default(uuid())
+  groupId          String           @map("group_id")
+  title            String
+  instructions     String?          @db.Text
+  durationMin      Int              @map("duration_min")
+  maxAttempts      Int              @default(1) @map("max_attempts")
+  opensAt          DateTime         @map("opens_at") @db.Timestamptz
+  closesAt         DateTime         @map("closes_at") @db.Timestamptz
+  shuffleQuestions Boolean          @default(false) @map("shuffle_questions")
+  shuffleOptions   Boolean          @default(false) @map("shuffle_options")
+  showResult       Boolean          @default(true) @map("show_result")
+  passingScore     Decimal          @map("passing_score") @db.Decimal(6, 2)
+  attemptCriterion AttemptCriterion @default(BEST) @map("attempt_criterion")
+  /// Evaluación de M08 que recibe la calificación (una por examen).
+  assessmentId     String?          @unique @map("assessment_id")
+  status           OnlineExamStatus @default(DRAFT)
+  publishedAt      DateTime?        @map("published_at")
+  closedAt         DateTime?        @map("closed_at")
+  createdBy        String?          @map("created_by")
+  createdAt        DateTime         @default(now()) @map("created_at")
+  updatedAt        DateTime         @updatedAt @map("updated_at")
 
   group      Group                @relation(fields: [groupId], references: [id])
   assessment Assessment?          @relation(fields: [assessmentId], references: [id])
   questions  OnlineExamQuestion[]
-  attempts   ExamAttempt[]        // M16
+  attempts   ExamAttempt[]
 
   @@index([groupId])
-  @@index([assessmentId])
   @@index([status])
   @@map("online_exams")
 }
 
 model OnlineExamQuestion {
   id         String   @id @default(uuid())
-  examId     String
-  questionId String
-  puntos     Decimal  @db.Decimal(6, 2)
-  orden      Int
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  examId     String   @map("exam_id")
+  questionId String   @map("question_id")
+  points     Decimal  @db.Decimal(6, 2)
+  sortOrder  Int      @map("sort_order")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
 
   exam     OnlineExam @relation(fields: [examId], references: [id], onDelete: Cascade)
   question Question   @relation(fields: [questionId], references: [id])
@@ -120,14 +124,14 @@ en `online_exam_questions`.
 
 1. Un examen **publicado** no puede cambiar sus preguntas si ya tiene **intentos
    iniciados** (error `EXAM_PUBLISHED_LOCKED`).
-2. `fechaApertura` debe ser anterior a `fechaCierre`.
-3. `duracionMin` > 0 e `intentosMax` ≥ 1.
+2. `opensAt` debe ser anterior a `closesAt`.
+3. `durationMin` > 0 e `maxAttempts` ≥ 1.
 4. Solo se publica un examen con **al menos una pregunta**.
-5. Todas las preguntas deben estar `ACTIVA` (M14) y pertenecer al curso del grupo.
-6. `puntajeAprobatorio` debe ser ≤ a la suma de puntos de las preguntas.
-7. La suma de puntos del examen es la suma de `OnlineExamQuestion.puntos`.
+5. Todas las preguntas deben estar `ACTIVE` (M14) y pertenecer al curso del grupo.
+6. `passingScore` debe ser ≤ a la suma de puntos de las preguntas.
+7. La suma de puntos del examen es la suma de `OnlineExamQuestion.points`.
 8. `assessmentId` (si viene) debe pertenecer al **mismo grupo** que el examen.
-9. Un examen `CERRADO` no admite edición ni nuevas preguntas.
+9. Un examen `CLOSED` no admite edición ni nuevas preguntas.
 10. No se permite borrar físicamente un examen publicable/aplicado: se **cierra**.
 11. Editar preguntas/fechas de un examen sin intentos reinicia la consistencia
     (recalcular total de puntos).
@@ -147,16 +151,16 @@ Módulo en `api/src/modules/online-exams/`
 | DELETE | `/api/v1/online-exams/:id` | Cerrar/baja lógica | `exams.manage` |
 | POST | `/api/v1/online-exams/:id/questions` | Fijar/reemplazar preguntas | `exams.manage` |
 | DELETE | `/api/v1/online-exams/:id/questions/:questionId` | Quitar pregunta | `exams.manage` |
-| POST | `/api/v1/online-exams/:id/publish` | Publicar (`BORRADOR → PUBLICADO`) | `exams.publish` |
-| POST | `/api/v1/online-exams/:id/close` | Cerrar (`→ CERRADO`) | `exams.manage` |
+| POST | `/api/v1/online-exams/:id/publish` | Publicar (`DRAFT → PUBLISHED`) | `exams.publish` |
+| POST | `/api/v1/online-exams/:id/close` | Cerrar (`→ CLOSED`) | `exams.manage` |
 
 **Listado** `POST /api/v1/online-exams/query`:
 ```json
 {
   "page": 1,
   "limit": 20,
-  "filters": { "groupId": "…", "status": "PUBLICADO", "titulo": "parcial" },
-  "sort": { "key": "fechaApertura", "direction": "desc" }
+  "filters": { "groupId": "…", "status": "PUBLISHED", "title": "PARTIAL" },
+  "sort": { "key": "opensAt", "direction": "desc" }
 }
 ```
 
@@ -164,8 +168,8 @@ Módulo en `api/src/modules/online-exams/`
 ```json
 {
   "questions": [
-    { "questionId": "uuid", "puntos": 2, "orden": 1 },
-    { "questionId": "uuid", "puntos": 3, "orden": 2 }
+    { "questionId": "uuid", "points": 2, "sortOrder": 1 },
+    { "questionId": "uuid", "points": 3, "sortOrder": 2 }
   ]
 }
 ```
@@ -209,11 +213,11 @@ servicio:
 Zod en `models/dto/online-exams.dto.ts` (`Schema.parse` en el controller →
 `VALIDATION_ERROR` con `details` por campo):
 
-- `titulo`: requerido; `duracionMin` > 0; `intentosMax` ≥ 1.
-- `fechaApertura`/`fechaCierre`: ISO UTC, apertura < cierre (`INVALID_RANGE`).
-- `puntajeAprobatorio`: ≥ 0 y ≤ total de puntos (`EXAM_SCORE_INVALID`).
+- `title`: requerido; `durationMin` > 0; `maxAttempts` ≥ 1.
+- `opensAt`/`closesAt`: ISO UTC, apertura < cierre (`INVALID_RANGE`).
+- `passingScore`: ≥ 0 y ≤ total de puntos (`EXAM_SCORE_INVALID`).
 - `groupId`/`assessmentId`: UUID existente y coherente (`INVALID_REFERENCE`).
-- `questions`: no vacío al publicar; reactivos `ACTIVA` y del curso del grupo.
+- `questions`: no vacío al publicar; reactivos `ACTIVE` y del curso del grupo.
 - Bloqueo de publicación: `EXAM_PUBLISHED_LOCKED` (409) al editar preguntas con
   intentos iniciados.
 - `Idempotency-Key` en `publish`/`create` si se expone reintento
@@ -260,7 +264,7 @@ Regla de trabajo: correr solo el spec del cambio. Ver
 
 ## 12. Decisiones abiertas
 
-- ¿Puntos por pregunta heredan `Question.puntos` o se definen por examen?
+- ¿Puntos por pregunta heredan `Question.points` o se definen por examen?
 - ¿Se permite duplicar un examen como plantilla?
 - Comportamiento al agregar un alumno al grupo después de publicar.
 - ¿Publicación programada o solo manual?

@@ -27,14 +27,14 @@ Diferencias con el borrador: el correo duplicado responde `409 TEACHER_EMAIL_TAK
 ## 1. Objetivo
 
 Dar de alta al **profesor** y crear de forma automática su **cuenta de usuario con
-rol `PROFESOR`**, enviándole una invitación para definir su contraseña, para que
+rol `TEACHER`**, enviándole una invitación para definir su contraseña, para que
 pueda acceder a sus grupos en cuanto se le asignen.
 
 ## 2. Alcance
 
 **Incluye**
 - Alta del profesor (datos personales, contacto, especialidad, estatus).
-- Creación transaccional del `User` asociado con rol `PROFESOR`.
+- Creación transaccional del `User` asociado con rol `TEACHER`.
 - Envío de **invitación** para definir contraseña (correo vía outbox M19).
 - Búsqueda server-side y edición; vinculación/desvinculación de la cuenta.
 - Activación/desactivación (baja lógica del profesor y de su cuenta).
@@ -53,50 +53,51 @@ modela con `User` (M02) y se vincula por `userId` único.
 
 ```prisma
 enum TeacherStatus {
-  ACTIVO
-  INACTIVO
+  ACTIVE
+  INACTIVE
 }
 
 model Teacher {
-  id          String        @id @default(uuid())
-  nombres     String
-  apellidos   String
-  email       String        @unique
-  telefono    String?
-  especialidad String?
-  status      TeacherStatus @default(ACTIVO)
-  userId      String?       @unique @map("user_id")
-  createdAt   DateTime      @default(now()) @map("created_at")
-  updatedAt   DateTime      @updatedAt @map("updated_at")
+  id         String        @id @default(uuid())
+  firstNames String        @map("first_names")
+  surnames   String
+  email      String        @unique
+  phone      String?
+  specialty  String?
+  status     TeacherStatus @default(ACTIVE)
+  userId     String?       @unique @map("user_id")
+  createdAt  DateTime      @default(now()) @map("created_at")
+  updatedAt  DateTime      @updatedAt @map("updated_at")
 
-  user User? @relation(fields: [userId], references: [id])
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+  groups Group[]
 
   @@index([status])
-  @@index([apellidos, nombres])
+  @@index([surnames, firstNames])
   @@map("teachers")
 }
 ```
 
 **Índices:** `teachers.email` y `teachers.userId` únicos; `teachers.status`;
-`teachers(apellidos, nombres)`.
+`teachers(surnames, firstNames)`.
 **Relaciones:** `Teacher N—1 User` (opcional, único). Al crear el profesor, si no
 tiene cuenta, el servicio crea el `User` y lo enlaza en la misma transacción.
 
 ## 4. Reglas de negocio
 
 1. El **correo** del profesor es único → `409 DUPLICATE_RECORD` (campo `email`).
-2. Al crear un profesor **se crea su `User`** con rol `PROFESOR` y estado
+2. Al crear un profesor **se crea su `User`** con rol `TEACHER` y estado
    `mustChangePassword = true` (cuenta pendiente de definir contraseña).
 3. Se envía una **invitación** por correo (patrón outbox → M19) para definir la
    contraseña; la invitación se encola y no bloquea la respuesta del alta.
 4. El alta de profesor + usuario + encolado de invitación ocurre en **una
    transacción**; si algo falla, no queda profesor sin cuenta ni cuenta huérfana.
 5. Un profesor **no puede duplicar** cuenta (`userId` único por profesor).
-6. La baja lógica (`status = INACTIVO`) desactiva también su `User`
+6. La baja lógica (`status = INACTIVE`) desactiva también su `User`
    (`active = false`), impidiendo el login.
 7. El profesor solo ve **sus** grupos y alumnos (`AREA`/`OWN`, aplicado en M07,
    M08 y M18).
-8. `especialidad` y `telefono` son opcionales; `nombres`, `apellidos` y `email`
+8. `specialty` y `phone` son opcionales; `firstNames`, `surnames` y `email`
    son obligatorios.
 9. Reenviar invitación es una acción explícita y auditada; no crea otra cuenta.
 
@@ -117,11 +118,11 @@ models/{dto,entity}/`), con `requiresPermission` y wiring DIP de `AuditPort` y
 **Alta** (`POST /teachers`)
 ```json
 {
-  "nombres": "Ana",
-  "apellidos": "Ramírez Soto",
+  "firstNames": "Ana",
+  "surnames": "Ramírez Soto",
   "email": "ana.ramirez@example.com",
-  "telefono": "5512345678",
-  "especialidad": "Matemáticas"
+  "phone": "5512345678",
+  "specialty": "Matemáticas"
 }
 ```
 Respuesta: el `Teacher` creado con `userId` de su cuenta y un indicador de que la
@@ -162,9 +163,9 @@ y la baja de cuentas se apoyan en los permisos de M02 (`users.*`). Ver
 
 ## 8. Validaciones
 
-- **Zod** en `models/dto`: `nombres`/`apellidos` requeridos (`REQUIRED_FIELD`);
-  `email` válido y único (`INVALID_EMAIL`/`DUPLICATE_RECORD`); `telefono`
-  (`INVALID_FORMAT`); `especialidad` opcional.
+- **Zod** en `models/dto`: `firstNames`/`surnames` requeridos (`REQUIRED_FIELD`);
+  `email` válido y único (`INVALID_EMAIL`/`DUPLICATE_RECORD`); `phone`
+  (`INVALID_FORMAT`); `specialty` opcional.
 - Web con `@shared/validation` (`validateEmail`, `validatePhone`,
   `validateRequired`) que devuelve `string | null`.
 - Mensajes como códigos traducibles; `ZodError` → `400 VALIDATION_ERROR`.
@@ -186,7 +187,7 @@ se registran contraseñas ni tokens de invitación. Ver
 
 - Unitarias (`api/tests/unit`): generación de `username` único, estado inicial de
   la cuenta (`mustChangePassword`), regla de baja que desactiva la cuenta.
-- Contrato (`api/tests/e2e`): alta de profesor crea `User` con rol `PROFESOR` y
+- Contrato (`api/tests/e2e`): alta de profesor crea `User` con rol `TEACHER` y
   encola la invitación; `DUPLICATE_RECORD` por email; edición; contrato de
   `/teachers/query`; permisos (401/403); bitácora verificada.
 - Navegador (`web/tests/e2e`): alta de profesor con aviso de invitación y listado;

@@ -41,6 +41,7 @@ Convenciones: `id String @id @default(uuid())`, `createdAt`/`updatedAt`,
 seguridad usan **clave natural `key`**.
 
 ```prisma
+/// Alcance de un permiso: NONE < OWN < AREA < ALL.
 enum Scope {
   NONE
   OWN
@@ -49,51 +50,57 @@ enum Scope {
 }
 
 model User {
-  id                String     @id @default(uuid())
-  username          String     @unique
-  email             String     @unique
-  passwordHash      String     @map("password_hash")
-  name              String
-  phone             String?
-  active            Boolean    @default(true)
-  lastLoginAt       DateTime?  @map("last_login_at")
-  deactivatedAt     DateTime?  @map("deactivated_at")
+  id                 String    @id @default(uuid())
+  username           String    @unique
+  email              String    @unique
+  passwordHash       String    @map("password_hash")
+  name               String
+  phone              String?
+  active             Boolean   @default(true)
+  lastLoginAt        DateTime? @map("last_login_at")
+  deactivatedAt      DateTime? @map("deactivated_at")
   deactivationReason String?   @map("deactivation_reason")
-  failedAttempts    Int        @default(0) @map("failed_attempts")
-  lockedUntil       DateTime?  @map("locked_until")
+  failedAttempts     Int       @default(0) @map("failed_attempts")
+  lockedUntil        DateTime? @map("locked_until")
   mustChangePassword Boolean   @default(false) @map("must_change_password")
-  createdAt         DateTime   @default(now()) @map("created_at")
-  updatedAt         DateTime   @updatedAt @map("updated_at")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
 
-  roles       UserRole[]
-  permissions UserPermission[]
+  roles         UserRole[]
+  permissions   UserPermission[]
   refreshTokens RefreshToken[]
-  resetTokens  PasswordResetToken[]
-  auditLogs    AuditLog[]
+  resetTokens   PasswordResetToken[]
+  auditLogs     AuditLog[]
+  student       Student?
+  teacher       Teacher?
+  movements     StudentMovement[]
+  validatedDocs Document[]           @relation("DocumentValidator")
+  uploadedDocs  Document[]           @relation("DocumentUploader")
 
   @@index([active])
   @@map("users")
 }
 
 model Role {
-  key         String   @id            // ADMIN, CONTROL_ESCOLAR, PROFESOR, ALUMNO, …
-  name        String
-  module      String?
-  staff       Boolean  @default(false)
-  system      Boolean  @default(false) // protegido de borrado/renombrado
-  active      Boolean  @default(true)
-  sortOrder   Int      @default(0) @map("sort_order")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  key       String   @id
+  name      String
+  module    String?
+  staff     Boolean  @default(false)
+  system    Boolean  @default(false)
+  active    Boolean  @default(true)
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   permissions RolePermission[]
   users       UserRole[]
+  policies    PolicyRole[]
 
   @@map("roles")
 }
 
 model Permission {
-  key       String   @id            // "students.create"
+  key       String   @id
   module    String
   name      String
   scopes    Scope[]  @default([NONE, OWN, AREA, ALL])
@@ -103,7 +110,7 @@ model Permission {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  roles       RolePermission[]
+  roles          RolePermission[]
   userExceptions UserPermission[]
 
   @@index([module])
@@ -118,26 +125,27 @@ model RolePermission {
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
 
-  role       Role       @relation(fields: [roleKey], references: [key])
-  permission Permission @relation(fields: [permissionKey], references: [key])
+  role       Role       @relation(fields: [roleKey], references: [key], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionKey], references: [key], onDelete: Cascade)
 
   @@unique([roleKey, permissionKey])
   @@map("role_permissions")
 }
 
+/// Multi-rol: un usuario puede tener varios roles (la unión toma el alcance mayor).
 model UserRole {
-  id        String   @id @default(uuid())
-  userId    String   @map("user_id")
-  roleKey   String   @map("role_key")
-  createdAt DateTime @default(now()) @map("created_at")
+  userId  String @map("user_id")
+  roleKey String @map("role_key")
 
-  user User @relation(fields: [userId], references: [id])
-  role Role @relation(fields: [roleKey], references: [key])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleKey], references: [key], onDelete: Cascade)
 
-  @@unique([userId, roleKey])
+  @@id([userId, roleKey])
+  @@index([roleKey])
   @@map("user_roles")
 }
 
+/// Excepción de permiso por persona: reemplaza lo que dice su rol.
 model UserPermission {
   id            String    @id @default(uuid())
   userId        String    @map("user_id")
@@ -149,23 +157,22 @@ model UserPermission {
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
 
-  user       User       @relation(fields: [userId], references: [id])
-  permission Permission @relation(fields: [permissionKey], references: [key])
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionKey], references: [key], onDelete: Cascade)
 
   @@unique([userId, permissionKey])
   @@map("user_permissions")
 }
 
 model RefreshToken {
-  id         String    @id @default(uuid())
-  userId     String    @map("user_id")
-  tokenHash  String    @map("token_hash")
-  expiresAt  DateTime  @map("expires_at")
-  revokedAt  DateTime? @map("revoked_at")
-  replacedBy String?   @map("replaced_by")
-  createdAt  DateTime  @default(now()) @map("created_at")
+  id        String    @id @default(uuid())
+  userId    String    @map("user_id")
+  tokenHash String    @unique @map("token_hash")
+  expiresAt DateTime  @map("expires_at")
+  revokedAt DateTime? @map("revoked_at")
+  createdAt DateTime  @default(now()) @map("created_at")
 
-  user User @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@map("refresh_tokens")
@@ -174,31 +181,20 @@ model RefreshToken {
 model PasswordResetToken {
   id        String    @id @default(uuid())
   userId    String    @map("user_id")
-  tokenHash String    @map("token_hash")
+  tokenHash String    @unique @map("token_hash")
   expiresAt DateTime  @map("expires_at")
   usedAt    DateTime? @map("used_at")
   createdAt DateTime  @default(now()) @map("created_at")
 
-  user User @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@map("password_reset_tokens")
 }
 
-model LoginAttempt {
-  id         String   @id @default(uuid())
-  identifier String                    // username o email intentado
-  success    Boolean
-  ip         String?
-  attemptedAt DateTime @default(now()) @map("attempted_at")
-
-  @@index([identifier, attemptedAt])
-  @@map("login_attempts")
-}
-
 model AuditLog {
   id            String   @id @default(uuid())
-  action        String                  // STUDENT_CREATED, ACCESS_DENIED, …
+  action        String
   entityType    String   @map("entity_type")
   entityId      String?  @map("entity_id")
   userId        String?  @map("user_id")
@@ -206,10 +202,9 @@ model AuditLog {
   previousState Json?    @map("previous_state")
   newState      Json?    @map("new_state")
   metadata      Json?
-  ip            String?
   createdAt     DateTime @default(now()) @map("created_at")
 
-  user User? @relation(fields: [userId], references: [id])
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([action])
   @@index([entityType, entityId])
@@ -288,7 +283,7 @@ en `api.router.ts` (ver [`../../arquitectura/api-modular.md`](../../arquitectura
 | DELETE | `/api/v1/users/:id/permissions/:permission` | Quita una excepción | `users.permissions` |
 | POST | `/api/v1/audit/query` · GET `/audit` · GET `/audit/:id` | Bitácora | `audit.view` |
 | GET | `/api/v1/permissions/catalog` · `/permissions/roles` | Catálogo activo y roles con conteo | Autenticado |
-| GET | `/api/v1/permissions/admin` | Roles, catálogo completo y matriz | `roles.manage` |
+| GET | `/api/v1/permissions/ADMIN` | Roles, catálogo completo y matriz | `roles.manage` |
 | POST · PATCH · DELETE | `/api/v1/permissions/roles[/:key]` | Roles dinámicos (duplicar con `copyFrom`) | `roles.manage` |
 | POST · PATCH | `/api/v1/permissions/catalog[/:key]` | Catálogo de permisos | `roles.manage` |
 | PUT | `/api/v1/permissions/matrix` | Matriz rol×permiso×alcance (anti-lockout) | `roles.manage` |
@@ -321,7 +316,7 @@ declaran **antes** de `router.use(authenticate)`.
 ```json
 {
   "user": { "id": "…", "name": "…" },
-  "roles": ["PROFESOR"],
+  "roles": ["TEACHER"],
   "permissions": { "grades.capture": "OWN" },
   "language": "es"
 }

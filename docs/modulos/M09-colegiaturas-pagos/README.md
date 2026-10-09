@@ -31,9 +31,9 @@
 Decisiones (sección 12) y diferencias con el borrador:
 - **Folio** consecutivo por año (`receipt_sequences`, fila bloqueada en la transacción): `REC-2026-000123`, reinicia cada año y nunca se reutiliza (un pago cancelado conserva su folio).
 - **Pago mayor al saldo** responde `400 PAYMENT_EXCEEDS_BALANCE` (con el saldo) en lugar de `VALIDATION_ERROR`; un cargo cancelado no se reactiva con pagos: se emite uno nuevo.
-- **Recargo por mora** = `saldo × dailyRate × (días vencidos − graceDays)`, redondeado a centavos; un cargo RECARGO por cargo vencido (`parentChargeId` único), recalculado mientras no tenga pagos. Se aplica a demanda (botón «Aplicar recargos»), no con un job.
-- **Descuento**: sin autorización fija; se puede topar con una política ABAC sobre `porcentajeDescuento` (acción `charges.create`).
-- La generación masiva solo carga a alumnos **ACTIVOS** con inscripción vigente; el método de pago agrega `TARJETA`. Ver [D-031](../../../DECISIONES.md) … [D-033](../../../DECISIONES.md).
+- **Recargo por mora** = `balance × dailyRate × (días vencidos − graceDays)`, redondeado a centavos; un cargo RECARGO por cargo vencido (`parentChargeId` único), recalculado mientras no tenga pagos. Se aplica a demanda (botón «Aplicar recargos»), no con un job.
+- **Descuento**: sin autorización fija; se puede topar con una política ABAC sobre `discountPercent` (acción `charges.create`).
+- La generación masiva solo carga a alumnos **ACTIVOS** con inscripción vigente; el método de pago agrega `CARD`. Ver [D-031](../../../DECISIONES.md) … [D-033](../../../DECISIONES.md).
 - Notas de crédito / saldo a favor: fuera de alcance de esta versión.
 
 ## 1. Objetivo
@@ -49,7 +49,7 @@ consecutivo.
 - CRUD de conceptos de pago (`fee_concepts`) con monto base y tipo.
 - Alta de cargos individuales (`charges`) y generación masiva por grupo o ciclo.
 - Registro de pagos manuales (`payments`) con método, referencia y folio de recibo.
-- Cálculo del estado del cargo (`pendiente` → `parcial` → `pagado`) y del saldo.
+- Cálculo del estado del cargo (`PENDING` → `PARTIAL` → `PAID`) y del saldo.
 - Cancelación de pagos con motivo (sin borrado físico).
 - Recargos por mora configurables (opcionales) y descuentos por cargo.
 - Estado de cuenta del alumno, exportable a PDF.
@@ -69,89 +69,113 @@ Convención: `id uuid`, `createdAt`/`updatedAt`, borrado lógico por dominio
 
 ```prisma
 enum FeeConceptType {
-  INSCRIPCION
-  COLEGIATURA
+  ENROLLMENT
+  TUITION
   MATERIAL
-  OTRO
+  LATE_FEE
+  OTHER
 }
 
 enum ChargeStatus {
-  PENDIENTE
-  PARCIAL
-  PAGADO
-  CANCELADO
+  PENDING
+  PARTIAL
+  PAID
+  CANCELLED
 }
 
 enum PaymentMethod {
-  EFECTIVO
-  TRANSFERENCIA
-  DEPOSITO
-  OTRO
+  CASH
+  TRANSFER
+  DEPOSIT
+  CARD
+  OTHER
 }
 
 model FeeConcept {
-  id        String         @id @default(uuid())
-  nombre    String
-  monto     Decimal        @db.Decimal(12, 2)
-  tipo      FeeConceptType
-  active    Boolean        @default(true)
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
+  id          String         @id @default(uuid())
+  name        String         @unique
+  description String?
+  amount      Decimal        @db.Decimal(12, 2)
+  type        FeeConceptType
+  active      Boolean        @default(true)
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @updatedAt @map("updated_at")
 
   charges Charge[]
 
+  @@index([active])
   @@map("fee_concepts")
 }
 
 model Charge {
-  id                String       @id @default(uuid())
-  studentId         String       @map("student_id")
-  conceptId         String       @map("concept_id")
-  termId            String?      @map("term_id")
-  monto             Decimal      @db.Decimal(12, 2)
-  descuento         Decimal      @default(0) @db.Decimal(12, 2)
-  fechaVencimiento  DateTime     @map("fecha_vencimiento") @db.Date
-  status            ChargeStatus @default(PENDIENTE)
-  cancelledAt       DateTime?    @map("cancelled_at")
-  cancelReason      String?      @map("cancel_reason")
-  createdAt         DateTime     @default(now())
-  updatedAt         DateTime     @updatedAt
+  id              String       @id @default(uuid())
+  studentId       String       @map("student_id")
+  conceptId       String       @map("concept_id")
+  termId          String?      @map("term_id")
+  /// Plan de pagos que originó el cargo (M22).
+  planId          String?      @map("plan_id")
+  /// Índice del cargo dentro del plan (0..n) para idempotencia.
+  planChargeIndex Int?         @map("plan_charge_index")
+  /// Texto libre visible en el estado de cuenta (p. ej. «Colegiatura septiembre»).
+  description     String?
+  amount          Decimal      @db.Decimal(12, 2)
+  discount        Decimal      @default(0) @db.Decimal(12, 2)
+  dueDate         DateTime     @map("due_date") @db.Date
+  status          ChargeStatus @default(PENDING)
+  /// Recargo por mora: el cargo vencido que lo origina (uno por cargo).
+  parentChargeId  String?      @unique @map("parent_charge_id")
+  createdBy       String?      @map("created_by")
+  cancelledAt     DateTime?    @map("cancelled_at")
+  cancelReason    String?      @map("cancel_reason")
+  cancelledBy     String?      @map("cancelled_by")
+  createdAt       DateTime     @default(now()) @map("created_at")
+  updatedAt       DateTime     @updatedAt @map("updated_at")
 
-  student  Student    @relation(fields: [studentId], references: [id])
-  concept  FeeConcept @relation(fields: [conceptId], references: [id])
-  term     Term?      @relation(fields: [termId], references: [id])
+  student  Student      @relation(fields: [studentId], references: [id])
+  concept  FeeConcept   @relation(fields: [conceptId], references: [id])
+  term     Term?        @relation(fields: [termId], references: [id])
+  plan     StudentPlan? @relation(fields: [planId], references: [id])
+  parent   Charge?      @relation("LateFee", fields: [parentChargeId], references: [id])
+  lateFee  Charge?      @relation("LateFee")
   payments Payment[]
 
+  @@unique([planId, planChargeIndex])
   @@index([studentId])
   @@index([status])
   @@index([termId])
+  @@index([dueDate])
   @@map("charges")
 }
 
 model Payment {
-  id             String        @id @default(uuid())
-  chargeId       String        @map("charge_id")
-  monto          Decimal       @db.Decimal(12, 2)
-  fecha          DateTime      @db.Date
-  metodo         PaymentMethod
-  referencia     String?
-  reciboFolio    String        @unique @map("recibo_folio")
-  registeredBy   String        @map("registered_by")
-  cancelledAt    DateTime?     @map("cancelled_at")
-  cancelReason   String?       @map("cancel_reason")
-  idempotencyKey String?       @unique @map("idempotency_key")
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
+  id               String        @id @default(uuid())
+  chargeId         String        @map("charge_id")
+  amount           Decimal       @db.Decimal(12, 2)
+  date             DateTime      @db.Date
+  method           PaymentMethod
+  reference        String?
+  /// `REC-AAAA-NNNNNN`, consecutivo por año e irrepetible.
+  receiptNumber    String        @unique @map("receipt_number")
+  registeredBy     String        @map("registered_by")
+  /// Nombre de quien cobró al momento del pago (el recibo no cambia si la cuenta cambia).
+  registeredByName String        @map("registered_by_name")
+  idempotencyKey   String?       @unique @map("idempotency_key")
+  cancelledAt      DateTime?     @map("cancelled_at")
+  cancelReason     String?       @map("cancel_reason")
+  cancelledBy      String?       @map("cancelled_by")
+  createdAt        DateTime      @default(now()) @map("created_at")
+  updatedAt        DateTime      @updatedAt @map("updated_at")
 
   charge Charge @relation(fields: [chargeId], references: [id])
 
   @@index([chargeId])
+  @@index([date])
   @@map("payments")
 }
 ```
 
 **Índices:** `charges(student_id)`, `charges(status)`, `charges(term_id)`,
-`payments(charge_id)`; `payments.recibo_folio` y `payments.idempotency_key`
+`payments(charge_id)`; `payments.receipt_number` y `payments.idempotency_key`
 únicos. Índice único parcial y progresión del folio se agregan en migración SQL.
 **Relaciones:** `Charge` N→1 `Student`, `FeeConcept`, `Term`; `Payment` N→1
 `Charge`.
@@ -160,17 +184,17 @@ model Payment {
 
 ## 4. Reglas de negocio
 
-1. Se permiten **pagos parciales**; el cargo pasa a `pagado` solo cuando la suma
-   de pagos vigentes cubre el total (`monto - descuento`).
-2. El cargo se recalcula a `parcial` o `pendiente` según los pagos vigentes.
+1. Se permiten **pagos parciales**; el cargo pasa a `PAID` solo cuando la suma
+   de pagos vigentes cubre el total (`amount - discount`).
+2. El cargo se recalcula a `PARTIAL` o `PENDING` según los pagos vigentes.
 3. Un pago **no se borra**: se cancela con motivo, se conserva el folio y queda
    en bitácora (`PAYMENT_CANCELLED`) con `previousState`/`newState`.
-4. Un cargo `pagado` o `cancelado` no admite nuevos pagos: `CHARGE_ALREADY_PAID` (409).
-5. El `reciboFolio` es **consecutivo e irrepetible** (`@unique`); se asigna en
+4. Un cargo `PAID` o `CANCELLED` no admite nuevos pagos: `CHARGE_ALREADY_PAID` (409).
+5. El `receiptNumber` es **consecutivo e irrepetible** (`@unique`); se asigna en
    transacción al registrar el pago.
 6. Los **recargos por mora** son configurables en M11 (`settings`) y opcionales;
    si están desactivados, no se generan.
-7. El `descuento` no puede exceder el `monto` del cargo.
+7. El `discount` no puede exceder el `amount` del cargo.
 8. El monto de un pago debe ser `> 0` y no exceder el saldo pendiente del cargo.
 9. La generación masiva (`charges/generate`) es **idempotente** con
    `Idempotency-Key`: repetir la petición no duplica cargos.
@@ -202,7 +226,7 @@ server-side con `POST /…/query`.
 ```jsonc
 // Request  (Idempotency-Key: charge-gen-2026-01-0001)
 { "conceptId": "…", "termId": "…", "scope": "group", "groupId": "…",
-  "fechaVencimiento": "2026-02-10", "descuento": 0 }
+  "dueDate": "2026-02-10", "discount": 0 }
 // 201 → { "created": 42, "skipped": 0, "charges": [ { "id": "…" } ] }
 ```
 Reusar la clave con otro usuario → 409 `IDEMPOTENCY_KEY_REUSED`.
@@ -210,9 +234,9 @@ Reusar la clave con otro usuario → 409 `IDEMPOTENCY_KEY_REUSED`.
 **Registro de pago** `POST /api/v1/payments`:
 ```jsonc
 // Request
-{ "chargeId": "…", "monto": 1500.00, "fecha": "2026-01-15",
-  "metodo": "EFECTIVO", "referencia": null }
-// 201 → { "id": "…", "reciboFolio": "REC-2026-000123", "chargeStatus": "PARCIAL" }
+{ "chargeId": "…", "amount": 1500.00, "date": "2026-01-15",
+  "method": "CASH", "reference": null }
+// 201 → { "id": "…", "receiptNumber": "REC-2026-000123", "chargeStatus": "PARTIAL" }
 ```
 
 ## 6. Web
@@ -248,10 +272,10 @@ aplica en el servicio (`scopeOf`/`withinScope`), nunca en el cliente.
 
 ## 8. Validaciones
 
-- `monto`: decimal `> 0` con 2 decimales; `descuento >= 0` y `<= monto`.
-- `fechaVencimiento` y `fecha`: fechas válidas (`@db.Date`).
-- `metodo` y `tipo`: dentro del enum; `status` no se acepta del cliente.
-- `referencia`: texto opcional (máx. 120).
+- `amount`: decimal `> 0` con 2 decimales; `discount >= 0` y `<= amount`.
+- `dueDate` y `date`: fechas válidas (`@db.Date`).
+- `method` y `type`: dentro del enum; `status` no se acepta del cliente.
+- `reference`: texto opcional (máx. 120).
 - Pago mayor al saldo → `VALIDATION_ERROR`; cargo no pagable → `CHARGE_ALREADY_PAID`.
 - `Idempotency-Key` con formato `^[A-Za-z0-9_-]{8,100}$` (`INVALID_IDEMPOTENCY_KEY`).
 - `feeConceptId`/`groupId`/`termId` inexistentes → `INVALID_REFERENCE`.

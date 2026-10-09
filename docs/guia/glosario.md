@@ -8,7 +8,7 @@ Mantener orden alfabético.
 | **ABAC** | Control de acceso basado en atributos/contexto (tabla `policies`); actúa después del RBAC. |
 | **Acreditado** | Estatus de una inscripción cuando el alumno alcanza la calificación mínima del curso. |
 | **Alcance (scope)** | Nivel de acceso de un permiso: `NONE < OWN < AREA < ALL`. |
-| **Alumno (Student)** | Persona inscrita o con historial; se identifica por `matricula` y `curp`. |
+| **Alumno (Student)** | Persona inscrita o con historial; se identifica por `studentNumber` y `curp`. |
 | **AREA** | Alcance sobre el ámbito del usuario (p. ej. el profesor sobre sus grupos). |
 | **Assessment** | Actividad evaluable de un grupo (parcial, final, tarea, otro) con ponderación. |
 | **AuditLog** | Bitácora de escrituras y accesos denegados; se escribe vía `AuditPort`. |
@@ -36,7 +36,7 @@ Mantener orden alfabético.
 | **Outbox** | Patrón de correo: se encola (`email_logs PENDING`) y un worker drena con reintentos. |
 | **OWN** | Alcance sobre los propios registros (p. ej. el alumno sobre su kardex). |
 | **Parcial** | Evaluación intermedia de un curso. |
-| **Pago parcial** | Abono que no cubre el total; el cargo queda `parcial`. |
+| **Pago parcial** | Abono que no cubre el total; el cargo queda `PARTIAL`. |
 | **Ponderación** | Peso porcentual de un assessment en la calificación final (suma 100%). |
 | **Reingreso** | Reactivación de un alumno dado de baja, conservando su matrícula. |
 | **RBAC** | Control de acceso por rol (`roles`, `role_permissions`, `user_roles`). |

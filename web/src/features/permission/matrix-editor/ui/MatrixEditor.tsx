@@ -2,7 +2,7 @@ import { ITAlert, ITBadget, ITButton, ITFlex, ITLoader, ITSelect, ITText } from 
 import { FaSave, FaUndo } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
 import type { Scope } from "@entities/user";
-import type { PermissionCatalog, RoleAdmin } from "@entities/permission";
+import { roleLabel, type PermissionCatalog, type RoleAdmin } from "@entities/permission";
 import { dyn } from "@shared/i18n";
 import { useNotify } from "@app/toast/useNotify";
 import { PanelCard } from "@shared/ui/panel-card";
@@ -70,7 +70,7 @@ export default function MatrixEditor({ roles }: Props) {
                 <th className="px-3 py-2">{t("matrix.permission")}</th>
                 {columns.map((role) => (
                   <th key={role.key} className="px-3 py-2 text-center">
-                    {role.name}
+                    {roleLabel(role)}
                   </th>
                 ))}
               </tr>

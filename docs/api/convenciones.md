@@ -7,7 +7,7 @@ API REST con prefijo **`/api/v1`** y respuestas **JSON**, al estilo PTNV
 
 - Sustantivos en plural, `kebab-case`: `/students`, `/fee-concepts`, `/online-exams`.
 - Subrecursos anidados: `/students/:id/documents`, `/groups/:id/enroll`, `/students/:id/kardex`.
-- Acciones no-CRUD como segmento: `/students/:id/baja`, `/online-exams/:id/publish`.
+- Acciones no-CRUD como segmento: `/students/:id/withdrawal`, `/online-exams/:id/publish`.
 - **Listados** de tabla: `POST /<recurso>/query` (ver §3).
 
 | Método | Uso |
@@ -37,8 +37,8 @@ filtros complejos.
 {
   "page": 1,
   "limit": 20,
-  "filters": { "status": "activo", "nombres": "juan", "fecha_ingreso": ["2026-01-01T00:00:00.000-06:00", "2026-06-30T23:59:59.999-06:00"] },
-  "sort": { "key": "nombres", "direction": "asc" }
+  "filters": { "status": "ACTIVE", "firstNames": "juan", "enrollment_date": ["2026-01-01T00:00:00.000-06:00", "2026-06-30T23:59:59.999-06:00"] },
+  "sort": { "key": "firstNames", "direction": "asc" }
 }
 ```
 

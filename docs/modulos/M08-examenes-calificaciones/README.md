@@ -42,7 +42,7 @@ actualizando el kardex y el estatus de la inscripción al cerrar el grupo.
 - Captura de calificaciones (`grades`) por instrumento e inscripción, individual y en lote.
 - Libro de calificaciones (`gradebook`) por grupo con proyección de calificación final.
 - Cálculo de calificación final ponderada y aplicación de la regla de aprobación configurable.
-- Cierre de grupo: escritura al kardex y actualización del estatus de la inscripción (`acreditado`/`reprobado`).
+- Cierre de grupo: escritura al kardex y actualización del estatus de la inscripción (`PASSED`/`FAILED`).
 - Bitácora de toda alta, cambio o baja de calificación con valor anterior y nuevo.
 - Alcance por docente: el profesor solo captura en sus grupos.
 
@@ -62,41 +62,43 @@ Las ponderaciones y calificaciones usan `Decimal` (nunca punto flotante).
 
 ```prisma
 enum AssessmentType {
-  PARCIAL
+  PARTIAL
   FINAL
-  TAREA
-  OTRO
+  HOMEWORK
+  OTHER
 }
 
 model Assessment {
-  id          String         @id @default(uuid())
-  groupId     String         @map("group_id")
-  nombre      String
-  tipo        AssessmentType
-  ponderacion Decimal        @db.Decimal(5, 2) // porcentaje; suma por grupo = 100.00
-  fecha       DateTime?      @db.Date
-  maxScore    Decimal        @db.Decimal(6, 2)
-  active      Boolean        @default(true)
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
+  id        String         @id @default(uuid())
+  groupId   String         @map("group_id")
+  name      String
+  type      AssessmentType
+  /// Porcentaje; la suma de los activos del grupo debe ser 100.00 para cerrar.
+  weight    Decimal        @db.Decimal(5, 2)
+  date      DateTime?      @db.Date
+  maxScore  Decimal        @map("max_score") @db.Decimal(6, 2)
+  active    Boolean        @default(true)
+  createdAt DateTime       @default(now()) @map("created_at")
+  updatedAt DateTime       @updatedAt @map("updated_at")
 
-  group  Group   @relation(fields: [groupId], references: [id])
-  grades Grade[]
+  group      Group       @relation(fields: [groupId], references: [id])
+  grades     Grade[]
+  onlineExam OnlineExam?
 
   @@index([groupId])
   @@map("assessments")
 }
 
 model Grade {
-  id            String    @id @default(uuid())
-  assessmentId  String    @map("assessment_id")
-  enrollmentId  String    @map("enrollment_id")
-  score         Decimal?  @db.Decimal(6, 2) // entre 0 y max_score
-  observaciones String?
-  capturedBy    String?   @map("captured_by")
-  capturedAt    DateTime? @map("captured_at")
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id           String    @id @default(uuid())
+  assessmentId String    @map("assessment_id")
+  enrollmentId String    @map("enrollment_id")
+  score        Decimal?  @db.Decimal(6, 2)
+  notes        String?
+  capturedBy   String?   @map("captured_by")
+  capturedAt   DateTime? @map("captured_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
 
   assessment Assessment @relation(fields: [assessmentId], references: [id])
   enrollment Enrollment @relation(fields: [enrollmentId], references: [id])
@@ -116,15 +118,15 @@ las `Grade` no se borran (se recapturan y su historial queda en la bitácora).
 
 ## 4. Reglas de negocio
 
-1. La suma de `ponderacion` de los instrumentos **activos** de un grupo debe ser
+1. La suma de `weight` de los instrumentos **activos** de un grupo debe ser
    exactamente `100.00` para calcular la final; en otro caso, `WEIGHTS_NOT_100` (409).
 2. Cada `score` debe estar en el rango `[0, maxScore]` del instrumento; en otro
    caso, `SCORE_OUT_OF_RANGE` (400).
-3. La calificación final es la **suma ponderada** de `(score / maxScore) * ponderacion`.
+3. La calificación final es la **suma ponderada** de `(score / maxScore) * weight`.
 4. La calificación final se compara contra la **regla de aprobación configurable**
-   en M11 (`settings`), por defecto `70`; `>= umbral` acredita.
+   en M11 (`settings`), por defecto `70`; `>= threshold` acredita.
 5. Al **cerrar el grupo** se escriben las calificaciones finales al kardex (M06) y
-   se actualiza el estatus de la inscripción a `acreditado` o `reprobado`.
+   se actualiza el estatus de la inscripción a `PASSED` o `FAILED`.
 6. Toda **modificación de calificación** queda en la bitácora con `previousState`
    (valor anterior) y `newState` (valor nuevo).
 7. El **profesor solo captura** calificaciones en los grupos donde está asignado
@@ -132,7 +134,7 @@ las `Grade` no se borran (se recapturan y su historial queda en la bitácora).
 8. No puede existir más de una calificación por `(assessmentId, enrollmentId)`:
    la captura en lote hace *upsert* controlado.
 9. Un instrumento con ponderación `<= 0` no es válido.
-10. No se permite capturar calificaciones si el alumno no está `inscrito` en el grupo.
+10. No se permite capturar calificaciones si el alumno no está `ENROLLED` en el grupo.
 
 ## 5. API
 
@@ -158,7 +160,7 @@ server-side con `POST /…/query`.
 // Request
 {
   "grades": [
-    { "enrollmentId": "b1e0…", "score": 85.5, "observaciones": "Buen desempeño" },
+    { "enrollmentId": "b1e0…", "score": 85.5, "notes": "Buen desempeño" },
     { "enrollmentId": "c2f1…", "score": null }
   ]
 }
@@ -171,13 +173,13 @@ docente; una calificación inválida responde `SCORE_OUT_OF_RANGE` (400).
 ```jsonc
 // 200
 {
-  "group": { "id": "…", "nombre": "A" },
-  "assessments": [ { "id": "…", "nombre": "Parcial 1", "ponderacion": 30.00, "maxScore": 100.00 } ],
+  "group": { "id": "…", "name": "A" },
+  "assessments": [ { "id": "…", "name": "Parcial 1", "weight": 30.00, "maxScore": 100.00 } ],
   "weightsTotal": 100.00,
   "approvalThreshold": 70,
   "students": [
-    { "enrollmentId": "…", "student": { "matricula": "2026-0001", "nombre": "…" },
-      "scores": { "assess1": 85.5 }, "final": 85.5, "status": "acreditado" }
+    { "enrollmentId": "…", "student": { "studentNumber": "2026-0001", "name": "…" },
+      "scores": { "assess1": 85.5 }, "final": 85.5, "status": "PASSED" }
   ]
 }
 ```
@@ -218,7 +220,7 @@ solo consulta sus propias calificaciones (`OWN`).
 ## 8. Validaciones
 
 - Zod en `models/dto` (whitelist estricta) y `@shared/validation` en web.
-- `ponderacion`: decimal `> 0` y `<= 100`; la suma por grupo se valida al calcular
+- `weight`: decimal `> 0` y `<= 100`; la suma por grupo se valida al calcular
   (`WEIGHTS_NOT_100`).
 - `score`: opcional, `[0, maxScore]` (`SCORE_OUT_OF_RANGE`).
 - `maxScore`: decimal `> 0`; `AssessmentType` dentro del enum.

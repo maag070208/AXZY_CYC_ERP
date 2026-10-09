@@ -40,58 +40,72 @@ desde una única fuente de verdad.
 ## 3. Modelo de datos (Prisma)
 
 Convención: `id uuid` salvo clave natural (`key`), `createdAt`/`updatedAt`,
-`active` para catálogos desactivables (el spec usa `status activo/inactivo`, que
+`active` para catálogos desactivables (el spec usa `status ACTIVE/INACTIVE`, que
 se modela como `active Boolean`; ver
 [`../../modelo-datos/diccionario-datos.md`](../../modelo-datos/diccionario-datos.md)).
 
 ```prisma
+/// Parámetro general clave/valor. La `key` la fija la migración (no se crea
+/// desde el cliente); solo se actualiza `value`.
 model Setting {
   id          String   @id @default(uuid())
-  key         String   @unique // p. ej. "MIN_PASSING_GRADE", "SCHOOL_NAME"
-  value       Json     // jsonb: escalar u objeto
+  key         String   @unique
+  value       Json
   description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
   @@map("settings")
 }
 
+/// Nivel educativo.
 model Level {
   id        String   @id @default(uuid())
-  nombre    String
-  orden     Int?
+  name      String   @unique
+  sortOrder Int?     @map("sort_order")
   active    Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
+  courses Course[]
+
+  @@index([active])
   @@map("levels")
 }
 
+/// Motivo de baja (lo consume M05).
 model CancellationReason {
   id        String   @id @default(uuid())
-  nombre    String
+  name      String   @unique
   active    Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
+  movements StudentMovement[]
+
+  @@index([active])
   @@map("cancellation_reasons")
 }
 
+/// Tipo de documento del expediente (lo consume M06).
 model DocumentType {
-  id          String   @id @default(uuid())
-  nombre      String
-  obligatorio Boolean  @default(false)
-  active      Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(uuid())
+  name      String   @unique
+  required  Boolean  @default(false)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
+  documents Document[]
+
+  @@index([active])
   @@map("document_types")
 }
 ```
 
-> **Implementado:** además de lo anterior, `Term` (`nombre` único, `fechaInicio`/
-> `fechaFin` `@db.Date`, `activo`) vive en M11 con índice único parcial
-> `terms_single_active`; `nombre` es único en cada catálogo. La migración
+> **Implementado:** además de lo anterior, `Term` (`name` único, `startDate`/
+> `endDate` `@db.Date`, `ACTIVE`) vive en M11 con índice único parcial
+> `terms_single_active`; `name` es único en cada catálogo. La migración
 > `f1_policies_catalogs` siembra los parámetros (`SCHOOL_*`, `MIN_PASSING_GRADE`,
 > `ATTENDANCE_THRESHOLD`, `LATE_FEE`, `LANGUAGE`), tipos de documento y motivos de
 > baja. Ver [D-021](../../../DECISIONES.md).
@@ -99,10 +113,10 @@ model DocumentType {
 **Índices:** `settings.key` único; índices `@@index([active])` en los catálogos
 para los listados.
 **Relaciones:** M11 no es propietario de FKs; sus catálogos se referencian por los
-módulos consumidores (`levels.orden` para ordenar; `document_types` en M06;
+módulos consumidores (`levels.sortOrder` para ordenar; `document_types` en M06;
 `cancellation_reasons` en M05).
 **Ciclos escolares:** se administran sobre el modelo `Term` de M07 (`terms`), con
-`activo` único por vez.
+`ACTIVE` único por vez.
 **Borrado lógico:** catálogos desactivables vía `active`; el logotipo y valores de
 `settings` se actualizan, no se borran.
 
@@ -117,12 +131,12 @@ módulos consumidores (`levels.orden` para ordenar; `document_types` en M06;
 4. Los catálogos desactivados (`active = false`) **no** se ofrecen en formularios
    de captura, pero se conservan para no romper históricos.
 5. Los parámetros por defecto se siembran en la migración (`MIN_PASSING_GRADE = 70`,
-   `ATTENDANCE_THRESHOLD = 80`, `LATE_FEE_ENABLED = false`, datos de la escuela).
+   `ATTENDANCE_THRESHOLD = 80`, `LATE_FEE.enabled = false`, datos de la escuela).
 6. La calificación mínima (`MIN_PASSING_GRADE`) es la regla de aprobación por
    defecto que consume M08.
-7. `obligatorio` en `document_types` define si el tipo cuenta como documento
+7. `required` en `document_types` define si el tipo cuenta como documento
    faltante en M06.
-8. `LATE_FEE_ENABLED` y sus reglas condicionan los recargos por mora de M09.
+8. `LATE_FEE.enabled` y sus reglas condicionan los recargos por mora de M09.
 9. No se puede escribir configuración sin `config.manage` (sólo lectura con
    `config.view`).
 10. Ningún módulo puede modificar los catálogos por fuera de la API de M11.
@@ -145,7 +159,7 @@ server-side con `POST /…/query`.
 | POST | `/api/v1/cancellation-reasons/query` · GET `/cancellation-reasons[/:id]` | Motivos de baja | `config.view` o `students.movements` |
 | POST · PATCH · DELETE | `/api/v1/cancellation-reasons[/:id]` | Escritura de motivos | `config.manage` |
 | POST | `/api/v1/document-types/query` · GET `/document-types[/:id]` | Tipos de documento | `config.view` o `documents.view` |
-| POST · PATCH · DELETE | `/api/v1/document-types[/:id]` | Escritura de tipos (`obligatorio`, `active`) | `config.manage` |
+| POST · PATCH · DELETE | `/api/v1/document-types[/:id]` | Escritura de tipos (`required`, `active`) | `config.manage` |
 
 Los conceptos de pago (`fee-concepts`) se documentan y sirven en **M09**.
 
@@ -173,7 +187,7 @@ Los conceptos de pago (`fee-concepts`) se documentan y sirven en **M09**.
 | `/catalogs` | `pages/catalogs` | `ITTabs`; cada pestaña según su permiso |
 
 Pantallas con `ITPage` + `ITDataTable`/`ITFormBuilder`; secciones con `PanelCard`;
-confirmaciones con `ITDialog`; banderas (`obligatorio`, `active`) con controles
+confirmaciones con `ITDialog`; banderas (`required`, `active`) con controles
 del kit. i18n con namespace `config` (y `catalogs`).
 
 ## 7. Permisos y alcance
@@ -194,11 +208,11 @@ propietario. Ver [`roles-permisos.md`](../../seguridad/roles-permisos.md).
 
 - `settings`: `value` debe ser `jsonb` válido; `key` no se crea desde el cliente
   salvo semilla (solo se actualiza el `value`).
-- `Level.orden`: entero opcional; `nombre` requerido (`REQUIRED_FIELD`).
-- `Term`: `fechaInicio <= fechaFin`; solo un `activo` a la vez.
-- `DocumentType.obligatorio`: booleano.
+- `Level.sortOrder`: entero opcional; `name` requerido (`REQUIRED_FIELD`).
+- `Term`: `startDate <= endDate`; solo un `ACTIVE` a la vez.
+- `DocumentType.required`: booleano.
 - `active`: booleano (desactivación lógica).
-- Valores de enumeración/tipos inválidos → `VALIDATION_ERROR`; `key`/`nombre`
+- Valores de enumeración/tipos inválidos → `VALIDATION_ERROR`; `key`/`name`
   duplicado → `DUPLICATE_RECORD` (409); recurso inexistente → `RECORD_NOT_FOUND`.
 - Filtro no admitido → 400 `INVALID_FILTER`.
 

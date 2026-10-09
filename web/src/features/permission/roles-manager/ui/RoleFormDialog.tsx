@@ -11,7 +11,7 @@ import {
   ITText,
 } from "@axzydev/axzy_ui_system";
 import { useTranslation } from "react-i18next";
-import { permissionApi, type RoleAdmin } from "@entities/permission";
+import { permissionApi, roleLabel, type RoleAdmin } from "@entities/permission";
 import { errorMessage } from "@app/toast/useNotify";
 
 interface Props {
@@ -134,7 +134,7 @@ export default function RoleFormDialog({ isOpen, role, roles, onClose, onSaved }
                   label={t("roles.copyFrom")}
                   placeholder={t("roles.copyNone")}
                   value={copyFrom}
-                  options={roles.map((r) => ({ value: r.key, label: r.name }))}
+                  options={roles.map((r) => ({ value: r.key, label: roleLabel(r) }))}
                   onChange={(e) => setCopyFrom(e.target.value)}
                 />
               </ITGrid>

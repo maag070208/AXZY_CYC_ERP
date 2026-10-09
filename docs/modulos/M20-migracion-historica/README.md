@@ -18,12 +18,12 @@ Alcance de esta entrega: **CSV** (UTF-8, `,` o `;`) para las entidades **Student
 
 | Método | Ruta | Permiso | Nota |
 |---|---|---|---|
-| POST | `/api/v1/migration/preview` | `migration.execute` | Multipart `file` + `entidad`; simulación sin escribir y lote `DRY_RUN` |
-| POST | `/api/v1/migration/execute` | `migration.execute` | Multipart `file` + `entidad` + `checksum`; exige `Idempotency-Key` y respaldo reciente |
+| POST | `/api/v1/migration/preview` | `migration.execute` | Multipart `file` + `entity`; simulación sin escribir y lote `DRY_RUN` |
+| POST | `/api/v1/migration/execute` | `migration.execute` | Multipart `file` + `entity` + `checksum`; exige `Idempotency-Key` y respaldo reciente |
 | POST | `/api/v1/migration/batches/query` | `migration.execute` | Tabla server-side de lotes |
 | GET | `/api/v1/migration/batches/:id` | `migration.execute` | Detalle con las filas rechazadas |
 
-Claves naturales: `Student.curp`, `Teacher.email` (upsert idempotente). Se preserva la **matrícula histórica** si viene en el CSV; si no, se genera con la secuencia por año. El alta de profesor crea su cuenta `PROFESOR` con contraseña temporal (sin enviar la invitación; control escolar la reenvía cuando corresponda).
+Claves naturales: `Student.curp`, `Teacher.email` (upsert idempotente). Se preserva la **matrícula histórica** si viene en el CSV; si no, se genera con la secuencia por año. El alta de profesor crea su cuenta `TEACHER` con contraseña temporal (sin enviar la invitación; control escolar la reenvía cuando corresponda).
 
 Decisiones (sección 12):
 - El `dry-run` y la ejecución comparten `plan()`; la confirmación revalida el `sha256` del archivo. Ver [D-045](../../../DECISIONES.md).
@@ -72,50 +72,58 @@ enum MigrationMode {
 }
 
 enum MigrationBatchStatus {
-  EN_PROCESO
-  COMPLETADO
-  FALLIDO
-  CANCELADO
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+  CANCELLED
 }
 
 enum MigrationRowStatus {
-  ACEPTADA
-  RECHAZADA
-  OMITIDA
+  ACCEPTED
+  REJECTED
+  SKIPPED
 }
 
+/// Lote de migración (una ejecución dry-run o real). Trazabilidad del proceso;
+/// el dataset final vive en cada módulo destino.
 model MigrationBatch {
-  id             String                @id @default(uuid())
-  entidad        String                                 // Student, Payment, Grade…
-  archivo        String                                 // nombre/objeto del origen
-  checksum       String                                 // sha256 del archivo
+  id             String               @id @default(uuid())
+  /// Entidad destino: Student, Teacher…
+  entity         String
+  /// Nombre del archivo origen (el contenido no se guarda).
+  file           String
+  /// sha256 del archivo; la confirmación revalida que coincide.
+  checksum       String               @db.VarChar(64)
   mode           MigrationMode
-  status         MigrationBatchStatus  @default(EN_PROCESO)
-  idempotencyKey String?               @unique          // ligado al lote
-  totalsJson     Json                  @default("{}")   // { read, valid, rejected }
-  createdBy      String                                 // users.id
-  executedAt     DateTime?
-  createdAt      DateTime              @default(now())
-  updatedAt      DateTime              @updatedAt
+  status         MigrationBatchStatus @default(IN_PROGRESS)
+  idempotencyKey String?              @unique @map("idempotency_key") @db.VarChar(200)
+  /// { read, valid|inserted, updated?, rejected }
+  totalsJson     Json                 @default("{}") @map("totals_json")
+  createdBy      String               @map("created_by")
+  executedAt     DateTime?            @map("executed_at")
+  createdAt      DateTime             @default(now()) @map("created_at")
+  updatedAt      DateTime             @updatedAt @map("updated_at")
 
   rows MigrationRow[]
 
-  @@index([entidad, status])
+  @@index([entity, status])
   @@index([createdAt])
   @@map("migration_batches")
 }
 
+/// Resultado fila a fila de un lote (se guardan las filas no aceptadas).
 model MigrationRow {
-  id         String               @id @default(uuid())
-  batchId    String
-  batch      MigrationBatch       @relation(fields: [batchId], references: [id])
-  rowNumber  Int                                        // fila en el archivo origen
-  entidad    String
-  naturalKey String?                                    // CURP, matrícula, folio…
+  id         String             @id @default(uuid())
+  batchId    String             @map("batch_id")
+  rowNumber  Int                @map("row_number")
+  entity     String
+  naturalKey String?            @map("natural_key") @db.VarChar(200)
   status     MigrationRowStatus
-  reason     String?                                    // INVALID_CURP, DUPLICATE_CURP…
-  raw        Json?                                      // snapshot de la fila
-  createdAt  DateTime             @default(now())
+  reason     String?            @db.VarChar(120)
+  raw        Json?
+  createdAt  DateTime           @default(now()) @map("created_at")
+
+  batch MigrationBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
 
   @@index([batchId, status])
   @@index([naturalKey])
@@ -123,7 +131,7 @@ model MigrationRow {
 }
 ```
 
-**Índices:** `migration_batches(entidad, status)` y `(createdAt)`;
+**Índices:** `migration_batches(entity, status)` y `(createdAt)`;
 `migration_rows(batchId, status)` y `(naturalKey)`.
 **Relaciones:** `MigrationRow.batchId → MigrationBatch.id` (1:N). `createdBy` es el
 `users.id` que dispara la ejecución (no FK obligatoria para no acoplar el módulo
@@ -164,7 +172,7 @@ de auditoría/usuarios). Idempotencia por `idempotencyKey` único ligado al lote
 
 Módulo bajo `api/src/modules/migration/`
 (`routes/ · controllers/ · services/ · models/{dto,entity}/`). El servicio central
-es `MigrationService` con `plan(archivo)` y `execute(plan)`.
+es `MigrationService` con `plan(file)` y `execute(plan)`.
 
 | Método | Ruta | Descripción | Permiso |
 |---|---|---|---|
@@ -180,14 +188,14 @@ es `MigrationService` con `plan(archivo)` y `execute(plan)`.
 **`POST /migration/preview`** (multipart con el archivo o referencia al objeto):
 
 ```jsonc
-// Request  { "entidad": "Student", "archivoId": "…" }
+// Request  { "entity": "Student", "file": "…" }
 // Response 200
 {
   "batchId": "…", "mode": "DRY_RUN",
   "totals": { "read": 1200, "valid": 1180, "rejected": 20 },
   "rejected": [
-    { "row": 15, "entidad": "Student", "reason": "INVALID_CURP", "value": "XAXX…" },
-    { "row": 42, "entidad": "Student", "reason": "DUPLICATE_CURP" }
+    { "row": 15, "entity": "Student", "reason": "INVALID_CURP", "value": "XAXX…" },
+    { "row": 42, "entity": "Student", "reason": "DUPLICATE_CURP" }
   ]
 }
 ```
@@ -196,9 +204,9 @@ es `MigrationService` con `plan(archivo)` y `execute(plan)`.
 el archivo en servidor):
 
 ```jsonc
-// Request  { "entidad": "Student", "archivoId": "…", "confirm": true }
+// Request  { "entity": "Student", "file": "…", "confirm": true }
 // Response 201
-{ "batchId": "…", "mode": "EXECUTE", "status": "COMPLETADO",
+{ "batchId": "…", "mode": "EXECUTE", "status": "COMPLETED",
   "totals": { "read": 1200, "inserted": 1175, "updated": 5, "rejected": 20 } }
 ```
 
@@ -231,14 +239,14 @@ con namespace **`migration`**.
 
 Zod en `models/dto`:
 
-- `entidad` ∈ catálogo de entidades migrables (`INVALID_FORMAT`).
+- `entity` ∈ catálogo de entidades migrables (`INVALID_FORMAT`).
 - Archivo presente y tipo/tamaño permitidos (`FILE_TYPE_NOT_ALLOWED` /
   `FILE_TOO_LARGE`); `checksum` calculable.
 - `Idempotency-Key` con formato `^[A-Za-z0-9_-]{8,100}$` (`INVALID_IDEMPOTENCY_KEY`)
   y presente en `execute` (`REQUIRED_FIELD`).
 - Validación por entidad: CURP (`INVALID_CURP`), matrícula (`AAAA-NNNN`), fechas
   ISO, montos `Decimal`; duplicados por clave natural → `DUPLICATE_CURP`,
-  `DUPLICATE_MATRICULA`, `DUPLICATE_RECORD`.
+  `DUPLICATE_STUDENT_NUMBER`, `DUPLICATE_RECORD`.
 - Filtros de tabla inválidos → `INVALID_FILTER`; rango invertido → `INVALID_RANGE`.
 - El reporte de `dry-run` nunca oculta rechazos: toda fila no aceptada queda en
   `MigrationRow` con su `reason`.

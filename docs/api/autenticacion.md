@@ -47,8 +47,8 @@ Devuelve los datos de la persona, `roles` y `permissions` como **mapa
 se incluyen los permisos ≠ NONE**:
 ```json
 {
-  "user": { "id": "…", "name": "…", "role": "PROFESOR" },
-  "roles": ["PROFESOR"],
+  "user": { "id": "…", "name": "…", "role": "TEACHER" },
+  "roles": ["TEACHER"],
   "permissions": { "grades.capture": "OWN", "attendance.view": "OWN" },
   "language": "es"
 }

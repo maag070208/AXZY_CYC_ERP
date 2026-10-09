@@ -74,7 +74,7 @@ npm run --silent test:e2e:reset-token -- e2e_usuario   # token de recuperación 
 
 Cada corrida crea usuarios con el prefijo `e2e_` y un sufijo único
 (`newRunId()`); roles `E2E_*`, políticas `e2e_*` y registros de catálogo
-`E2E …`, alumnos con `nombres` `E2E …` (y sus archivos del driver local) y
+`E2E …`, alumnos con `firstNames` `E2E …` (y sus archivos del driver local) y
 profesores con correo `e2e_…`. `afterAll` los borra (`clearAuthE2E`, `clearAccessE2E`,
 `clearCatalogsE2E`) y restaura los parámetros que tocó. Ningún dato real del
 cliente se toca.

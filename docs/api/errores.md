@@ -5,7 +5,7 @@ Envelope **plano** (estándar PTNV):
 {
   "error": "ValidationError",
   "code": "VALIDATION_ERROR",
-  "message": "El correo ya está registrado.",
+  "message": "El EMAIL ya está registrado.",
   "details": [ { "field": "email", "message": "DUPLICATE_RECORD" } ]
 }
 ```
@@ -93,16 +93,16 @@ Envelope **plano** (estándar PTNV):
 | `FILE_REQUIRED` / `DOCUMENT_TYPE_NOT_AVAILABLE` | 400 | Subida sin archivo / tipo de documento inactivo |
 | `DOCUMENT_NOT_FOUND` / `DOCUMENT_FILE_MISSING` | 404 | Documento inexistente o fuera de alcance / archivo ausente |
 | `DOCUMENT_ALREADY_REVIEWED` | 409 | Validar o rechazar un documento ya revisado |
-| `DUPLICATE_MATRICULA` | 409 | Matrícula repetida |
+| `DUPLICATE_STUDENT_NUMBER` | 409 | Matrícula repetida |
 | `GROUP_FULL` | 409 | Grupo sin cupo |
 | `ALREADY_ENROLLED` | 409 | Doble inscripción al mismo grupo |
 | `SCHEDULE_CONFLICT` | 409 | Empalme de horario |
 | `STUDENT_INACTIVE` | 409 | Alumno en baja |
 | `COURSE_NOT_FOUND` / `GROUP_NOT_FOUND` / `ENROLLMENT_NOT_FOUND` / `TERM_NOT_FOUND` | 404 (400 si viene en el body) | Curso, grupo, inscripción o ciclo inexistente o fuera de alcance |
-| `COURSE_CLAVE_TAKEN` / `GROUP_NAME_TAKEN` | 409 | Clave de curso repetida / nombre de grupo repetido en el mismo curso y ciclo |
+| `COURSE_CODE_TAKEN` / `GROUP_NAME_TAKEN` | 409 | Clave de curso repetida / nombre de grupo repetido en el mismo curso y ciclo |
 | `COURSE_INACTIVE` / `GROUP_INACTIVE` / `COURSE_ALREADY_ACTIVE` / `GROUP_ALREADY_ACTIVE` | 409 | Conflictos de estado de cursos y grupos |
 | `LEVEL_NOT_AVAILABLE` | 400 | Nivel del curso inexistente o inactivo |
-| `CUPO_BELOW_ENROLLED` / `GROUP_HAS_ENROLLMENTS` | 409 | Cupo menor que los inscritos / desactivar un grupo con inscritos |
+| `CAPACITY_BELOW_ENROLLED` / `GROUP_HAS_ENROLLMENTS` | 409 | Cupo menor que los inscritos / desactivar un grupo con inscritos |
 | `GROUP_CLOSED` | 409 | El grupo ya cerró calificaciones: no cambia (captura, instrumentos, inscripciones) |
 | `ENROLLMENT_NOT_ACTIVE` | 409 | Baja o cambio de una inscripción que no está vigente |
 | `GROUP_CHANGE_INVALID` | 400 | El destino no es otro grupo del mismo curso y ciclo |
@@ -137,7 +137,7 @@ Envelope **plano** (estándar PTNV):
 | `CHARGE_ALREADY_CANCELLED` / `PAYMENT_ALREADY_CANCELLED` | 409 | Cancelar dos veces |
 | `CHARGE_HAS_PAYMENTS` | 409 | Cancelar un cargo con pagos vigentes |
 | `DISCOUNT_EXCEEDS_AMOUNT` | 400 | Descuento mayor al monto |
-| `PAYMENT_EXCEEDS_BALANCE` | 400 | Pago mayor al saldo (`details.saldo`) |
+| `PAYMENT_EXCEEDS_BALANCE` | 400 | Pago mayor al saldo (`details.balance`) |
 | `FEE_CONCEPT_NAME_TAKEN` / `FEE_CONCEPT_INACTIVE` / `FEE_CONCEPT_ALREADY_ACTIVE` / `FEE_CONCEPT_RESERVED` | 409 | Conflictos de conceptos (el de recargos es del sistema) |
 | `GENERATION_TARGET_REQUIRED` | 400 | Generación masiva sin grupo (`scope=group`) o ciclo (`scope=term`) |
 | `LATE_FEES_DISABLED` | 409 | `LATE_FEE.enabled = false` |

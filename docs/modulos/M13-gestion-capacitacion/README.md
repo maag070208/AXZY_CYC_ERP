@@ -42,8 +42,8 @@ capacitación y las capturas de los manuales.
 
 ## 4. Reglas de negocio
 
-1. Existe **un manual por rol** (`admin`, `control_escolar`, `profesor`, y
-   `alumno` si se habilita el portal).
+1. Existe **un manual por rol** (`ADMIN`, `SCHOOL_CONTROL`, `TEACHER`, y
+   `STUDENT` si se habilita el portal).
 2. Cada manual incluye capturas de pantalla, pasos numerados y los **mensajes de
    error comunes con qué hacer**.
 3. La guía rápida cubre las tareas frecuentes: alta de alumno (con CURP y tutor),

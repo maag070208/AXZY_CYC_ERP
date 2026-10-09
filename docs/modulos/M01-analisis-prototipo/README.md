@@ -56,7 +56,7 @@ lógico por dominio, `@@map`) están en
 4. El mapa de pantallas es **único**: cada pantalla declara la ruta, la capa FSD
    prevista (`entities`/`features`/`pages`) y el permiso `recurso.accion` que la gobierna.
 5. El prototipo navegable cubre, como mínimo, un flujo completo por rol
-   (`admin`, `control_escolar`, `profesor`, `alumno`).
+   (`ADMIN`, `SCHOOL_CONTROL`, `TEACHER`, `STUDENT`).
 6. Todo lo no resuelto por el cliente se registra como decisión abierta en
    [`DECISIONES.md`](../../../DECISIONES.md), no se asume.
 7. **El alcance se aprueba por escrito**; sin esa firma M01 no se considera terminado.

@@ -10,7 +10,7 @@ import {
 } from "@axzydev/axzy_ui_system";
 import { useTranslation } from "react-i18next";
 import type { User } from "@entities/user";
-import type { RoleAdmin } from "@entities/permission";
+import { roleLabel, type RoleAdmin } from "@entities/permission";
 import { useUserForm } from "../model/useUserForm";
 
 interface Props {
@@ -121,7 +121,7 @@ export default function UserFormDialog({ isOpen, user, roles, currentUserId, onC
                 <ITCheckbox
                   key={role.key}
                   name={`role-${role.key}`}
-                  label={role.name}
+                  label={roleLabel(role)}
                   checked={fx.form.roles.includes(role.key)}
                   disabled={ownAccount}
                   onChange={(checked) => fx.toggleRole(role.key, checked)}

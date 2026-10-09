@@ -36,8 +36,8 @@ del grupo.
 ## 2. Alcance
 
 **Incluye**
-- Calificación automática de preguntas cerradas (`opcion_multiple`,
-  `verdadero_falso`, `multiple_respuesta`) contra `question_options.es_correcta`.
+- Calificación automática de preguntas cerradas (`MULTIPLE_CHOICE`,
+  `TRUE_FALSE`, `MULTIPLE_ANSWER`) contra `question_options.is_correct`.
 - Pending de revisión manual para preguntas abiertas.
 - Cálculo del puntaje final del intento y escritura de `Grade` en el `Assessment`.
 - Aplicación del **criterio de intentos** (el mejor o el último) para el `Grade`.
@@ -58,62 +58,132 @@ M17 **no crea tablas de negocio propias**: reutiliza `ExamAttempt`/`AttemptAnswe
 completo pertenece a cada módulo dueño.
 
 ```prisma
-// M15 (dueño): el examen apunta al Assessment de M08 — ESTE es el vínculo
 model OnlineExam {
-  id           String  @id @default(uuid())
-  groupId      String
-  assessmentId String? @map("assessment_id")
-  // duracion_min, intentos_max, fecha_apertura, fecha_cierre, status…
-  assessment Assessment?  @relation(fields: [assessmentId], references: [id])
+  id               String           @id @default(uuid())
+  groupId          String           @map("group_id")
+  title            String
+  instructions     String?          @db.Text
+  durationMin      Int              @map("duration_min")
+  maxAttempts      Int              @default(1) @map("max_attempts")
+  opensAt          DateTime         @map("opens_at") @db.Timestamptz
+  closesAt         DateTime         @map("closes_at") @db.Timestamptz
+  shuffleQuestions Boolean          @default(false) @map("shuffle_questions")
+  shuffleOptions   Boolean          @default(false) @map("shuffle_options")
+  showResult       Boolean          @default(true) @map("show_result")
+  passingScore     Decimal          @map("passing_score") @db.Decimal(6, 2)
+  attemptCriterion AttemptCriterion @default(BEST) @map("attempt_criterion")
+  /// Evaluación de M08 que recibe la calificación (una por examen).
+  assessmentId     String?          @unique @map("assessment_id")
+  status           OnlineExamStatus @default(DRAFT)
+  publishedAt      DateTime?        @map("published_at")
+  closedAt         DateTime?        @map("closed_at")
+  createdBy        String?          @map("created_by")
+  createdAt        DateTime         @default(now()) @map("created_at")
+  updatedAt        DateTime         @updatedAt @map("updated_at")
+
+  group      Group                @relation(fields: [groupId], references: [id])
+  assessment Assessment?          @relation(fields: [assessmentId], references: [id])
+  questions  OnlineExamQuestion[]
   attempts   ExamAttempt[]
+
+  @@index([groupId])
+  @@index([status])
   @@map("online_exams")
 }
 
-// M16 (dueño): intento y respuestas; M17 escribe score y estados de revisión
 model ExamAttempt {
-  id         String        @id @default(uuid())
-  examId     String
-  studentId  String
-  finishedAt DateTime?
-  status     AttemptStatus @default(EN_CURSO) // EN_CURSO | ENVIADO | EXPIRADO
-  score      Decimal?      @db.Decimal(6, 2)  // puntaje final calculado
-  gradedAt   DateTime?                        // propuesto: último cálculo automático
-  reviewedBy String?                          // propuesto: profesor que cierra revisión
-  reviewedAt DateTime?                        // propuesto: cierre de revisión manual
-  answers    AttemptAnswer[]
+  id           String        @id @default(uuid())
+  examId       String        @map("exam_id")
+  studentId    String        @map("student_id")
+  number       Int
+  startedAt    DateTime      @default(now()) @map("started_at")
+  /// Fin calculado en el servidor: min(inicio + duración, cierre del examen).
+  endsAt       DateTime      @map("ends_at")
+  finishedAt   DateTime?     @map("finished_at")
+  status       AttemptStatus @default(IN_PROGRESS)
+  /// Orden fijo del intento: `[{ questionId, optionIds[] }]` (aleatorización reproducible).
+  layout       Json
+  score        Decimal?      @db.Decimal(6, 2)
+  pendingCount Int           @default(0) @map("pending_count")
+  gradedAt     DateTime?     @map("graded_at")
+  reviewedBy   String?       @map("reviewed_by")
+  reviewedAt   DateTime?     @map("reviewed_at")
+  focusLosses  Int           @default(0) @map("focus_losses")
+  events       Json          @default("[]")
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+
+  exam    OnlineExam      @relation(fields: [examId], references: [id])
+  student Student         @relation(fields: [studentId], references: [id])
+  answers AttemptAnswer[]
+
+  @@unique([examId, studentId, number])
+  @@index([examId, studentId])
+  @@index([studentId, status])
+  @@index([status, endsAt])
   @@map("exam_attempts")
 }
 
 model AttemptAnswer {
-  id              String   @id @default(uuid())
-  attemptId       String
-  questionId      String
-  respuesta       Json?
-  esCorrecta      Boolean? // NULL = pendiente de revisión manual
-  puntosObtenidos Decimal? @db.Decimal(6, 2)
+  id           String    @id @default(uuid())
+  attemptId    String    @map("attempt_id")
+  questionId   String    @map("question_id")
+  /// Opción (`optionId`), arreglo de opciones o texto, según el tipo.
+  answer       Json?
+  /// NULL = pendiente de revisión manual (abiertas).
+  isCorrect    Boolean?  @map("is_correct")
+  pointsEarned Decimal?  @map("points_earned") @db.Decimal(6, 2)
+  comment      String?
+  answeredAt   DateTime  @default(now()) @map("answered_at")
+  reviewedAt   DateTime? @map("reviewed_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  attempt  ExamAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  question Question    @relation(fields: [questionId], references: [id])
+
   @@unique([attemptId, questionId])
+  @@index([attemptId])
   @@map("attempt_answers")
 }
 
-// M08 (dueño): destino de la calificación
 model Assessment {
-  id          String  @id @default(uuid())
-  groupId     String
-  ponderacion Decimal @db.Decimal(5, 2)
-  maxScore    Decimal @db.Decimal(6, 2)
-  onlineExam  OnlineExam?
-  grades      Grade[]
+  id        String         @id @default(uuid())
+  groupId   String         @map("group_id")
+  name      String
+  type      AssessmentType
+  /// Porcentaje; la suma de los activos del grupo debe ser 100.00 para cerrar.
+  weight    Decimal        @db.Decimal(5, 2)
+  date      DateTime?      @db.Date
+  maxScore  Decimal        @map("max_score") @db.Decimal(6, 2)
+  active    Boolean        @default(true)
+  createdAt DateTime       @default(now()) @map("created_at")
+  updatedAt DateTime       @updatedAt @map("updated_at")
+
+  group      Group       @relation(fields: [groupId], references: [id])
+  grades     Grade[]
+  onlineExam OnlineExam?
+
+  @@index([groupId])
   @@map("assessments")
 }
 
 model Grade {
-  id           String   @id @default(uuid())
-  assessmentId String
-  enrollmentId String
-  score        Decimal? @db.Decimal(6, 2)
-  capturedBy   String?
-  capturedAt   DateTime?
+  id           String    @id @default(uuid())
+  assessmentId String    @map("assessment_id")
+  enrollmentId String    @map("enrollment_id")
+  score        Decimal?  @db.Decimal(6, 2)
+  notes        String?
+  capturedBy   String?   @map("captured_by")
+  capturedAt   DateTime? @map("captured_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  assessment Assessment @relation(fields: [assessmentId], references: [id])
+  enrollment Enrollment @relation(fields: [enrollmentId], references: [id])
+
   @@unique([assessmentId, enrollmentId])
+  @@index([enrollmentId])
   @@map("grades")
 }
 ```
@@ -124,7 +194,7 @@ model Grade {
   `OnlineExam.groupId` → `Enrollment` activo de ese grupo; si no existe, es un
   error de datos (`INVALID_REFERENCE`).
 - El `Grade` se guarda con `upsert` por `(assessmentId, enrollmentId)`.
-- `score` del intento = Σ `AttemptAnswer.puntosObtenidos` (0 si aún hay
+- `score` del intento = Σ `AttemptAnswer.pointsEarned` (0 si aún hay
   pendientes, hasta cerrar la revisión).
 - `gradedAt`/`reviewedBy`/`reviewedAt` son campos **propuestos** de M17 sobre
   `ExamAttempt` para trazabilidad (ver §12).
@@ -143,14 +213,14 @@ model Grade {
 
 Numeradas y verificables (cada una mapea a una prueba de §10):
 
-1. **Calificación automática de cerradas.** Al pasar un intento a `ENVIADO` o
-   `EXPIRADO`, las preguntas `opcion_multiple`, `verdadero_falso` y
-   `multiple_respuesta` se comparan con `question_options.es_correcta`; se fija
-   `esCorrecta` y `puntosObtenidos` (todo o nada según `online_exam_questions.puntos`).
-2. **Pendientes de revisión.** Las preguntas `abierta` quedan con `esCorrecta = NULL`
-   y `puntosObtenidos = NULL` hasta que el profesor las revise.
+1. **Calificación automática de cerradas.** Al pasar un intento a `SUBMITTED` o
+   `EXPIRED`, las preguntas `MULTIPLE_CHOICE`, `TRUE_FALSE` y
+   `MULTIPLE_ANSWER` se comparan con `question_options.is_correct`; se fija
+   `isCorrect` y `pointsEarned` (todo o nada según `online_exam_questions.points`).
+2. **Pendientes de revisión.** Las preguntas `OPEN` quedan con `isCorrect = NULL`
+   y `pointsEarned = NULL` hasta que el profesor las revise.
 3. **Puntaje del intento.** `ExamAttempt.score` = suma de
-   `AttemptAnswer.puntosObtenidos`; se recalcula en cada cambio de respuestas o de
+   `AttemptAnswer.pointsEarned`; se recalcula en cada cambio de respuestas o de
    revisión. Si quedan pendientes, el intento se marca como «parcialmente
    calificado» (no se escribe `Grade` definitivo hasta cerrar).
 4. **Escritura al Assessment (criterio de intentos).** Se hace `upsert` de un
@@ -160,7 +230,7 @@ Numeradas y verificables (cada una mapea a una prueba de §10):
 5. **Rango de calificación.** El `score` escrito respeta `[0, max_score]` del
    `Assessment`; fuera de rango → 400 `SCORE_OUT_OF_RANGE`.
 6. **Revisión manual recalcula.** `PATCH /attempts/:id/review` fija
-   `esCorrecta`/`puntosObtenidos` de una respuesta abierta y, al completar todas,
+   `isCorrect`/`pointsEarned` de una respuesta abierta y, al completar todas,
    recalcula `score` y reescribe el `Grade` según la regla 4.
 7. **Kardex al recalcular el grupo.** M17 no actualiza el kardex por intento: el
    kardex (M06) se refresca cuando M08 recalcula la calificación final del grupo,
@@ -188,7 +258,7 @@ server-side.
 **Revisión manual** `PATCH /api/v1/attempts/:id/review`:
 
 ```json
-{ "questionId": "…", "esCorrecta": true, "puntosObtenidos": 4 }
+{ "questionId": "…", "isCorrect": true, "pointsEarned": 4 }
 ```
 
 Responde `200` con el intento actualizado y el efecto en el `Grade`:
@@ -232,9 +302,9 @@ Ver [`../../seguridad/roles-permisos.md`](../../seguridad/roles-permisos.md).
 
 | Permiso | Roles | Alcance | Notas |
 |---|---|---|---|
-| `attempts.view` | `ADMIN`/`CONTROL_ESCOLAR` (`ALL`), `PROFESOR` (`AREA`), `ALUMNO` (`OWN`) | por rol | El alumno ve su propio resultado si `mostrar_resultado`. |
-| `attempts.review` | `PROFESOR` | `AREA` | Revisión manual y regrade; solo grupos del profesor. |
-| `grades.capture` | `PROFESOR` | `AREA` | M08; M17 escribe el `Grade` con esta semántica de área. |
+| `attempts.view` | `ADMIN`/`SCHOOL_CONTROL` (`ALL`), `TEACHER` (`AREA`), `STUDENT` (`OWN`) | por rol | El alumno ve su propio resultado si `show_result`. |
+| `attempts.review` | `TEACHER` | `AREA` | Revisión manual y regrade; solo grupos del profesor. |
+| `grades.capture` | `TEACHER` | `AREA` | M08; M17 escribe el `Grade` con esta semántica de área. |
 
 El scoping se aplica en la consulta (por `group_id` del examen para AREA, por
 `studentId` para OWN) y va en `AND`. Escrituras fuera de alcance → 403
@@ -246,7 +316,7 @@ Zod en `models/dto`; `ZodError` → 400 `VALIDATION_ERROR`.
 
 | DTO | Campos | Reglas / código |
 |---|---|---|
-| `ReviewAnswerSchema` | `questionId` (uuid), `esCorrecta` (bool), `puntosObtenidos` (number ≥ 0) | `puntosObtenidos ≤ online_exam_questions.puntos`; si no → 400 `SCORE_OUT_OF_RANGE` |
+| `ReviewAnswerSchema` | `questionId` (uuid), `isCorrect` (bool), `pointsEarned` (number ≥ 0) | `pointsEarned ≤ online_exam_questions.points`; si no → 400 `SCORE_OUT_OF_RANGE` |
 | `ResultQuerySchema` | `page`, `limit`, `filters`, `sort` | tope `limit` 200; filtro inválido → `INVALID_FILTER` |
 | `ParamsId` | `id` (uuid) | `REQUIRED_FIELD` |
 
@@ -262,10 +332,10 @@ Vía `AuditPort` ([`../../seguridad/bitacora.md`](../../seguridad/bitacora.md)) 
 | Acción | `entityType` | `previousState` / `newState` |
 |---|---|---|
 | `ATTEMPT_GRADED` | `ExamAttempt` | `{ score: null }` → `{ score, gradedAt }` (calificación automática) |
-| `ATTEMPT_REVIEWED` | `AttemptAnswer` | `{ esCorrecta: null, puntosObtenidos: null }` → `{ esCorrecta, puntosObtenidos }` |
+| `ATTEMPT_REVIEWED` | `AttemptAnswer` | `{ isCorrect: null, pointsEarned: null }` → `{ isCorrect, pointsEarned }` |
 | `GRADE_WRITTEN` | `Grade` | `null`/previo → `{ assessmentId, enrollmentId, score, criterion }` |
 
-`criterion` (`MEJOR`/`ULTIMO`) se guarda en `metadata` para explicar por qué se
+`criterion` (`BEST`/`LAST`) se guarda en `metadata` para explicar por qué se
 escribió ese puntaje. El regrade idempotente sin cambio de valor no genera un
 nuevo `GRADE_WRITTEN`.
 
@@ -274,7 +344,7 @@ nuevo `GRADE_WRITTEN`.
 - **Unitarias** (`api/tests/unit`): comparación de respuestas cerradas,
   cálculo de `score` con pendientes, selección del criterio mejor/último,
   validación de rango (reglas 1, 3, 4, 5).
-- **Contrato** (`api/tests/e2e`): `results`/`review`/`regrade` con `ctxProfesor`;
+- **Contrato** (`api/tests/e2e`): `results`/`review`/`regrade` con `teacher`;
   401/403 (alumno u otro grupo), escritura de `Grade` verificada por API,
   idempotencia del regrade, `SCORE_OUT_OF_RANGE` (reglas 4–9).
 - **Navegador** (`web/tests/e2e`): resultados del examen y flujo de revisión
@@ -304,7 +374,7 @@ nuevo `GRADE_WRITTEN`.
   `ExamAttempt`: confirmar si se agregan o se modela una entidad de revisión.
 - **Momento de escritura del `Grade`:** ¿solo al cerrar la revisión, o un valor
   provisional y luego el definitivo? Impacta reportes en vivo.
-- **Puntaje parcial en preguntas de varias respuestas** (`multiple_respuesta`):
+- **Puntaje parcial en preguntas de varias respuestas** (`MULTIPLE_ANSWER`):
   ¿todo o nada o proporcional? Por defecto todo o nada.
 - **Condiciones de reprobación en kardex:** regla de acreditación final
   (M06/M08) — ver [`../../../DECISIONES.md`](../../../DECISIONES.md).

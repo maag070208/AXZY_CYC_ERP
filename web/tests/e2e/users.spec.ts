@@ -35,14 +35,14 @@ test.describe.serial("ciclo de vida de una cuenta", () => {
     await dialog.getByRole("button", { name: "Guardar" }).click();
     await expect(dialog.getByText("Elige al menos un rol")).toBeVisible();
 
-    await dialog.getByText("TEACHER", { exact: true }).click();
-    await dialog.getByText("CONTROL ESCOLAR", { exact: true }).click();
+    await dialog.getByText("Profesor", { exact: true }).click();
+    await dialog.getByText("Control Escolar", { exact: true }).click();
     await dialog.getByRole("button", { name: "Guardar" }).click();
 
     await expect(page.getByText("Usuario creado")).toBeVisible();
     await filterByUsername(page, USERNAME);
-    await expect(row(page, USERNAME)).toContainText("TEACHER");
-    await expect(row(page, USERNAME)).toContainText("CONTROL ESCOLAR");
+    await expect(row(page, USERNAME)).toContainText("Profesor");
+    await expect(row(page, USERNAME)).toContainText("Control Escolar");
   });
 
   test("ADMIN edita el nombre y deja un solo rol", async ({ page }) => {
@@ -54,12 +54,12 @@ test.describe.serial("ciclo de vida de una cuenta", () => {
     const dialog = page.getByRole("dialog");
     await expect(dialog.locator('input[name="username"]')).toBeDisabled();
     await dialog.locator('input[name="name"]').fill("E2E Web Editado");
-    await dialog.getByText("CONTROL ESCOLAR", { exact: true }).click();
+    await dialog.getByText("Control Escolar", { exact: true }).click();
     await dialog.getByRole("button", { name: "Guardar" }).click();
 
     await expect(page.getByText("Usuario guardado correctamente")).toBeVisible();
     await expect(row(page, USERNAME)).toContainText("E2E Web Editado");
-    await expect(row(page, USERNAME)).not.toContainText("CONTROL ESCOLAR");
+    await expect(row(page, USERNAME)).not.toContainText("Control Escolar");
   });
 
   test("ADMIN da de baja con motivo y reactiva", async ({ page }) => {

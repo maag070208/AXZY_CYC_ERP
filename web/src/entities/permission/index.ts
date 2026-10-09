@@ -28,4 +28,5 @@ export {
   type NavLabelKey,
   type ScreenRequirement,
 } from "./model/screens";
+export { roleLabel } from "./model/roleLabel";
 export { useRoles } from "./model/useRoles";

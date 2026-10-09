@@ -22,7 +22,7 @@
 | DELETE | `/api/v1/documents/:id` | `documents.delete` |
 | GET | `/api/v1/students/:studentId/kardex` | `kardex.view` |
 
-Diferencias con el borrador: el tipo de documento es FK al catálogo `document_types` de M11 (no un enum), así «faltantes» sale directo de `obligatorio`; el almacenamiento es privado con driver S3 o local ([D-023](../../../DECISIONES.md)); el PDF del kardex se genera en el navegador con `@react-pdf/renderer` (permiso `kardex.export`), sin endpoint `/kardex/pdf` ([D-024](../../../DECISIONES.md)); un alumno en BAJA conserva su expediente en solo lectura (`409 STUDENT_INACTIVE` al escribir).
+Diferencias con el borrador: el tipo de documento es FK al catálogo `document_types` de M11 (no un enum), así «faltantes» sale directo de `required`; el almacenamiento es privado con driver S3 o local ([D-023](../../../DECISIONES.md)); el PDF del kardex se genera en el navegador con `@react-pdf/renderer` (permiso `kardex.export`), sin endpoint `/kardex/pdf` ([D-024](../../../DECISIONES.md)); un alumno en BAJA conserva su expediente en solo lectura (`409 STUDENT_INACTIVE` al escribir).
 
 ## 1. Objetivo
 
@@ -53,38 +53,52 @@ alcance.
 
 ```prisma
 model Document {
-  id          String         @id @default(uuid())
-  studentId   String         @map("student_id")
-  tipo        DocumentType
-  filePath    String         @map("file_path")
-  mimeType    String         @map("mime_type")
-  size        Int
-  status      DocumentStatus @default(PENDIENTE)
-  validatedBy String?        @map("validated_by")
-  notas       String?
-  deletedAt   DateTime?      @map("deleted_at")
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
+  id             String         @id @default(uuid())
+  studentId      String         @map("student_id")
+  documentTypeId String         @map("document_type_id")
+  /// Clave privada del objeto (nombre aleatorio); nunca una URL pública.
+  filePath       String         @map("file_path")
+  originalName   String         @map("original_name")
+  mimeType       String         @map("mime_type")
+  size           Int
+  status         DocumentStatus @default(PENDING)
+  uploadedBy     String         @map("uploaded_by")
+  validatedBy    String?        @map("validated_by")
+  validatedAt    DateTime?      @map("validated_at")
+  notes          String?
+  deletedAt      DateTime?      @map("deleted_at")
+  createdAt      DateTime       @default(now()) @map("created_at")
+  updatedAt      DateTime       @updatedAt @map("updated_at")
 
-  student   Student @relation(fields: [studentId], references: [id])
-  validator User?   @relation(fields: [validatedBy], references: [id])
+  student      Student      @relation(fields: [studentId], references: [id])
+  documentType DocumentType @relation(fields: [documentTypeId], references: [id])
+  uploader     User         @relation("DocumentUploader", fields: [uploadedBy], references: [id])
+  validator    User?        @relation("DocumentValidator", fields: [validatedBy], references: [id], onDelete: SetNull)
 
-  @@index([studentId, tipo, status])
+  @@index([studentId, documentTypeId, status])
   @@index([status])
   @@map("documents")
 }
 
-enum DocumentType {
-  ACTA_NACIMIENTO
-  CURP
-  COMPROBANTE_DOMICILIO
-  OTRO
+/// Tipo de documento del expediente (lo consume M06).
+model DocumentType {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  required  Boolean  @default(false)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  documents Document[]
+
+  @@index([active])
+  @@map("document_types")
 }
 
 enum DocumentStatus {
-  PENDIENTE
-  VALIDADO
-  RECHAZADO
+  PENDING
+  VALIDATED
+  REJECTED
 }
 ```
 
@@ -92,11 +106,11 @@ enum DocumentStatus {
   (uuid + extensión), fuera de cualquier carpeta pública; nunca la URL del archivo.
 - `size` en bytes (máx. 5 MB); `mimeType` whitelist.
 - Borrado lógico por dominio vía `deletedAt` (ver [D-003](../../../DECISIONES.md)).
-- El diccionario describe `tipo`/`status` como `varchar`, representados aquí como
+- El diccionario describe `type`/`status` como `varchar`, representados aquí como
   enums `UPPER_SNAKE` (ver
   [`diccionario-datos.md`](../../modelo-datos/diccionario-datos.md)).
 
-**Índices:** `(studentId, tipo, status)` para el expediente; `status` para colas
+**Índices:** `(studentId, type, status)` para el expediente; `status` para colas
 de validación.
 **Relaciones:** `Student 1—N Document`; `User 1—N Document` (validador).
 
@@ -108,24 +122,24 @@ No existe tabla `kardex`; se compone en el servicio a partir de `enrollments`,
 ```ts
 interface KardexEntry {
   termId: string;
-  termNombre: string;        // p. ej. "2025-2026"
+  termName: string;        // p. ej. "2025-2026"
   courseId: string;
-  courseNombre: string;
-  grupo: string;
-  calificaciones: number[];  // parciales/tareas
-  ponderaciones: number[];   // suma = 100
-  calificacionFinal: number | null;
-  estatus: "ACREDITADO" | "REPROBADO" | "EN_CURSO" | "BAJA";
+  courseName: string;
+  group: string;
+  grades: number[];  // parciales/tareas
+  weights: number[];   // suma = 100
+  finalGrade: number | null;
+  status: "PASSED" | "FAILED" | "IN_PROGRESS" | "WITHDRAWN";
 }
 
 interface Kardex {
   studentId: string;
-  matricula: string;         // snapshot para el PDF
-  nombre: string;
+  studentNumber: string;         // snapshot para el PDF
+  name: string;
   entries: KardexEntry[];
-  promedioGeneral: number | null;
-  documentosFaltantes: string[];
-  generadoEn: string;        // ISO 8601 UTC
+  overallAverage: number | null;
+  missingDocuments: string[];
+  generatedAt: string;        // ISO 8601 UTC
 }
 ```
 
@@ -141,14 +155,14 @@ interface Kardex {
    **fuera de `public`**; la BD solo guarda la clave.
 4. **Acceso autorizado**: la descarga es por endpoint (`GET /documents/:id/download`)
    que valida permiso y alcance; nunca se expone una URL pública.
-5. **Validación**: un documento pasa de `PENDIENTE` a `VALIDADO` o `RECHAZADO`; al
-   validar se registra `validatedBy`; un rechazo puede llevar `notas`.
+5. **Validación**: un documento pasa de `PENDING` a `VALIDATED` o `REJECTED`; al
+   validar se registra `validatedBy`; un rechazo puede llevar `notes`.
 6. **Reemplazo**: un documento rechazado puede sustituirse subiendo uno nuevo; el
    anterior se marca con borrado lógico, conservando trazabilidad.
 7. **Kardex no persistido**: se calcula al vuelo; nunca se almacena ni se edita
    manualmente.
 8. **Documentos faltantes**: se comparan los tipos obligatorios activos de M11
-   (`document_types.obligatorio`) contra los documentos `VALIDADO` del alumno.
+   (`document_types.required`) contra los documentos `VALIDATED` del alumno.
 9. **Alumno en baja**: conserva su expediente y kardex en modo lectura; no se
    elimina documentación.
 10. **Alcance por registro**: el alumno solo ve/descarga sus documentos y su
@@ -175,15 +189,15 @@ Request/response (Zod + resultado):
 ```ts
 // PATCH /api/v1/documents/:id/validate
 export const ValidateDocumentSchema = z.object({
-  status: z.enum(["VALIDADO", "RECHAZADO"]),
-  notas: z.string().max(1000).optional(),
+  status: z.enum(["VALIDATED", "REJECTED"]),
+  notes: z.string().max(1000).optional(),
 }).openapi("ValidateDocument");
 
 // POST /students/:id/documents  (multipart/form-data)
 // fields: file (binary), tipo (enum DocumentType), notas? (string)
 // 201 Created
-{ "id": "…", "tipo": "CURP", "mimeType": "application/pdf",
-  "size": 348120, "status": "PENDIENTE", "createdAt": "2026-02-10T18:20:00.000Z" }
+{ "id": "…", "type": "CURP", "mimeType": "application/pdf",
+  "size": 348120, "status": "PENDING", "createdAt": "2026-02-10T18:20:00.000Z" }
 ```
 
 - `multer({ storage: memoryStorage, limits: { fileSize: 5 * 1024 * 1024 } })` en
@@ -235,8 +249,8 @@ export const ValidateDocumentSchema = z.object({
 
 - Archivo: whitelist de MIME real (`%PDF`, `FF D8 FF`, `89 50 4E 47`), extensión
   coherente y `size ≤ 5 MB`.
-- `tipo` ∈ `DocumentType`; `status` de validación ∈ `{VALIDADO, RECHAZADO}`.
-- `notas` `max 1000`; `file` obligatorio.
+- `type` ∈ `DocumentType`; `status` de validación ∈ `{VALIDATED, REJECTED}`.
+- `notes` `max 1000`; `file` obligatorio.
 - IDs (`studentId`, `documentId`) UUID.
 - Códigos: `FILE_TYPE_NOT_ALLOWED`, `FILE_TOO_LARGE`, `REQUIRED_FIELD`,
   `VALIDATION_ERROR`, `INVALID_FORMAT`.
@@ -249,9 +263,9 @@ metadatos y la clave del objeto.
 
 | Acción | `entityType` | `previousState` → `newState` | `metadata` |
 |---|---|---|---|
-| `DOCUMENT_UPLOADED` | `Document` | `null` → `{ tipo, mimeType, size, status }` | `{ studentId, filePath }` |
-| `DOCUMENT_VALIDATED` | `Document` | `{ status: "PENDIENTE" }` → `{ status: "VALIDADO", validatedBy }` | `{ studentId }` |
-| `DOCUMENT_REJECTED` | `Document` | `{ status: "PENDIENTE" }` → `{ status: "RECHAZADO", notas }` | `{ studentId }` |
+| `DOCUMENT_UPLOADED` | `Document` | `null` → `{ type, mimeType, size, status }` | `{ studentId, filePath }` |
+| `DOCUMENT_VALIDATED` | `Document` | `{ status: "PENDING" }` → `{ status: "VALIDATED", validatedBy }` | `{ studentId }` |
+| `DOCUMENT_REJECTED` | `Document` | `{ status: "PENDING" }` → `{ status: "REJECTED", notes }` | `{ studentId }` |
 | `DOCUMENT_DELETED` | `Document` | `{ deletedAt: null }` → `{ deletedAt: <ts> }` | `{ studentId }` |
 
 ## 10. Pruebas (Playwright)

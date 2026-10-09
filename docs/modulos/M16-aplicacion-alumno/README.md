@@ -60,43 +60,60 @@ Los nombres conservan los campos del spec; tablas en `snake_case` plural y enums
 
 ```prisma
 enum AttemptStatus {
-  EN_CURSO
-  ENVIADO
-  EXPIRADO
+  IN_PROGRESS
+  SUBMITTED
+  EXPIRED
 }
 
 model ExamAttempt {
-  id         String        @id @default(uuid())
-  examId     String
-  studentId  String
-  startedAt  DateTime      @default(now())
-  finishedAt DateTime?
-  status     AttemptStatus @default(EN_CURSO)
-  score      Decimal?      @db.Decimal(6, 2) // lo completa M17
-  createdAt  DateTime      @default(now())
-  updatedAt  DateTime      @updatedAt
+  id           String        @id @default(uuid())
+  examId       String        @map("exam_id")
+  studentId    String        @map("student_id")
+  number       Int
+  startedAt    DateTime      @default(now()) @map("started_at")
+  /// Fin calculado en el servidor: min(inicio + duración, cierre del examen).
+  endsAt       DateTime      @map("ends_at")
+  finishedAt   DateTime?     @map("finished_at")
+  status       AttemptStatus @default(IN_PROGRESS)
+  /// Orden fijo del intento: `[{ questionId, optionIds[] }]` (aleatorización reproducible).
+  layout       Json
+  score        Decimal?      @db.Decimal(6, 2)
+  pendingCount Int           @default(0) @map("pending_count")
+  gradedAt     DateTime?     @map("graded_at")
+  reviewedBy   String?       @map("reviewed_by")
+  reviewedAt   DateTime?     @map("reviewed_at")
+  focusLosses  Int           @default(0) @map("focus_losses")
+  events       Json          @default("[]")
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
 
-  exam    OnlineExam     @relation(fields: [examId], references: [id])
-  student Student        @relation(fields: [studentId], references: [id])
+  exam    OnlineExam      @relation(fields: [examId], references: [id])
+  student Student         @relation(fields: [studentId], references: [id])
   answers AttemptAnswer[]
 
+  @@unique([examId, studentId, number])
   @@index([examId, studentId])
   @@index([studentId, status])
+  @@index([status, endsAt])
   @@map("exam_attempts")
 }
 
 model AttemptAnswer {
-  id              String   @id @default(uuid())
-  attemptId       String
-  questionId      String
-  respuesta       Json?    // respuesta elegida/capturada (opción, arreglo, texto)
-  esCorrecta      Boolean? // NULL mientras requiere revisión manual (M17)
-  puntosObtenidos Decimal? @db.Decimal(6, 2)
-  answeredAt      DateTime @default(now())
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id           String    @id @default(uuid())
+  attemptId    String    @map("attempt_id")
+  questionId   String    @map("question_id")
+  /// Opción (`optionId`), arreglo de opciones o texto, según el tipo.
+  answer       Json?
+  /// NULL = pendiente de revisión manual (abiertas).
+  isCorrect    Boolean?  @map("is_correct")
+  pointsEarned Decimal?  @map("points_earned") @db.Decimal(6, 2)
+  comment      String?
+  answeredAt   DateTime  @default(now()) @map("answered_at")
+  reviewedAt   DateTime? @map("reviewed_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
 
-  attempt  ExamAttempt @relation(fields: [attemptId], references: [id])
+  attempt  ExamAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
   question Question    @relation(fields: [questionId], references: [id])
 
   @@unique([attemptId, questionId])
@@ -112,12 +129,12 @@ model AttemptAnswer {
   `upsert` idempotente; `(attemptId)` para cargar/ envíar todo el intento.
 
 **Relaciones:**
-- `ExamAttempt.exam → OnlineExam` (M15) — de aquí salen `duracion_min`,
-  `intentos_max`, `fecha_apertura`, `fecha_cierre` y `group_id`.
+- `ExamAttempt.exam → OnlineExam` (M15) — de aquí salen `duration_min`,
+  `max_attempts`, `opens_at`, `closes_at` y `group_id`.
 - `ExamAttempt.student → Student` (M03) — dueño del intento.
 - `AttemptAnswer.question → Question` (M14) — debe existir en
   `online_exam_questions` del examen.
-- Un alumno puede tener varios intentos del mismo examen (hasta `intentos_max`);
+- Un alumno puede tener varios intentos del mismo examen (hasta `max_attempts`);
   por eso **no** hay único `(examId, studentId)`.
 
 > Columnas estándar `created_at`/`updated_at` en ambas tablas; `deleted_at` **No
@@ -131,18 +148,18 @@ Numeradas y verificables (cada una mapea a una prueba de §10):
 1. **Inscripción obligatoria.** Solo el alumno con `enrollment` **activo** en el
    `group_id` del examen puede iniciar. En otro caso: 403 `INSUFFICIENT_PERMISSIONS`
    (o 404 si el examen no existe).
-2. **Ventana de fechas.** El intento solo inicia si `fecha_apertura ≤ now ≤ fecha_cierre`
-   y el examen está en status `PUBLICADO`. Fuera de eso: 409 `EXAM_NOT_AVAILABLE`.
-3. **Intentos disponibles.** `count(ExamAttempt del alumno para el examen) < intentos_max`.
+2. **Ventana de fechas.** El intento solo inicia si `opens_at ≤ now ≤ closes_at`
+   y el examen está en status `PUBLISHED`. Fuera de eso: 409 `EXAM_NOT_AVAILABLE`.
+3. **Intentos disponibles.** `count(ExamAttempt del STUDENT para el exam) < max_attempts`.
    Si se agotó: 409 `EXAM_NOT_AVAILABLE`. No se crean intentos de reemplazo.
-4. **Tiempo en el servidor.** La hora de expiración es `startedAt + duracion_min`,
+4. **Tiempo en el servidor.** La hora de expiración es `startedAt + duration_min`,
    calculada en el servidor. Al vencer, el intento se envía automáticamente con
-   status `EXPIRADO` (verificación perezosa en cada request + worker programado).
+   status `EXPIRED` (verificación perezosa en cada request + worker programado).
    El cliente nunca decide el tiempo.
 5. **Guardado automático.** `PUT /attempts/:id/answers` persiste las respuestas
    recibidas con `upsert` por `(attemptId, questionId)`; puede llamarse varias
    veces sin duplicar. El front agrupa los cambios cada pocos segundos.
-6. **Inmutabilidad al cerrar.** Un intento `ENVIADO` o `EXPIRADO` no admite más
+6. **Inmutabilidad al cerrar.** Un intento `SUBMITTED` o `EXPIRED` no admite más
    respuestas ni un segundo `submit`: 409 `EXAM_NOT_AVAILABLE`.
 7. **Respuestas válidas.** Cada `questionId` enviado debe pertenecer a
    `online_exam_questions` del examen del intento; si no, 400 `INVALID_REFERENCE`.
@@ -153,7 +170,7 @@ Numeradas y verificables (cada una mapea a una prueba de §10):
 ## 5. API
 
 Módulo bajo `api/src/modules/attempts/` (`routes/ · controllers/ · services/ ·
-models/{dto,entity}/`). El alta de intentos cuelga del recurso `online-exams`
+models/{dto,entity}/`). El alta de attempts cuelga del recurso `online-exams`
 (M15); el resto, de `attempts`.
 
 | Método | Ruta | Descripción | Permiso |
@@ -170,27 +187,27 @@ models/{dto,entity}/`). El alta de intentos cuelga del recurso `online-exams`
 ```json
 {
   "attemptId": "8f0e…",
-  "status": "EN_CURSO",
+  "status": "IN_PROGRESS",
   "startedAt": "2026-06-01T15:00:00.000Z",
   "endsAt": "2026-06-01T16:00:00.000Z",
   "remainingSeconds": 3600,
   "questions": [
-    { "questionId": "…", "tipo": "opcion_multiple", "enunciado": "…",
-      "puntos": 2, "orden": 1, "respuesta": null }
+    { "questionId": "…", "type": "MULTIPLE_CHOICE", "text": "…",
+      "points": 2, "sortOrder": 1, "answer": null }
   ]
 }
 ```
 
 > `endsAt`/`remainingSeconds` los calcula el servidor; el cliente solo los
-> presenta. Las opciones se sirven sin `es_correcta` cuando
-> `mostrar_resultado=false`.
+> presenta. Las opciones se sirven sin `is_correct` cuando
+> `show_result=false`.
 
 **Autosave** `PUT /api/v1/attempts/:id/answers`:
 
 ```json
 { "answers": [
-  { "questionId": "…", "respuesta": "b" },
-  { "questionId": "…", "respuesta": [1, 3] }
+  { "questionId": "…", "answer": "b" },
+  { "questionId": "…", "answer": [1, 3] }
 ] }
 ```
 
@@ -201,12 +218,12 @@ Si el intento ya cerró → 409 `EXAM_NOT_AVAILABLE`.
 pendientes; cierra y marca `finishedAt`):
 
 ```json
-{ "attemptId": "8f0e…", "status": "ENVIADO",
+{ "attemptId": "8f0e…", "status": "SUBMITTED",
   "finishedAt": "2026-06-01T15:55:10.000Z", "score": null }
 ```
 
 `score` queda `null` hasta que M17 califique. Si el envío es por expiración,
-`status` es `EXPIRADO`.
+`status` es `EXPIRED`.
 
 ## 6. Web
 
@@ -219,7 +236,7 @@ pendientes; cierra y marca `finishedAt`):
 | `submit-attempt` | `features/attempt/submit-attempt` | Envío manual con `ITConfirmDialog` |
 | `exam-timer` | `widgets/exam-timer` | Temporizador derivado de `endsAt` (no del reloj local) |
 | `ExamRunnerPage` | `pages/exam` | Pantalla de examen |
-| `AttemptResultPage` | `pages/attempt` | Acuse de recibo (sin puntaje si `mostrar_resultado=false`) |
+| `AttemptResultPage` | `pages/attempt` | Acuse de recibo (sin puntaje si `show_result=false`) |
 
 Pantalla con chasis `ITPage` + secciones `PanelCard`; las preguntas se renderizan
 con `ITFormBuilder` (campos `custom` por tipo) o componentes `IT*`, y el envío se
@@ -234,9 +251,9 @@ Ver [`../../seguridad/roles-permisos.md`](../../seguridad/roles-permisos.md).
 
 | Permiso | Roles | Alcance | Notas |
 |---|---|---|---|
-| `attempts.take` | `ALUMNO` | `OWN` | Solo sus propios intentos (`studentId = @user.student`). |
-| `attempts.view` | `ADMIN`, `CONTROL_ESCOLAR` (`ALL`), `PROFESOR` (`AREA`) | por rol | Lectura de intentos (usado por M17). |
-| `attempts.review` | `PROFESOR` | `AREA` | Revisión manual (M17). |
+| `attempts.take` | `STUDENT` | `OWN` | Solo sus propios intentos (`studentId = @user.student`). |
+| `attempts.view` | `ADMIN`, `SCHOOL_CONTROL` (`ALL`), `TEACHER` (`AREA`) | por rol | Lectura de intentos (usado por M17). |
+| `attempts.review` | `TEACHER` | `AREA` | Revisión manual (M17). |
 
 Reglas de scoping: el servicio aplica `withinScope` por `studentId` (OWN) o por
 `group_id` del examen (AREA); el alcance se agrega en `AND` en la consulta, nunca
@@ -251,7 +268,7 @@ Zod en `models/dto`; whitelist estricta. `ZodError` → 400 `VALIDATION_ERROR` c
 | DTO | Campos | Reglas / código |
 |---|---|---|
 | `StartAttemptParams` | `id` (uuid) | `REQUIRED_FIELD` |
-| `SaveAnswersSchema` | `answers[] { questionId, respuesta }` | arreglo 1..N; `questionId` uuid; `respuesta` string/number/arreglo → `INVALID_FORMAT` |
+| `SaveAnswersSchema` | `answers[] { questionId, answer }` | arreglo 1..N; `questionId` uuid; `answer` string/number/arreglo → `INVALID_FORMAT` |
 | `SubmitAttemptSchema` | `answers[]?` | opcional; si viene, mismas reglas |
 | `AttachEventSchema` | `type` (`TAB_BLUR`/`TAB_FOCUS`), `at?` | enum → `INVALID_FORMAT` |
 
@@ -266,9 +283,9 @@ con `previousState`/`newState` y atada a la transacción del cambio.
 
 | Acción | `entityType` | `previousState` / `newState` |
 |---|---|---|
-| `ATTEMPT_STARTED` | `ExamAttempt` | `null` → `{ examId, studentId, status: EN_CURSO }` |
-| `ATTEMPT_SUBMITTED` | `ExamAttempt` | `{ status: EN_CURSO }` → `{ status: ENVIADO/EXPIRADO, finishedAt }` |
-| `ATTEMPT_EXPIRED` | `ExamAttempt` | `{ status: EN_CURSO }` → `{ status: EXPIRADO }` (autor sistema/worker) |
+| `ATTEMPT_STARTED` | `ExamAttempt` | `null` → `{ examId, studentId, status: IN_PROGRESS }` |
+| `ATTEMPT_SUBMITTED` | `ExamAttempt` | `{ status: IN_PROGRESS }` → `{ status: SUBMITTED/EXPIRED, finishedAt }` |
+| `ATTEMPT_EXPIRED` | `ExamAttempt` | `{ status: IN_PROGRESS }` → `{ status: EXPIRED }` (autor sistema/worker) |
 
 El autosave **no** genera un log por respuesta (evita ruido); los eventos de foco
 (opcional) se persisten como `metadata` del intento y, si se requieren
@@ -278,9 +295,9 @@ respuestas correctas ni el contenido de los reactivos.
 ## 10. Pruebas (Playwright)
 
 - **Unitarias** (`api/tests/unit`): cálculo de expiración
-  (`startedAt + duracion_min`), evaluación de ventana, conteo de intentos, upsert
+  (`startedAt + duration_min`), evaluación de ventana, conteo de intentos, upsert
   idempotente de respuestas (reglas 3, 4, 5).
-- **Contrato** (`api/tests/e2e`): `start`/`answers`/`submit` con `ctxAlumno`;
+- **Contrato** (`api/tests/e2e`): `start`/`answers`/`submit` con `student`;
   401 sin token, 403 fuera de alcance, 409 `EXAM_NOT_AVAILABLE` fuera de ventana y
   sin intentos, 409 al responder un intento cerrado, validación 400 (reglas 1–7).
 - **Navegador** (`web/tests/e2e`): flujo completo de examen, autosave, envío
@@ -310,7 +327,7 @@ respuestas correctas ni el contenido de los reactivos.
   [`../../../DECISIONES.md`](../../../DECISIONES.md).
 - **Aleatorización:** ¿el orden de preguntas/opciones se fija por intento
   (snapshot) o se recalcula? Afecta la reproducibilidad en M17.
-- **Reconexión:** ¿se permite reanudar un `EN_CURSO` tras caída de red? (por
+- **Reconexión:** ¿se permite reanudar un `IN_PROGRESS` tras caída de red? (por
   ahora sí, mientras no expire).
 - **Idempotencia de `start`:** confirmar clave por intento vs. por examen.
 

@@ -66,7 +66,7 @@ numerada en un módulo debe mapear a una prueba.
 ### 3.3 Cálculo de kardex (M06/M08/M17)
 1. Se capturan `Grade` por `Assessment`.
 2. Al cerrar el grupo se calcula la calificación final ponderada por alumno.
-3. Se actualiza el estatus de `Enrollment` (`acreditado`/`reprobado`).
+3. Se actualiza el estatus de `Enrollment` (`PASSED`/`FAILED`).
 4. `Kardex` es una **vista calculada** (no persistida), servida por endpoint y exportable a PDF.
 
 ### 3.4 Examen en línea (M14–M17)

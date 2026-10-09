@@ -41,7 +41,7 @@ PTNV** (ver [D-003](../../DECISIONES.md)):
 | `mustChangePassword` | Boolean | no | default false |
 
 ### `roles`
-`key` (PK: `ADMIN`, `CONTROL_ESCOLAR`, `PROFESOR`, `ALUMNO`), `name`, `module`,
+`key` (PK: `ADMIN`, `SCHOOL_CONTROL`, `TEACHER`, `STUDENT`), `name`, `module`,
 `staff`, `system` (protegido), `active`, `sortOrder`.
 
 ### `permissions`
@@ -79,45 +79,45 @@ Tokens guardados como hash, con `expiresAt`; refresh con `revokedAt` (rotación)
 ### `students`
 | Campo | Tipo | Nulo | Notas |
 |---|---|---|---|
-| `matricula` | String | no | único, `AAAA-NNNN` |
-| `nombres` | String | no | |
-| `apellidoPaterno` | String | no | |
-| `apellidoMaterno` | String | sí | |
+| `studentNumber` | String | no | único, `AAAA-NNNN` |
+| `firstNames` | String | no | |
+| `paternalSurname` | String | no | |
+| `maternalSurname` | String | sí | |
 | `curp` | String(18) | no | único, validado |
-| `fechaNacimiento` | DateTime `@db.Date` | no | |
-| `genero` | String | sí | |
-| `email` / `telefono` / `direccion` | — | sí | |
-| `status` | `StudentStatus` | no | `ACTIVO` / `BAJA` |
-| `fechaIngreso` | DateTime `@db.Date` | no | |
+| `birthDate` | DateTime `@db.Date` | no | |
+| `gender` | String | sí | |
+| `email` / `phone` / `address` | — | sí | |
+| `status` | `StudentStatus` | no | `ACTIVE` / `WITHDRAWN` |
+| `enrollmentDate` | DateTime `@db.Date` | no | |
 | `userId` | String | sí | único; acceso opcional |
 
 ### `guardians`
-`studentId`, `nombre`, `parentesco`, `telefono`, `email`, `esResponsablePago`.
+`studentId`, `name`, `relationship`, `phone`, `email`, `isPaymentResponsible`.
 
 ---
 
 ## M04 — Profesores
 
 ### `teachers`
-`nombres`, `apellidos`, `email` (único), `telefono`, `especialidad`,
-`status` (`ACTIVO`/`INACTIVO`), `userId` (único, rol `PROFESOR`).
+`firstNames`, `surnames`, `email` (único), `phone`, `specialty`,
+`status` (`ACTIVE`/`INACTIVE`), `userId` (único, rol `TEACHER`).
 
 ---
 
 ## M05 — Bajas y reingresos
 
 ### `student_movements`
-`studentId`, `tipo` (`BAJA`/`REINGRESO`), `motivo` (obligatorio), `fecha`,
-`observaciones`, `createdBy`.
+`studentId`, `type` (`WITHDRAWN`/`REENTRY`), `reason` (obligatorio), `date`,
+`notes`, `createdBy`.
 
 ---
 
 ## M06 — Kardex y expediente documental
 
 ### `documents`
-`studentId`, `tipo` (`ACTA_NACIMIENTO`, `CURP`, `COMPROBANTE_DOMICILIO`, `OTRO`),
+`studentId`, `type` (`ACTA_NACIMIENTO`, `CURP`, `COMPROBANTE_DOMICILIO`, `OTHER`),
 `filePath` (S3), `mimeType`, `size`, `status`
-(`PENDIENTE`/`VALIDADO`/`RECHAZADO`), `validatedBy`, `notas`.
+(`PENDING`/`VALIDATED`/`REJECTED`), `validatedBy`, `notes`.
 
 ### `kardex` (vista calculada)
 No persistida: cursos, calificaciones finales y acreditación calculados desde
@@ -128,18 +128,18 @@ No persistida: cursos, calificaciones finales y acreditación calculados desde
 ## M07 — Cursos, grupos e inscripciones
 
 ### `courses`
-`nombre`, `nivel`, `descripcion`, `status` (`ACTIVO`/`INACTIVO`), `active`.
+`name`, `nivel`, `description`, `status` (`ACTIVE`/`INACTIVE`), `active`.
 
 ### `terms`
-`nombre`, `fechaInicio` `@db.Date`, `fechaFin` `@db.Date`, `activo`.
+`name`, `startDate` `@db.Date`, `endDate` `@db.Date`, `ACTIVE`.
 
 ### `groups`
-`courseId`, `termId`, `teacherId`, `nombre`, `cupo`, `horario Json`
-(`[{ dia, horaInicio, horaFin }]`), `aula`.
+`courseId`, `termId`, `teacherId`, `name`, `capacity`, `schedule Json`
+(`[{ day, startTime, endTime }]`), `classroom`.
 
 ### `enrollments`
-`studentId`, `groupId`, `fecha`, `status`
-(`INSCRITO`/`BAJA`/`ACREDITADO`/`REPROBADO`). Único parcial:
+`studentId`, `groupId`, `date`, `status`
+(`ENROLLED`/`WITHDRAWN`/`PASSED`/`FAILED`). Único parcial:
 `(studentId, groupId)` con estatus activo.
 
 ---
@@ -147,11 +147,11 @@ No persistida: cursos, calificaciones finales y acreditación calculados desde
 ## M08 — Exámenes y calificaciones
 
 ### `assessments`
-`groupId`, `nombre`, `tipo` (`PARCIAL`/`FINAL`/`TAREA`/`OTRO`),
-`ponderacion Decimal(5,2)`, `fecha`, `maxScore Decimal(6,2)`.
+`groupId`, `name`, `type` (`PARTIAL`/`FINAL`/`HOMEWORK`/`OTHER`),
+`weight Decimal(5,2)`, `date`, `maxScore Decimal(6,2)`.
 
 ### `grades`
-`assessmentId`, `enrollmentId`, `score Decimal(6,2)`, `observaciones`,
+`assessmentId`, `enrollmentId`, `score Decimal(6,2)`, `notes`,
 `capturedBy`, `capturedAt`. Único: `(assessmentId, enrollmentId)`.
 
 ---
@@ -159,18 +159,18 @@ No persistida: cursos, calificaciones finales y acreditación calculados desde
 ## M09 — Colegiaturas y pagos
 
 ### `fee_concepts`
-`nombre`, `monto Decimal(12,2)`,
-`tipo` (`INSCRIPCION`/`COLEGIATURA`/`MATERIAL`/`OTRO`).
+`name`, `amount Decimal(12,2)`,
+`type` (`ENROLLMENT`/`TUITION`/`MATERIAL`/`OTHER`).
 
 ### `charges`
-`studentId`, `conceptId`, `termId?`, `monto Decimal(12,2)`,
-`fechaVencimiento @db.Date`, `status`
-(`PENDIENTE`/`PARCIAL`/`PAGADO`/`CANCELADO`), `descuento Decimal(12,2)`.
+`studentId`, `conceptId`, `termId?`, `amount Decimal(12,2)`,
+`dueDate @db.Date`, `status`
+(`PENDING`/`PARTIAL`/`PAID`/`CANCELLED`), `discount Decimal(12,2)`.
 
 ### `payments`
-`chargeId`, `monto Decimal(12,2)`, `fecha`,
-`metodo` (`EFECTIVO`/`TRANSFERENCIA`/`DEPOSITO`/`OTRO`), `referencia`,
-`reciboFolio` (único, consecutivo), `registeredBy`, `cancelledAt?`,
+`chargeId`, `amount Decimal(12,2)`, `date`,
+`method` (`CASH`/`TRANSFER`/`DEPOSIT`/`OTHER`), `reference`,
+`receiptNumber` (único, consecutivo), `registeredBy`, `cancelledAt?`,
 `cancellationReason?` (no se borra: se cancela).
 
 ---
@@ -182,38 +182,38 @@ No persistida: cursos, calificaciones finales y acreditación calculados desde
 mínima, datos de la escuela, logotipo, umbral de asistencia, recargos).
 
 ### `levels`
-`nombre`, `orden`, `active`.
+`name`, `sortOrder`, `active`.
 
 ### `cancellation_reasons`
-`nombre`, `active`.
+`name`, `active`.
 
 ### `document_types`
-`nombre`, `obligatorio`, `active`.
+`name`, `required`, `active`.
 
 ---
 
 ## M14 — Banco de reactivos
 
 ### `questions`
-`courseId`, `tema`, `tipo`
-(`OPCION_MULTIPLE`/`VERDADERO_FALSO`/`MULTIPLE_RESPUESTA`/`ABIERTA`), `enunciado`,
-`imagen?`, `puntos Decimal(6,2)`, `dificultad`, `status` (`ACTIVA`/`INACTIVA`).
+`courseId`, `topic`, `type`
+(`MULTIPLE_CHOICE`/`TRUE_FALSE`/`MULTIPLE_ANSWER`/`OPEN`), `text`,
+`imagen?`, `points Decimal(6,2)`, `difficulty`, `status` (`ACTIVE`/`INACTIVE`).
 
 ### `question_options`
-`questionId`, `texto`, `esCorrecta`, `orden`.
+`questionId`, `text`, `isCorrect`, `sortOrder`.
 
 ---
 
 ## M15 — Configuración de exámenes en línea
 
 ### `online_exams`
-`groupId`, `titulo`, `instrucciones?`, `duracionMin`, `intentosMax`,
-`fechaApertura`, `fechaCierre`, `aleatorizarPreguntas`, `aleatorizarOpciones`,
-`mostrarResultado`, `puntajeAprobatorio Decimal(6,2)`, `assessmentId?` (M08),
-`status` (`BORRADOR`/`PUBLICADO`/`CERRADO`).
+`groupId`, `title`, `instructions?`, `durationMin`, `maxAttempts`,
+`opensAt`, `closesAt`, `shuffleQuestions`, `shuffleOptions`,
+`showResult`, `passingScore Decimal(6,2)`, `assessmentId?` (M08),
+`status` (`DRAFT`/`PUBLISHED`/`CLOSED`).
 
 ### `online_exam_questions`
-`examId`, `questionId`, `puntos Decimal(6,2)`, `orden`. Único: `(examId, questionId)`.
+`examId`, `questionId`, `points Decimal(6,2)`, `sortOrder`. Único: `(examId, questionId)`.
 
 ---
 
@@ -221,38 +221,38 @@ mínima, datos de la escuela, logotipo, umbral de asistencia, recargos).
 
 ### `exam_attempts`
 `examId`, `studentId`, `startedAt`, `finishedAt?`,
-`status` (`EN_CURSO`/`ENVIADO`/`EXPIRADO`), `score Decimal(6,2)?`.
+`status` (`IN_PROGRESS`/`SUBMITTED`/`EXPIRED`), `score Decimal(6,2)?`.
 
 ### `attempt_answers`
-`attemptId`, `questionId`, `respuesta Json?`, `esCorrecta Boolean?`,
-`puntosObtenidos Decimal(6,2)?`.
+`attemptId`, `questionId`, `answer Json?`, `isCorrect Boolean?`,
+`pointsEarned Decimal(6,2)?`.
 
 ---
 
 ## M18 — Asistencia y justificantes
 
 ### `attendance_sessions`
-`groupId`, `fecha @db.Date`, `hora`, `createdBy`. Único: `(groupId, fecha, hora)`.
+`groupId`, `date @db.Date`, `time`, `createdBy`. Único: `(groupId, date, time)`.
 
 ### `attendance`
 `sessionId`, `enrollmentId`,
-`status` (`PRESENTE`/`FALTA`/`RETARDO`/`JUSTIFICADA`). Único: `(sessionId, enrollmentId)`.
+`status` (`PRESENT`/`ABSENT`/`LATE`/`JUSTIFIED`). Único: `(sessionId, enrollmentId)`.
 
 ### `justifications`
-`attendanceId`, `motivo`, `archivo?` (S3),
-`status` (`PENDIENTE`/`APROBADA`/`RECHAZADA`), `resueltoPor`.
+`attendanceId`, `reason`, `file?` (S3),
+`status` (`PENDING`/`APPROVED`/`REJECTED`), `resolvedBy`.
 
 ---
 
 ## M19 — Notificaciones
 
 ### `notification_templates`
-`clave` (único), `canal` (`CORREO`/`SMS`/`WHATSAPP`), `asunto?`,
-`cuerpo` (variables `{{nombre}}`, `{{monto}}`), `status`.
+`code` (único), `channel` (`CORREO`/`SMS`/`WHATSAPP`), `subject?`,
+`body` (variables `{{name}}`, `{{amount}}`), `status`.
 
 ### `notifications`
-`destinatario`, `canal`, `templateId?`, `payload Json`,
-`status` (`EN_COLA`/`ENVIADO`/`FALLIDO`), `error?`, `sentAt?`.
+`recipient`, `channel`, `templateId?`, `payload Json`,
+`status` (`QUEUED`/`SUBMITTED`/`FAILED`), `error?`, `sentAt?`.
 
 ---
 
@@ -294,14 +294,14 @@ calendario natural en español por defecto (no hardcodeado).
 
 ### Cambios en `charges` (M09)
 `planId?` y `planChargeIndex?` con único `(planId, planChargeIndex)` para no
-duplicar los cargos del plan. Conceptos genéricos `INSCRIPCION`/`COLEGIATURA`.
+duplicar los cargos del plan. Conceptos genéricos `ENROLLMENT`/`TUITION`.
 
 ---
 
 ## Índices y unicidad recomendados
 
-- Únicos: `users.username`, `users.email`, `students.matricula`, `students.curp`,
-  `teachers.email`, `payments.reciboFolio`, `roles.key`, `permissions.key`.
+- Únicos: `users.username`, `users.email`, `students.studentNumber`, `students.curp`,
+  `teachers.email`, `payments.receiptNumber`, `roles.key`, `permissions.key`.
 - Índices de filtro: `students.status`, `enrollments.groupId`,
   `charges.studentId`/`status`, `attendance.sessionId`,
   `audit_logs.(entityType, entityId)`.

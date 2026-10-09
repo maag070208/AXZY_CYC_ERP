@@ -16,11 +16,11 @@
 
 | Método | Ruta | Permiso |
 |---|---|---|
-| POST | `/api/v1/students/:id/baja` | `students.movements` |
-| POST | `/api/v1/students/:id/reingreso` | `students.movements` |
+| POST | `/api/v1/students/:id/withdrawal` | `students.movements` |
+| POST | `/api/v1/students/:id/reentry` | `students.movements` |
 | GET | `/api/v1/students/:id/movements` | `students.movements` |
 
-Body: `{ motivo (≥ 3), reasonId? (catálogo M11), fecha? (AAAA-MM-DD, no futura en America/Mexico_City; por defecto hoy), observaciones? }`. Reingreso de un alumno activo → `409 STUDENT_ALREADY_ACTIVE`. La cancelación de inscripciones es un puerto que conectará M07 (hoy `cancelledEnrollments: 0`). Sin `Idempotency-Key`: repetir la baja ya responde 409 por estado. Ver [D-026](../../../DECISIONES.md).
+Body: `{ reason (≥ 3), reasonId? (catálogo M11), date? (AAAA-MM-DD, no futura en America/Mexico_City; por defecto hoy), notes? }`. Reingreso de un alumno activo → `409 STUDENT_ALREADY_ACTIVE`. La cancelación de inscripciones es un puerto que conectará M07 (hoy `cancelledEnrollments: 0`). Sin `Idempotency-Key`: repetir la baja ya responde 409 por estado. Ver [D-026](../../../DECISIONES.md).
 
 ## 1. Objetivo
 
@@ -32,8 +32,8 @@ inscripciones previas; el reingreso reactiva al alumno con la **misma matrícula
 ## 2. Alcance
 
 **Incluye**
-- Registro de movimientos `baja` y `reingreso` por alumno, con motivo obligatorio.
-- Cambio de `Student.status` (`activo` ⇄ `baja`) y cancelación lógica de las
+- Registro de movimientos `WITHDRAWN` y `REENTRY` por alumno, con motivo obligatorio.
+- Cambio de `Student.status` (`ACTIVE` ⇄ `WITHDRAWN`) y cancelación lógica de las
   inscripciones activas.
 - Consulta del historial de movimientos por alumno.
 - Bitácora `STUDENT_DEACTIVATED` / `STUDENT_REACTIVATED`.
@@ -49,60 +49,63 @@ inscripciones previas; el reingreso reactiva al alumno con la **misma matrícula
 
 ```prisma
 model StudentMovement {
-  id            String        @id @default(uuid())
-  studentId     String        @map("student_id")
-  tipo          MovementType
-  motivo        String
-  fecha         DateTime      @db.Date
-  observaciones String?
-  createdBy     String        @map("created_by")
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  id        String       @id @default(uuid())
+  studentId String       @map("student_id")
+  type      MovementType
+  reason    String
+  /// Motivo del catálogo M11 (opcional; `motivo` guarda el texto).
+  reasonId  String?      @map("reason_id")
+  date      DateTime     @db.Date
+  notes     String?
+  createdBy String       @map("created_by")
+  createdAt DateTime     @default(now()) @map("created_at")
+  updatedAt DateTime     @updatedAt @map("updated_at")
 
-  student Student @relation(fields: [studentId], references: [id])
-  author  User    @relation(fields: [createdBy], references: [id])
+  student            Student             @relation(fields: [studentId], references: [id])
+  author             User                @relation(fields: [createdBy], references: [id])
+  cancellationReason CancellationReason? @relation(fields: [reasonId], references: [id])
 
-  @@index([studentId, fecha])
-  @@index([tipo])
+  @@index([studentId, date])
+  @@index([type])
   @@index([createdBy])
   @@map("student_movements")
 }
 
 enum MovementType {
-  BAJA
-  REINGRESO
+  WITHDRAWAL
+  REENTRY
 }
 ```
 
 Notas de convención:
 - `id uuid`, `createdAt`/`updatedAt`; los movimientos **no se borran ni se
   editan** (historial inmutable), por lo que no llevan `deletedAt`.
-- `tipo` es enum `UPPER_SNAKE`; en BD el diccionario lo describe como
-  `varchar(20)` con valores `baja`/`reingreso` (ver
+- `type` es enum `UPPER_SNAKE`; en BD el diccionario lo describe como
+  `varchar(20)` con valores `WITHDRAWN`/`REENTRY` (ver
   [`diccionario-datos.md`](../../modelo-datos/diccionario-datos.md)).
 - `createdBy` es FK a `users.id` (autor del movimiento), independiente de a quién
   se le da de baja.
 
-**Índices:** `(studentId, fecha)` para el historial del alumno; `tipo` para
+**Índices:** `(studentId, date)` para el historial del alumno; `type` para
 reportes; `createdBy` para auditoría.
 **Relaciones:** `Student 1—N StudentMovement`; `User 1—N StudentMovement`.
 
 ## 4. Reglas de negocio
 
-1. **Baja**: cambia `Student.status` de `activo` a `baja` y registra un
-   `StudentMovement` de tipo `BAJA`.
+1. **Baja**: cambia `Student.status` de `ACTIVE` a `WITHDRAWN` y registra un
+   `StudentMovement` de tipo `WITHDRAWAL`.
 2. **Cancelación de inscripciones**: al dar de baja, toda inscripción del alumno
-   con `status = INSCRITO` pasa a `status = BAJA` (borrado lógico); nunca se
+   con `status = ENROLLED` pasa a `status = WITHDRAWAL` (borrado lógico); nunca se
    elimina físicamente.
 3. **Conservación del historial**: la baja conserva expediente documental,
    movimientos previos, inscripciones, calificaciones y cargos; la baja **no**
    borra información.
-4. **Reingreso**: reactiva `Student.status` a `activo` y registra un
-   `StudentMovement` de tipo `REINGRESO`. La **matrícula se conserva** (no se
+4. **Reingreso**: reactiva `Student.status` a `ACTIVE` y registra un
+   `StudentMovement` de tipo `REENTRY`. La **matrícula se conserva** (no se
    regenera).
-5. **Motivo obligatorio** en baja y reingreso (`motivo` no vacío).
-6. **No repetir estado**: no se permite dar de baja a un alumno ya en `baja`
-   (`STUDENT_INACTIVE`) ni reingresar a un alumno ya `activo` (conflicto de
+5. **Motivo obligatorio** en baja y reingreso (`reason` no vacío).
+6. **No repetir estado**: no se permite dar de baja a un alumno ya en `WITHDRAWN`
+   (`STUDENT_INACTIVE`) ni reingresar a un alumno ya `ACTIVE` (conflicto de
    estado).
 7. **Atomicidad**: el cambio de estado, la cancelación de inscripciones, el
    movimiento y el registro de bitácora ocurren en **una sola transacción**; si
@@ -111,7 +114,7 @@ reportes; `createdBy` para auditoría.
    toma de `req.user`, nunca del body.
 9. **Alumno en baja no se inscribe**: M07 consulta `Student.status` y rechaza la
    inscripción con `STUDENT_INACTIVE` (regla que M05 deja lista).
-10. **Fecha de movimiento**: `fecha` no puede ser futura respecto a la fecha de
+10. **Fecha de movimiento**: `date` no puede ser futura respecto a la fecha de
     calendario local (`America/Mexico_City`).
 11. **Alcance**: un usuario con `students.movements` en `ALL` gestiona movimientos
     de cualquier alumno; no existe alcance `OWN` para este recurso.
@@ -126,8 +129,8 @@ alumnos): `routes/students.routes.ts` · `controllers/students.controller.ts` ·
 
 | Método | Ruta | Descripción | Permiso |
 |---|---|---|---|
-| POST | `/api/v1/students/:id/baja` | Da de baja al alumno y cancela inscripciones activas | `students.movements` |
-| POST | `/api/v1/students/:id/reingreso` | Reactiva al alumno conservando matrícula | `students.movements` |
+| POST | `/api/v1/students/:id/withdrawal` | Da de baja al alumno y cancela inscripciones activas | `students.movements` |
+| POST | `/api/v1/students/:id/reentry` | Reactiva al alumno conservando matrícula | `students.movements` |
 | GET | `/api/v1/students/:id/movements` | Historial de movimientos del alumno | `students.movements` |
 
 Request/response (Zod + resultado):
@@ -135,16 +138,16 @@ Request/response (Zod + resultado):
 ```ts
 // POST /api/v1/students/:id/baja
 export const StudentBajaSchema = z.object({
-  motivo: z.string().min(5, "REQUIRED_FIELD").max(500),
-  fecha: z.string().date(),              // YYYY-MM-DD
-  observaciones: z.string().max(1000).optional(),
+  reason: z.string().min(5, "REQUIRED_FIELD").max(500),
+  date: z.string().date(),              // YYYY-MM-DD
+  notes: z.string().max(1000).optional(),
 }).openapi("StudentBaja");
 
 // 200 OK
 {
   "studentId": "…",
-  "status": "baja",
-  "movement": { "id": "…", "tipo": "BAJA", "motivo": "…", "fecha": "2026-03-01" },
+  "status": "WITHDRAWN",
+  "movement": { "id": "…", "type": "WITHDRAWAL", "reason": "…", "date": "2026-03-01" },
   "cancelledEnrollments": 3
 }
 ```
@@ -158,7 +161,7 @@ export const StudentBajaSchema = z.object({
 
 | Elemento | Capa FSD | Descripción |
 |---|---|---|
-| `studentMovement` | `entities/student` | API (`studentApi.baja/reingreso/movements`) + tipo del movimiento |
+| `studentMovement` | `entities/student` | API (`studentApi.WITHDRAWN/reentry/movements`) + tipo del movimiento |
 | Baja de alumno | `features/student/baja` | `model/useBaja.ts` + `ui/BajaDialog.tsx` (motivo + fecha) |
 | Reingreso de alumno | `features/student/reingreso` | `model/useReingreso.ts` + diálogo de confirmación |
 | Historial de movimientos | `features/student/movements` | Tabla de movimientos por alumno |
@@ -189,9 +192,9 @@ export const StudentBajaSchema = z.object({
 
 ## 8. Validaciones
 
-- Zod en `models/dto`: `motivo` (`min 5`, `max 500`, requerido), `fecha`
-  (`YYYY-MM-DD`, no futura), `observaciones` (`max 1000`), `id` de alumno UUID.
-- `tipo` de movimiento es inmutable y se define por endpoint (no viaja en el body).
+- Zod en `models/dto`: `reason` (`min 5`, `max 500`, requerido), `date`
+  (`YYYY-MM-DD`, no futura), `notes` (`max 1000`), `id` de alumno UUID.
+- `type` de movimiento es inmutable y se define por endpoint (no viaja en el body).
 - Códigos/mensajes: `REQUIRED_FIELD`, `INVALID_FORMAT`, `INVALID_RANGE` (fecha
   futura), `STUDENT_INACTIVE`, `VALIDATION_ERROR`.
 - Web: `@shared/validation` valida antes de enviar; los códigos se traducen con el
@@ -204,8 +207,8 @@ transacción del cambio. Ver [`bitacora.md`](../../seguridad/bitacora.md).
 
 | Acción | `entityType` | `previousState` → `newState` | `metadata` |
 |---|---|---|---|
-| `STUDENT_DEACTIVATED` | `Student` | `{ status: "activo" }` → `{ status: "baja" }` | `{ motivo, fecha, movementId, cancelledEnrollments }` |
-| `STUDENT_REACTIVATED` | `Student` | `{ status: "baja" }` → `{ status: "activo" }` | `{ motivo, fecha, movementId }` |
+| `STUDENT_DEACTIVATED` | `Student` | `{ status: "ACTIVE" }` → `{ status: "WITHDRAWN" }` | `{ reason, date, movementId, cancelledEnrollments }` |
+| `STUDENT_REACTIVATED` | `Student` | `{ status: "WITHDRAWN" }` → `{ status: "ACTIVE" }` | `{ reason, date, movementId }` |
 
 No se registran binarios ni datos sensibles; el movimiento en sí (`StudentMovement`)
 es el historial de negocio y la bitácora es el registro de auditoría.
@@ -215,7 +218,7 @@ es el historial de negocio y la bitácora es el registro de auditoría.
 - **Unitarias** (`api/tests/unit`): una por regla — baja cambia estado; baja
   cancela inscripciones; reingreso conserva matrícula; motivo obligatorio; no
   repetir estado; atomicidad (rollback deja estado previo); fecha no futura.
-- **Contrato** (`api/tests/e2e`): `POST /students/:id/baja` → 200 y estado `baja`;
+- **Contrato** (`api/tests/e2e`): `POST /students/:id/withdrawal` → 200 y estado `WITHDRAWN`;
   baja de alumno ya en baja → 409 `STUDENT_INACTIVE`; reingreso → 200 y matrícula
   intacta; sin permiso → 403 `INSUFFICIENT_PERMISSIONS`; sin token → 401.
 - **Navegador** (`web/tests/e2e`): registrar baja desde el detalle del alumno,

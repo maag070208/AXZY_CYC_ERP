@@ -81,10 +81,10 @@ Regla de la casa (PTNV): **toda columna con datos lleva su filtro y su orden**
 Formularios desde JSON (controlado):
 ```tsx
 const config: FieldConfigV2[] = [
-  { name: "nombre", label: "Nombre", type: "text", required: true, column: 6 },
+  { name: "name", label: "Nombre", type: "text", required: true, column: 6 },
   { name: "nivel",  label: "Nivel",  type: "select", column: 6, options: niveles },
   { name: "curp",   label: "CURP",   type: "text", column: 12,
-    dependsOn: ["tipo"], renderWhen: (v) => v.tipo === "nacional" },
+    dependsOn: ["type"], renderWhen: (v) => v.type === "nacional" },
 ];
 <ITFormBuilder config={config} values={values} handleChange={...} handleBlur={...}
   touched={touched} errors={errors} setFieldValue={...} />
