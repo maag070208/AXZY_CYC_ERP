@@ -150,7 +150,7 @@ Numeradas y verificables (cada una mapea a una prueba de §10):
    (o 404 si el examen no existe).
 2. **Ventana de fechas.** El intento solo inicia si `opens_at ≤ now ≤ closes_at`
    y el examen está en status `PUBLISHED`. Fuera de eso: 409 `EXAM_NOT_AVAILABLE`.
-3. **Intentos disponibles.** `count(ExamAttempt del STUDENT para el exam) < max_attempts`.
+3. **Intentos disponibles.** `count(ExamAttempt del alumno para el examen) < max_attempts`.
    Si se agotó: 409 `EXAM_NOT_AVAILABLE`. No se crean intentos de reemplazo.
 4. **Tiempo en el servidor.** La hora de expiración es `startedAt + duration_min`,
    calculada en el servidor. Al vencer, el intento se envía automáticamente con

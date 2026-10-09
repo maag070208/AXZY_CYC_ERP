@@ -27,17 +27,21 @@ Mantener orden alfabético.
 | **FSD (Feature-Sliced Design)** | Arquitectura de la web: `app · shared · entities · features · widgets · pages`. |
 | **Grupo (Group)** | Conjunto de alumnos que cursan un curso con un profesor, horario y aula. |
 | **Guardian (Tutor)** | Persona responsable de un alumno; puede ser responsable de pago. |
+| **i18n** | Traducción de todo lo visible: catálogos `es`/`en` en la API (`core/i18n/messages`) y en la web (`shared/i18n/locales`). |
 | **Idempotency-Key** | Cabecera que hace repetible una escritura no idempotente sin duplicar. |
 | **ITDataTable** | Componente del UI kit para listados server-side (contrato `POST …/query`). |
 | **Kardex** | Vista calculada con el historial de cursos, calificaciones y acreditación. |
 | **Matrícula** | Identificador del alumno con formato `AAAA-NNNN`. |
 | **Morosidad** | Porcentaje/monto de adeudos vencidos. |
 | **NONE / OWN / AREA / ALL** | Alcances posibles de un permiso. |
-| **Outbox** | Patrón de correo: se encola (`email_logs PENDING`) y un worker drena con reintentos. |
+| **Outbox** | Patrón de avisos: se encola en `notifications` (`QUEUED`) y un worker drena con reintentos y backoff. |
 | **OWN** | Alcance sobre los propios registros (p. ej. el alumno sobre su kardex). |
 | **Parcial** | Evaluación intermedia de un curso. |
 | **Pago parcial** | Abono que no cubre el total; el cargo queda `PARTIAL`. |
+| **Plan de pagos (StudentPlan)** | Cargos de un alumno por su carrera: una reinscripción por periodo más las mensualidades, con montos fijos al generarlo. |
 | **Ponderación** | Peso porcentual de un assessment en la calificación final (suma 100%). |
+| **Programa (Program)** | Carrera: costos, tipo y número de periodos, y su plan de estudios (materias por periodo). |
+| **Reactivo (Question)** | Pregunta del banco con el que se arman los exámenes en línea. |
 | **Reingreso** | Reactivación de un alumno dado de baja, conservando su matrícula. |
 | **RBAC** | Control de acceso por rol (`roles`, `role_permissions`, `user_roles`). |
 | **scopeOf / withinScope** | Resolutor y aplicación del alcance por registro en los servicios. |

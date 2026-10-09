@@ -58,7 +58,7 @@ M22 Programas, plan de estudios y plan de pagos (depende de M03, M07 y M09)
 | 19 | M21 | Extras | Tablero ejecutivo avanzado |
 | 20 | M12 | Calidad | Pruebas, OWASP, despliegue |
 | 21 | M13 | Gestión | Manuales y capacitación |
-| 22 | M22 | Extras | Carreras con plan de estudios y plan de pagos |
+| 22 | M22 | Extras | Carreras con plan de estudios y plan de pagos (ya construido: se adelantó a M21, M12 y M13) |
 
 > M12 es transversal: sus prácticas (pruebas, validación, seguridad) se aplican
 > desde el primer módulo, aunque su revisión formal cierre el proyecto.

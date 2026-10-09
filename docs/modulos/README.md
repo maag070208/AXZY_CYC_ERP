@@ -1,6 +1,6 @@
 # Módulos
 
-Índice de los 21 módulos del SGE. Cada módulo tiene su propio `README.md` con
+Índice de los 22 módulos del SGE. Cada módulo tiene su propio `README.md` con
 objetivo, alcance, entidades, reglas de negocio, endpoints, pantallas, permisos,
 validaciones, bitácora, casos de prueba, criterios de aceptación y decisiones
 abiertas, siguiendo la
@@ -13,7 +13,7 @@ abiertas, siguiendo la
 
 | Código | Módulo | Objetivo | Estado |
 |---|---|---|---|
-| M01 | [Análisis y prototipo](M01-analisis-prototipo/README.md) | Requerimientos, ERD, mapa de pantallas y prototipo navegable | Planeado |
+| M01 | [Análisis y prototipo](M01-analisis-prototipo/README.md) | Requerimientos, ERD, mapa de pantallas y prototipo navegable | Documentado (falta la firma de alcance) |
 
 ## Núcleo
 

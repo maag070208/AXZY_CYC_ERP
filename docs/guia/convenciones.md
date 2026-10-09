@@ -11,8 +11,9 @@ Reglas transversales del SGE. Reflejan los **estándares de la casa (PTNV)** y e
 
 ## 1. Repositorios y paquetes
 
-- `api/` y `web/` son **repos git independientes**; la raíz solo tiene
-  `docker-compose.yml` y `docs/`. Build y commit por separado.
+- **Monorepo `AXZY_CYC_ERP`** ([D-014](../../DECISIONES.md)): `api/` y `web/` son
+  paquetes independientes (cada uno con su `package.json` y su `Dockerfile`);
+  la raíz tiene `docker-compose.yml`, `docs/` y los scripts de orquestación.
 - Gestor de paquetes: **pnpm** (`pnpm-lock.yaml`). No agregar
   `package-lock.json` ni `yarn.lock`.
 - Node LTS; TypeScript estricto.
@@ -36,7 +37,7 @@ Reglas transversales del SGE. Reflejan los **estándares de la casa (PTNV)** y e
   UPPER_SNAKE traducible → ver [`../api/errores.md`](../api/errores.md).
 - OpenAPI documentado en el propio `*.routes.ts` con `registerPath`.
 - Listados server-side: **`POST /…/query`** con `{ page, limit, filters, sort }`.
-- Escrituras no idempotentes aceptan `Idempotency-Key`.
+- Escrituras con riesgo de duplicado aceptan `Idempotency-Key` (ver [`../api/convenciones.md`](../api/convenciones.md) §4).
 - Toda escritura pasa por el **`AuditPort`** con `previousState`/`newState`.
 
 ## 3. Base de datos (Prisma + PostgreSQL)
@@ -49,7 +50,7 @@ Reglas transversales del SGE. Reflejan los **estándares de la casa (PTNV)** y e
 - Campos `camelCase`; tablas `snake_case` plural vía `@@map("...")`.
 - Enums PascalCase con valores `UPPER_SNAKE`.
 - **Idioma:** identificadores, columnas, enums y claves en **inglés**; comentarios
-  en español (ver [D-046](../../DECISIONES.md) y [`convenciones.md` §11](../guia/convenciones.md)).
+  en español (ver [D-046](../../DECISIONES.md) y el [§11](#11-idioma-identificadores-e-i18n)).
 - Dinero/medidas con `Decimal @db.Decimal(...)`; nunca punto flotante.
 - JSON en `Json`/`jsonb` (snapshots de bitácora, respuestas, horarios).
 - Fechas de calendario con `@db.Date`; instantes con `timestamptz` (UTC).
@@ -138,8 +139,14 @@ comentarios en español y todo lo visible vía i18n** (API y WEB).
   `ENROLLED`, `PENDING`, `TUITION`, `CASH`, `MONTHLY`…).
 - Prisma: campos `camelCase` en inglés, tablas `snake_case` plural.
 - Comentarios y documentación (`docs/`) en **español**.
-- Los identificadores existentes en español se migran a inglés (refactor
-  transversal, [D-046](../../DECISIONES.md)); el código **nuevo** nace en inglés.
+- La migración a inglés está **terminada** ([D-049](../../DECISIONES.md)): esquema,
+  DTOs, rutas, códigos de error, llaves i18n y JSON guardado. No queda código en
+  español; el código nuevo nace en inglés.
+- **Lo que sí se queda en español:** comentarios, documentación, títulos de las
+  pruebas y descripciones de Swagger.
+- **Formatos de entrada del usuario** (CSV de reactivos y de migración): las
+  columnas canónicas son en inglés y los encabezados en español se aceptan por
+  **alias** (`nombre` → `name`, `curso` → `course`…).
 
 ### 11.2 i18n (todo lo visible se traduce)
 - **API**: mensajes de error, validaciones y etiquetas de catálogo salen por
@@ -149,5 +156,12 @@ comentarios en español y todo lo visible vía i18n** (API y WEB).
   `programs`…); **cero texto hardcodeado**. Los catálogos dinámicos (roles,
   niveles, permisos) se muestran por **clave + i18n**, no por un `name` en la BD.
 - **Roles**: claves en inglés `ADMIN`, `SCHOOL_CONTROL`, `TEACHER`, `STUDENT`;
-  el nombre visible se traduce por i18n (`roles.ADMIN`, `roles.TEACHER`…).
+  el nombre visible de los roles base se traduce por i18n
+  (`users:roles.<KEY>`, helper `roleLabel` de `@entities/permission`); los roles
+  creados por el administrador muestran el nombre que se les dio.
+- **Llaves i18n en inglés** y con la misma forma en `es` y `en`: en la API,
+  `en.ts` se tipa contra `es.ts`; en la web, las llaves estáticas se validan con
+  el tipado de i18next (`shared/i18n/i18n.d.ts`).
+- **Parámetros `{{…}}`** con el mismo nombre que el campo (`{{studentNumber}}`,
+  `{{courseName}}`), tanto en mensajes como en plantillas de aviso.
 - Fechas/montos se formatean por locale en la web; la API entrega ISO/Decimal.

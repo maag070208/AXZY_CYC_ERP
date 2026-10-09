@@ -3,14 +3,16 @@
 Monorepo del **Sistema de Gestión Escolar**. La implementación sigue los
 **estándares de la casa (PTNV)** y el **Axzy UI System**.
 
-> **Estado:** documentación completa (M01–M21). **F0 a F4 terminadas:**
-> M02 (acceso, roles, políticas ABAC, bitácora, recuperación de contraseña),
-> M11 (configuración y catálogos), M03 (alumnos), M04 (profesores), M05
-> (bajas/reingresos), M06 (expediente y kardex), M07 (cursos, grupos e
-> inscripciones), M08 (exámenes y calificaciones), M09 (colegiaturas y pagos) y
-> M10 (reportes y tablero) en `api/` y `web/`, con pruebas unitarias, de contrato y
-> de navegador en CI. Sigue F5 (examen en línea, M14–M17). Se construye módulo a módulo siguiendo el
-> [roadmap](docs/guia/roadmap.md) y las [convenciones](docs/guia/convenciones.md).
+> **Estado:** **F0–F7 y F10 terminadas** en `api/` y `web/`: M02 (acceso, roles,
+> políticas ABAC, bitácora), M11 (configuración y catálogos), M03–M06 (alumnos,
+> profesores, bajas/reingresos, expediente y kardex), M07–M08 (cursos, grupos,
+> inscripciones y calificaciones), M09–M10 (cobranza y reportes), M14–M17 (examen
+> en línea), M18–M19 (asistencia y notificaciones), M20 (migración CSV) y M22
+> (programas y planes de pago), con pruebas unitarias, de contrato y de navegador
+> en CI. Pendientes: M21 (tablero ejecutivo, F8) y M12–M13 (endurecimiento y
+> capacitación, F9). Todo el código está en **inglés** con **i18n** `es`/`en`
+> ([D-046](DECISIONES.md), [D-049](DECISIONES.md)). Ver el
+> [plan por fases](docs/guia/plan-implementacion.md) y las [convenciones](docs/guia/convenciones.md).
 
 ---
 
@@ -30,8 +32,8 @@ notificaciones, migración de históricos y reportes ejecutivos.
 | UI | **`@axzydev/axzy_ui_system`** + Tailwind CSS v4 |
 | Auth | JWT (access + refresh rotado) + bcryptjs |
 | Autorización | **RBAC dinámico + alcances + excepciones + ABAC** |
-| Archivos | AWS S3 (`multer` memoryStorage) |
-| Colas / realtime | BullMQ/Redis + Ably |
+| Archivos | S3 o disco local privado (`multer` memoryStorage) |
+| Avisos / realtime | Outbox en PostgreSQL (`notifications`) + Ably |
 | Pruebas | **Playwright** (contrato E2E + unitarias) |
 | Despliegue | Docker (api + web) + nginx |
 
@@ -48,7 +50,7 @@ Detalle en [`docs/arquitectura/stack.md`](docs/arquitectura/stack.md).
 | Arquitectura y stack | [`docs/arquitectura/`](docs/arquitectura/) |
 | API modular / Web FSD / UI kit | [`api-modular.md`](docs/arquitectura/api-modular.md) · [`web-fsd.md`](docs/arquitectura/web-fsd.md) · [`axzy-ui-system.md`](docs/arquitectura/axzy-ui-system.md) |
 | Modelo de datos y ERD | [`docs/modelo-datos/`](docs/modelo-datos/) |
-| Un módulo concreto (M01–M21) | [`docs/modulos/`](docs/modulos/README.md) |
+| Un módulo concreto (M01–M22) | [`docs/modulos/`](docs/modulos/README.md) |
 | Seguridad y control de acceso | [`docs/seguridad/`](docs/seguridad/) |
 | Decisiones tomadas y abiertas | [`DECISIONES.md`](DECISIONES.md) |
 
@@ -80,8 +82,8 @@ Detalle en [`docs/arquitectura/stack.md`](docs/arquitectura/stack.md).
     ├── modelo-datos/   # ERD + diccionario
     ├── api/            # convenciones, autenticación, errores
     ├── seguridad/      # RBAC+ABAC, bitácora, OWASP
-    ├── operacion/      # entornos, respaldos, migración
-    ├── modulos/        # README por módulo (M01–M21)
+    ├── operacion/      # entornos, despliegue (Railway + Hostinger), respaldos, migración
+    ├── modulos/        # README por módulo (M01–M22)
     ├── pruebas/        # estrategia (Playwright)
     ├── capacitacion/   # manuales
     └── plantillas/     # plantilla de módulo

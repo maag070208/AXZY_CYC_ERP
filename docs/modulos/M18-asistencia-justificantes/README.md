@@ -172,7 +172,7 @@ Numeradas y verificables (cada una mapea a una prueba de §10):
 3. **Pertenencia.** Solo se registra asistencia de `enrollments` del grupo de la
    sesión; un `enrollmentId` ajeno → 400 `INVALID_REFERENCE`.
 4. **Porcentaje de asistencia.** Por alumno/periodo:
-   `% = (PRESENT + LATE + JUSTIFIED) / total de sessions del group`.
+   `% = (PRESENT + LATE + JUSTIFIED) / total de sesiones del grupo`.
    `ABSENT` es la única que resta (`LATE` cuenta como asistencia; `JUSTIFIED`
    no penaliza).
 5. **Alerta por umbral.** Si el `%` cae por debajo del umbral configurable en

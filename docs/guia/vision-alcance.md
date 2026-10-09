@@ -31,6 +31,7 @@ trazabilidad (bitácora) y control de acceso por rol.
 9. Notificar por correo/SMS/WhatsApp.
 10. Migrar datos históricos de forma repetible e idempotente.
 11. Ofrecer reportes operativos y un tablero ejecutivo.
+12. Configurar carreras con su plan de estudios y generar el plan de pagos del alumno.
 
 ## 4. Alcance funcional (módulos)
 
@@ -43,7 +44,7 @@ trazabilidad (bitácora) y control de acceso por rol.
 | Finanzas y administración | M09, M10, M11 | Pagos, reportes básicos, catálogos |
 | Calidad | M12, M13 | Pruebas/seguridad/despliegue, capacitación |
 | Examen en línea | M14–M17 | Banco de reactivos, exámenes, aplicación, calificación |
-| Extras | M18–M21 | Asistencia, notificaciones, migración, tablero ejecutivo |
+| Extras | M18–M22 | Asistencia, notificaciones, migración, tablero ejecutivo, programas y planes de pago |
 
 Detalle en [`roadmap.md`](roadmap.md) y en [`../modulos/README.md`](../modulos/README.md).
 
@@ -54,7 +55,7 @@ Detalle en [`roadmap.md`](roadmap.md) y en [`../modulos/README.md`](../modulos/R
 | `ADMIN` | Configurar el sistema, gestionar usuarios y ver todo |
 | `SCHOOL_CONTROL` | Altas/bajas, expediente, inscripciones, cobranza |
 | `TEACHER` | Sus grupos: calificaciones, asistencia, exámenes |
-| `STUDENT` | (si se habilita) consultar calificaciones, pagos, exámenes en línea |
+| `STUDENT` | Presentar exámenes en línea y consultar su información (kardex, asistencia, estado de cuenta) |
 
 Ver [`../seguridad/roles-permisos.md`](../seguridad/roles-permisos.md).
 

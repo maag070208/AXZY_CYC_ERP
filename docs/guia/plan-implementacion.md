@@ -1,6 +1,6 @@
 # Plan de implementación por fases
 
-Plan para construir **todo** el sistema (M01–M21) sobre el monorepo
+Plan para construir **todo** el sistema (M01–M22) sobre el monorepo
 `AXZY_CYC_ERP`, respetando el [roadmap](roadmap.md), los
 [estándares](convenciones.md) y la [definición de terminado](roadmap.md#3-definición-de-terminado-por-módulo).
 
@@ -37,7 +37,7 @@ reglas complejas (M07, M08, M09, M16) ≈ 1.5–2 sprints.
 | **F9** | Endurecimiento, despliegue y capacitación | M12, M13 | 2 | 4 | Todas |
 | **F10** | Programas y planes de pago | M22 | 1–2 | 2–4 | F2, F3, F4 |
 
-- **Secuencial:** ≈ 42 semanas.
+- **Secuencial:** ≈ 44–48 semanas (incluye F10).
 - **Con paralelismo** (M20 solapada, QA/seguridad/docs continuas, F5 y F6
   parcialmente en paralelo): **≈ 30–36 semanas** hasta producción.
 - **M01 (análisis y prototipo)** ya está cubierto por `docs/` (visión, ERD, mapa
@@ -76,7 +76,9 @@ reglas complejas (M07, M08, M09, M16) ≈ 1.5–2 sprints.
 | F6 — Asistencia y notificaciones | ✅ Completada (pendiente H6 con el cliente) | Migración `f6_asistencia_notificaciones`; unitarias 89, contrato API 184, navegador 68 — todo en verde |
 | F7 — Migración de históricos | ✅ Completada (pendiente H7 con el cliente) | Migración `f7_migracion_historica`; unitarias 98, contrato API 192, navegador 69 — todo en verde. CSV de alumnos/profesores con dry-run, idempotencia y respaldo previo |
 | F8 — Analítica ejecutiva | ⏭️ Siguiente | M21 (indicadores ejecutivos y vistas materializadas) |
+| F9 — Endurecimiento, despliegue y capacitación | Pendiente | M12 y M13: falta rate limiting, respaldos automáticos y sus scripts (`restore`, `cutover`), medición de cobertura y manuales |
 | F10 — Programas y planes de pago | ✅ Completada | M22; unitarias 110, contrato API 198, navegador 70 — todo en verde |
+| Refactor a inglés + i18n | ✅ Completado | [D-046](../../DECISIONES.md) y [D-049](../../DECISIONES.md): esquema, DTOs, rutas, códigos, llaves i18n y JSON guardado en inglés; migraciones `roles_english`, `lote1_catalogs_english`, `schema_english` y `english_followup`; las tres suites siguen en verde |
 
 ## 3. Detalle por fase
 
@@ -261,7 +263,6 @@ el plan; specs en verde.
 
 | Riesgo | Fase | Impacto | Mitigación |
 |---|---|---|---|
-| Migración inicial de Prisma pendiente | F0 | Alto | Generarla antes de cualquier deploy; job de migraciones en CI |
 | Decisiones abiertas (SMS/WA, recargos, aprobación) | F1/F4/F5 | Medio | Cerrarlas en el refinamiento de cada fase; registrar en `DECISIONES.md` |
 | Reglas de cupo/empalme mal probadas | F3 | Alto | Specs dedicadas + transacciones serializables |
 | Datos históricos sucios | F7 | Alto | `dry-run` + conciliación por muestreo |
