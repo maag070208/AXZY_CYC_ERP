@@ -1,0 +1,70 @@
+{
+  "page": {
+    "title": "Historical migration",
+    "description": "{{count}} batch(es) registered",
+    "tabs": {
+      "import": "Import",
+      "batches": "Batches"
+    }
+  },
+  "entities": {
+    "Student": "Students",
+    "Teacher": "Teachers"
+  },
+  "wizard": {
+    "title": "Import historical data",
+    "description": "Preview the CSV (dry-run) and confirm the idempotent batch import.",
+    "backupHint": "The real import requires a recent database backup (settings); the idempotency header is generated automatically.",
+    "entidad": "Entity",
+    "archivo": "CSV file",
+    "preview": "Preview",
+    "previewed": "Previewed: {{rejected}} row(s) rejected",
+    "dryRun": "Dry-run",
+    "executedBadge": "Imported",
+    "execute": "Run import",
+    "executed": "Imported: {{inserted}} new, {{updated}} updated, {{rejected}} rejected",
+    "noRejected": "No rejected rows.",
+    "rejectedTitle": "Rejected rows ({{count}})",
+    "row": "Row",
+    "reason": "Reason",
+    "value": "Value",
+    "confirmTitle": "Confirm import",
+    "confirmMessage": "Valid records of {{entidad}} will be imported. This never deletes existing data; re-running does not duplicate."
+  },
+  "totals": {
+    "read": "Read",
+    "valid": "Valid",
+    "inserted": "New",
+    "updated": "Updated",
+    "rejected": "Rejected"
+  },
+  "reasons": {
+    "REQUIRED_FIELD": "Required field",
+    "INVALID_CURP": "Invalid CURP",
+    "INVALID_DATE": "Invalid date",
+    "INVALID_FORMAT": "Invalid format",
+    "INVALID_EMAIL": "Invalid email",
+    "INVALID_PHONE": "Invalid phone",
+    "GUARDIAN_REQUIRED": "Missing guardian (minor)",
+    "DUPLICATE_CURP": "Duplicate CURP",
+    "DUPLICATE_EMAIL": "Duplicate email",
+    "DUPLICATE_MATRICULA": "Duplicate enrollment no.",
+    "REJECTED": "Rejected"
+  },
+  "batches": {
+    "archivo": "File",
+    "mode": "Mode",
+    "status": "Status",
+    "totals": "Totals",
+    "fecha": "Date",
+    "view": "View detail",
+    "detailTitle": "Batch {{archivo}}",
+    "noRows": "No rejected rows."
+  },
+  "status": {
+    "EN_PROCESO": "In progress",
+    "COMPLETADO": "Completed",
+    "FALLIDO": "Failed",
+    "CANCELADO": "Cancelled"
+  }
+}

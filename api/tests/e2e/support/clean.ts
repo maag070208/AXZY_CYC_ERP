@@ -1,5 +1,5 @@
 import { assertSafeDatabase } from "./env";
-import { clearAcademicE2E, clearFinanceE2E, clearNotificationsE2E, clearAccessE2E, clearAuthE2E, clearCatalogsE2E, clearStudentsE2E, clearTeachersE2E, db } from "./db";
+import { clearAcademicE2E, clearFinanceE2E, clearMigrationE2E, clearNotificationsE2E, clearAccessE2E, clearAuthE2E, clearCatalogsE2E, clearStudentsE2E, clearTeachersE2E, db } from "./db";
 
 /**
  * Borra todo lo que crean las suites E2E (API y web). Solo toca filas con el
@@ -9,6 +9,7 @@ import { clearAcademicE2E, clearFinanceE2E, clearNotificationsE2E, clearAccessE2
 const main = async (): Promise<void> => {
   assertSafeDatabase();
   const notifications = await clearNotificationsE2E();
+  const migration = await clearMigrationE2E();
   const finance = await clearFinanceE2E();
   const academic = await clearAcademicE2E();
   const students = await clearStudentsE2E();
@@ -18,7 +19,8 @@ const main = async (): Promise<void> => {
   const catalogs = await clearCatalogsE2E();
   console.log(
     `[e2e] limpieza: ${users} usuario(s), ${students} alumno(s), ${teachers} profesor(es), ${roles} rol(es), ` +
-      `${policies} política(s), ${catalogs} registro(s) de catálogo, ${academic} curso(s)/grupo(s), ${finance} concepto(s) de cobro, ${notifications} notificación(es)`
+      `${policies} política(s), ${catalogs} registro(s) de catálogo, ${academic} curso(s)/grupo(s), ${finance} concepto(s) de cobro, ` +
+      `${notifications} notificación(es), ${migration} lote(s) de migración`
   );
 };
 

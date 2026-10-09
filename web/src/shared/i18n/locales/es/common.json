@@ -42,7 +42,8 @@
     "questions": "Reactivos",
     "exams": "Exámenes en línea",
     "myExams": "Mis exámenes",
-    "attendance": "Asistencia"
+    "attendance": "Asistencia",
+    "migration": "Migración"
   },
   "errors": {
     "network": "Error de red o del servidor",

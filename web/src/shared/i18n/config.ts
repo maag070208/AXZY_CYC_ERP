@@ -17,6 +17,7 @@ import reportsEn from "./locales/en/reports.json";
 import examsEn from "./locales/en/exams.json";
 import attendanceEn from "./locales/en/attendance.json";
 import notificationsEn from "./locales/en/notifications.json";
+import migrationEn from "./locales/en/migration.json";
 
 import auditEs from "./locales/es/audit.json";
 import authEs from "./locales/es/auth.json";
@@ -34,13 +35,14 @@ import reportsEs from "./locales/es/reports.json";
 import examsEs from "./locales/es/exams.json";
 import attendanceEs from "./locales/es/attendance.json";
 import notificationsEs from "./locales/es/notifications.json";
+import migrationEs from "./locales/es/migration.json";
 
 export const defaultNS = "common" as const;
 
 export const APP_LANGUAGES = ["es", "en"] as const;
 export type AppLanguage = (typeof APP_LANGUAGES)[number];
 
-export const NS_LIST = ["common", "auth", "users", "roles", "audit", "config", "students", "teachers", "documents", "courses", "grades", "finance", "reports", "exams", "attendance", "notifications"] as const;
+export const NS_LIST = ["common", "auth", "users", "roles", "audit", "config", "students", "teachers", "documents", "courses", "grades", "finance", "reports", "exams", "attendance", "notifications", "migration"] as const;
 
 export const resources = {
   en: {
@@ -60,6 +62,7 @@ export const resources = {
     exams: examsEn,
     attendance: attendanceEn,
     notifications: notificationsEn,
+    migration: migrationEn,
   },
   es: {
     common: commonEs,
@@ -78,6 +81,7 @@ export const resources = {
     exams: examsEs,
     attendance: attendanceEs,
     notifications: notificationsEs,
+    migration: migrationEs,
   },
 } as const;
 

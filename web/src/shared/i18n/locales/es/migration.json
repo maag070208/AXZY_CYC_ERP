@@ -1,0 +1,70 @@
+{
+  "page": {
+    "title": "Migración de históricos",
+    "description": "{{count}} lote(s) registrados",
+    "tabs": {
+      "import": "Importar",
+      "batches": "Lotes"
+    }
+  },
+  "entities": {
+    "Student": "Alumnos",
+    "Teacher": "Profesores"
+  },
+  "wizard": {
+    "title": "Importar datos históricos",
+    "description": "Previsualiza el CSV (dry-run) y confirma la importación por lotes idempotente.",
+    "backupHint": "La importación real exige un respaldo reciente de la base (ajustes) y la cabecera de idempotencia se genera sola.",
+    "entidad": "Entidad",
+    "archivo": "Archivo CSV",
+    "preview": "Previsualizar",
+    "previewed": "Previsualizado: {{rejected}} fila(s) rechazada(s)",
+    "dryRun": "Simulación",
+    "executedBadge": "Importado",
+    "execute": "Ejecutar importación",
+    "executed": "Importado: {{inserted}} nuevo(s), {{updated}} actualizado(s), {{rejected}} rechazado(s)",
+    "noRejected": "No hay filas rechazadas.",
+    "rejectedTitle": "Filas rechazadas ({{count}})",
+    "row": "Fila",
+    "reason": "Motivo",
+    "value": "Valor",
+    "confirmTitle": "Confirmar importación",
+    "confirmMessage": "Se importarán los registros válidos de {{entidad}}. Esta acción no borra datos existentes; reejecutar no duplica."
+  },
+  "totals": {
+    "read": "Leídas",
+    "valid": "Válidas",
+    "inserted": "Nuevas",
+    "updated": "Actualizadas",
+    "rejected": "Rechazadas"
+  },
+  "reasons": {
+    "REQUIRED_FIELD": "Campo obligatorio",
+    "INVALID_CURP": "CURP inválida",
+    "INVALID_DATE": "Fecha inválida",
+    "INVALID_FORMAT": "Formato inválido",
+    "INVALID_EMAIL": "Correo inválido",
+    "INVALID_PHONE": "Teléfono inválido",
+    "GUARDIAN_REQUIRED": "Falta el tutor (menor de edad)",
+    "DUPLICATE_CURP": "CURP duplicada",
+    "DUPLICATE_EMAIL": "Correo duplicado",
+    "DUPLICATE_MATRICULA": "Matrícula duplicada",
+    "REJECTED": "Rechazada"
+  },
+  "batches": {
+    "archivo": "Archivo",
+    "mode": "Modo",
+    "status": "Estado",
+    "totals": "Totales",
+    "fecha": "Fecha",
+    "view": "Ver detalle",
+    "detailTitle": "Lote {{archivo}}",
+    "noRows": "Sin filas rechazadas."
+  },
+  "status": {
+    "EN_PROCESO": "En proceso",
+    "COMPLETADO": "Completado",
+    "FALLIDO": "Fallido",
+    "CANCELADO": "Cancelado"
+  }
+}

@@ -3,12 +3,33 @@
 | Campo | Valor |
 |---|---|
 | **Código** | M20 |
-| **Versión** | 0.1 |
-| **Estado** | Planeado |
+| **Versión** | 0.2 |
+| **Estado** | Terminado (F7) |
 | **Fase** | Extras |
 | **Depende de** | M02 (auth/roles), M03 (alumnos), M04 (profesores), M07 (cursos/grupos), M08 (calificaciones), M09 (cargos/pagos), M11 (catálogos) |
 | **Habilita a** | Puesta en producción / *onboarding* de cliente con datos del sistema previo |
 | **Permisos** | `migration.execute` (con alcance) |
+
+## Implementación (F7, 2026-10-09)
+
+**Estado: terminado (primera entrega).** Código en `api/src/modules/migration` (`models/entity/migration-rules.ts`, `services/migration.service.ts`, `services/migration.writers.ts`) y `web/src/entities/migration` + `web/src/features/migration/{import-wizard,batches}`; página `/migration` (asistente + historial).
+
+Alcance de esta entrega: **CSV** (UTF-8, `,` o `;`) para las entidades **Student** y **Teacher**; el resto de entidades queda como adaptadores siguientes sobre el mismo motor (ver decisiones abiertas).
+
+| Método | Ruta | Permiso | Nota |
+|---|---|---|---|
+| POST | `/api/v1/migration/preview` | `migration.execute` | Multipart `file` + `entidad`; simulación sin escribir y lote `DRY_RUN` |
+| POST | `/api/v1/migration/execute` | `migration.execute` | Multipart `file` + `entidad` + `checksum`; exige `Idempotency-Key` y respaldo reciente |
+| POST | `/api/v1/migration/batches/query` | `migration.execute` | Tabla server-side de lotes |
+| GET | `/api/v1/migration/batches/:id` | `migration.execute` | Detalle con las filas rechazadas |
+
+Claves naturales: `Student.curp`, `Teacher.email` (upsert idempotente). Se preserva la **matrícula histórica** si viene en el CSV; si no, se genera con la secuencia por año. El alta de profesor crea su cuenta `PROFESOR` con contraseña temporal (sin enviar la invitación; control escolar la reenvía cuando corresponda).
+
+Decisiones (sección 12):
+- El `dry-run` y la ejecución comparten `plan()`; la confirmación revalida el `sha256` del archivo. Ver [D-045](../../../DECISIONES.md).
+- Gate de respaldo: `settings.MIGRATION_LAST_BACKUP_AT` debe ser reciente (≤ 24 h) o la ejecución responde `409 BACKUP_REQUIRED`.
+- Bitácora: `MIGRATION_BATCH_PREVIEWED` y `MIGRATION_BATCH_EXECUTED` (totales y metadatos, sin el dataset).
+- Los rechazos se calculan antes de escribir (validación de fila y duplicados por clave natural), de modo que nunca abortan las filas aceptadas del lote.
 
 ## 1. Objetivo
 
@@ -252,25 +273,31 @@ metadatos); las filas quedan en `MigrationRow`. Ver
 
 ## 11. Criterios de aceptación
 
-- [ ] Migración y modelo Prisma (`MigrationBatch`, `MigrationRow`).
-- [ ] Módulo API (routes/controller/service/dto/entity) con `plan()` único,
+- [x] Migración y modelo Prisma (`MigrationBatch`, `MigrationRow`).
+- [x] Módulo API (routes/controller/service/dto/entity) con `plan()` único,
       permisos e idempotencia por lote.
-- [ ] `dry-run` y `execute` ligados al respaldo previo y a la bitácora.
-- [ ] Reporte de filas rechazadas con motivo y conciliación de totales.
-- [ ] Pantallas web (asistente + historial) con UI kit.
-- [ ] Specs pasando (solo los del módulo).
-- [ ] Este README completo.
+- [x] `dry-run` y `execute` ligados al respaldo previo y a la bitácora.
+- [x] Reporte de filas rechazadas con motivo y conciliación de totales.
+- [x] Pantallas web (asistente + historial) con UI kit.
+- [x] Specs pasando (unitarias 98, contrato 192, navegador 69).
+- [x] Este README completo.
+
+> Cobertura de entidades en esta entrega: **Student** y **Teacher**. Cursos,
+> grupos, inscripciones, calificaciones, cargos, pagos y asistencia se
+> incorporan como adaptadores siguientes reutilizando el mismo motor (`plan()` +
+> `apply` por entidad y clave natural).
 
 ## 12. Decisiones abiertas
 
-- Formato(s) de origen soportados en la primera entrega (CSV/XLSX/base anterior) y
-  estrategia para `prisma/legacy/` si proviene del modelo viejo.
-- Volumen máximo por lote y tamaño de lote transaccional óptimo.
-- ¿La conciliación con el cliente requiere firma/acta digital dentro del sistema?
-- Política de retención de `MigrationRow` (incluye `raw` con datos personales).
-- Integración fina con `restore` / `seed:from-backup` / `cutover` y momento exacto
-  del *cutover*.
-- Enlazar en [`DECISIONES.md`](../../../DECISIONES.md) al cerrarse.
+- **Resuelto ([D-045](../../../DECISIONES.md)):** primera entrega = CSV (UTF-8,
+  `,`/`;`) con adaptadores de alumnos y profesores; el resto de entidades queda
+  como adaptadores siguientes.
+- **Pendiente:** volumen máximo por lote y tamaño óptimo (hoy 5 000 filas / 2 MB).
+- **Pendiente:** ¿la conciliación requiere firma/acta digital dentro del sistema?
+- **Pendiente:** política de retención de `MigrationRow` (incluye `raw` con datos
+  personales).
+- **Pendiente:** integración fina con `restore` / `seed:from-backup` / `cutover`
+  (scripts aún no implementados) y momento exacto del *cutover*.
 
 ## 13. Referencias
 

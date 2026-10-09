@@ -35,7 +35,8 @@ export type NavLabelKey =
   | "nav.exams"
   | "nav.myExams"
   | "nav.attendance"
-  | "nav.notifications";
+  | "nav.notifications"
+  | "nav.migration";
 
 export interface AppScreen {
   readonly id: string;
@@ -122,6 +123,12 @@ export const APP_SCREENS: readonly AppScreen[] = [
     path: "/notifications",
     // Centro de avisos: todos ven su bandeja interna; las pestañas de
     // administración se ocultan según permisos dentro de la página.
+  },
+  {
+    id: "migration",
+    labelKey: "nav.migration",
+    path: "/migration",
+    requirement: { anyOf: ["migration.execute"] },
   },
   {
     id: "reports",

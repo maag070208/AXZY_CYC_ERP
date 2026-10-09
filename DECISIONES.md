@@ -285,6 +285,11 @@ Plantilla:
 - **Estado:** aceptada
 - **Decisión:** las plantillas se identifican por clave+canal (una activa por combinación) con variables `{{var}}`. El outbox reclama con `FOR UPDATE SKIP LOCKED` y backoff exponencial hasta `maxAttempts`; el envío es idempotente por `Idempotency-Key`. Correo por Resend/SMTP o simulado; SMS y WhatsApp simulados hasta definir proveedor ([A-001](#decisiones-abiertas-pendientes-de-definir)). El canal `INTERNO` tiene bandeja propia y aviso en tiempo real best-effort por Ably. Las bajas (opt-out) no aplican a los avisos obligatorios.
 
+### D-045 — M20 primera entrega: CSV de alumnos y profesores (resuelve las decisiones abiertas de M20)
+- **Fecha:** 2026-10-09
+- **Estado:** aceptada
+- **Decisión:** la primera entrega de M20 migra por **CSV** (UTF-8; delimitador `,` o `;`) las entidades `Student` y `Teacher`; las demás se incorporan como adaptadores siguientes sobre el mismo motor. El `dry-run` y la ejecución comparten `plan()` (misma lectura/normalización) y la confirmación **revalida el `sha256`** del archivo; la ejecución exige `Idempotency-Key` por lote y un **respaldo reciente** (`settings.MIGRATION_LAST_BACKUP_AT` ≤ 24 h) o responde `409 BACKUP_REQUIRED`. Idempotencia por clave natural (`Student.curp`, `Teacher.email`) con *upsert*; se preserva la **matrícula histórica** si viene en el CSV. El alta de profesor crea su cuenta `PROFESOR` con contraseña temporal y **sin enviar la invitación** (control escolar la reenvía). Los rechazos (validación y duplicados por clave natural) se calculan antes de escribir, de modo que no abortan las filas aceptadas del lote.
+
 ---
 
 ## Mapeo desde la especificación original
@@ -318,7 +323,7 @@ Plantilla:
 
 ## Cómo registrar una nueva decisión
 
-1. Elige el siguiente `D-###` libre (hoy: `D-045`).
+1. Elige el siguiente `D-###` libre (hoy: `D-046`).
 2. Copia la plantilla de arriba y llénala.
 3. Enlaza al documento/módulo afectado.
 4. Si reemplaza a otra, actualiza el estado de la anterior.

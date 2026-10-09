@@ -25,6 +25,7 @@ import MyExamsPage from "@pages/my-exams/MyExamsPage";
 import ExamRunnerPage from "@pages/my-exams/ExamRunnerPage";
 import AttendancePage from "@pages/attendance/AttendancePage";
 import NotificationsPage from "@pages/notifications/NotificationsPage";
+import MigrationPage from "@pages/migration/MigrationPage";
 import PrivateRoutes from "./guards/PrivateRoutes";
 import RequiresPermission from "./guards/RequirePermission";
 
@@ -168,6 +169,14 @@ export default function App() {
           }
         />
         <Route path="/notifications" element={<NotificationsPage />} />
+        <Route
+          path="/migration"
+          element={
+            <RequiresPermission permission="migration.execute">
+              <MigrationPage />
+            </RequiresPermission>
+          }
+        />
         <Route
           path="/users"
           element={

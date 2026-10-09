@@ -86,3 +86,15 @@ se actualizan los fixtures con `npm run legacy:extract`.
 | Duplicación al reejecutar | Llaves naturales + upsert idempotente |
 | Pérdida de datos | Respaldo previo + lotes transaccionales |
 | Descuadre de totales | Conciliación y muestreo con el cliente |
+
+## 7. Estado de implementación (F7)
+
+Módulo `M20` implementado (primera entrega): motor de migración en
+`api/src/modules/migration` y asistente/historial en `/migration`. Alcance CSV
+(UTF-8, `,`/`;`) para **alumnos** y **profesores**; el resto de entidades son
+adaptadores siguientes. La ejecución real exige respaldo reciente
+(`settings.MIGRATION_LAST_BACKUP_AT`, ≤ 24 h) e `Idempotency-Key`, y revalida el
+`sha256` del archivo. Detalle y decisiones en
+[M20](../modulos/M20-migracion-historica/README.md) y
+[D-045](../../DECISIONES.md). Los scripts `restore` / `seed:from-backup` /
+`cutover` / `legacy:extract` siguen pendientes.

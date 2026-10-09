@@ -4,7 +4,7 @@ import {
   type ITSidebarProps,
 } from "@axzydev/axzy_ui_system";
 import { useCallback, useEffect, type ReactNode } from "react";
-import { FaBook, FaCashRegister, FaChalkboardTeacher, FaChartBar, FaClipboardCheck, FaCog, FaFileSignature, FaQuestionCircle, FaHistory, FaHouseUser, FaLayerGroup, FaListUl, FaUserGraduate, FaUserShield, FaUsers, FaUserCheck, FaBell } from "react-icons/fa";
+import { FaBook, FaCashRegister, FaChalkboardTeacher, FaChartBar, FaClipboardCheck, FaCog, FaFileSignature, FaQuestionCircle, FaHistory, FaHouseUser, FaLayerGroup, FaListUl, FaUserGraduate, FaUserShield, FaUsers, FaUserCheck, FaBell, FaDatabase } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -26,6 +26,7 @@ const NAV_ICONS: Record<string, ReactNode> = {
   myExams: <FaFileSignature size={14} />,
   attendance: <FaUserCheck size={14} />,
   notifications: <FaBell size={14} />,
+  migration: <FaDatabase size={14} />,
   reports: <FaChartBar size={14} />,
   users: <FaUsers size={14} />,
   roles: <FaUserShield size={14} />,

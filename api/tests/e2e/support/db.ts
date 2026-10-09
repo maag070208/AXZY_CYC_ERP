@@ -239,3 +239,13 @@ export const clearTeachersE2E = async (): Promise<number> => {
   const result = await db.teacher.deleteMany({ where: { email: { startsWith: E2E_PREFIX } } });
   return result.count;
 };
+
+/** Lotes de migración de prueba (M20): creados por cuentas `e2e_` o con archivo `e2e_…`. */
+export const clearMigrationE2E = async (): Promise<number> => {
+  const users = await db.user.findMany({ where: { username: { startsWith: E2E_PREFIX } }, select: { id: true } });
+  const ids = users.map((u) => u.id);
+  const result = await db.migrationBatch.deleteMany({
+    where: { OR: [{ createdBy: { in: ids } }, { archivo: { startsWith: E2E_PREFIX } }] },
+  });
+  return result.count;
+};

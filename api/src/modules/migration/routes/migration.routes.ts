@@ -9,7 +9,6 @@ import { TableQuerySchema } from "@core/swagger/table.dto";
 import { MAX_MIGRATION_BYTES } from "../models/entity/migration-rules";
 import {
   MigrationBatchDetailSchema,
-  MigrationBatchSchema,
   MigrationBatchTableResponseSchema,
   MigrationResultSchema,
 } from "../models/dto/migration.dto";
@@ -29,8 +28,6 @@ const uploadCsv = (req: Request, res: Response, next: NextFunction): void => {
 const bearer = [{ bearerAuth: [] }];
 const idParam = { in: "path" as const, name: "id", required: true, schema: { type: "string" as const } };
 const json = (schema: ZodTypeAny) => ({ "application/json": { schema } });
-const entityField = { in: "body" as const, name: "entidad", required: true, schema: { type: "string", enum: ["Student", "Teacher"] } };
-const checksumField = { in: "body" as const, name: "checksum", required: false, schema: { type: "string" } };
 
 export const createMigrationRouter = (controller: MigrationController): Router => {
   registerPath({
