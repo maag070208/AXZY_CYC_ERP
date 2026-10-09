@@ -5,6 +5,7 @@ const PUERTO_WEB = new URL(E2E.webUrl).port || "5173";
 
 export default defineConfig({
   testDir: "./tests/e2e",
+  globalSetup: "./tests/e2e/support/global-setup.ts",
   globalTeardown: "./tests/e2e/support/global-teardown.ts",
 
   // Serie a propósito: los tests comparten la base real, y las altas de usuario
@@ -23,7 +24,8 @@ export default defineConfig({
     baseURL: E2E.webUrl,
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
-    video: "retain-on-failure",
+    // `E2E_VIDEO=off` donde no hay ffmpeg de Playwright (Chromium preinstalado).
+    video: process.env.E2E_VIDEO === "off" ? "off" : "retain-on-failure",
     // La app escribe en español; fijarlo evita diferencias de formato.
     locale: "es-MX",
     // Mismo huso que resuelve la API por defecto (`America/Mexico_City`).
@@ -33,7 +35,13 @@ export default defineConfig({
   projects: [
     {
       name: "chromium",
-      use: { ...devices["Desktop Chrome"] },
+      use: {
+        ...devices["Desktop Chrome"],
+        // Chromium preinstalado (p. ej. contenedores sin `playwright install`).
+        ...(process.env.E2E_CHROMIUM_PATH
+          ? { launchOptions: { executablePath: process.env.E2E_CHROMIUM_PATH } }
+          : {}),
+      },
     },
   ],
 

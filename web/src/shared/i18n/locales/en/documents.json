@@ -1,0 +1,79 @@
+{
+  "title": "Document file",
+  "kpi": {
+    "required": "Required",
+    "missing": "Missing",
+    "documents": "Documents"
+  },
+  "missingList": "Missing: {{list}}",
+  "complete": "Required documents complete",
+  "readOnly": "Withdrawn student: read-only file.",
+  "upload": {
+    "title": "Upload document",
+    "type": "Document type",
+    "notas": "Notes (optional)",
+    "submit": "Upload",
+    "hint": "PDF, JPG or PNG up to 5 MB.",
+    "done": "Document uploaded",
+    "typeRequired": "Pick the document type",
+    "fileRequired": "Select a file",
+    "tooLarge": "The file exceeds 5 MB",
+    "badType": "PDF, JPG or PNG only"
+  },
+  "table": {
+    "tipo": "Type",
+    "archivo": "File",
+    "status": "Status",
+    "size": "Size",
+    "subio": "Uploaded by",
+    "reviso": "Reviewed by",
+    "fecha": "Date",
+    "empty": "No documents."
+  },
+  "status": {
+    "PENDIENTE": "Pending",
+    "VALIDADO": "Validated",
+    "RECHAZADO": "Rejected"
+  },
+  "actions": {
+    "download": "Download",
+    "validate": "Validate",
+    "reject": "Reject",
+    "delete": "Delete"
+  },
+  "review": {
+    "validateTitle": "Validate “{{name}}”",
+    "rejectTitle": "Reject “{{name}}”",
+    "notas": "Notes",
+    "rejectHint": "Explain what must be fixed; the document can be replaced.",
+    "validated": "Document validated",
+    "rejected": "Document rejected"
+  },
+  "delete": {
+    "title": "Delete “{{name}}”",
+    "message": "The document leaves the file; it stays recorded in the audit log.",
+    "done": "Document deleted"
+  },
+  "kardex": {
+    "title": "Transcript",
+    "generated": "Generated {{date}}",
+    "promedio": "Overall average",
+    "creditos": "Courses passed",
+    "minimo": "Passing grade",
+    "empty": "No courses or grades yet (fed by enrollments and grades, F3).",
+    "ciclo": "Term",
+    "curso": "Course",
+    "grupo": "Group",
+    "final": "Final",
+    "estatus": "Status",
+    "pdf": "Export PDF",
+    "faltantes": "Missing documents",
+    "ninguno": "None",
+    "estatusValues": {
+      "ACREDITADO": "Passed",
+      "REPROBADO": "Failed",
+      "EN_CURSO": "In progress",
+      "BAJA": "Withdrawn"
+    }
+  }
+}

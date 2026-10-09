@@ -1,3 +1,2 @@
-// API pública de la feature "users-list".
+export { default as UsersTable, type UserAction } from "./ui/UsersTable";
 export { useUsersTable, type UseUsersTable } from "./model/useUsersTable";
-export { default as UsersTable } from "./ui/UsersTable";

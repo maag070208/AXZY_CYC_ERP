@@ -3,12 +3,24 @@
 | Campo | Valor |
 |---|---|
 | **Código** | M05 |
-| **Versión** | 0.1 |
-| **Estado** | En diseño |
+| **Versión** | 1.0 |
+| **Estado** | Terminado (F2, 2026-10-09) |
 | **Fase** | Personas |
 | **Depende de** | M02 (autenticación, roles y bitácora), M03 (alumnos), M07 (inscripciones que se cancelan) |
 | **Habilita a** | M06 (expediente y kardex histórico), M07 (reingreso y reinscripción), M10/M21 (reportes de deserción y reactivación) |
 | **Permisos** | `students.movements` (alcance `ALL`) |
+
+## Implementación (F2, 2026-10-09)
+
+**Estado: terminado.** Subdominio de `api/src/modules/students` (`MovementService`); en la web, diálogo de baja/reingreso y pestaña «Movimientos» del expediente.
+
+| Método | Ruta | Permiso |
+|---|---|---|
+| POST | `/api/v1/students/:id/baja` | `students.movements` |
+| POST | `/api/v1/students/:id/reingreso` | `students.movements` |
+| GET | `/api/v1/students/:id/movements` | `students.movements` |
+
+Body: `{ motivo (≥ 3), reasonId? (catálogo M11), fecha? (AAAA-MM-DD, no futura en America/Mexico_City; por defecto hoy), observaciones? }`. Reingreso de un alumno activo → `409 STUDENT_ALREADY_ACTIVE`. La cancelación de inscripciones es un puerto que conectará M07 (hoy `cancelledEnrollments: 0`). Sin `Idempotency-Key`: repetir la baja ya responde 409 por estado. Ver [D-026](../../../DECISIONES.md).
 
 ## 1. Objetivo
 
@@ -212,12 +224,12 @@ es el historial de negocio y la bitácora es el registro de auditoría.
 
 ## 11. Criterios de aceptación
 
-- [ ] Migración y modelo Prisma (`StudentMovement` + enum, con índices).
-- [ ] Módulo API (routes/controller/service/dto/entity) con `students.movements`
+- [x] Migración y modelo Prisma (`StudentMovement` + enum, con índices).
+- [x] Módulo API (routes/controller/service/dto/entity) con `students.movements`
       y bitácora por `AuditPort`.
-- [ ] Pantallas web con UI kit (detalle + diálogos + historial) e i18n `students`.
-- [ ] Specs pasando (solo los del módulo).
-- [ ] Este README completo.
+- [x] Pantallas web con UI kit (detalle + diálogos + historial) e i18n `students`.
+- [x] Specs pasando (solo los del módulo).
+- [x] Este README completo.
 
 ## 12. Decisiones abiertas
 

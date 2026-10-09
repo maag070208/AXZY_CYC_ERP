@@ -9,7 +9,15 @@
     "search": "Buscar...",
     "back": "Volver",
     "reload": "Recargar",
-    "logout": "Cerrar sesión"
+    "logout": "Cerrar sesión",
+    "close": "Cerrar",
+    "confirm": "Confirmar",
+    "add": "Agregar",
+    "remove": "Quitar",
+    "activate": "Activar",
+    "deactivate": "Desactivar",
+    "reactivate": "Reactivar",
+    "saving": "Guardando…"
   },
   "breadcrumbs": {
     "home": "Inicio"
@@ -20,31 +28,68 @@
     "users": "Usuarios",
     "roles": "Roles y permisos",
     "notifications": "Notificaciones",
-    "logout": "Cerrar sesión"
+    "logout": "Cerrar sesión",
+    "audit": "Bitácora",
+    "catalogs": "Catálogos",
+    "account": "Mi cuenta",
+    "changePassword": "Cambiar contraseña",
+    "students": "Alumnos",
+    "teachers": "Profesores",
+    "courses": "Cursos",
+    "groups": "Grupos",
+    "finance": "Cobranza",
+    "reports": "Reportes",
+    "questions": "Reactivos",
+    "exams": "Exámenes en línea",
+    "myExams": "Mis exámenes"
   },
   "errors": {
     "network": "Error de red o del servidor",
     "load": "Error al cargar",
-    "save": "Error al guardar"
+    "save": "Error al guardar",
+    "forbidden": "No tienes permiso para esta acción"
   },
   "labels": {
     "inactive": "inactivo",
     "active": "activo",
     "role": "Rol",
     "permissions": "Permisos",
-    "processing": "Procesando..."
+    "processing": "Procesando...",
+    "yes": "Sí",
+    "no": "No",
+    "all": "Todos",
+    "status": "Estatus",
+    "name": "Nombre",
+    "actions": "Acciones",
+    "createdAt": "Alta",
+    "updatedAt": "Actualizado",
+    "none": "—"
   },
   "validation": {
     "required": "{{label}} es obligatorio",
     "minLength": "{{label}} debe tener al menos {{min}} caracteres",
     "thisField": "Este campo",
     "invalidEmail": "Email inválido",
-    "invalidCurp": "CURP debe tener 18 caracteres alfanuméricos",
-    "reviewFields": "Revisa los campos marcados"
+    "invalidCurp": "CURP inválida (formato o dígito verificador)",
+    "reviewFields": "Revisa los campos marcados",
+    "invalidPhone": "Teléfono inválido",
+    "invalidRange": "La fecha final debe ser posterior a la inicial"
   },
   "home": {
     "title": "Inicio",
     "description": "Panel del Sistema de Gestión Escolar",
     "welcome": "Bienvenido, {{name}}"
+  },
+  "toast": {
+    "saved": "Cambios guardados",
+    "created": "Registro creado",
+    "deactivated": "Registro desactivado",
+    "reactivated": "Registro reactivado"
+  },
+  "scopes": {
+    "NONE": "Sin acceso",
+    "OWN": "Propios",
+    "AREA": "Su área",
+    "ALL": "Todos"
   }
 }

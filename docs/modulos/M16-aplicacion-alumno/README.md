@@ -4,11 +4,30 @@
 |---|---|
 | **Código** | M16 |
 | **Versión** | 0.1 |
-| **Estado** | Planeado |
+| **Estado** | Terminado (F5) |
 | **Fase** | Calidad y examen en línea |
 | **Depende de** | M15 (Configuración de exámenes), M14 (Banco de reactivos), M07 (Cursos, grupos e inscripciones), M02 (Autenticación, roles y bitácora) |
 | **Habilita a** | M17 (Calificación automática al kardex), M10/M21 (reportes) |
 | **Permisos** | `attempts.take` (OWN) |
+
+## Implementación (F5, 2026-10-09)
+
+**Estado: terminado.** Código en `api/src/modules/exams` (`attempt.service.ts`) y `web/src/features/exam/take-exam`; páginas `/my-exams` (menú «Mis exámenes», `attempts.take`) y `/exam/:attemptId`.
+
+| Método | Ruta | Permiso | Nota |
+|---|---|---|---|
+| GET | `/api/v1/online-exams/available` | `attempts.take` | Estado de ventana, intentos usados, intento en curso y último resultado |
+| POST | `/api/v1/online-exams/:id/start` | `attempts.take` | 201 nuevo / 200 reanuda el abierto |
+| GET | `/api/v1/attempts/:id` | `attempts.view` | Vista del alumno (sin correctas hasta terminar) o del staff |
+| PUT | `/api/v1/attempts/:id/answers` | `attempts.take` | Autoguardado por pregunta; devuelve `remainingSeconds` |
+| POST | `/api/v1/attempts/:id/submit` | `attempts.take` | Envío (con las últimas respuestas) y calificación |
+| POST | `/api/v1/attempts/:id/events` | `attempts.take` | `TAB_BLUR` / `TAB_FOCUS` |
+
+Decisiones (sección 12):
+- El tiempo lo decide el servidor (`endsAt`); un barrido cada 60 s expira lo vencido. Ver [D-036](../../../DECISIONES.md).
+- La web guarda con debounce de 1.5 s, al ocultar la pestaña y antes de enviar; al llegar a cero muestra el resultado del intento expirado.
+- Cambios de pestaña registrados sin invalidar. Ver [D-037](../../../DECISIONES.md).
+- Solo alumnos con cuenta vinculada a su expediente. Ver [D-040](../../../DECISIONES.md).
 
 ## 1. Objetivo
 

@@ -4,11 +4,29 @@
 |---|---|
 | **Código** | M08 |
 | **Versión** | 0.1 |
-| **Estado** | Planeado |
+| **Estado** | Terminado (F3) |
 | **Fase** | Académico |
 | **Depende de** | M03 (alumnos), M04 (profesores), M07 (cursos, grupos e inscripciones), M11 (parámetros: calificación mínima) |
 | **Habilita a** | M06 (kardex), M10 (reportes), M17 (calificación automática al kardex) |
 | **Permisos** | `assessments.view`, `assessments.manage`, `grades.view`, `grades.capture`, `grades.export` (con alcance) |
+
+## Implementación (F3, 2026-10-09)
+
+**Estado: terminado.** Código en `api/src/modules/grades` y `web/src/{entities/grade,features/grades}`; se usa desde la pestaña «Calificaciones» de `/groups/:id` (instrumentos + libro editable).
+
+| Método | Ruta | Permiso | Nota |
+|---|---|---|---|
+| POST · GET | `/api/v1/assessments/query` · `/assessments/:id` | `assessments.view` | Filtro `groupId`; OWN = grupos donde está inscrito |
+| POST · PATCH · DELETE | `/api/v1/assessments` · `/assessments/:id` | `assessments.manage` | Suma activa ≤ 100 (`409 WEIGHTS_EXCEED_100`); fuera de su ámbito → 403 |
+| POST | `/api/v1/assessments/:id/grades` | `grades.capture` | Lote (≤ 500) con upsert; `null` vacía la calificación |
+| POST | `/api/v1/grades/query` | `grades.view` | El alumno solo ve las suyas |
+| GET | `/api/v1/groups/:id/gradebook` | `grades.view` | Proyección de la final; el alumno ve solo su renglón |
+| POST | `/api/v1/groups/:id/close` | `assessments.manage` | Exige 100 % y todo capturado (`WEIGHTS_NOT_100`, `GRADES_INCOMPLETE`) |
+| GET | `/api/v1/grades/export?groupId=` | `grades.export` | Libro del grupo en `.xlsx` (audita `GRADES_EXPORTED`) |
+
+Decisiones tomadas (sección 12): el cierre es **manual** y definitivo en esta versión (no hay reapertura: tras cerrar, captura/instrumentos/inscripciones responden `409 GROUP_CLOSED`); la final se redondea con `ROUND_HALF_UP` a 2 decimales y se calcula en `Decimal` (nunca flotante); la ponderación se valida al crear/editar (no puede pasar de 100) y al cerrar (debe ser exactamente 100); el alumno ve sus calificaciones capturadas y la proyección antes del cierre. El umbral es `MIN_PASSING_GRADE` (M11, por defecto 70). Ver [D-029](../../../DECISIONES.md) y [D-030](../../../DECISIONES.md).
+
+Otros detalles: la bitácora distingue `GRADE_CAPTURED`, `GRADE_UPDATED` (con valor anterior y nuevo) y `GRADE_CLEARED`; recapturar el mismo valor no genera registro. Bajar `maxScore` por debajo de una calificación ya capturada responde `409 MAX_SCORE_BELOW_CAPTURED`. El kardex (M06) lee las inscripciones por el puerto `KardexService.setSource`: calificaciones en escala 0–100 por instrumento, final solo tras el cierre y sin los renglones de cambio de grupo.
 
 ## 1. Objetivo
 
@@ -241,13 +259,13 @@ y `newState` (`score` nuevo). El log se ata a la transacción del cambio.
 
 ## 11. Criterios de aceptación
 
-- [ ] Migración y modelo Prisma (`assessments`, `grades`, enum `AssessmentType`).
-- [ ] Módulo API (routes/controller/service/dto/entity) con permisos y bitácora.
-- [ ] Captura en lote y gradebook con proyección de calificación final.
-- [ ] Cierre de grupo escribiendo al kardex y al estatus de la inscripción.
-- [ ] Pantallas web con UI kit (ITPage, ITDataTable, ITFormBuilder, ITInputNumber, ITDatePicker).
-- [ ] Specs pasando (solo los del módulo).
-- [ ] Este README completo.
+- [x] Migración y modelo Prisma (`assessments`, `grades`, enum `AssessmentType`).
+- [x] Módulo API (routes/controller/service/dto/entity) con permisos y bitácora.
+- [x] Captura en lote y gradebook con proyección de calificación final.
+- [x] Cierre de grupo escribiendo al kardex y al estatus de la inscripción.
+- [x] Pantallas web con UI kit (ITPage, ITDataTable, ITFormBuilder, ITInputNumber, ITDatePicker).
+- [x] Specs pasando (solo los del módulo).
+- [x] Este README completo.
 
 ## 12. Decisiones abiertas
 

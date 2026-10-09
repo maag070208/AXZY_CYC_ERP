@@ -52,3 +52,9 @@ export {
   type RolePermissionFixtureRow,
 } from "./fixtures";
 export { SCOPES, type Scope, type PermissionDef, type RoleDef } from "./types";
+export {
+  registerAreaResolver,
+  scopeWhere,
+  type AreaResolver,
+  type ScopeFilterSpec,
+} from "./record-scope";

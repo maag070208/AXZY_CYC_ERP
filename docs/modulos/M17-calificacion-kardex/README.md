@@ -4,11 +4,26 @@
 |---|---|
 | **Código** | M17 |
 | **Versión** | 0.1 |
-| **Estado** | Planeado |
+| **Estado** | Terminado (F5) |
 | **Fase** | Calidad y examen en línea |
 | **Depende de** | M16 (Aplicación al alumno), M15 (Configuración de exámenes), M14 (Banco de reactivos), M08 (Exámenes y calificaciones), M07 (Cursos, grupos e inscripciones) |
 | **Habilita a** | M06 (Kardex y expediente), M10/M21 (reportes y tablero) |
 | **Permisos** | `attempts.view` (AREA), `attempts.review` (AREA) |
+
+## Implementación (F5, 2026-10-09)
+
+**Estado: terminado.** Código en `api/src/modules/exams` (`exam-rules.ts`, `attempt.service.ts`) y `web/src/features/exam/exam-results`; pestaña «Resultados» de `/exams/:id`.
+
+| Método | Ruta | Permiso | Nota |
+|---|---|---|---|
+| GET | `/api/v1/online-exams/:id/results` | `attempts.view` | KPIs (inscritos, presentaron, promedio, aprobados, por revisar) y renglón por alumno |
+| PATCH | `/api/v1/attempts/:id/review` | `attempts.review` | Puntos (0…valor) y comentario de una abierta |
+| POST | `/api/v1/attempts/:id/regrade` | `attempts.review` | Recalifica las cerradas y reescribe la calificación |
+
+Decisiones (sección 12):
+- Las cerradas se califican al cerrar el intento (todo o nada; en respuesta múltiple, conjunto exacto); las abiertas quedan pendientes.
+- El puntaje elegido por criterio se normaliza a la escala de la evaluación vinculada y se escribe en el libro de M08; el kardex lo recibe al cerrar el grupo. Ver [D-039](../../../DECISIONES.md).
+- Bitácora: cierre del intento (enviado/expirado), revisión, recalificación y la escritura de la calificación.
 
 ## 1. Objetivo
 

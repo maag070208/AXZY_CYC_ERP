@@ -1,0 +1,53 @@
+{
+  "assessments": {
+    "title": "Assessments",
+    "new": "New assessment",
+    "nombre": "Name",
+    "tipo": "Type",
+    "ponderacion": "Weight (%)",
+    "maxScore": "Maximum score",
+    "fecha": "Date",
+    "titleNew": "New assessment",
+    "titleEdit": "Edit assessment",
+    "created": "Assessment created",
+    "saved": "Assessment updated",
+    "deactivate": "Deactivate",
+    "deactivateTitle": "Deactivate {{name}}?",
+    "deactivateMessage": "Its scores are kept, but no longer count toward the final grade.",
+    "deactivated": "Assessment deactivated",
+    "weights": "Weights: {{total}}% of 100%",
+    "weightsOk": "Weights complete (100%)",
+    "empty": "No assessments yet",
+    "types": {
+      "PARCIAL": "Partial",
+      "FINAL": "Final",
+      "TAREA": "Homework",
+      "OTRO": "Other"
+    }
+  },
+  "gradebook": {
+    "title": "Gradebook",
+    "threshold": "Passing grade: {{value}}",
+    "final": "Final",
+    "result": "Result",
+    "projection": "Projection",
+    "save": "Save grades",
+    "saved": "{{count}} score(s) saved",
+    "nothingToSave": "There are no changes to save",
+    "export": "Export Excel",
+    "close": "Close group",
+    "closeTitle": "Close group {{name}}?",
+    "closeMessage": "Final grades will be written to the transcript along with each student's status. They cannot be changed afterwards.",
+    "closed": "Group closed: final grades sent to the transcript",
+    "closedBanner": "Group closed on {{date}}: grades can no longer be changed.",
+    "incomplete": "Scores are missing or weights do not add up to 100%",
+    "empty": "No students enrolled",
+    "noAssessments": "Add assessments to capture grades",
+    "outOfRange": "Between 0 and {{max}}",
+    "results": {
+      "ACREDITADO": "Passed",
+      "REPROBADO": "Failed"
+    },
+    "student": "Student"
+  }
+}

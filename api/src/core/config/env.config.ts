@@ -36,6 +36,11 @@ export const env = {
 
   UPLOAD_MAX_BYTES: parseInt(process.env.UPLOAD_MAX_BYTES ?? "52428800", 10),
 
+  // Almacenamiento privado: "s3" | "local" | vacío (S3 si hay credenciales;
+  // si no, disco local fuera de producción). Ver core/services/storage.ts.
+  STORAGE_DRIVER: process.env.STORAGE_DRIVER as "s3" | "local" | undefined,
+  STORAGE_LOCAL_DIR: process.env.STORAGE_LOCAL_DIR ?? "storage/private",
+
   // Almacenamiento S3 (opcional).
   AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID,
   AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY,

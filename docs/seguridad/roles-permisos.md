@@ -49,8 +49,9 @@ Los roles `system` están protegidos de borrado/renombrado.
 | `roles` | `roles.manage` (consola de acceso: roles, matriz, políticas, catálogo) |
 | `audit` | `audit.view` |
 | `config` | `config.view`, `config.manage` |
+| `levels` | `levels.view`, `levels.manage` (catálogo M11) |
 | `students` | `students.view`, `students.create`, `students.edit`, `students.delete`, `students.export` |
-| `students` | `students.movements` (bajas/reingresos) |
+| `students` | `students.movements` (bajas/reingresos; ALL u OWN) |
 | `teachers` | `teachers.view`, `teachers.create`, `teachers.edit` |
 | `documents` | `documents.view`, `documents.upload`, `documents.validate`, `documents.delete` |
 | `kardex` | `kardex.view`, `kardex.export` |
@@ -84,14 +85,25 @@ Los roles `system` están protegidos de borrado/renombrado.
 | movements | CRUD | CRUD | · | R (OWN) |
 | documents | CRUD + validate | CRUD + validate | R (AREA) | R (OWN) |
 | kardex | R X | R X | R (AREA) | R (OWN) |
-| courses / terms | CRUD | R | R | · |
+| courses / terms | CRUD | R | R (cursos AREA; ciclos ALL) | · |
 | groups | CRUD | CRUD | R (AREA) | R (OWN) |
 | enrollments | CRUD | CRUD | R (AREA) | R (OWN) |
-| assessments / grades | CRUD | R | CRUD (AREA) | R (OWN) |
-| fees / charges / payments | CRUD | CRUD | · | R (OWN) |
-| reports | R X | R X | R (AREA) X | · |
-| questions / exams | CRUD | R | CRUD (AREA) | · |
-| attempts | R | R | R (AREA) + review | take (OWN) |
+| assessments / grades | CRUD + cierre | R X | CRUD + captura + cierre (AREA) X | R (OWN) |
+
+> **AREA académico (F3):** el ámbito del profesor son **sus grupos** (`groups.teacher_id`
+> → `teachers.user_id`), registrado por M07 como resolvedor `groups`; los alumnos con
+> inscripción vigente en esos grupos forman el `AREA` de `students` (expediente y kardex).
+> Fuera de su ámbito, las lecturas responden 404 y las escrituras 403. Ver D-028.
+| fees / charges / payments | CRUD | CRUD | · | R (OWN: estado de cuenta) |
+| reports | R X | R X | R (AREA, sin montos) X | · |
+| questions / exams | CRUD + importar + publicar | R | CRUD + importar + publicar (AREA) | exams R (OWN: publicados de sus grupos) |
+| attempts | R + review | R | R + review (AREA) | take + R (OWN) |
+
+> **Examen en línea (F5):** el AREA del profesor sobre reactivos son los cursos de sus
+> grupos; sobre exámenes e intentos, sus grupos. `attempts.take` existe solo con alcance
+> `OWN` (ADMIN no lo tiene: no es alumno). El alumno solo ve exámenes publicados de grupos
+> con inscripción vigente y solo sus intentos; las respuestas correctas se le muestran solo
+> al terminar y si el examen lo permite. Ver D-036…D-041.
 | attendance | CRUD | R | CRUD (AREA) | R (OWN) |
 | notifications | CRUD | R | · | · |
 | migration | execute | · | · | · |
@@ -99,13 +111,41 @@ Los roles `system` están protegidos de borrado/renombrado.
 ## 6. Políticas ABAC (contexto)
 
 Reglas que actúan **después** de que el RBAC autorizó. Se administran en la
-consola `/roles` → Políticas. Ejemplo: prohibir que quien creó una orden de pago
-la apruebe (separación de funciones), o limitar pagos grandes a ADMIN.
+consola `/roles` → Políticas (`/permissions/policies`). Ejemplo: prohibir que
+quien creó una orden de pago la apruebe (separación de funciones), o impedir que
+se dé de baja a una cuenta ADMIN. Ver [D-018](../../DECISIONES.md).
 
-- Acciones registradas en `core/policies/actions.ts` (frontera de seguridad) con
-  sus campos permitidos.
-- **Primera regla que casa por prioridad decide**; sin coincidencia → se permite.
-- Efectos `ALLOW`/`DENY`; condiciones `campo operador valor` (con `@user.id`).
+- **Frontera de seguridad:** solo hay políticas para las acciones registradas en
+  `api/src/core/policies/actions.ts`, y sus condiciones solo leen los campos que
+  cada acción declara (`POLICY_ACTION_UNKNOWN` / `POLICY_FIELD_UNKNOWN`).
+- **Evaluación:** se toman las políticas activas de la acción cuyo rol aplica al
+  actor (sin roles = todos), en orden de `priority` **ascendente** (empate por
+  `key`); la **primera** cuyas condiciones se cumplen **todas** decide con su
+  efecto (`ALLOW`/`DENY`). Sin coincidencia → se permite.
+- **Condiciones:** `campo operador valor`. Operadores `eq`, `neq`, `in`,
+  `not_in`, `contains`, `not_contains`, `gt`, `gte`, `lt`, `lte`, `exists`. Un
+  arreglo "está en" una lista si alguno de sus elementos lo está. `valor` es
+  JSON y admite `"@user.id"`, `"@user.username"` y `"@user.roles"`.
+- **Denegación:** `403 POLICY_DENIED` y `ACCESS_DENIED` en bitácora con la clave
+  de la política.
+
+| Acción | Campos | Dónde se aplica |
+|---|---|---|
+| `users.create` | `roles` | Alta de cuenta |
+| `users.update` | `target.id`, `target.roles`, `roles` | Edición de cuenta |
+| `users.deactivate` | `target.id`, `target.roles` | Baja lógica |
+| `users.reset_password` | `target.id`, `target.roles` | Contraseña temporal |
+| `users.permissions.set` | `target.id`, `target.roles`, `roles`, `permission`, `scope` | Roles/excepciones por persona |
+| `roles.matrix.update` | `roleKey`, `permissionKey`, `scope` | Cada celda de la matriz |
+| `settings.update` | `key` | Cada parámetro general (M11) |
+
+Los módulos siguientes registran sus acciones (p. ej. `payments.approve` con
+`amount` y `createdById` en M09).
+
+> **Políticas ABAC de cobranza (F4):** `charges.create` expone `monto`, `descuento`,
+> `porcentajeDescuento`, `conceptTipo` y `masivo` (p. ej. «nadie descuenta más del 50 %»);
+> `payments.cancel` expone `monto`, `metodo` y `diasDesdeRegistro` (p. ej. «solo ADMIN
+> cancela pagos de más de 3 días»). `payments.cancel` es un permiso sensible.
 
 ## 7. Implementación
 

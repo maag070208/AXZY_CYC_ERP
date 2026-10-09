@@ -135,6 +135,140 @@ Plantilla:
 - **Estado:** aceptada
 - **Decisión:** El contenedor de la API arranca con `prisma migrate deploy && node dist/src/index.js`. El seed **no** corre al arrancar; solo insert-missing de catálogos/permisos/políticas y auditorías de solo lectura. El seed manual se corre en base vacía o con `cutover`.
 
+### D-018 — Políticas ABAC: acciones registradas, primera que casa decide
+- **Fecha:** 2026-10-09
+- **Estado:** aceptada
+- **Contexto:** La spec pide políticas ABAC "después del RBAC" sin fijar su semántica.
+- **Decisión:** Tablas `policies`/`policy_conditions`/`policy_roles`. Solo hay políticas para acciones registradas en `core/policies/actions.ts` (frontera de seguridad: cada acción declara los campos que una condición puede leer). Orden por `priority` ascendente (empate por `key`); la primera cuyas condiciones se cumplen todas decide; sin coincidencia se permite. Valores con referencias `@user.id|username|roles`. Denegar = `403 POLICY_DENIED` + `ACCESS_DENIED` en bitácora. Las políticas se cachean junto con catálogo y matriz y se recargan tras cada escritura.
+- **Alternativas consideradas:** DSL libre de expresiones (más potente, imposible de validar); "DENY gana siempre" (impide excepciones ALLOW por prioridad).
+- **Consecuencias / impacto:** Cada módulo nuevo registra sus acciones y llama `enforcePolicy` en el servicio. Ver [`docs/seguridad/roles-permisos.md`](docs/seguridad/roles-permisos.md) §6.
+
+### D-019 — Cuentas: contraseña temporal, cambio obligatorio y reactivación
+- **Fecha:** 2026-10-09
+- **Estado:** aceptada
+- **Decisión:** Toda cuenta creada por un administrador nace con `mustChangePassword`; la web no deja navegar fuera de `/change-password` hasta cambiarla (`POST /auth/change-password`, que revoca sesiones y emite tokens nuevos). El administrador puede asignar una contraseña temporal (`POST /users/:id/reset-password`, `users.edit`), desbloquear (`/unlock`, `users.edit`) y reactivar (`/reactivate`, `users.delete`, el mismo permiso que la baja). Nadie cambia sus propios roles tampoco por `PATCH /users/:id`.
+- **Consecuencias / impacto:** Bitácora `USER_PASSWORD_RESET`, `USER_UNLOCKED`, `USER_REACTIVATED`, `PASSWORD_CHANGED` (nunca la contraseña).
+
+### D-020 — Enlace de recuperación bajo HashRouter
+- **Fecha:** 2026-10-09
+- **Estado:** aceptada
+- **Decisión:** El correo de recuperación apunta a `${APP_URL}/#/reset-password?token=…` porque la web usa `HashRouter` (nginx sirve un solo `index.html`).
+
+### D-021 — M11: `settings` clave/valor validado por clave; ciclos en M11
+- **Fecha:** 2026-10-09
+- **Estado:** aceptada
+- **Contexto:** Decisiones abiertas del README de M11 (forma de `settings`, dueño de `terms`).
+- **Decisión:** `settings` es clave/valor `jsonb`; las claves las siembra la migración y la API solo actualiza `value`, validado con un esquema zod por clave (`SETTING_SCHEMAS`). `PUT /settings` es todo o nada y audita `SYS_CONFIG_UPDATED` por clave con antes/después (secretos enmascarados). `LANGUAGE` alimenta el idioma del sistema. El modelo `Term` se crea en M11 (campos de la spec) y M07 le agrega sus relaciones; "un solo ciclo activo" se garantiza con transacción + índice único parcial `terms_single_active`. Catálogos con campos de la spec en español (`nombre`, `orden`, `obligatorio`) y `nombre` único.
+- **Alternativas consideradas:** fila única tipada para `settings` (rompe con cada parámetro nuevo); `terms` hasta M07 (bloquea catálogos de F1).
+- **Consecuencias / impacto:** El índice parcial no lo modela Prisma: si un `migrate dev` futuro propone borrarlo, conservarlo a mano. Motivos de baja y tipos de documento se leen con `config.view` (o `students.movements` / `documents.view` cuando existan) y se escriben con `config.manage`; niveles y ciclos usan `levels.*` / `terms.*`.
+
+### D-022 — Pruebas E2E: la API provee los escenarios de la suite web
+- **Fecha:** 2026-10-09
+- **Estado:** aceptada
+- **Decisión:** `api/` es dueño de la base: expone `test:e2e:provision` (usuarios fijos por rol), `test:e2e:clean` (borra todo lo `e2e_`/`E2E`) y `test:e2e:reset-token` (token de recuperación conocido). La suite web los invoca en `globalSetup`/`globalTeardown` y en los specs; nunca toca la base directo. CI corre ambas suites contra Postgres de servicio.
+
+### D-023 — Almacenamiento privado: S3 o disco local (resuelve A-004 de forma provisional)
+- **Fecha:** 2026-10-09
+- **Estado:** aceptada
+- **Contexto:** A-004 (¿S3 o local?) seguía abierta y M06 necesita guardar expedientes ya.
+- **Decisión:** Un solo puerto (`core/services/storage.ts`) con dos drivers: `s3` (si hay credenciales) y `local` (directorio privado `STORAGE_LOCAL_DIR`, rutas confinadas). Sin variable, S3 si existe; si no, local fuera de producción. En producción sin ninguno → `503 STORAGE_NOT_CONFIGURED`. `docker-compose` usa `local` con volumen `apistorage`. Nunca hay URLs públicas: los archivos salen por endpoints con permiso y alcance.
+- **Consecuencias / impacto:** Cambiar a S3 es configurar variables; los respaldos deben incluir el volumen cuando el driver es local (M12).
+
+### D-024 — Tipo de documento como catálogo y kardex PDF en el navegador
+- **Fecha:** 2026-10-09
+- **Estado:** aceptada
+- **Decisión:** `documents.documentTypeId` es FK a `document_types` (M11), no un enum fijo: los faltantes salen de `obligatorio` y el catálogo es administrable. El kardex se calcula al vuelo (nunca se persiste) y su PDF se arma en la web con `@react-pdf/renderer`, cargado bajo demanda y protegido por `kardex.export`; no hay endpoint `/kardex/pdf`.
+- **Consecuencias / impacto:** Si se requiere un PDF firmado/sellado por el servidor, se agrega el endpoint reutilizando `KardexService`.
+
+### D-025 — Invitación del profesor sin outbox (hasta M19)
+- **Fecha:** 2026-10-09
+- **Estado:** aceptada
+- **Decisión:** El alta del profesor crea profesor + cuenta PROFESOR + token de invitación (restablecimiento de un uso, 72 h) en una transacción; el correo sale después del commit y no bloquea. M19 reemplazará el envío directo por el outbox con reintentos. El username se deriva del correo (numerado si choca).
+
+### D-026 — Bajas: siempre con movimiento; alcance AREA por resolvedor
+- **Fecha:** 2026-10-09
+- **Estado:** aceptada
+- **Decisión:** `DELETE /students/:id` (M03) registra el mismo movimiento de baja con motivo que `POST /students/:id/baja` (M05): no hay baja sin historial. Motivo mínimo 3 caracteres (el catálogo incluye «Otro»). El alcance `AREA` se resuelve con `registerAreaResolver` que implementará M07 (grupos del profesor); sin resolvedor se comporta como `OWN` (fail-closed). La cancelación de inscripciones y la fuente académica del kardex son puertos que M07/M08 conectan.
+
+### D-027 — Inscripción serializable con reintento; sin Idempotency-Key
+- **Fecha:** 2026-10-09
+- **Estado:** aceptada
+- **Contexto:** M07 pide que dos inscripciones simultáneas al último lugar no pasen ambas y sugiere `Idempotency-Key`.
+- **Decisión:** Las reglas que leen y luego escriben (cupo, duplicado, empalme) corren en `serializable()` (`core/db/serializable.ts`): transacción `Serializable` con hasta 4 intentos y espera aleatoria; agotados → `409 CONCURRENT_UPDATE`. Además, índice único parcial `(student_id, group_id) WHERE status <> 'BAJA'` (una carrera contra él también responde `ALREADY_ENROLLED`). No se implementa `Idempotency-Key`: el índice ya hace idempotente la operación.
+- **Consecuencias / impacto:** M09 (cargos por inscripción) debe engancharse dentro de la misma transacción o por evento posterior al commit.
+
+### D-028 — Alcance académico: resolvedor `groups` y AREA de `students`
+- **Fecha:** 2026-10-09
+- **Estado:** aceptada
+- **Decisión:** M07 registra el resolvedor `groups` (grupos donde `teacher.userId` = la persona) y lo usan grupos, inscripciones, instrumentos y calificaciones (`byIds` sobre `groupId`). También registra el `AREA` de `students` (alumnos con inscripción vigente en sus grupos), que limita expediente y kardex del profesor. `OWN` del alumno = sus inscripciones vigentes. En escrituras fuera de ámbito se responde `403` (M08 §4.7); en lecturas, `404`.
+- **Consecuencias / impacto:** Un profesor con excepción `ALL` ve todo; quitarle un grupo le retira el acceso a esos alumnos de inmediato.
+
+### D-029 — Calificaciones en Decimal con ROUND_HALF_UP; cierre manual sin reapertura
+- **Fecha:** 2026-10-09
+- **Estado:** aceptada (resuelve A-002 parcialmente)
+- **Decisión:** Ponderaciones, máximos y calificaciones son `Decimal(…, 2)`; la final `Σ (score/max)·ponderación` se calcula con `Prisma.Decimal` y se redondea `ROUND_HALF_UP` a 2 decimales. El umbral es `MIN_PASSING_GRADE` (M11, global; `>=` acredita). El cierre es manual, exige ponderaciones al 100 % y todo capturado, escribe `finalGrade` y `ACREDITADO/REPROBADO` en la inscripción y bloquea el grupo (`409 GROUP_CLOSED`). No hay reapertura en esta versión.
+- **Consecuencias / impacto:** Un umbral por nivel/ciclo o la reapertura autorizada (con bitácora) quedan como extensión de M08/M17.
+
+### D-030 — El kardex lee inscripciones; cambio de grupo no duplica renglones
+- **Fecha:** 2026-10-09
+- **Estado:** aceptada
+- **Decisión:** La fuente académica del kardex (M06) es `GradeService.kardexSource`: un renglón por inscripción (las dadas de baja por cambio de grupo, con `transferredToId`, se omiten), calificaciones normalizadas a 0–100 por instrumento y final solo tras el cierre. `INSCRITO` se muestra como `EN_CURSO`.
+
+### D-031 — Folio de recibo consecutivo por año
+- **Fecha:** 2026-10-09
+- **Estado:** aceptada
+- **Decisión:** `REC-AAAA-NNNNNN` con una fila por año en `receipt_sequences`, incrementada dentro de la transacción serializable del pago (la fila queda bloqueada hasta el commit). Reinicia cada año; un pago cancelado conserva su folio y nunca se reutiliza.
+- **Consecuencias / impacto:** Si la escuela requiere series por plantel o caja, se agrega la serie a la llave de la secuencia.
+
+### D-032 — Idempotencia: registro de respuestas + claves en pagos
+- **Fecha:** 2026-10-09
+- **Estado:** aceptada
+- **Decisión:** `Idempotency-Key` (`^[A-Za-z0-9_-]{8,100}$`) en `POST /charges/generate` se guarda en `idempotency_records` con la respuesta, dentro de la misma transacción; repetirla devuelve la misma respuesta (200, `Idempotent-Replayed: true`) y usarla otra persona u operación → `409 IDEMPOTENCY_KEY_REUSED`. En pagos la clave vive en `payments.idempotency_key` (única). Sin clave, la generación tampoco duplica: omite al alumno que ya tiene un cargo vigente del mismo concepto, ciclo y vencimiento. La web genera una clave por apertura de diálogo.
+
+### D-033 — Recargos por mora a demanda (resuelve A-003)
+- **Fecha:** 2026-10-09
+- **Estado:** aceptada
+- **Decisión:** Con `LATE_FEE.enabled`, `POST /charges/late-fees` crea un cargo RECARGO por cada cargo vencido con saldo: `saldo × dailyRate × (díasVencidos − graceDays)`, redondeado a centavos (Decimal). Uno por cargo (`parent_charge_id` único); se recalcula mientras no tenga pagos. Se ejecuta a demanda desde Cobranza; un job programado queda para M19.
+
+### D-034 — Reportes: archivos en la API; montos solo con alcance ALL
+- **Fecha:** 2026-10-09
+- **Estado:** aceptada
+- **Decisión:** XLSX (xlsx) y PDF tabular (pdfkit) se generan en la API a partir del mismo resultado JSON y se auditan (`REPORT_EXPORTED`). Los documentos con diseño de la escuela (kardex, estado de cuenta, recibo) siguen en la web con `@react-pdf` (D-024). `payments-period` y `debts` exigen `reports.view` en ALL. `attendance-list` espera a M18.
+
+### D-035 — Tablero en vivo en Inicio
+- **Fecha:** 2026-10-09
+- **Estado:** aceptada
+- **Decisión:** `GET /dashboard` calcula en cada consulta (sin caché) alumnos activos/baja, ocupación de grupos del ciclo activo y, con alcance ALL, ingresos del mes, adeudo total/vencido e ingresos de 6 meses. Inicio muestra el tablero a quien tiene `reports.view`. Gráficas en HTML/CSS sin dependencia.
+
+### D-036 — Tiempo del examen controlado por el servidor
+- **Fecha:** 2026-10-09
+- **Estado:** aceptada
+- **Decisión:** al iniciar un intento se fija `endsAt = min(inicio + duración, cierre del examen)`. Cada respuesta de la API trae `remainingSeconds` y el cliente solo cuenta hacia esa hora límite. Un barrido cada 60 s (y cualquier lectura o guardado del intento) cierra como `EXPIRADO` y califica lo vencido; guardar después de la hora límite responde `409 ATTEMPT_CLOSED`. Un solo intento `EN_CURSO` por alumno y examen (índice único parcial); iniciar con uno abierto lo reanuda.
+
+### D-037 — Cambios de pestaña: se registran, no se bloquean (resuelve A-005)
+- **Fecha:** 2026-10-09
+- **Estado:** aceptada
+- **Decisión:** el navegador reporta `TAB_BLUR`/`TAB_FOCUS`; la API guarda los eventos (últimos 200) y cuenta `focusLosses`, que el profesor ve en resultados y en la revisión. No se invalida el intento ni se bloquea copiar/pegar: es evidencia para el profesor, no una sanción automática.
+
+### D-038 — Reactivos y exámenes se congelan al usarse
+- **Fecha:** 2026-10-09
+- **Estado:** aceptada
+- **Decisión:** un reactivo respondido en algún intento ya no se edita (`409 QUESTION_IN_USE`), solo se desactiva. Con el primer intento, el examen fija preguntas, puntos y reglas (`409 EXAM_PUBLISHED_LOCKED`); solo cambian instrucciones, fecha de cierre y si se muestra el resultado. Cada intento guarda su orden de preguntas y opciones (`layout`), así barajar no altera intentos ya iniciados.
+
+### D-039 — La calificación del examen va al libro de M08 (no directo al kardex)
+- **Fecha:** 2026-10-09
+- **Estado:** aceptada
+- **Decisión:** el examen se vincula, opcionalmente y 1:1, a una evaluación activa del mismo grupo. Al cerrar un intento sin preguntas pendientes, el puntaje elegido (criterio `MEJOR` o `ULTIMO`) se normaliza a la escala de la evaluación (`puntaje / total × maxScore`, ROUND_HALF_UP) y se escribe como su `Grade`. Si hay abiertas por revisar se espera a la revisión; si el grupo ya cerró calificaciones no se toca nada. El kardex recibe la final al cerrar el grupo (D-029/D-030).
+
+### D-040 — Portal del alumno para exámenes en línea (resuelve A-007 para M16)
+- **Fecha:** 2026-10-09
+- **Estado:** aceptada
+- **Decisión:** las cuentas `ALUMNO` vinculadas a un expediente (`students.user_id`) entran a «Mis exámenes» (`attempts.take` OWN) y solo ven exámenes publicados de grupos con inscripción vigente. Sin expediente vinculado responde `403 STUDENT_PROFILE_REQUIRED`. La pantalla «Exámenes en línea» es para quien gestiona (`exams.manage`) o revisa (`attempts.review`); control escolar consulta el resultado en el libro y el kardex.
+
+### D-041 — Importación de reactivos por CSV en dos pasos
+- **Fecha:** 2026-10-09
+- **Estado:** aceptada
+- **Decisión:** `POST /questions/import?preview=true` valida sin guardar y devuelve filas válidas, rechazadas (fila, código, mensaje) y una muestra; aplicar exige `Idempotency-Key` (repetirla no duplica). Columnas `curso,tema,tipo,enunciado,puntos,dificultad,opciones,correctas` con `,` o `;`; opciones separadas por `|` y correctas por posición (1-based). En V/F sin opciones se usan «Verdadero|Falso». Máximo 1 MB.
 ---
 
 ## Mapeo desde la especificación original
@@ -156,19 +290,19 @@ Plantilla:
 | ID | Tema | Módulo | Pregunta | Estado |
 |---|---|---|---|---|
 | A-001 | Proveedor SMS/WhatsApp | M19 | ¿Twilio u otro? Ably ya se usa para tiempo real. | abierta |
-| A-002 | Regla de aprobación | M08 | ¿Umbral 70 configurable por nivel/ciclo? | abierta |
-| A-003 | Recargos por mora | M09 | ¿Se aplican? ¿Fórmula y periodicidad? | abierta |
-| A-004 | Almacenamiento de archivos | M06 | ¿S3 (estándar PTNV) o local? | abierta |
-| A-005 | Anti-fraude en examen | M16 | ¿Registrar cambios de pestaña? ¿Bloquear copiar/pegar? | abierta |
+| A-002 | Regla de aprobación | M08 | ¿Umbral 70 configurable por nivel/ciclo? | parcial: global en M11 ([D-029](#d-029--calificaciones-en-decimal-con-round_half_up-cierre-manual-sin-reapertura)) |
+| A-003 | Recargos por mora | M09 | ¿Se aplican? ¿Fórmula y periodicidad? | resuelta ([D-033](#d-033--recargos-por-mora-a-demanda-resuelve-a-003)) |
+| A-004 | Almacenamiento de archivos | M06 | ¿S3 (estándar PTNV) o local? | provisional: ambos ([D-023](#d-023--almacenamiento-privado-s3-o-disco-local-resuelve-a-004-de-forma-provisional)) |
+| A-005 | Anti-fraude en examen | M16 | ¿Registrar cambios de pestaña? ¿Bloquear copiar/pegar? | resuelta ([D-037](#d-037--cambios-de-pestaña-se-registran-no-se-bloquean-resuelve-a-005)) |
 | A-006 | Alerta de inasistencia | M18 | ¿Umbral por defecto (80%) configurable? | abierta |
-| A-007 | Acceso de alumnos | M02/M16 | ¿Los alumnos entran al portal o solo presencial? | abierta |
+| A-007 | Acceso de alumnos | M02/M16 | ¿Los alumnos entran al portal o solo presencial? | parcial: portal para exámenes en línea ([D-040](#d-040--portal-del-alumno-para-exámenes-en-línea-resuelve-a-007-para-m16)) |
 | A-008 | Notificaciones en tiempo real | M10/M19 | ¿Ably (estándar PTNV) para el tablero? | abierta |
 
 ---
 
 ## Cómo registrar una nueva decisión
 
-1. Elige el siguiente `D-###` libre (hoy: `D-018`).
+1. Elige el siguiente `D-###` libre (hoy: `D-042`).
 2. Copia la plantilla de arriba y llénala.
 3. Enlaza al documento/módulo afectado.
 4. Si reemplaza a otra, actualiza el estado de la anterior.

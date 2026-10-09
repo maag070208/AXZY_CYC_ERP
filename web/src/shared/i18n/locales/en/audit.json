@@ -1,0 +1,19 @@
+{
+  "title": "Audit log",
+  "description": "Every write and every denied access is recorded.",
+  "table": {
+    "date": "Date",
+    "action": "Action",
+    "entity": "Entity",
+    "entityId": "Id",
+    "user": "User",
+    "system": "System"
+  },
+  "detail": {
+    "title": "Record detail",
+    "previous": "Previous state",
+    "next": "New state",
+    "metadata": "Metadata",
+    "empty": "(empty)"
+  }
+}

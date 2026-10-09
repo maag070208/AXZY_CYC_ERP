@@ -10,10 +10,6 @@ import { usersApi } from "@entities/user";
 export const useUsersTable = () => {
   const [total, setTotal] = useState(0);
   const [reloadKey, setReloadKey] = useState(0);
-  const [toast, setToast] = useState<{
-    message: string;
-    type: "error" | "success";
-  } | null>(null);
 
   const fetchTableData = useCallback(async (params: ITDataTableFetchParams) => {
     const res = await usersApi.table({
@@ -29,14 +25,9 @@ export const useUsersTable = () => {
     };
   }, []);
 
-  return {
-    total,
-    reloadKey,
-    toast,
-    setToast,
-    fetchTableData,
-    reload: () => setReloadKey((k) => k + 1),
-  };
+  const reload = useCallback(() => setReloadKey((k) => k + 1), []);
+
+  return { total, reloadKey, fetchTableData, reload };
 };
 
 export type UseUsersTable = ReturnType<typeof useUsersTable>;

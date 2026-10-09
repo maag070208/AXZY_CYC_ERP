@@ -3,12 +3,26 @@
 | Campo | Valor |
 |---|---|
 | **Código** | M04 |
-| **Versión** | 0.1 |
-| **Estado** | Planeado |
+| **Versión** | 1.0 |
+| **Estado** | Terminado (F2, 2026-10-09) |
 | **Fase** | Personas |
 | **Depende de** | M02 (usuarios, roles y bitácora), M19 (correo/outbox para la invitación) |
 | **Habilita a** | M07 (asignación de grupos), M08 (captura de calificaciones), M18 (asistencia) |
 | **Permisos** | `teachers.view`, `teachers.create`, `teachers.edit` |
+
+## Implementación (F2, 2026-10-09)
+
+**Estado: terminado.** Código en `api/src/modules/teachers` y `web/src/{entities,features}/teacher`, página `/teachers`.
+
+| Método | Ruta | Permiso | Nota |
+|---|---|---|---|
+| POST | `/api/v1/teachers/query` | `teachers.view` | OWN = su propio perfil |
+| POST | `/api/v1/teachers` | `teachers.create` | Profesor + `User` PROFESOR + invitación (72 h) en una transacción |
+| GET · PATCH | `/api/v1/teachers/:id` | `teachers.view` · `teachers.edit` | La edición sincroniza nombre/correo/teléfono de la cuenta |
+| POST | `/api/v1/teachers/:id/deactivate` · `/reactivate` | `teachers.edit` (ALL) | Desactiva/reactiva también la cuenta y cierra sesiones |
+| POST | `/api/v1/teachers/:id/resend-invitation` | `teachers.edit` | Invalida la anterior; 409 si ya definió contraseña |
+
+Diferencias con el borrador: el correo duplicado responde `409 TEACHER_EMAIL_TAKEN` (también si es el correo de otra cuenta); la invitación es un token de restablecimiento de un uso y se envía tras el commit (sin outbox hasta M19). Ver [D-025](../../../DECISIONES.md).
 
 ## 1. Objetivo
 
@@ -182,12 +196,12 @@ se registran contraseñas ni tokens de invitación. Ver
 
 ## 11. Criterios de aceptación
 
-- [ ] Migración y modelo Prisma (`teachers`) con índices y únicos.
-- [ ] Módulo API `teachers` (routes/controller/service/dto/entity) con permisos,
+- [x] Migración y modelo Prisma (`teachers`) con índices y únicos.
+- [x] Módulo API `teachers` (routes/controller/service/dto/entity) con permisos,
       transacción (profesor + usuario + invitación) y bitácora.
-- [ ] Pantallas web (listado, alta, edición) con UI kit e i18n `teachers`.
-- [ ] Specs del módulo pasando.
-- [ ] Este README completo.
+- [x] Pantallas web (listado, alta, edición) con UI kit e i18n `teachers`.
+- [x] Specs del módulo pasando.
+- [x] Este README completo.
 
 ## 12. Decisiones abiertas
 

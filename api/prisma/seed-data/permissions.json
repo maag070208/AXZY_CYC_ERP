@@ -79,5 +79,509 @@
     "sensitive": true,
     "active": true,
     "sortOrder": 2
+  },
+  {
+    "key": "levels.view",
+    "module": "Catálogos",
+    "name": "Ver niveles educativos",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 1
+  },
+  {
+    "key": "levels.manage",
+    "module": "Catálogos",
+    "name": "Administrar niveles educativos",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 2
+  },
+  {
+    "key": "terms.view",
+    "module": "Catálogos",
+    "name": "Ver ciclos escolares",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 3
+  },
+  {
+    "key": "terms.manage",
+    "module": "Catálogos",
+    "name": "Administrar ciclos escolares",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 4
+  },
+  {
+    "key": "students.view",
+    "module": "Alumnos",
+    "name": "Ver alumnos",
+    "scopes": ["NONE", "OWN", "AREA", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 1
+  },
+  {
+    "key": "students.create",
+    "module": "Alumnos",
+    "name": "Dar de alta alumnos",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 2
+  },
+  {
+    "key": "students.edit",
+    "module": "Alumnos",
+    "name": "Editar alumnos",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 3
+  },
+  {
+    "key": "students.delete",
+    "module": "Alumnos",
+    "name": "Dar de baja alumnos",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 4
+  },
+  {
+    "key": "students.export",
+    "module": "Alumnos",
+    "name": "Exportar alumnos",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 5
+  },
+  {
+    "key": "students.movements",
+    "module": "Alumnos",
+    "name": "Bajas, reingresos e historial",
+    "scopes": ["NONE", "OWN", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 6
+  },
+  {
+    "key": "teachers.view",
+    "module": "Profesores",
+    "name": "Ver profesores",
+    "scopes": ["NONE", "OWN", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 1
+  },
+  {
+    "key": "teachers.create",
+    "module": "Profesores",
+    "name": "Dar de alta profesores",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 2
+  },
+  {
+    "key": "teachers.edit",
+    "module": "Profesores",
+    "name": "Editar profesores",
+    "scopes": ["NONE", "OWN", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 3
+  },
+  {
+    "key": "documents.view",
+    "module": "Expediente",
+    "name": "Ver expediente documental",
+    "scopes": ["NONE", "OWN", "AREA", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 1
+  },
+  {
+    "key": "documents.upload",
+    "module": "Expediente",
+    "name": "Subir documentos",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 2
+  },
+  {
+    "key": "documents.validate",
+    "module": "Expediente",
+    "name": "Validar o rechazar documentos",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 3
+  },
+  {
+    "key": "documents.delete",
+    "module": "Expediente",
+    "name": "Eliminar documentos",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 4
+  },
+  {
+    "key": "kardex.view",
+    "module": "Kardex",
+    "name": "Ver kardex",
+    "scopes": ["NONE", "OWN", "AREA", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 1
+  },
+  {
+    "key": "kardex.export",
+    "module": "Kardex",
+    "name": "Exportar kardex",
+    "scopes": ["NONE", "OWN", "AREA", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 2
+  },
+  {
+    "key": "courses.view",
+    "module": "Cursos",
+    "name": "Ver cursos",
+    "scopes": ["NONE", "AREA", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 1
+  },
+  {
+    "key": "courses.manage",
+    "module": "Cursos",
+    "name": "Administrar cursos",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 2
+  },
+  {
+    "key": "groups.view",
+    "module": "Grupos",
+    "name": "Ver grupos",
+    "scopes": ["NONE", "OWN", "AREA", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 1
+  },
+  {
+    "key": "groups.manage",
+    "module": "Grupos",
+    "name": "Administrar grupos",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 2
+  },
+  {
+    "key": "enrollments.view",
+    "module": "Inscripciones",
+    "name": "Ver inscripciones",
+    "scopes": ["NONE", "OWN", "AREA", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 1
+  },
+  {
+    "key": "enrollments.create",
+    "module": "Inscripciones",
+    "name": "Inscribir alumnos",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 2
+  },
+  {
+    "key": "enrollments.edit",
+    "module": "Inscripciones",
+    "name": "Cambiar de grupo",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 3
+  },
+  {
+    "key": "enrollments.delete",
+    "module": "Inscripciones",
+    "name": "Dar de baja inscripciones",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 4
+  },
+  {
+    "key": "assessments.view",
+    "module": "Calificaciones",
+    "name": "Ver instrumentos de evaluación",
+    "scopes": ["NONE", "OWN", "AREA", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 1
+  },
+  {
+    "key": "assessments.manage",
+    "module": "Calificaciones",
+    "name": "Administrar instrumentos y cerrar grupos",
+    "scopes": ["NONE", "AREA", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 2
+  },
+  {
+    "key": "grades.view",
+    "module": "Calificaciones",
+    "name": "Ver calificaciones",
+    "scopes": ["NONE", "OWN", "AREA", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 3
+  },
+  {
+    "key": "grades.capture",
+    "module": "Calificaciones",
+    "name": "Capturar calificaciones",
+    "scopes": ["NONE", "AREA", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 4
+  },
+  {
+    "key": "grades.export",
+    "module": "Calificaciones",
+    "name": "Exportar calificaciones",
+    "scopes": ["NONE", "AREA", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 5
+  },
+  {
+    "key": "fee_concepts.manage",
+    "module": "Cobranza",
+    "name": "Administrar conceptos de cobro",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 1
+  },
+  {
+    "key": "charges.view",
+    "module": "Cobranza",
+    "name": "Ver cargos, pagos y estados de cuenta",
+    "scopes": ["NONE", "OWN", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 2
+  },
+  {
+    "key": "charges.create",
+    "module": "Cobranza",
+    "name": "Crear cargos individuales",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 3
+  },
+  {
+    "key": "charges.generate",
+    "module": "Cobranza",
+    "name": "Generar cargos masivos y recargos",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 4
+  },
+  {
+    "key": "charges.cancel",
+    "module": "Cobranza",
+    "name": "Cancelar cargos",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 5
+  },
+  {
+    "key": "payments.register",
+    "module": "Cobranza",
+    "name": "Registrar pagos",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 6
+  },
+  {
+    "key": "payments.cancel",
+    "module": "Cobranza",
+    "name": "Cancelar pagos",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": true,
+    "active": true,
+    "sortOrder": 7
+  },
+  {
+    "key": "reports.view",
+    "module": "Reportes",
+    "name": "Ver reportes y tablero",
+    "scopes": ["NONE", "AREA", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 1
+  },
+  {
+    "key": "reports.export",
+    "module": "Reportes",
+    "name": "Exportar reportes",
+    "scopes": ["NONE", "AREA", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 2
+  },
+  {
+    "key": "questions.view",
+    "module": "Banco de reactivos",
+    "name": "Ver reactivos",
+    "scopes": ["NONE", "AREA", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 1
+  },
+  {
+    "key": "questions.create",
+    "module": "Banco de reactivos",
+    "name": "Crear reactivos",
+    "scopes": ["NONE", "AREA", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 2
+  },
+  {
+    "key": "questions.edit",
+    "module": "Banco de reactivos",
+    "name": "Editar y desactivar reactivos",
+    "scopes": ["NONE", "AREA", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 3
+  },
+  {
+    "key": "questions.import",
+    "module": "Banco de reactivos",
+    "name": "Importar reactivos (CSV)",
+    "scopes": ["NONE", "AREA", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 4
+  },
+  {
+    "key": "exams.view",
+    "module": "Exámenes en línea",
+    "name": "Ver exámenes en línea",
+    "scopes": ["NONE", "OWN", "AREA", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 1
+  },
+  {
+    "key": "exams.manage",
+    "module": "Exámenes en línea",
+    "name": "Configurar exámenes en línea",
+    "scopes": ["NONE", "AREA", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 2
+  },
+  {
+    "key": "exams.publish",
+    "module": "Exámenes en línea",
+    "name": "Publicar exámenes en línea",
+    "scopes": ["NONE", "AREA", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 3
+  },
+  {
+    "key": "attempts.take",
+    "module": "Exámenes en línea",
+    "name": "Presentar exámenes en línea",
+    "scopes": ["NONE", "OWN"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 4
+  },
+  {
+    "key": "attempts.view",
+    "module": "Exámenes en línea",
+    "name": "Ver intentos y resultados",
+    "scopes": ["NONE", "OWN", "AREA", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 5
+  },
+  {
+    "key": "attempts.review",
+    "module": "Exámenes en línea",
+    "name": "Revisar y recalificar intentos",
+    "scopes": ["NONE", "AREA", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 6
+  },
+  {
+    "key": "attendance.view",
+    "module": "Asistencia",
+    "name": "Ver asistencia y porcentajes",
+    "scopes": ["NONE", "OWN", "AREA", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 1
+  },
+  {
+    "key": "attendance.manage",
+    "module": "Asistencia",
+    "name": "Crear sesiones y pasar lista",
+    "scopes": ["NONE", "AREA", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 2
+  },
+  {
+    "key": "attendance.justify",
+    "module": "Asistencia",
+    "name": "Solicitar y resolver justificantes",
+    "scopes": ["NONE", "OWN", "AREA", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 3
+  },
+  {
+    "key": "notifications.view",
+    "module": "Notificaciones",
+    "name": "Ver plantillas, envíos y preferencias",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 1
+  },
+  {
+    "key": "notifications.manage",
+    "module": "Notificaciones",
+    "name": "Administrar plantillas, envíos y bajas",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": true,
+    "active": true,
+    "sortOrder": 2
   }
 ]

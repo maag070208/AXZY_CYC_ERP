@@ -1,167 +1,132 @@
 import { useEffect, useState } from "react";
-import { useTranslation } from "react-i18next";
-import { useParams } from "react-router-dom";
-import { usersApi } from "@entities/user";
-import { permissionApi, type RoleAdmin } from "@entities/permission";
+import { usersApi, type User } from "@entities/user";
+import { errorMessage } from "@app/toast/useNotify";
 import { validateEmail, validateMinLength, validateRequired } from "@shared/validation";
 import { i18n } from "@shared/i18n";
+import { PASSWORD_MIN_LENGTH } from "@shared/lib/password";
 
 export interface UserFormValues {
   username: string;
   name: string;
   email: string;
+  phone: string;
   password: string;
-  role: string;
-  active: boolean;
+  roles: string[];
 }
 
-const EMPTY: UserFormValues = {
-  username: "",
-  name: "",
-  email: "",
+const EMPTY: UserFormValues = { username: "", name: "", email: "", phone: "", password: "", roles: [] };
+
+const fromUser = (user: User): UserFormValues => ({
+  username: user.username,
+  name: user.name,
+  email: user.email,
+  phone: user.phone ?? "",
   password: "",
-  role: "",
-  active: true,
-};
+  roles: [...user.roles],
+});
 
-export interface RoleOption {
-  value: string;
-  label: string;
-  [key: string]: string;
-}
+type Field = keyof UserFormValues;
 
 /**
- * Formulario de cuenta (alta/edición). Sin argumentos toma el id de la ruta
- * (`/users/:id`); la edición le puede pasar el id explícito.
+ * Alta/edición de una cuenta. En edición no se cambian `username` ni contraseña
+ * (la temporal tiene su propia acción); los roles reemplazan a los actuales.
  */
-export const useUserForm = (userId?: string) => {
-  const { id: routeId } = useParams<{ id: string }>();
-  const id = userId ?? routeId;
-  const isEdit = Boolean(id);
-  const { t: tt } = useTranslation(["users", "common"]);
-
-  const [form, setForm] = useState<UserFormValues>(EMPTY);
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [roles, setRoles] = useState<RoleAdmin[]>([]);
+export const useUserForm = (user: User | null, onSaved: (user: User) => void) => {
+  const isEdit = !!user;
+  const [form, setForm] = useState<UserFormValues>(user ? fromUser(user) : EMPTY);
+  const [errors, setErrors] = useState<Partial<Record<Field, string>>>({});
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Catálogo de roles dinámico (`GET /permissions/roles`).
   useEffect(() => {
-    permissionApi
-      .roles()
-      .then(setRoles)
-      .catch(() => setRoles([]));
-  }, []);
+    setForm(user ? fromUser(user) : EMPTY);
+    setErrors({});
+    setError(null);
+  }, [user]);
 
-  const handleField = (field: keyof UserFormValues, value: string | boolean) => {
-    setForm((f) => ({ ...f, [field]: value }));
+  const validateField = (field: Field, values: UserFormValues): string | null => {
+    switch (field) {
+      case "username":
+        return isEdit ? null : validateMinLength(values.username, 3, i18n.t("users:form.username"));
+      case "name":
+        return validateRequired(values.name, i18n.t("users:form.name"));
+      case "email":
+        return validateRequired(values.email, i18n.t("users:form.email")) ?? validateEmail(values.email);
+      case "password":
+        if (isEdit) return null;
+        return values.password.length >= PASSWORD_MIN_LENGTH
+          ? null
+          : i18n.t("users:form.validation.passwordMin", { min: PASSWORD_MIN_LENGTH });
+      case "roles":
+        return values.roles.length > 0 ? null : i18n.t("users:form.validation.rolesRequired");
+      default:
+        return null;
+    }
+  };
+
+  const setField = <K extends Field>(field: K, value: UserFormValues[K]) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
     setErrors((prev) => {
-      if (!(field in prev)) return prev;
+      if (!prev[field]) return prev;
       const next = { ...prev };
       delete next[field];
       return next;
     });
   };
 
-  const validateField = (field: keyof UserFormValues, value: string): string | null => {
-    switch (field) {
-      case "username": {
-        const required = validateRequired(value, i18n.t("users:form.username"));
-        if (required) return required;
-        return validateMinLength(value, 3, i18n.t("users:form.username"));
-      }
-      case "name":
-        return validateRequired(value, i18n.t("users:form.name"));
-      case "email":
-        return validateEmail(value);
-      case "password":
-        if (!isEdit) {
-          const required = validateRequired(value, i18n.t("users:form.password"));
-          if (required) return required;
-          return validateMinLength(value, 6, i18n.t("users:form.password"));
-        }
-        return value && value.length < 6
-          ? i18n.t("users:form.validation.passwordMin", { min: 6 })
-          : null;
-      case "role":
-        return validateRequired(value, i18n.t("users:form.role"));
-      default:
-        return null;
-    }
-  };
+  const toggleRole = (role: string, checked: boolean) =>
+    setField(
+      "roles",
+      checked ? [...new Set([...form.roles, role])] : form.roles.filter((key) => key !== role)
+    );
 
-  const handleBlur = (field: keyof UserFormValues) => {
-    const err = validateField(field, String(form[field] ?? ""));
-    setErrors((prev) => {
-      const next = { ...prev };
-      if (err) next[field] = err;
-      else delete next[field];
-      return next;
-    });
+  const blur = (field: Field) => {
+    const message = validateField(field, form);
+    setErrors((prev) => ({ ...prev, [field]: message ?? undefined }));
   };
 
   const validate = (): boolean => {
-    const fields: (keyof UserFormValues)[] = ["username", "name", "email", "role"];
-    if (!isEdit) fields.push("password");
-    const e: Record<string, string> = {};
-    for (const field of fields) {
-      const err = validateField(field, String(form[field] ?? ""));
-      if (err) e[field] = err;
+    const next: Partial<Record<Field, string>> = {};
+    for (const field of ["username", "name", "email", "password", "roles"] as Field[]) {
+      const message = validateField(field, form);
+      if (message) next[field] = message;
     }
-    setErrors(e);
-    return Object.keys(e).length === 0;
+    setErrors(next);
+    return Object.keys(next).length === 0;
   };
 
-  const handleSubmit = async (): Promise<boolean> => {
+  const submit = async (): Promise<boolean> => {
     if (!validate()) return false;
     setSaving(true);
     setError(null);
     try {
-      if (isEdit && id) {
-        await usersApi.update(id, {
-          username: form.username,
-          name: form.name,
-          email: form.email || null,
-          role: form.role,
-          active: form.active,
-        });
-      } else {
-        await usersApi.create({
-          username: form.username,
-          name: form.name,
-          email: form.email || undefined,
-          password: form.password,
-          role: form.role,
-        });
-      }
+      const saved = isEdit
+        ? await usersApi.update(user.id, {
+            name: form.name.trim(),
+            email: form.email.trim(),
+            phone: form.phone.trim() || null,
+            ...(sameRoles(user.roles, form.roles) ? {} : { roles: form.roles }),
+          })
+        : await usersApi.create({
+            username: form.username.trim(),
+            name: form.name.trim(),
+            email: form.email.trim(),
+            password: form.password,
+            roles: form.roles,
+            ...(form.phone.trim() ? { phone: form.phone.trim() } : {}),
+          });
+      onSaved(saved);
       return true;
-    } catch (e: any) {
-      setError(e?.message ?? i18n.t("common:errors.save"));
+    } catch (err) {
+      setError(errorMessage(err, i18n.t("common:errors.save")));
       return false;
     } finally {
       setSaving(false);
     }
   };
 
-  const canSubmit = !!form.username && !!form.name && (isEdit || !!form.password);
-
-  return {
-    isEdit,
-    id,
-    form,
-    errors,
-    saving,
-    error,
-    setError,
-    handleField,
-    handleBlur,
-    handleSubmit,
-    validateField,
-    canSubmit,
-    tt,
-    roleOptions: roles
-      .filter((role) => role.active)
-      .map<RoleOption>((role) => ({ value: role.key, label: role.name })),
-  };
+  return { isEdit, form, errors, saving, error, setField, toggleRole, blur, submit };
 };
+
+const sameRoles = (a: readonly string[], b: readonly string[]): boolean =>
+  a.length === b.length && a.every((role) => b.includes(role));

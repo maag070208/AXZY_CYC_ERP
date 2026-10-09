@@ -11,3 +11,6 @@ coverage
 /playwright-report
 /blob-report
 /playwright/.cache
+
+# Archivos privados del driver local de almacenamiento
+/storage

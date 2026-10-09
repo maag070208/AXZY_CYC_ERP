@@ -1,6 +1,7 @@
 import type { PrismaClient } from "@prisma/client";
 import { catalogKeys, loadCatalogFromDb } from "./catalog";
 import { loadRolesFromDb } from "./roles";
+import { loadPoliciesFromDb } from "../policies/cache";
 import { SCOPES, type PermissionDef, type Scope } from "./types";
 
 /**
@@ -73,11 +74,11 @@ export const loadMatrixFromDb = async (db: PrismaClient): Promise<void> => {
 };
 
 /**
- * Carga catálogo, roles y matriz desde la BD. Se usa tras cada escritura y en
- * el arranque. Un rol inactivo desaparece de la matriz: sus permisos no
- * resuelven (fail-closed).
+ * Carga catálogo, roles, matriz y políticas ABAC desde la BD. Se usa tras cada
+ * escritura y en el arranque. Un rol inactivo desaparece de la matriz: sus
+ * permisos no resuelven (fail-closed).
  */
 export const loadPermissionsFromDb = async (db: PrismaClient): Promise<void> => {
-  await Promise.all([loadCatalogFromDb(db), loadRolesFromDb(db)]);
+  await Promise.all([loadCatalogFromDb(db), loadRolesFromDb(db), loadPoliciesFromDb(db)]);
   await loadMatrixFromDb(db);
 };

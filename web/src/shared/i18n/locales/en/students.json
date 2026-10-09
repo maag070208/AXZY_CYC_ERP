@@ -1,0 +1,106 @@
+{
+  "list": {
+    "title": "Students",
+    "description": "{{count}} student(s) in your scope",
+    "new": "New student",
+    "export": "Export",
+    "exported": "File generated"
+  },
+  "kpi": {
+    "total": "Total",
+    "activos": "Active",
+    "bajas": "Withdrawn"
+  },
+  "table": {
+    "matricula": "Enrollment no.",
+    "nombre": "Name",
+    "curp": "CURP",
+    "status": "Status",
+    "fechaIngreso": "Admission",
+    "view": "Open record"
+  },
+  "status": {
+    "ACTIVO": "Active",
+    "BAJA": "Withdrawn"
+  },
+  "genders": {
+    "M": "Male",
+    "F": "Female",
+    "OTRO": "Other"
+  },
+  "form": {
+    "titleNew": "New student",
+    "titleEdit": "Edit student",
+    "personal": "Student data",
+    "contact": "Contact",
+    "guardians": "Guardians",
+    "guardiansHint": "At least one is required for minors. Only one can be responsible for payments.",
+    "nombres": "First name(s)",
+    "apellidoPaterno": "Paternal surname",
+    "apellidoMaterno": "Maternal surname",
+    "curp": "CURP",
+    "fechaNacimiento": "Birth date",
+    "genero": "Gender",
+    "email": "Email",
+    "telefono": "Phone",
+    "direccion": "Address",
+    "fechaIngreso": "Admission date",
+    "fechaIngresoHint": "Sets the enrollment-number year; defaults to today.",
+    "addGuardian": "Add guardian",
+    "removeGuardian": "Remove guardian",
+    "guardianNombre": "Guardian name",
+    "parentesco": "Relationship",
+    "responsablePago": "Responsible for payments",
+    "noGuardians": "No guardians registered.",
+    "save": "Save",
+    "cancel": "Cancel",
+    "created": "Student registered with enrollment no. {{matricula}}",
+    "saved": "Student updated",
+    "duplicateTitle": "Is this someone else?",
+    "duplicateMessage": "A student with the same name and birth date exists ({{matriculas}}). Confirm only if it is a different person.",
+    "duplicateConfirm": "Yes, a different person",
+    "required": "{{label}} is required",
+    "futureDate": "The date cannot be in the future",
+    "minorNeedsGuardian": "An underage student needs at least one guardian",
+    "onePayer": "Only one guardian can be responsible for payments"
+  },
+  "detail": {
+    "tabs": {
+      "general": "General",
+      "movements": "Movements",
+      "documents": "Documents",
+      "kardex": "Transcript",
+      "enrollments": "Enrollments",
+      "account": "Account statement"
+    },
+    "matricula": "Enrollment no.",
+    "age": "{{age}} years",
+    "edit": "Edit",
+    "baja": "Withdraw",
+    "reingreso": "Re-admit",
+    "back": "Back to students",
+    "noData": "—"
+  },
+  "movements": {
+    "title": "Movement history",
+    "empty": "No movements recorded.",
+    "tipo": "Type",
+    "fecha": "Movement date",
+    "motivo": "Reason",
+    "observaciones": "Notes",
+    "autor": "Recorded by",
+    "BAJA": "Withdrawal",
+    "REINGRESO": "Re-admission",
+    "bajaTitle": "Withdraw {{name}}",
+    "bajaMessage": "The student becomes WITHDRAWN and active enrollments are cancelled. All history is kept.",
+    "reingresoTitle": "Re-admit {{name}}",
+    "reingresoMessage": "The student becomes ACTIVE again keeping the enrollment number.",
+    "reason": "Catalog reason",
+    "reasonNone": "Other (type it)",
+    "confirmBaja": "Withdraw",
+    "confirmReingreso": "Re-admit",
+    "bajaDone": "Withdrawal recorded",
+    "reingresoDone": "Re-admission recorded",
+    "motivoRequired": "Write the reason (at least 3 characters)"
+  }
+}

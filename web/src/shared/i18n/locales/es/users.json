@@ -8,10 +8,16 @@
   "table": {
     "username": "Username",
     "name": "Nombre",
+    "email": "Correo",
     "role": "Rol",
+    "roles": "Roles",
     "status": "Estatus",
     "statusActive": "Activo",
-    "statusInactive": "Inactivo"
+    "statusInactive": "Inactivo",
+    "locked": "Bloqueado",
+    "lastLogin": "Último acceso",
+    "never": "Nunca",
+    "mustChange": "Contraseña temporal"
   },
   "form": {
     "titleNew": "Nuevo usuario",
@@ -19,22 +25,76 @@
     "username": "Usuario",
     "name": "Nombre",
     "email": "Correo",
-    "password": "Contraseña",
+    "phone": "Teléfono",
+    "password": "Contraseña inicial",
+    "passwordHint": "La persona deberá cambiarla en su primer acceso.",
+    "roles": "Roles",
+    "rolesHint": "Los permisos efectivos son la suma de sus roles.",
     "role": "Rol",
     "active": "Activo",
     "save": "Guardar",
     "saving": "Guardando…",
     "cancel": "Cancelar",
     "saved": "Usuario guardado correctamente",
+    "created": "Usuario creado",
     "errorLoad": "No se pudo cargar el usuario",
+    "ownRoles": "No puedes cambiar tus propios roles.",
     "validation": {
       "usernameRequired": "El usuario es obligatorio",
       "usernameMin": "El usuario debe tener al menos {{min}} caracteres",
       "usernameMax": "El usuario debe tener máximo {{max}} caracteres",
       "nameRequired": "El nombre es obligatorio",
       "passwordRequired": "La contraseña es obligatoria",
-      "passwordMin": "La contraseña debe tener al menos {{min}} caracteres"
+      "passwordMin": "La contraseña debe tener al menos {{min}} caracteres",
+      "rolesRequired": "Elige al menos un rol"
     }
+  },
+  "actions": {
+    "edit": "Editar",
+    "deactivate": "Dar de baja",
+    "reactivate": "Reactivar",
+    "unlock": "Desbloquear",
+    "resetPassword": "Contraseña temporal",
+    "permissions": "Permisos"
+  },
+  "deactivate": {
+    "title": "Dar de baja a {{name}}",
+    "message": "La cuenta no podrá iniciar sesión y se cerrarán sus sesiones. El registro se conserva.",
+    "reason": "Motivo (opcional)",
+    "confirm": "Dar de baja",
+    "done": "Cuenta dada de baja"
+  },
+  "reactivate": {
+    "title": "Reactivar a {{name}}",
+    "message": "La cuenta podrá volver a iniciar sesión.",
+    "done": "Cuenta reactivada"
+  },
+  "unlock": {
+    "done": "Cuenta desbloqueada"
+  },
+  "resetPassword": {
+    "title": "Contraseña temporal para {{name}}",
+    "message": "Se cerrarán sus sesiones y deberá cambiarla en su siguiente acceso. Compártela por un medio seguro.",
+    "password": "Contraseña temporal",
+    "done": "Contraseña temporal asignada"
+  },
+  "permissions": {
+    "title": "Permisos de {{name}}",
+    "description": "Lo que da cada rol y las excepciones por persona. Una excepción vigente gana sobre el rol.",
+    "permission": "Permiso",
+    "module": "Módulo",
+    "fromRole": "Por rol",
+    "exception": "Excepción",
+    "effective": "Efectivo",
+    "expires": "Vence",
+    "noException": "Sin excepción",
+    "setException": "Fijar",
+    "removeException": "Quitar excepción",
+    "reason": "Motivo",
+    "sensitive": "Sensible",
+    "saved": "Excepción guardada",
+    "removed": "Excepción quitada",
+    "own": "No puedes cambiar tus propios permisos."
   },
   "roles": {
     "ADMIN": "Administrador",

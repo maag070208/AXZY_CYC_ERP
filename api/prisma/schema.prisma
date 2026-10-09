@@ -1,4 +1,6 @@
-// Esquema Prisma del SGE (CYC). Módulo M02: autenticación, roles y bitácora.
+// Esquema Prisma del SGE (CYC). M02: autenticación, roles, políticas ABAC y
+// bitácora. M11: parámetros generales y catálogos base. F2: alumnos (M03),
+// profesores (M04), bajas/reingresos (M05) y expediente documental (M06).
 // Convenciones: `id String @id @default(uuid())` (catálogos de seguridad usan
 // clave natural `key`), `createdAt`/`updatedAt`, `active` donde aplique y
 // `@@map("snake_case_plural")`.
@@ -43,6 +45,11 @@ model User {
   refreshTokens RefreshToken[]
   resetTokens   PasswordResetToken[]
   auditLogs     AuditLog[]
+  student       Student?
+  teacher       Teacher?
+  movements     StudentMovement[]
+  validatedDocs Document[]           @relation("DocumentValidator")
+  uploadedDocs  Document[]           @relation("DocumentUploader")
 
   @@index([active])
   @@map("users")
@@ -61,6 +68,7 @@ model Role {
 
   permissions RolePermission[]
   users       UserRole[]
+  policies    PolicyRole[]
 
   @@map("roles")
 }
@@ -130,6 +138,64 @@ model UserPermission {
   @@map("user_permissions")
 }
 
+/// Efecto de una política ABAC.
+enum PolicyEffect {
+  ALLOW
+  DENY
+}
+
+/// Política ABAC: actúa DESPUÉS del RBAC sobre una acción registrada
+/// (`core/policies/actions.ts`). La primera que casa (menor `priority`) decide;
+/// sin coincidencia se permite.
+model Policy {
+  id          String       @id @default(uuid())
+  key         String       @unique
+  name        String
+  description String?
+  action      String
+  effect      PolicyEffect @default(DENY)
+  priority    Int          @default(100)
+  active      Boolean      @default(true)
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+
+  conditions PolicyCondition[]
+  roles      PolicyRole[]
+
+  @@index([action, active])
+  @@map("policies")
+}
+
+/// Condición `campo operador valor` (todas deben cumplirse). `value` es JSON y
+/// admite referencias al actor (`"@user.id"`, `"@user.roles"`).
+model PolicyCondition {
+  id        String   @id @default(uuid())
+  policyId  String   @map("policy_id")
+  field     String
+  operator  String
+  value     Json
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  policy Policy @relation(fields: [policyId], references: [id], onDelete: Cascade)
+
+  @@index([policyId])
+  @@map("policy_conditions")
+}
+
+/// Roles a los que aplica la política (sin filas = aplica a todos).
+model PolicyRole {
+  policyId String @map("policy_id")
+  roleKey  String @map("role_key")
+
+  policy Policy @relation(fields: [policyId], references: [id], onDelete: Cascade)
+  role   Role   @relation(fields: [roleKey], references: [key], onDelete: Cascade)
+
+  @@id([policyId, roleKey])
+  @@index([roleKey])
+  @@map("policy_roles")
+}
+
 model RefreshToken {
   id        String    @id @default(uuid())
   userId    String    @map("user_id")
@@ -177,4 +243,884 @@ model AuditLog {
   @@index([userId])
   @@index([createdAt])
   @@map("audit_logs")
+}
+
+// ---------------------------------------------------------------------------
+// M11 — Administración y catálogos
+// ---------------------------------------------------------------------------
+
+/// Parámetro general clave/valor. La `key` la fija la migración (no se crea
+/// desde el cliente); solo se actualiza `value`.
+model Setting {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  value       Json
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("settings")
+}
+
+/// Nivel educativo.
+model Level {
+  id        String   @id @default(uuid())
+  nombre    String   @unique
+  orden     Int?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  courses Course[]
+
+  @@index([active])
+  @@map("levels")
+}
+
+/// Ciclo escolar. Solo uno `activo` a la vez (índice único parcial en SQL).
+/// M07 lo amplía con sus relaciones (grupos).
+model Term {
+  id          String   @id @default(uuid())
+  nombre      String   @unique
+  fechaInicio DateTime @map("fecha_inicio") @db.Date
+  fechaFin    DateTime @map("fecha_fin") @db.Date
+  activo      Boolean  @default(false)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  groups  Group[]
+  charges Charge[]
+
+  @@index([activo])
+  @@map("terms")
+}
+
+/// Motivo de baja (lo consume M05).
+model CancellationReason {
+  id        String   @id @default(uuid())
+  nombre    String   @unique
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  movements StudentMovement[]
+
+  @@index([active])
+  @@map("cancellation_reasons")
+}
+
+/// Tipo de documento del expediente (lo consume M06).
+model DocumentType {
+  id          String   @id @default(uuid())
+  nombre      String   @unique
+  obligatorio Boolean  @default(false)
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  documents Document[]
+
+  @@index([active])
+  @@map("document_types")
+}
+
+// ---------------------------------------------------------------------------
+// M03 — Alumnos
+// ---------------------------------------------------------------------------
+
+enum StudentStatus {
+  ACTIVO
+  BAJA
+}
+
+model Student {
+  id              String        @id @default(uuid())
+  /// `AAAA-NNNN`: año de ingreso + consecutivo. Inmutable.
+  matricula       String        @unique
+  nombres         String
+  apellidoPaterno String        @map("apellido_paterno")
+  apellidoMaterno String?       @map("apellido_materno")
+  curp            String        @unique
+  fechaNacimiento DateTime      @map("fecha_nacimiento") @db.Date
+  genero          String?
+  email           String?
+  telefono        String?
+  direccion       String?
+  status          StudentStatus @default(ACTIVO)
+  fechaIngreso    DateTime      @map("fecha_ingreso") @db.Date
+  userId          String?       @unique @map("user_id")
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+
+  user        User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
+  guardians   Guardian[]
+  movements   StudentMovement[]
+  documents   Document[]
+  enrollments Enrollment[]
+  charges     Charge[]
+  attempts    ExamAttempt[]
+
+  @@index([status])
+  @@index([apellidoPaterno, apellidoMaterno, nombres])
+  @@map("students")
+}
+
+/// Consecutivo de matrícula por año de ingreso (se incrementa en la transacción del alta).
+model MatriculaSequence {
+  year Int @id
+  last Int @default(0)
+
+  @@map("matricula_sequences")
+}
+
+model Guardian {
+  id                String   @id @default(uuid())
+  studentId         String   @map("student_id")
+  nombre            String
+  parentesco        String
+  telefono          String
+  email             String?
+  esResponsablePago Boolean  @default(false) @map("es_responsable_pago")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+  @@map("guardians")
+}
+
+// ---------------------------------------------------------------------------
+// M05 — Bajas y reingresos (historial inmutable)
+// ---------------------------------------------------------------------------
+
+enum MovementType {
+  BAJA
+  REINGRESO
+}
+
+model StudentMovement {
+  id            String       @id @default(uuid())
+  studentId     String       @map("student_id")
+  tipo          MovementType
+  motivo        String
+  /// Motivo del catálogo M11 (opcional; `motivo` guarda el texto).
+  reasonId      String?      @map("reason_id")
+  fecha         DateTime     @db.Date
+  observaciones String?
+  createdBy     String       @map("created_by")
+  createdAt     DateTime     @default(now()) @map("created_at")
+  updatedAt     DateTime     @updatedAt @map("updated_at")
+
+  student Student             @relation(fields: [studentId], references: [id])
+  author  User                @relation(fields: [createdBy], references: [id])
+  reason  CancellationReason? @relation(fields: [reasonId], references: [id])
+
+  @@index([studentId, fecha])
+  @@index([tipo])
+  @@index([createdBy])
+  @@map("student_movements")
+}
+
+// ---------------------------------------------------------------------------
+// M04 — Profesores
+// ---------------------------------------------------------------------------
+
+enum TeacherStatus {
+  ACTIVO
+  INACTIVO
+}
+
+model Teacher {
+  id           String        @id @default(uuid())
+  nombres      String
+  apellidos    String
+  email        String        @unique
+  telefono     String?
+  especialidad String?
+  status       TeacherStatus @default(ACTIVO)
+  userId       String?       @unique @map("user_id")
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+  groups Group[]
+
+  @@index([status])
+  @@index([apellidos, nombres])
+  @@map("teachers")
+}
+
+// ---------------------------------------------------------------------------
+// M06 — Expediente documental (el kardex es una vista calculada)
+// ---------------------------------------------------------------------------
+
+enum DocumentStatus {
+  PENDIENTE
+  VALIDADO
+  RECHAZADO
+}
+
+model Document {
+  id             String         @id @default(uuid())
+  studentId      String         @map("student_id")
+  documentTypeId String         @map("document_type_id")
+  /// Clave privada del objeto (nombre aleatorio); nunca una URL pública.
+  filePath       String         @map("file_path")
+  originalName   String         @map("original_name")
+  mimeType       String         @map("mime_type")
+  size           Int
+  status         DocumentStatus @default(PENDIENTE)
+  uploadedBy     String         @map("uploaded_by")
+  validatedBy    String?        @map("validated_by")
+  validatedAt    DateTime?      @map("validated_at")
+  notas          String?
+  deletedAt      DateTime?      @map("deleted_at")
+  createdAt      DateTime       @default(now()) @map("created_at")
+  updatedAt      DateTime       @updatedAt @map("updated_at")
+
+  student      Student      @relation(fields: [studentId], references: [id])
+  documentType DocumentType @relation(fields: [documentTypeId], references: [id])
+  uploader     User         @relation("DocumentUploader", fields: [uploadedBy], references: [id])
+  validator    User?        @relation("DocumentValidator", fields: [validatedBy], references: [id], onDelete: SetNull)
+
+  @@index([studentId, documentTypeId, status])
+  @@index([status])
+  @@map("documents")
+}
+
+// ---------------------------------------------------------------------------
+// M07 — Cursos, grupos e inscripciones
+// ---------------------------------------------------------------------------
+
+model Course {
+  id          String   @id @default(uuid())
+  /// Clave corta e inmutable en la práctica (p. ej. `MAT-101`).
+  clave       String   @unique
+  nombre      String
+  levelId     String?  @map("level_id")
+  descripcion String?
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  level     Level?     @relation(fields: [levelId], references: [id])
+  groups    Group[]
+  questions Question[]
+
+  @@index([active])
+  @@index([nombre])
+  @@map("courses")
+}
+
+model Group {
+  id        String    @id @default(uuid())
+  courseId  String    @map("course_id")
+  termId    String    @map("term_id")
+  teacherId String?   @map("teacher_id")
+  nombre    String
+  cupo      Int
+  /// `[{ dia: "LUNES", horaInicio: "08:00", horaFin: "09:00" }]`
+  horario   Json
+  aula      String?
+  active    Boolean   @default(true)
+  /// Cierre de calificaciones (M08): finales escritas y estatus aplicados.
+  closedAt  DateTime? @map("closed_at")
+  closedBy  String?   @map("closed_by")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  course             Course              @relation(fields: [courseId], references: [id])
+  term               Term                @relation(fields: [termId], references: [id])
+  teacher            Teacher?            @relation(fields: [teacherId], references: [id])
+  enrollments        Enrollment[]
+  assessments        Assessment[]
+  onlineExams        OnlineExam[]
+  attendanceSessions AttendanceSession[]
+
+  @@unique([courseId, termId, nombre])
+  @@index([termId])
+  @@index([teacherId])
+  @@index([active])
+  @@map("groups")
+}
+
+enum EnrollmentStatus {
+  INSCRITO
+  BAJA
+  ACREDITADO
+  REPROBADO
+}
+
+model Enrollment {
+  id              String           @id @default(uuid())
+  studentId       String           @map("student_id")
+  groupId         String           @map("group_id")
+  fecha           DateTime         @db.Date
+  status          EnrollmentStatus @default(INSCRITO)
+  /// Calificación final escrita al cerrar el grupo (M08).
+  finalGrade      Decimal?         @map("final_grade") @db.Decimal(5, 2)
+  bajaAt          DateTime?        @map("baja_at")
+  bajaMotivo      String?          @map("baja_motivo")
+  /// Si la baja fue por cambio de grupo, la inscripción destino.
+  transferredToId String?          @unique @map("transferred_to_id")
+  createdBy       String?          @map("created_by")
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+
+  student           Student      @relation(fields: [studentId], references: [id])
+  group             Group        @relation(fields: [groupId], references: [id])
+  transferredTo     Enrollment?  @relation("EnrollmentTransfer", fields: [transferredToId], references: [id])
+  transferredFrom   Enrollment?  @relation("EnrollmentTransfer")
+  grades            Grade[]
+  attendance        Attendance[]
+  /// Cuándo se emitió la alerta de inasistencia vigente (M18); se limpia al recuperar el umbral.
+  attendanceAlertAt DateTime?    @map("attendance_alert_at")
+
+  @@index([studentId, status])
+  @@index([groupId, status])
+  @@map("enrollments")
+}
+
+// ---------------------------------------------------------------------------
+// M08 — Instrumentos de evaluación y calificaciones (captura manual)
+// ---------------------------------------------------------------------------
+
+enum AssessmentType {
+  PARCIAL
+  FINAL
+  TAREA
+  OTRO
+}
+
+model Assessment {
+  id          String         @id @default(uuid())
+  groupId     String         @map("group_id")
+  nombre      String
+  tipo        AssessmentType
+  /// Porcentaje; la suma de los activos del grupo debe ser 100.00 para cerrar.
+  ponderacion Decimal        @db.Decimal(5, 2)
+  fecha       DateTime?      @db.Date
+  maxScore    Decimal        @map("max_score") @db.Decimal(6, 2)
+  active      Boolean        @default(true)
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @updatedAt @map("updated_at")
+
+  group      Group       @relation(fields: [groupId], references: [id])
+  grades     Grade[]
+  onlineExam OnlineExam?
+
+  @@index([groupId])
+  @@map("assessments")
+}
+
+model Grade {
+  id            String    @id @default(uuid())
+  assessmentId  String    @map("assessment_id")
+  enrollmentId  String    @map("enrollment_id")
+  score         Decimal?  @db.Decimal(6, 2)
+  observaciones String?
+  capturedBy    String?   @map("captured_by")
+  capturedAt    DateTime? @map("captured_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  assessment Assessment @relation(fields: [assessmentId], references: [id])
+  enrollment Enrollment @relation(fields: [enrollmentId], references: [id])
+
+  @@unique([assessmentId, enrollmentId])
+  @@index([enrollmentId])
+  @@map("grades")
+}
+
+// ---------------------------------------------------------------------------
+// M09 — Colegiaturas y pagos manuales
+// ---------------------------------------------------------------------------
+
+enum FeeConceptType {
+  INSCRIPCION
+  COLEGIATURA
+  MATERIAL
+  RECARGO
+  OTRO
+}
+
+enum ChargeStatus {
+  PENDIENTE
+  PARCIAL
+  PAGADO
+  CANCELADO
+}
+
+enum PaymentMethod {
+  EFECTIVO
+  TRANSFERENCIA
+  DEPOSITO
+  TARJETA
+  OTRO
+}
+
+model FeeConcept {
+  id          String         @id @default(uuid())
+  nombre      String         @unique
+  descripcion String?
+  monto       Decimal        @db.Decimal(12, 2)
+  tipo        FeeConceptType
+  active      Boolean        @default(true)
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @updatedAt @map("updated_at")
+
+  charges Charge[]
+
+  @@index([active])
+  @@map("fee_concepts")
+}
+
+model Charge {
+  id               String       @id @default(uuid())
+  studentId        String       @map("student_id")
+  conceptId        String       @map("concept_id")
+  termId           String?      @map("term_id")
+  /// Texto libre visible en el estado de cuenta (p. ej. «Colegiatura septiembre»).
+  descripcion      String?
+  monto            Decimal      @db.Decimal(12, 2)
+  descuento        Decimal      @default(0) @db.Decimal(12, 2)
+  fechaVencimiento DateTime     @map("fecha_vencimiento") @db.Date
+  status           ChargeStatus @default(PENDIENTE)
+  /// Recargo por mora: el cargo vencido que lo origina (uno por cargo).
+  parentChargeId   String?      @unique @map("parent_charge_id")
+  createdBy        String?      @map("created_by")
+  cancelledAt      DateTime?    @map("cancelled_at")
+  cancelReason     String?      @map("cancel_reason")
+  cancelledBy      String?      @map("cancelled_by")
+  createdAt        DateTime     @default(now()) @map("created_at")
+  updatedAt        DateTime     @updatedAt @map("updated_at")
+
+  student  Student    @relation(fields: [studentId], references: [id])
+  concept  FeeConcept @relation(fields: [conceptId], references: [id])
+  term     Term?      @relation(fields: [termId], references: [id])
+  parent   Charge?    @relation("LateFee", fields: [parentChargeId], references: [id])
+  lateFee  Charge?    @relation("LateFee")
+  payments Payment[]
+
+  @@index([studentId])
+  @@index([status])
+  @@index([termId])
+  @@index([fechaVencimiento])
+  @@map("charges")
+}
+
+model Payment {
+  id               String        @id @default(uuid())
+  chargeId         String        @map("charge_id")
+  monto            Decimal       @db.Decimal(12, 2)
+  fecha            DateTime      @db.Date
+  metodo           PaymentMethod
+  referencia       String?
+  /// `REC-AAAA-NNNNNN`, consecutivo por año e irrepetible.
+  reciboFolio      String        @unique @map("recibo_folio")
+  registeredBy     String        @map("registered_by")
+  /// Nombre de quien cobró al momento del pago (el recibo no cambia si la cuenta cambia).
+  registeredByName String        @map("registered_by_name")
+  idempotencyKey   String?       @unique @map("idempotency_key")
+  cancelledAt      DateTime?     @map("cancelled_at")
+  cancelReason     String?       @map("cancel_reason")
+  cancelledBy      String?       @map("cancelled_by")
+  createdAt        DateTime      @default(now()) @map("created_at")
+  updatedAt        DateTime      @updatedAt @map("updated_at")
+
+  charge Charge @relation(fields: [chargeId], references: [id])
+
+  @@index([chargeId])
+  @@index([fecha])
+  @@map("payments")
+}
+
+model ReceiptSequence {
+  year Int @id
+  last Int @default(0)
+
+  @@map("receipt_sequences")
+}
+
+/// Respuesta guardada de una operación con `Idempotency-Key` (generación masiva).
+model IdempotencyRecord {
+  key       String   @id
+  userId    String   @map("user_id")
+  scope     String
+  response  Json
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("idempotency_records")
+}
+
+// ---------------------------------------------------------------------------
+// M14 — Banco de reactivos
+// ---------------------------------------------------------------------------
+
+enum QuestionType {
+  OPCION_MULTIPLE
+  VERDADERO_FALSO
+  MULTIPLE_RESPUESTA
+  ABIERTA
+}
+
+enum QuestionDifficulty {
+  FACIL
+  MEDIA
+  DIFICIL
+}
+
+enum QuestionStatus {
+  ACTIVA
+  INACTIVA
+}
+
+model Question {
+  id         String              @id @default(uuid())
+  courseId   String              @map("course_id")
+  tema       String?
+  tipo       QuestionType
+  enunciado  String              @db.Text
+  /// Puntos sugeridos al agregarla a un examen (M15 puede cambiarlos).
+  puntos     Decimal             @db.Decimal(6, 2)
+  dificultad QuestionDifficulty?
+  status     QuestionStatus      @default(ACTIVA)
+  createdBy  String?             @map("created_by")
+  createdAt  DateTime            @default(now()) @map("created_at")
+  updatedAt  DateTime            @updatedAt @map("updated_at")
+
+  course        Course               @relation(fields: [courseId], references: [id])
+  options       QuestionOption[]
+  examQuestions OnlineExamQuestion[]
+  answers       AttemptAnswer[]
+
+  @@index([courseId])
+  @@index([tipo])
+  @@index([dificultad])
+  @@index([status])
+  @@map("questions")
+}
+
+model QuestionOption {
+  id         String   @id @default(uuid())
+  questionId String   @map("question_id")
+  texto      String   @db.Text
+  esCorrecta Boolean  @default(false) @map("es_correcta")
+  orden      Int
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([questionId])
+  @@map("question_options")
+}
+
+// ---------------------------------------------------------------------------
+// M15 — Exámenes en línea
+// ---------------------------------------------------------------------------
+
+enum OnlineExamStatus {
+  BORRADOR
+  PUBLICADO
+  CERRADO
+}
+
+/// Qué intento cuenta para la calificación (M17 §4.4).
+enum AttemptCriterion {
+  MEJOR
+  ULTIMO
+}
+
+model OnlineExam {
+  id                   String           @id @default(uuid())
+  groupId              String           @map("group_id")
+  titulo               String
+  instrucciones        String?          @db.Text
+  duracionMin          Int              @map("duracion_min")
+  intentosMax          Int              @default(1) @map("intentos_max")
+  fechaApertura        DateTime         @map("fecha_apertura") @db.Timestamptz
+  fechaCierre          DateTime         @map("fecha_cierre") @db.Timestamptz
+  aleatorizarPreguntas Boolean          @default(false) @map("aleatorizar_preguntas")
+  aleatorizarOpciones  Boolean          @default(false) @map("aleatorizar_opciones")
+  mostrarResultado     Boolean          @default(true) @map("mostrar_resultado")
+  puntajeAprobatorio   Decimal          @map("puntaje_aprobatorio") @db.Decimal(6, 2)
+  criterioIntentos     AttemptCriterion @default(MEJOR) @map("criterio_intentos")
+  /// Evaluación de M08 que recibe la calificación (una por examen).
+  assessmentId         String?          @unique @map("assessment_id")
+  status               OnlineExamStatus @default(BORRADOR)
+  publishedAt          DateTime?        @map("published_at")
+  closedAt             DateTime?        @map("closed_at")
+  createdBy            String?          @map("created_by")
+  createdAt            DateTime         @default(now()) @map("created_at")
+  updatedAt            DateTime         @updatedAt @map("updated_at")
+
+  group      Group                @relation(fields: [groupId], references: [id])
+  assessment Assessment?          @relation(fields: [assessmentId], references: [id])
+  questions  OnlineExamQuestion[]
+  attempts   ExamAttempt[]
+
+  @@index([groupId])
+  @@index([status])
+  @@map("online_exams")
+}
+
+model OnlineExamQuestion {
+  id         String   @id @default(uuid())
+  examId     String   @map("exam_id")
+  questionId String   @map("question_id")
+  puntos     Decimal  @db.Decimal(6, 2)
+  orden      Int
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  exam     OnlineExam @relation(fields: [examId], references: [id], onDelete: Cascade)
+  question Question   @relation(fields: [questionId], references: [id])
+
+  @@unique([examId, questionId])
+  @@index([questionId])
+  @@map("online_exam_questions")
+}
+
+// ---------------------------------------------------------------------------
+// M16/M17 — Intentos, respuestas y calificación automática
+// ---------------------------------------------------------------------------
+
+enum AttemptStatus {
+  EN_CURSO
+  ENVIADO
+  EXPIRADO
+}
+
+model ExamAttempt {
+  id           String        @id @default(uuid())
+  examId       String        @map("exam_id")
+  studentId    String        @map("student_id")
+  numero       Int
+  startedAt    DateTime      @default(now()) @map("started_at")
+  /// Fin calculado en el servidor: min(inicio + duración, cierre del examen).
+  endsAt       DateTime      @map("ends_at")
+  finishedAt   DateTime?     @map("finished_at")
+  status       AttemptStatus @default(EN_CURSO)
+  /// Orden fijo del intento: `[{ questionId, optionIds[] }]` (aleatorización reproducible).
+  layout       Json
+  score        Decimal?      @db.Decimal(6, 2)
+  pendingCount Int           @default(0) @map("pending_count")
+  gradedAt     DateTime?     @map("graded_at")
+  reviewedBy   String?       @map("reviewed_by")
+  reviewedAt   DateTime?     @map("reviewed_at")
+  focusLosses  Int           @default(0) @map("focus_losses")
+  events       Json          @default("[]")
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+
+  exam    OnlineExam      @relation(fields: [examId], references: [id])
+  student Student         @relation(fields: [studentId], references: [id])
+  answers AttemptAnswer[]
+
+  @@unique([examId, studentId, numero])
+  @@index([examId, studentId])
+  @@index([studentId, status])
+  @@index([status, endsAt])
+  @@map("exam_attempts")
+}
+
+model AttemptAnswer {
+  id              String    @id @default(uuid())
+  attemptId       String    @map("attempt_id")
+  questionId      String    @map("question_id")
+  /// Opción (`optionId`), arreglo de opciones o texto, según el tipo.
+  respuesta       Json?
+  /// NULL = pendiente de revisión manual (abiertas).
+  esCorrecta      Boolean?  @map("es_correcta")
+  puntosObtenidos Decimal?  @map("puntos_obtenidos") @db.Decimal(6, 2)
+  comentario      String?
+  answeredAt      DateTime  @default(now()) @map("answered_at")
+  reviewedAt      DateTime? @map("reviewed_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  attempt  ExamAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  question Question    @relation(fields: [questionId], references: [id])
+
+  @@unique([attemptId, questionId])
+  @@index([attemptId])
+  @@map("attempt_answers")
+}
+
+// ---------------------------------------------------------------------------
+// M18 — Asistencia y justificantes
+// ---------------------------------------------------------------------------
+
+enum AttendanceStatus {
+  PRESENTE
+  FALTA
+  RETARDO
+  JUSTIFICADA
+}
+
+enum JustificationStatus {
+  PENDIENTE
+  APROBADA
+  RECHAZADA
+}
+
+model AttendanceSession {
+  id           String    @id @default(uuid())
+  groupId      String    @map("group_id")
+  fecha        DateTime  @db.Date
+  /// `HH:mm` opcional (varias sesiones el mismo día).
+  hora         String?   @db.VarChar(5)
+  tema         String?   @db.VarChar(200)
+  createdBy    String    @map("created_by")
+  /// Anulación lógica: la sesión deja de contar para el porcentaje.
+  deletedAt    DateTime? @map("deleted_at")
+  deletedBy    String?   @map("deleted_by")
+  deleteReason String?   @map("delete_reason") @db.VarChar(300)
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  group   Group        @relation(fields: [groupId], references: [id])
+  records Attendance[]
+
+  @@index([groupId, fecha])
+  @@map("attendance_sessions")
+}
+
+model Attendance {
+  id           String           @id @default(uuid())
+  sessionId    String           @map("session_id")
+  enrollmentId String           @map("enrollment_id")
+  status       AttendanceStatus
+  recordedBy   String?          @map("recorded_by")
+  createdAt    DateTime         @default(now()) @map("created_at")
+  updatedAt    DateTime         @updatedAt @map("updated_at")
+
+  session       AttendanceSession @relation(fields: [sessionId], references: [id])
+  enrollment    Enrollment        @relation(fields: [enrollmentId], references: [id])
+  justification Justification?
+
+  @@unique([sessionId, enrollmentId])
+  @@index([enrollmentId, status])
+  @@map("attendance")
+}
+
+model Justification {
+  id            String              @id @default(uuid())
+  attendanceId  String              @unique @map("attendance_id")
+  motivo        String              @db.VarChar(1000)
+  /// Clave privada en el almacenamiento (S3 o disco); nunca una URL pública.
+  archivoKey    String?             @map("archivo_key")
+  archivoNombre String?             @map("archivo_nombre") @db.VarChar(255)
+  archivoMime   String?             @map("archivo_mime") @db.VarChar(100)
+  archivoSize   Int?                @map("archivo_size")
+  status        JustificationStatus @default(PENDIENTE)
+  solicitadoPor String              @map("solicitado_por")
+  resueltoPor   String?             @map("resuelto_por")
+  resolvedAt    DateTime?           @map("resolved_at")
+  nota          String?             @db.VarChar(500)
+  createdAt     DateTime            @default(now()) @map("created_at")
+  updatedAt     DateTime            @updatedAt @map("updated_at")
+
+  attendance Attendance @relation(fields: [attendanceId], references: [id])
+
+  @@index([status])
+  @@map("justifications")
+}
+
+// ---------------------------------------------------------------------------
+// M19 — Notificaciones (outbox)
+// ---------------------------------------------------------------------------
+
+enum NotificationChannel {
+  EMAIL
+  SMS
+  WHATSAPP
+  /// Bandeja dentro de la app (campana); se entrega al encolar.
+  INTERNO
+}
+
+enum NotificationStatus {
+  EN_COLA
+  ENVIADO
+  FALLIDO
+  /// No se envió por baja del destinatario (opt-out).
+  OMITIDO
+}
+
+model NotificationTemplate {
+  id          String              @id @default(uuid())
+  /// Evento que la dispara (p. ej. `ALERTA_INASISTENCIA`); una por canal.
+  clave       String              @db.VarChar(60)
+  nombre      String              @db.VarChar(150)
+  canal       NotificationChannel
+  asunto      String?             @db.VarChar(200)
+  cuerpo      String
+  /// Variables declaradas que el payload debe cubrir (`["nombre", "monto"]`).
+  variables   Json                @default("[]")
+  /// Transaccional obligatorio: ignora la baja (opt-out).
+  obligatorio Boolean             @default(false)
+  active      Boolean             @default(true)
+  createdAt   DateTime            @default(now()) @map("created_at")
+  updatedAt   DateTime            @updatedAt @map("updated_at")
+
+  notifications Notification[]
+
+  @@unique([clave, canal])
+  @@index([canal, active])
+  @@map("notification_templates")
+}
+
+model Notification {
+  id                String              @id @default(uuid())
+  /// Correo, teléfono o `user:<id>` para la bandeja interna.
+  destinatario      String              @db.VarChar(200)
+  canal             NotificationChannel
+  templateId        String?             @map("template_id")
+  /// Cuenta destinataria (bandeja y tiempo real), si se conoce.
+  userId            String?             @map("user_id")
+  /// Evento o módulo de origen (`ALERTA_INASISTENCIA`, `MANUAL`…).
+  origen            String              @default("MANUAL") @db.VarChar(60)
+  payload           Json                @default("{}")
+  asunto            String?             @db.VarChar(200)
+  cuerpo            String
+  status            NotificationStatus  @default(EN_COLA)
+  attempts          Int                 @default(0)
+  maxAttempts       Int                 @default(5) @map("max_attempts")
+  nextRetryAt       DateTime            @default(now()) @map("next_retry_at")
+  /// Reclamo del worker (evita que dos instancias envíen lo mismo).
+  lockedUntil       DateTime?           @map("locked_until")
+  error             String?             @db.VarChar(500)
+  providerMessageId String?             @map("provider_message_id")
+  /// Enviado en modo simulado (sin proveedor real configurado).
+  dryRun            Boolean             @default(false) @map("dry_run")
+  idempotencyKey    String?             @unique @map("idempotency_key") @db.VarChar(200)
+  readAt            DateTime?           @map("read_at")
+  sentAt            DateTime?           @map("sent_at")
+  createdBy         String?             @map("created_by")
+  createdAt         DateTime            @default(now()) @map("created_at")
+  updatedAt         DateTime            @updatedAt @map("updated_at")
+
+  template NotificationTemplate? @relation(fields: [templateId], references: [id])
+
+  @@index([status, nextRetryAt])
+  @@index([destinatario])
+  @@index([userId, canal, createdAt])
+  @@index([templateId])
+  @@map("notifications")
+}
+
+model NotificationPreference {
+  id           String              @id @default(uuid())
+  destinatario String              @db.VarChar(200)
+  canal        NotificationChannel
+  optOut       Boolean             @default(false) @map("opt_out")
+  motivo       String?             @db.VarChar(300)
+  updatedBy    String?             @map("updated_by")
+  createdAt    DateTime            @default(now()) @map("created_at")
+  updatedAt    DateTime            @updatedAt @map("updated_at")
+
+  @@unique([destinatario, canal])
+  @@map("notification_preferences")
 }

@@ -47,9 +47,28 @@ reglas complejas (M07, M08, M09, M16) ≈ 1.5–2 sprints.
 | Módulo | Estado | Nota |
 |---|---|---|
 | M01 | Documentado | Falta aprobación del cliente por escrito |
-| M02 | En desarrollo (F0 ✅) | Login → `/auth/me` → logout funcionando en local y Docker; RBAC/ABAC + bitácora; 20 pruebas unitarias en verde |
-| M03–M21 | Documentado | Sin código |
-| F0 — Infra | ✅ Completada | Monorepo + Docker por proyecto + `docker-compose` + CI; migración inicial `init` + seed; login por proxy de nginx verificado |
+| M02 | ✅ Terminado (F1) | Usuarios CRUD multi-rol, baja/reactivación, desbloqueo, contraseña temporal y cambio obligatorio; consola `/roles` (roles, matriz, políticas ABAC); recuperación de contraseña; bitácora consultable `/audit` |
+| M11 | ✅ Terminado (F1) | `settings` + niveles, ciclos (uno activo), motivos de baja y tipos de documento; pantallas `/settings` y `/catalogs` |
+| M03 | ✅ Terminado (F2) | Alumnos: matrícula AAAA-NNNN, CURP con dígito verificador, tutores, homónimos, exportación, alcance por registro |
+| M04 | ✅ Terminado (F2) | Profesores con cuenta PROFESOR e invitación; baja/reactivación |
+| M05 | ✅ Terminado (F2) | Bajas/reingresos con motivo e historial inmutable |
+| M06 | ✅ Terminado (F2) | Expediente privado (S3/local), validación por contenido, faltantes; kardex calculado + PDF (alimentado por M08 desde F3) |
+| M07 | ✅ Terminado (F3) | Cursos, grupos con horario, inscripciones serializables (cupo, duplicado, empalme), baja/cambio de grupo; AREA del profesor |
+| M08 | ✅ Terminado (F3) | Instrumentos con ponderación, captura en lote, libro con proyección, cierre de grupo → kardex y estatus, exportación |
+| M09 | ✅ Terminado (F4) | Conceptos, cargos (individual, masivo idempotente), pagos parciales con folio, cancelaciones, recargos, estado de cuenta y recibo PDF |
+| M10 | ✅ Terminado (F4) | Reportes json/xlsx/pdf con alcance, tablero en Inicio con KPIs y gráficas |
+| M14 | ✅ Terminado (F5) | Banco de reactivos de 4 tipos, alcance por curso, congelado al usarse, importación CSV con vista previa e idempotencia |
+| M15 | ✅ Terminado (F5) | Exámenes con ventana, duración, intentos, barajado, criterio y evaluación vinculada; constructor y publicación |
+| M16 | ✅ Terminado (F5) | Portal del alumno: inicio/reanudación, tiempo en servidor, autoguardado, cambios de pestaña, envío y expiración |
+| M17 | ✅ Terminado (F5) | Calificación automática, revisión de abiertas, recalificación y escritura al libro de M08 (→ kardex al cierre) |
+| M12, M13, M18–M21 | Documentado | Sin código |
+| F0 — Infra | ✅ Completada | Monorepo + Docker por proyecto + `docker-compose` + CI (incluye e2e); migración `init` + seed; login por proxy de nginx verificado; e2e de auth (contrato + navegador) en verde |
+| F1 — Acceso y catálogos | ✅ Completada (pendiente H1 con el cliente) | Migración `f1_policies_catalogs`; unitarias 39, contrato API 64, navegador 30 — todo en verde |
+| F2 — Personas y expediente | ✅ Completada (pendiente H2 con el cliente) | Migración `f2_personas_expediente`; unitarias 51, contrato API 100, navegador 43 — todo en verde |
+| F3 — Gestión académica | ✅ Completada (pendiente H3 con el cliente) | Migración `f3_academico`; unitarias 61, contrato API 127, navegador 52 — todo en verde |
+| F4 — Finanzas y reportes base | ✅ Completada (pendiente H4 con el cliente) | Migración `f4_finanzas`; unitarias 68, contrato API 145, navegador 62 — todo en verde |
+| F5 — Examen en línea | ✅ Completada (pendiente H5 con el cliente) | Migración `f5_examen_en_linea`; unitarias 76, contrato API 167, navegador 66 — todo en verde |
+| F6 — Asistencia y notificaciones | ⏭️ Siguiente | M18 (asistencia y justificantes), M19 (notificaciones) |
 
 ## 3. Detalle por fase
 

@@ -1,0 +1,79 @@
+{
+  "title": "Expediente documental",
+  "kpi": {
+    "required": "Obligatorios",
+    "missing": "Faltantes",
+    "documents": "Documentos"
+  },
+  "missingList": "Faltan: {{list}}",
+  "complete": "Expediente obligatorio completo",
+  "readOnly": "Alumno en baja: expediente de solo lectura.",
+  "upload": {
+    "title": "Subir documento",
+    "type": "Tipo de documento",
+    "notas": "Notas (opcional)",
+    "submit": "Subir",
+    "hint": "PDF, JPG o PNG de hasta 5 MB.",
+    "done": "Documento subido",
+    "typeRequired": "Elige el tipo de documento",
+    "fileRequired": "Selecciona un archivo",
+    "tooLarge": "El archivo excede 5 MB",
+    "badType": "Solo PDF, JPG o PNG"
+  },
+  "table": {
+    "tipo": "Tipo",
+    "archivo": "Archivo",
+    "status": "Estado",
+    "size": "Tamaño",
+    "subio": "Subió",
+    "reviso": "Revisó",
+    "fecha": "Fecha",
+    "empty": "Sin documentos."
+  },
+  "status": {
+    "PENDIENTE": "Pendiente",
+    "VALIDADO": "Validado",
+    "RECHAZADO": "Rechazado"
+  },
+  "actions": {
+    "download": "Descargar",
+    "validate": "Validar",
+    "reject": "Rechazar",
+    "delete": "Eliminar"
+  },
+  "review": {
+    "validateTitle": "Validar «{{name}}»",
+    "rejectTitle": "Rechazar «{{name}}»",
+    "notas": "Notas",
+    "rejectHint": "Explica qué debe corregirse; el documento podrá reemplazarse.",
+    "validated": "Documento validado",
+    "rejected": "Documento rechazado"
+  },
+  "delete": {
+    "title": "Eliminar «{{name}}»",
+    "message": "El documento sale del expediente; queda registrado en la bitácora.",
+    "done": "Documento eliminado"
+  },
+  "kardex": {
+    "title": "Kardex",
+    "generated": "Generado {{date}}",
+    "promedio": "Promedio general",
+    "creditos": "Cursos acreditados",
+    "minimo": "Mínima aprobatoria",
+    "empty": "Aún no hay cursos ni calificaciones registrados (se alimenta de inscripciones y calificaciones, F3).",
+    "ciclo": "Ciclo",
+    "curso": "Curso",
+    "grupo": "Grupo",
+    "final": "Final",
+    "estatus": "Estatus",
+    "pdf": "Exportar PDF",
+    "faltantes": "Documentos faltantes",
+    "ninguno": "Ninguno",
+    "estatusValues": {
+      "ACREDITADO": "Acreditado",
+      "REPROBADO": "Reprobado",
+      "EN_CURSO": "En curso",
+      "BAJA": "Baja"
+    }
+  }
+}

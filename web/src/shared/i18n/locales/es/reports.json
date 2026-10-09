@@ -1,0 +1,33 @@
+{
+  "title": "Reportes",
+  "description": "Reportes operativos con tu alcance",
+  "report": "Reporte",
+  "run": "Consultar",
+  "exportXlsx": "Excel",
+  "exportPdf": "PDF",
+  "ciclo": "Ciclo",
+  "grupo": "Grupo",
+  "from": "Desde",
+  "to": "Hasta",
+  "activeTerm": "Ciclo activo",
+  "allGroups": "Todos",
+  "rows": "{{count}} registro(s)",
+  "totals": "Totales",
+  "empty": "Sin registros con estos filtros",
+  "pick": "Elige un reporte y consulta",
+  "financial": "Con montos",
+  "dashboard": {
+    "title": "Tablero",
+    "activeStudents": "Alumnos activos",
+    "inactiveStudents": "Bajas: {{count}}",
+    "occupancy": "Ocupación promedio",
+    "groups": "{{count}} grupo(s) en {{term}}",
+    "noTerm": "Sin ciclo activo",
+    "monthIncome": "Ingresos del mes",
+    "totalDebt": "Adeudo total",
+    "overdue": "Vencido: {{amount}}",
+    "incomeChart": "Ingresos por mes",
+    "occupancyChart": "Ocupación por grupo",
+    "noGroups": "Sin grupos en el ciclo activo"
+  }
+}

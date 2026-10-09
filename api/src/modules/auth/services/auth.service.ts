@@ -106,6 +106,7 @@ export class AuthService {
       role: entity.role,
       roles: entity.roles,
       permissions: this.permissionsOfUser(entity, user),
+      mustChangePassword: entity.mustChangePassword,
     };
   }
 
@@ -243,6 +244,7 @@ export class AuthService {
         username: entity.username,
         name: entity.name,
         role: entity.role,
+        mustChangePassword: entity.mustChangePassword,
       },
       roles: entity.roles,
       permissions: this.permissionsOfUser(entity, user),
@@ -293,7 +295,8 @@ export class AuthService {
       userName: user.username,
     });
 
-    const link = `${env.APP_URL}/reset-password?token=${token}`;
+    // La web usa HashRouter: la ruta cuelga de `#`.
+    const link = `${env.APP_URL.replace(/\/+$/, "")}/#/reset-password?token=${token}`;
     void sendEmail({
       to: user.email,
       subject: "Recuperación de contraseña — SGE",
@@ -303,6 +306,57 @@ export class AuthService {
         `<p><a href="${link}">${link}</a></p>` +
         `<p>El enlace vence en 1 hora y es de un solo uso.</p>`,
     }).catch((error) => logger.error(`[auth] forgot-password email failed: ${String(error)}`));
+  }
+
+  /**
+   * Cambio de contraseña propio (incluida la temporal). Exige la actual, revoca
+   * todas las sesiones y emite tokens nuevos para la sesión en curso.
+   */
+  async changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string
+  ): Promise<RefreshResponse> {
+    const user = (await this.db.user.findUnique({
+      where: { id: userId },
+      select: sessionSelect(),
+    })) as SessionUser | null;
+    if (!user || !user.active) throw new HttpError(401, "INVALID_SESSION");
+
+    if (!(await comparePassword(currentPassword, user.passwordHash))) {
+      throw new HttpError(422, "CURRENT_PASSWORD_INVALID");
+    }
+    if (await comparePassword(newPassword, user.passwordHash)) {
+      throw new HttpError(422, "PASSWORD_REUSED");
+    }
+
+    const passwordHash = await hashPassword(newPassword);
+    await this.db.$transaction([
+      this.db.user.update({
+        where: { id: userId },
+        data: { passwordHash, mustChangePassword: false },
+      }),
+      this.db.refreshToken.updateMany({
+        where: { userId, revokedAt: null },
+        data: { revokedAt: new Date() },
+      }),
+    ]);
+    await this.audit?.({
+      action: "PASSWORD_CHANGED",
+      entityType: "User",
+      entityId: userId,
+      userId,
+      userName: user.username,
+    });
+
+    const entity = this.toEntity({ ...user, mustChangePassword: false });
+    const token = signToken({
+      id: entity.id,
+      username: entity.username,
+      role: entity.role,
+      roles: entity.roles,
+    });
+    return { token, refreshToken: await this.issueRefresh(entity) };
   }
 
   /** Restablece con token vigente, no usado; invalida las sesiones. */

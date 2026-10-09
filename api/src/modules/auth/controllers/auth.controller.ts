@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { HttpError } from "@core/middlewares/error.middleware";
 import {
+  ChangePasswordInputSchema,
   ForgotPasswordInputSchema,
   LoginInputSchema,
   LogoutInputSchema,
@@ -44,5 +45,11 @@ export class AuthController {
     const { token, password } = ResetPasswordInputSchema.parse(req.body);
     await this.service.resetPassword(token, password);
     res.json({ ok: true });
+  };
+
+  changePassword = async (req: Request, res: Response) => {
+    if (!req.user) throw new HttpError(401, "UNAUTHENTICATED");
+    const { currentPassword, newPassword } = ChangePasswordInputSchema.parse(req.body);
+    res.json(await this.service.changePassword(req.user.id, currentPassword, newPassword));
   };
 }

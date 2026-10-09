@@ -11,6 +11,7 @@ import {
   scopeOf,
   type Scope,
 } from "@core/permissions";
+import { enforcePolicy } from "@core/policies";
 import type { AuthenticatedUser } from "@core/utils/security";
 import type { AuditLogger } from "@modules/audit";
 import type { UserPermissionView, UserPermissionsView } from "../models/entity/user.entity";
@@ -145,6 +146,11 @@ export class UserPermissionsService {
         throw new HttpError(400, "INVALID_ROLE", { role: key });
       }
     }
+    const target = await this.loadUser(userId);
+    enforcePolicy("users.permissions.set", actor, {
+      target: { id: userId, roles: this.roleKeysOf(target) },
+      roles: next,
+    });
 
     await this.db.$transaction(async (tx) => {
       const current = await tx.userRole.findMany({ where: { userId }, select: { roleKey: true } });
@@ -200,6 +206,12 @@ export class UserPermissionsService {
     if (definition.sensitive && scopeOf(actor, permission) !== "ALL") {
       throw new HttpError(403, "SENSITIVE_PERMISSION_REQUIRES_ADMIN", { permission });
     }
+    const target = await this.loadUser(userId);
+    enforcePolicy("users.permissions.set", actor, {
+      target: { id: userId, roles: this.roleKeysOf(target) },
+      permission,
+      scope: input.scope,
+    });
 
     const expiresAt =
       input.expiresAt === undefined

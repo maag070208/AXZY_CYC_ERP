@@ -1,0 +1,66 @@
+{
+  "settings": {
+    "title": "Configuración",
+    "description": "Parámetros generales que consumen todos los módulos.",
+    "school": "Datos de la escuela",
+    "academic": "Reglas académicas",
+    "finance": "Recargos por mora",
+    "system": "Sistema",
+    "saved": "Configuración guardada",
+    "readOnly": "Solo lectura: necesitas config.manage para editar.",
+    "SCHOOL_NAME": "Nombre de la institución",
+    "SCHOOL_ADDRESS": "Domicilio",
+    "SCHOOL_PHONE": "Teléfono",
+    "SCHOOL_EMAIL": "Correo de contacto",
+    "MIN_PASSING_GRADE": "Calificación mínima aprobatoria",
+    "ATTENDANCE_THRESHOLD": "Umbral de asistencia (%)",
+    "LATE_FEE_enabled": "Aplicar recargos por mora",
+    "LATE_FEE_dailyRate": "Tasa diaria (0–1)",
+    "LATE_FEE_graceDays": "Días de gracia",
+    "LANGUAGE": "Idioma del sistema",
+    "languages": {
+      "es": "Español",
+      "en": "English"
+    }
+  },
+  "catalogs": {
+    "title": "Catálogos",
+    "description": "Catálogos base: niveles, ciclos escolares, motivos de baja y tipos de documento.",
+    "tabs": {
+      "levels": "Niveles",
+      "terms": "Ciclos escolares",
+      "cancellation-reasons": "Motivos de baja",
+      "document-types": "Tipos de documento"
+    },
+    "new": "Nuevo",
+    "newTitle": "Nuevo registro",
+    "editTitle": "Editar registro",
+    "nombre": "Nombre",
+    "orden": "Orden",
+    "obligatorio": "Obligatorio",
+    "active": "Activo",
+    "created": "Registro creado",
+    "saved": "Registro guardado",
+    "deactivated": "Registro desactivado",
+    "reactivated": "Registro reactivado",
+    "deactivateTitle": "Desactivar «{{name}}»",
+    "deactivateMessage": "Deja de ofrecerse en formularios, pero se conserva para los históricos.",
+    "nombreRequired": "El nombre es obligatorio",
+    "readOnly": "Solo lectura"
+  },
+  "terms": {
+    "new": "Nuevo ciclo",
+    "nombre": "Nombre",
+    "fechaInicio": "Inicio",
+    "fechaFin": "Fin",
+    "activo": "Activo",
+    "current": "Ciclo activo",
+    "none": "Sin ciclo activo",
+    "activate": "Activar",
+    "activateTitle": "Activar «{{name}}»",
+    "activateMessage": "Pasa a ser el ciclo activo y el anterior se desactiva.",
+    "activated": "Ciclo activado",
+    "datesInvalid": "La fecha de inicio no puede ser posterior a la de fin",
+    "datesRequired": "Elige las fechas de inicio y fin"
+  }
+}

@@ -4,11 +4,29 @@
 |---|---|
 | **Código** | M14 |
 | **Versión** | 0.1 |
-| **Estado** | Planeado |
+| **Estado** | Terminado (F5) |
 | **Fase** | Examen en línea |
 | **Depende de** | M07 (cursos), M02 (RBAC/bitácora) |
 | **Habilita a** | M15 (configuración de exámenes) → M16/M17 |
 | **Permisos** | `questions.view` · `questions.create` · `questions.edit` · `questions.import` (con alcance) |
+
+## Implementación (F5, 2026-10-09)
+
+**Estado: terminado.** Código en `api/src/modules/questions` y `web/src/{entities/question,features/question}`; página `/questions` (menú «Reactivos», requiere `questions.view`).
+
+| Método | Ruta | Permiso | Nota |
+|---|---|---|---|
+| POST | `/api/v1/questions/query` | `questions.view` | Tabla server-side (curso, tipo, dificultad, estatus, texto) |
+| POST | `/api/v1/questions` | `questions.create` | Reglas de opciones por tipo |
+| GET / PATCH | `/api/v1/questions/:id` | `questions.view` / `questions.edit` | Editar se bloquea si ya se respondió (`QUESTION_IN_USE`) |
+| DELETE · POST `…/reactivate` | `/api/v1/questions/:id` | `questions.edit` | Desactivar / reactivar (baja lógica) |
+| POST | `/api/v1/questions/import?preview=true` | `questions.import` | CSV multipart `file`; aplicar exige `Idempotency-Key` |
+
+Decisiones (sección 12):
+- Tipos `OPCION_MULTIPLE` (una correcta), `VERDADERO_FALSO` (dos opciones, una correcta), `MULTIPLE_RESPUESTA` (≥1 correcta) y `ABIERTA` (sin opciones, revisión manual).
+- El AREA del profesor son los cursos de sus grupos.
+- Un reactivo usado en un intento queda congelado (solo desactivar). Ver [D-038](../../../DECISIONES.md).
+- Importación en dos pasos: vista previa con filas rechazadas y aplicar idempotente. Ver [D-041](../../../DECISIONES.md).
 
 ## 1. Objetivo
 

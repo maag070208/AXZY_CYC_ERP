@@ -3,8 +3,8 @@
 | Campo | Valor |
 |---|---|
 | **Código** | M11 |
-| **Versión** | 0.1 |
-| **Estado** | Planeado |
+| **Versión** | 1.0 |
+| **Estado** | Terminado (F1, 2026-10-09) |
 | **Fase** | Núcleo |
 | **Depende de** | M02 (autenticación, roles y bitácora) |
 | **Habilita a** | M03–M10 y M14–M21 (todos consumen parámetros y catálogos base) |
@@ -89,6 +89,13 @@ model DocumentType {
 }
 ```
 
+> **Implementado:** además de lo anterior, `Term` (`nombre` único, `fechaInicio`/
+> `fechaFin` `@db.Date`, `activo`) vive en M11 con índice único parcial
+> `terms_single_active`; `nombre` es único en cada catálogo. La migración
+> `f1_policies_catalogs` siembra los parámetros (`SCHOOL_*`, `MIN_PASSING_GRADE`,
+> `ATTENDANCE_THRESHOLD`, `LATE_FEE`, `LANGUAGE`), tipos de documento y motivos de
+> baja. Ver [D-021](../../../DECISIONES.md).
+
 **Índices:** `settings.key` único; índices `@@index([active])` en los catálogos
 para los listados.
 **Relaciones:** M11 no es propietario de FKs; sus catálogos se referencian por los
@@ -128,21 +135,17 @@ server-side con `POST /…/query`.
 
 | Método | Ruta | Descripción | Permiso |
 |---|---|---|---|
-| GET | `/api/v1/settings` | Lista/lee parámetros generales | `config.view` |
-| PUT | `/api/v1/settings` | Reemplaza parámetros (`value` por `key`) | `config.manage` |
-| POST | `/api/v1/levels/query` | Listado server-side de niveles | `levels.view` |
-| POST | `/api/v1/levels` | Crea nivel | `levels.manage` |
-| PATCH | `/api/v1/levels/:id` | Actualiza nivel | `levels.manage` |
-| DELETE | `/api/v1/levels/:id` | Desactiva nivel | `levels.manage` |
-| POST | `/api/v1/terms/query` | Listado server-side de ciclos | `terms.view` |
-| POST | `/api/v1/terms` | Crea ciclo escolar | `terms.manage` |
-| PUT | `/api/v1/terms/:id/activate` | Activa el ciclo (desactiva el anterior) | `terms.manage` |
-| POST | `/api/v1/cancellation-reasons/query` | Listado de motivos de baja | `students.movements` |
-| POST | `/api/v1/cancellation-reasons` | Crea motivo | `config.manage` |
-| PATCH | `/api/v1/cancellation-reasons/:id` | Actualiza motivo | `config.manage` |
-| POST | `/api/v1/document-types/query` | Listado de tipos de documento | `documents.view` |
-| POST | `/api/v1/document-types` | Crea tipo | `config.manage` |
-| PATCH | `/api/v1/document-types/:id` | Actualiza tipo (`obligatorio`, `active`) | `config.manage` |
+| GET | `/api/v1/settings` | Parámetros generales | `config.view` |
+| PUT | `/api/v1/settings` | Actualiza `{ KEY: value }` (todo o nada) | `config.manage` |
+| POST | `/api/v1/levels/query` · GET `/levels[?all=true]` · GET `/levels/:id` | Tabla, selects y detalle de niveles | `levels.view` |
+| POST · PATCH · DELETE | `/api/v1/levels[/:id]` | Alta, edición (incl. reactivar con `active: true`) y desactivación | `levels.manage` |
+| POST | `/api/v1/terms/query` · GET `/terms` · GET `/terms/active` | Ciclos escolares | `terms.view` |
+| POST · PATCH | `/api/v1/terms[/:id]` | Alta y edición de ciclo | `terms.manage` |
+| PUT | `/api/v1/terms/:id/activate` | Activa el ciclo y desactiva el anterior | `terms.manage` |
+| POST | `/api/v1/cancellation-reasons/query` · GET `/cancellation-reasons[/:id]` | Motivos de baja | `config.view` o `students.movements` |
+| POST · PATCH · DELETE | `/api/v1/cancellation-reasons[/:id]` | Escritura de motivos | `config.manage` |
+| POST | `/api/v1/document-types/query` · GET `/document-types[/:id]` | Tipos de documento | `config.view` o `documents.view` |
+| POST · PATCH · DELETE | `/api/v1/document-types[/:id]` | Escritura de tipos (`obligatorio`, `active`) | `config.manage` |
 
 Los conceptos de pago (`fee-concepts`) se documentan y sirven en **M09**.
 
@@ -162,10 +165,12 @@ Los conceptos de pago (`fee-concepts`) se documentan y sirven en **M09**.
 
 | Elemento | Capa FSD | Descripción |
 |---|---|---|
-| `settingsApi` / `catalogApi` | `entities/config`, `entities/catalog` | API + tipos (`/settings`, catálogos) |
-| Edición de parámetros | `features/config/edit-settings` | Formulario por secciones con `ITFormBuilder` |
-| CRUD de catálogos | `features/catalogs/manage-catalog` | Alta/edición/desactivación genérica |
-| Pantallas | `pages/config/settings`, `pages/config/levels`, `pages/config/terms`, `pages/config/cancellation-reasons`, `pages/config/document-types` | Administración |
+| `settingsApi` / `catalogApi` / `termsApi` | `entities/config` | API + tipos |
+| Edición de parámetros | `features/config/edit-settings` | Formulario por secciones; envía solo lo que cambió |
+| CRUD de catálogos | `features/catalogs/manage-catalog` | Genérico para niveles, motivos de baja y tipos de documento |
+| Ciclos escolares | `features/catalogs/manage-terms` | Alta/edición con `ITDatePicker` y activación |
+| `/settings` | `pages/settings` | Solo lectura sin `config.manage` |
+| `/catalogs` | `pages/catalogs` | `ITTabs`; cada pestaña según su permiso |
 
 Pantallas con `ITPage` + `ITDataTable`/`ITFormBuilder`; secciones con `PanelCard`;
 confirmaciones con `ITDialog`; banderas (`obligatorio`, `active`) con controles
@@ -224,24 +229,25 @@ registran como `ACCESS_DENIED`.
 - Navegador (`web/tests/e2e`): edición de parámetros y CRUD de un catálogo
   (p. ej. motivos de baja).
 - Spec(s) del módulo: `api/tests/e2e/m11-administracion-catalogos.spec.ts`,
+  `api/tests/unit/settings.spec.ts`,
   `web/tests/e2e/m11-administracion-catalogos.spec.ts`.
 - Una prueba por regla de la sección 4. Solo se corre el spec del cambio.
 
 ## 11. Criterios de aceptación
 
-- [ ] Migración y modelo Prisma (`settings`, `levels`, `cancellation_reasons`, `document_types`) con semillas.
-- [ ] Módulo API (routes/controller/service/dto/entity) con permisos y bitácora.
-- [ ] Catálogos con `/query`, desactivación lógica y ciclo activo único.
-- [ ] Bitácora `SYS_CONFIG_UPDATED` y `*_CREATED`/`*_UPDATED`.
-- [ ] Pantallas web con UI kit (ITPage, ITDataTable, ITFormBuilder, PanelCard, ITDialog).
-- [ ] Specs pasando (solo los del módulo).
-- [ ] Este README completo.
+- [x] Migración y modelo Prisma (`settings`, `levels`, `terms`, `cancellation_reasons`, `document_types`) con semillas.
+- [x] Módulo API (`modules/config`) con permisos, políticas (`settings.update`) y bitácora.
+- [x] Catálogos con `/query`, desactivación lógica y ciclo activo único.
+- [x] Bitácora `SYS_CONFIG_UPDATED` y `*_CREATED`/`*_UPDATED`/`*_DEACTIVATED`, `TERM_ACTIVATED`.
+- [x] Pantallas web con UI kit (ITPage, ITDataTable, ITTabs, PanelCard, ITDialog).
+- [x] Specs pasando (solo los del módulo).
+- [x] Este README completo.
 
 ## 12. Decisiones abiertas
 
-- ¿`settings` es clave/valor libre (como hoy) o una fila única tipada?
+- Resueltas en F1 ([D-021](../../../DECISIONES.md)): `settings` clave/valor
+  validado por clave; `terms` se crea en M11 y M07 lo amplía.
 - ¿El logotipo se guarda como ruta privada (storage) o como URL/base64 en `settings`?
-- Catálogo de `terms`: ¿pertenece a M11 o a M07? (hoy el modelo `Term` es de M07).
 - ¿Se versionan los parámetros para conservar el valor vigente al momento de un
   cálculo histórico (calificación mínima, umbral)?
 - Formato y alcance de las reglas de recargo (`LATE_FEE`): tasa diaria vs. porcentaje.

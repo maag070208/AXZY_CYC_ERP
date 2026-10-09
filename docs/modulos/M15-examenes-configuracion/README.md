@@ -4,11 +4,29 @@
 |---|---|
 | **Código** | M15 |
 | **Versión** | 0.1 |
-| **Estado** | Planeado |
+| **Estado** | Terminado (F5) |
 | **Fase** | Examen en línea |
 | **Depende de** | M14 (banco de reactivos), M07 (grupos), M08 (exámenes y calificaciones), M02 |
 | **Habilita a** | M16 (aplicación al alumno) → M17 (calificación al kardex) |
 | **Permisos** | `exams.view` · `exams.manage` · `exams.publish` (con alcance) |
+
+## Implementación (F5, 2026-10-09)
+
+**Estado: terminado.** Código en `api/src/modules/exams` (`exam.service.ts`) y `web/src/{entities/online-exam,features/exam/{exam-form,exams-list,exam-builder}}`; páginas `/exams` y `/exams/:id` (pestañas Configuración, Reactivos y Resultados).
+
+| Método | Ruta | Permiso | Nota |
+|---|---|---|---|
+| POST | `/api/v1/online-exams/query` | `exams.view` | El alumno ve solo publicados de sus grupos |
+| POST | `/api/v1/online-exams` | `exams.manage` | Grupo abierto del alcance; evaluación de M08 opcional (1:1) |
+| GET / PATCH / DELETE | `/api/v1/online-exams/:id` | `exams.view` / `exams.manage` | Eliminar solo en borrador |
+| POST · DELETE | `/api/v1/online-exams/:id/questions[/:questionId]` | `exams.manage` | Reemplaza la lista (orden y puntos propios) |
+| POST | `/api/v1/online-exams/:id/publish` | `exams.publish` | Requiere preguntas activas y aprobatorio ≤ total |
+| POST | `/api/v1/online-exams/:id/close` | `exams.manage` | Envía y califica los intentos en curso |
+
+Decisiones (sección 12):
+- Configuración: ventana (apertura/cierre), duración, intentos, barajar preguntas/opciones, mostrar resultado, puntaje aprobatorio y criterio `MEJOR`/`ULTIMO`.
+- Con el primer intento solo cambian instrucciones, cierre y mostrar resultado. Ver [D-038](../../../DECISIONES.md).
+- La web captura fecha (calendario del kit) y hora en pasos de 15 min.
 
 ## 1. Objetivo
 

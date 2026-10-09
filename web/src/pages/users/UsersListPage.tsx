@@ -1,24 +1,81 @@
-import {
-  ITButton,
-  ITFlex,
-  ITPage,
-  ITText,
-  ITToast,
-} from "@axzydev/axzy_ui_system";
+import { useState } from "react";
+import { ITButton, ITConfirmDialog, ITFlex, ITPage, ITText } from "@axzydev/axzy_ui_system";
 import { FaPlus, FaSync, FaUsers } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
-import { useCan } from "@entities/user";
-import { useUsersTable, UsersTable } from "@features/user/users-list";
+import { useSelector } from "react-redux";
+import type { RootState } from "@app/store";
+import { errorMessage, useNotify } from "@app/toast/useNotify";
+import { useCan, usersApi, type User } from "@entities/user";
+import { useRoles } from "@entities/permission";
+import { UsersTable, useUsersTable, type UserAction } from "@features/user/users-list";
+import { UserFormDialog } from "@features/user/user-form";
+import { DeactivateUserDialog, ResetPasswordDialog } from "@features/user/user-actions";
+import { UserPermissionsDialog } from "@features/user/user-permissions";
 
+/** `/users`: listado server-side + alta/edición, baja/reactivación, desbloqueo y permisos. */
 export default function UsersListPage() {
-  const { t: tt } = useTranslation(["users", "common"]);
-  const canCreateUsers = useCan("users.create");
+  const { t } = useTranslation(["users", "common"]);
+  const notify = useNotify();
+  const canCreate = useCan("users.create");
+  const currentUserId = useSelector((s: RootState) => s.auth.user?.id);
   const fx = useUsersTable();
+  const { roles } = useRoles();
+
+  const [formOpen, setFormOpen] = useState(false);
+  const [editing, setEditing] = useState<User | null>(null);
+  const [deactivating, setDeactivating] = useState<User | null>(null);
+  const [reactivating, setReactivating] = useState<User | null>(null);
+  const [resetting, setResetting] = useState<User | null>(null);
+  const [permissionsOf, setPermissionsOf] = useState<User | null>(null);
+
+  const done = (message: string) => {
+    notify.success(message);
+    fx.reload();
+  };
+
+  const onAction = async (action: UserAction, user: User) => {
+    switch (action) {
+      case "edit":
+        setEditing(user);
+        setFormOpen(true);
+        return;
+      case "deactivate":
+        setDeactivating(user);
+        return;
+      case "reactivate":
+        setReactivating(user);
+        return;
+      case "resetPassword":
+        setResetting(user);
+        return;
+      case "permissions":
+        setPermissionsOf(user);
+        return;
+      case "unlock":
+        try {
+          await usersApi.unlock(user.id);
+          done(t("unlock.done"));
+        } catch (err) {
+          notify.error(errorMessage(err, t("common:errors.save")));
+        }
+    }
+  };
+
+  const reactivate = async () => {
+    if (!reactivating) return;
+    try {
+      await usersApi.reactivate(reactivating.id);
+      setReactivating(null);
+      done(t("reactivate.done"));
+    } catch (err) {
+      notify.error(errorMessage(err, t("common:errors.save")));
+    }
+  };
 
   return (
     <ITPage
-      title={tt("list.title")}
-      description={tt("list.description", { count: fx.total })}
+      title={t("list.title")}
+      description={t("list.description", { count: fx.total })}
       noPadding
       icon={<FaUsers size={20} />}
       actions={
@@ -26,31 +83,69 @@ export default function UsersListPage() {
           <ITButton variant="outlined" color="secondary" onClick={fx.reload}>
             <ITFlex align="center" gap={1}>
               <FaSync size={11} />
-              <ITText className="font-bold text-[11px]">{tt("common:actions.reload")}</ITText>
+              <ITText className="font-bold text-[11px]">{t("common:actions.reload")}</ITText>
             </ITFlex>
           </ITButton>
-          {canCreateUsers && (
-            <ITButton variant="filled" color="primary" disabled>
+          {canCreate && (
+            <ITButton
+              variant="filled"
+              color="primary"
+              onClick={() => {
+                setEditing(null);
+                setFormOpen(true);
+              }}
+            >
               <ITFlex align="center" gap={1}>
                 <FaPlus size={11} />
-                <ITText className="font-bold text-[11px]">{tt("list.new")}</ITText>
+                <ITText className="font-bold text-[11px]">{t("list.new")}</ITText>
               </ITFlex>
             </ITButton>
           )}
         </ITFlex>
       }
     >
-      <UsersTable fx={fx} />
+      <UsersTable fx={fx} roles={roles} currentUserId={currentUserId} onAction={onAction} />
 
-      {fx.toast && (
-        <ITToast
-          message={fx.toast.message}
-          type={fx.toast.type}
-          position="bottom-center"
-          duration={2500}
-          onClose={() => fx.setToast(null)}
+      {formOpen && (
+        <UserFormDialog
+          isOpen={formOpen}
+          user={editing}
+          roles={roles}
+          currentUserId={currentUserId}
+          onClose={() => setFormOpen(false)}
+          onSaved={(_user, created) => {
+            setFormOpen(false);
+            done(created ? t("form.created") : t("form.saved"));
+          }}
         />
       )}
+      <DeactivateUserDialog
+        user={deactivating}
+        onClose={() => setDeactivating(null)}
+        onDone={() => {
+          setDeactivating(null);
+          done(t("deactivate.done"));
+        }}
+      />
+      <ResetPasswordDialog
+        user={resetting}
+        onClose={() => setResetting(null)}
+        onDone={() => {
+          setResetting(null);
+          done(t("resetPassword.done"));
+        }}
+      />
+      <ITConfirmDialog
+        isOpen={!!reactivating}
+        onClose={() => setReactivating(null)}
+        onConfirm={() => void reactivate()}
+        title={t("reactivate.title", { name: reactivating?.name ?? "" })}
+        message={t("reactivate.message")}
+        confirmLabel={t("actions.reactivate")}
+        cancelLabel={t("common:actions.cancel")}
+        variant="success"
+      />
+      <UserPermissionsDialog user={permissionsOf} onClose={() => setPermissionsOf(null)} />
     </ITPage>
   );
 }

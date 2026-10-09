@@ -2,6 +2,8 @@ import type { Prisma, PrismaClient } from "@prisma/client";
 import { prismaClient } from "@core/config/database";
 import { HttpError } from "@core/middlewares/error.middleware";
 import { isRole, loadPermissionsFromDb, type Scope } from "@core/permissions";
+import { enforcePolicy } from "@core/policies";
+import type { AuthenticatedUser } from "@core/utils/security";
 import type { AuditLogger } from "@modules/audit";
 import type {
   MatrixChange,
@@ -342,7 +344,8 @@ export class PermissionService {
    * sistema sin ningún rol activo con `roles.manage` y escribe también los NONE
    * (tombstone: nunca borra filas). Audita celda por celda y recarga la cache.
    */
-  async saveMatrix(changes: MatrixChange[], actorId: string): Promise<{ updated: number }> {
+  async saveMatrix(changes: MatrixChange[], actor: AuthenticatedUser): Promise<{ updated: number }> {
+    const actorId = actor.id;
     if (changes.length === 0) throw new HttpError(400, "CHANGES_REQUIRED");
     if (changes.length > MATRIX_MAX) throw new HttpError(400, "TOO_MANY_CHANGES", { max: MATRIX_MAX });
 
@@ -362,6 +365,11 @@ export class PermissionService {
           scope: change.scope,
         });
       }
+    }
+
+    // ABAC después del RBAC: cada celda se evalúa por separado.
+    for (const change of changes) {
+      enforcePolicy("roles.matrix.update", actor, { ...change });
     }
 
     const removingManage = changes.filter(
@@ -400,6 +408,7 @@ export class PermissionService {
             entityType: "RolePermission",
             entityId,
             userId: actorId,
+            userName: actor.username,
             previousState: before ? { scope: before } : undefined,
             newState: { scope: change.scope },
           },

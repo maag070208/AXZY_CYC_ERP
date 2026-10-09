@@ -111,21 +111,74 @@ test.describe("matriz en memoria", () => {
 test.describe("resolvedor con fixtures reales", () => {
   test.beforeEach(loadFixtures);
 
-  test("ADMIN tiene todos los permisos en ALL", () => {
+  test("ADMIN tiene en ALL todo permiso institucional (los personales, solo OWN, no le aplican)", () => {
     const admin = permissionsOf(user("ADMIN"));
-    expect(Object.keys(admin)).toHaveLength(9);
+    const institutional = catalogKeys().filter((key) => definitionOf(key)?.scopes.includes("ALL"));
+    expect(Object.keys(admin).sort()).toEqual(institutional.sort());
     expect(Object.values(admin).every((scope) => scope === "ALL")).toBe(true);
+    expect(institutional.length).toBe(catalogKeys().length - 1); // attempts.take
   });
 
-  test("CONTROL_ESCOLAR solo config.view", () => {
-    expect(scopeOf(user("CONTROL_ESCOLAR"), "config.view")).toBe("ALL");
+  test("CONTROL_ESCOLAR opera alumnos y expediente; solo lee configuración", () => {
+    const perms = permissionsOf(user("CONTROL_ESCOLAR"));
+    for (const key of ["students.create", "students.movements", "documents.validate", "kardex.export", "teachers.edit"]) {
+      expect(perms[key], key).toBe("ALL");
+    }
+    expect(perms["config.view"]).toBe("ALL");
+    expect(scopeOf(user("CONTROL_ESCOLAR"), "teachers.create")).toBe("NONE");
+    expect(scopeOf(user("CONTROL_ESCOLAR"), "config.manage")).toBe("NONE");
     expect(scopeOf(user("CONTROL_ESCOLAR"), "audit.view")).toBe("NONE");
     expect(scopeOf(user("CONTROL_ESCOLAR"), "users.view")).toBe("NONE");
   });
 
-  test("PROFESOR y ALUMNO no tienen permisos de administración", () => {
-    expect(permissionsOf(user("PROFESOR"))).toEqual({});
-    expect(permissionsOf(user("ALUMNO"))).toEqual({});
+  test("PROFESOR y ALUMNO solo ven lo de su ámbito, sin administración", () => {
+    expect(permissionsOf(user("PROFESOR"))).toEqual({
+      "students.view": "AREA",
+      "teachers.view": "OWN",
+      "teachers.edit": "OWN",
+      "documents.view": "AREA",
+      "kardex.view": "AREA",
+      "kardex.export": "AREA",
+      "terms.view": "ALL",
+      "courses.view": "AREA",
+      "groups.view": "AREA",
+      "enrollments.view": "AREA",
+      "assessments.view": "AREA",
+      "assessments.manage": "AREA",
+      "grades.view": "AREA",
+      "grades.capture": "AREA",
+      "grades.export": "AREA",
+      "reports.view": "AREA",
+      "reports.export": "AREA",
+      "questions.view": "AREA",
+      "questions.create": "AREA",
+      "questions.edit": "AREA",
+      "questions.import": "AREA",
+      "exams.view": "AREA",
+      "exams.manage": "AREA",
+      "exams.publish": "AREA",
+      "attempts.view": "AREA",
+      "attempts.review": "AREA",
+      "attendance.view": "AREA",
+      "attendance.manage": "AREA",
+      "attendance.justify": "AREA",
+    });
+    expect(permissionsOf(user("ALUMNO"))).toEqual({
+      "students.view": "OWN",
+      "documents.view": "OWN",
+      "kardex.view": "OWN",
+      "kardex.export": "OWN",
+      "groups.view": "OWN",
+      "enrollments.view": "OWN",
+      "assessments.view": "OWN",
+      "grades.view": "OWN",
+      "charges.view": "OWN",
+      "exams.view": "OWN",
+      "attempts.take": "OWN",
+      "attempts.view": "OWN",
+      "attendance.view": "OWN",
+      "attendance.justify": "OWN",
+    });
   });
 
   test("el alcance mayor gana al combinar roles", () => {

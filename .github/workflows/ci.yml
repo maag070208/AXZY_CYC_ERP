@@ -8,7 +8,7 @@ on:
 
 jobs:
   api:
-    name: API (build, lint, unit, migrate)
+    name: API (build, lint, unit, migrate, e2e)
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -29,6 +29,7 @@ jobs:
       JWT_SECRET: ci-secret
       PORT: "4001"
       WEB_ORIGIN: http://localhost:5173
+      EMAIL_DRY_RUN: "true"
     defaults:
       run:
         working-directory: api
@@ -48,10 +49,40 @@ jobs:
       - run: pnpm run build
       - run: pnpm run lint
       - run: pnpm run test:unit
+      # Contrato E2E contra la API real (Playwright la levanta con `npm run dev`).
+      - run: pnpm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: api-playwright-report
+          path: api/playwright-report
+          retention-days: 7
 
   web:
-    name: Web (build, lint)
+    name: Web (build, lint, e2e)
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: cyc
+          POSTGRES_USER: cyc
+          POSTGRES_PASSWORD: cyc_dev_pwd
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U cyc -d cyc"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      # La suite de navegador levanta la API (../api) y Vite.
+      DATABASE_URL: postgresql://cyc:cyc_dev_pwd@localhost:5432/cyc?schema=public
+      JWT_SECRET: ci-secret
+      PORT: "4001"
+      WEB_ORIGIN: "*"
+      EMAIL_DRY_RUN: "true"
+      VITE_API_URL: http://localhost:4001/api/v1
     defaults:
       run:
         working-directory: web
@@ -64,7 +95,23 @@ jobs:
         with:
           node-version: 20
           cache: pnpm
-          cache-dependency-path: web/pnpm-lock.yaml
+          cache-dependency-path: |
+            api/pnpm-lock.yaml
+            web/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
       - run: pnpm run build
       - run: pnpm run lint
+      - name: API para la suite de navegador
+        working-directory: api
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm exec prisma generate
+          pnpm exec prisma migrate deploy
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: web-playwright-report
+          path: web/playwright-report
+          retention-days: 7

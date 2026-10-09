@@ -1,0 +1,106 @@
+{
+  "list": {
+    "title": "Alumnos",
+    "description": "{{count}} alumno(s) en tu alcance",
+    "new": "Nuevo alumno",
+    "export": "Exportar",
+    "exported": "Archivo generado"
+  },
+  "kpi": {
+    "total": "Total",
+    "activos": "Activos",
+    "bajas": "En baja"
+  },
+  "table": {
+    "matricula": "Matrícula",
+    "nombre": "Nombre",
+    "curp": "CURP",
+    "status": "Estatus",
+    "fechaIngreso": "Ingreso",
+    "view": "Ver expediente"
+  },
+  "status": {
+    "ACTIVO": "Activo",
+    "BAJA": "Baja"
+  },
+  "genders": {
+    "M": "Masculino",
+    "F": "Femenino",
+    "OTRO": "Otro"
+  },
+  "form": {
+    "titleNew": "Nuevo alumno",
+    "titleEdit": "Editar alumno",
+    "personal": "Datos del alumno",
+    "contact": "Contacto",
+    "guardians": "Tutores",
+    "guardiansHint": "Obligatorio al menos uno si el alumno es menor de edad. Solo uno puede ser responsable de pago.",
+    "nombres": "Nombre(s)",
+    "apellidoPaterno": "Apellido paterno",
+    "apellidoMaterno": "Apellido materno",
+    "curp": "CURP",
+    "fechaNacimiento": "Fecha de nacimiento",
+    "genero": "Género",
+    "email": "Correo",
+    "telefono": "Teléfono",
+    "direccion": "Domicilio",
+    "fechaIngreso": "Fecha de ingreso",
+    "fechaIngresoHint": "Define el año de la matrícula; por defecto, hoy.",
+    "addGuardian": "Agregar tutor",
+    "removeGuardian": "Quitar tutor",
+    "guardianNombre": "Nombre del tutor",
+    "parentesco": "Parentesco",
+    "responsablePago": "Responsable de pago",
+    "noGuardians": "Sin tutores registrados.",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "created": "Alumno registrado con matrícula {{matricula}}",
+    "saved": "Alumno actualizado",
+    "duplicateTitle": "¿Es otra persona?",
+    "duplicateMessage": "Ya existe un alumno con el mismo nombre y fecha de nacimiento ({{matriculas}}). Confirma solo si se trata de otra persona.",
+    "duplicateConfirm": "Sí, es otra persona",
+    "required": "{{label}} es obligatorio",
+    "futureDate": "La fecha no puede ser futura",
+    "minorNeedsGuardian": "Un menor de edad necesita al menos un tutor",
+    "onePayer": "Solo un tutor puede ser responsable de pago"
+  },
+  "detail": {
+    "tabs": {
+      "general": "Datos generales",
+      "movements": "Movimientos",
+      "documents": "Expediente",
+      "kardex": "Kardex",
+      "enrollments": "Inscripciones",
+      "account": "Estado de cuenta"
+    },
+    "matricula": "Matrícula",
+    "age": "{{age}} años",
+    "edit": "Editar",
+    "baja": "Dar de baja",
+    "reingreso": "Reingresar",
+    "back": "Volver a alumnos",
+    "noData": "—"
+  },
+  "movements": {
+    "title": "Historial de movimientos",
+    "empty": "Sin movimientos registrados.",
+    "tipo": "Tipo",
+    "fecha": "Fecha del movimiento",
+    "motivo": "Motivo",
+    "observaciones": "Observaciones",
+    "autor": "Registró",
+    "BAJA": "Baja",
+    "REINGRESO": "Reingreso",
+    "bajaTitle": "Dar de baja a {{name}}",
+    "bajaMessage": "El alumno pasa a BAJA y se cancelan sus inscripciones activas. Se conserva todo su historial.",
+    "reingresoTitle": "Reingresar a {{name}}",
+    "reingresoMessage": "El alumno vuelve a ACTIVO conservando su matrícula.",
+    "reason": "Motivo del catálogo",
+    "reasonNone": "Otro (escribir)",
+    "confirmBaja": "Dar de baja",
+    "confirmReingreso": "Reingresar",
+    "bajaDone": "Baja registrada",
+    "reingresoDone": "Reingreso registrado",
+    "motivoRequired": "Escribe el motivo (mínimo 3 caracteres)"
+  }
+}

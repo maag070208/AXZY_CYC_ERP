@@ -1,0 +1,141 @@
+{
+  "page": {
+    "title": "Billing",
+    "description": "Charges, payments and fee concepts",
+    "tabs": {
+      "charges": "Charges",
+      "payments": "Payments",
+      "concepts": "Concepts"
+    }
+  },
+  "money": {
+    "currency": "MXN"
+  },
+  "concepts": {
+    "title": "Fee concepts",
+    "new": "New concept",
+    "nombre": "Concept",
+    "descripcion": "Description",
+    "monto": "Base amount",
+    "tipo": "Type",
+    "status": "Status",
+    "titleNew": "New concept",
+    "titleEdit": "Edit concept",
+    "created": "Concept created",
+    "saved": "Concept updated",
+    "deactivated": "Concept deactivated",
+    "reactivated": "Concept reactivated",
+    "reserved": "System",
+    "types": {
+      "INSCRIPCION": "Enrollment",
+      "COLEGIATURA": "Tuition",
+      "MATERIAL": "Materials",
+      "RECARGO": "Late fee",
+      "OTRO": "Other"
+    }
+  },
+  "charges": {
+    "new": "New charge",
+    "generate": "Generate charges",
+    "lateFees": "Apply late fees",
+    "matricula": "Student ID",
+    "alumno": "Student",
+    "concepto": "Concept",
+    "descripcion": "Description",
+    "ciclo": "Term",
+    "monto": "Amount",
+    "descuento": "Discount",
+    "total": "Total",
+    "pagado": "Paid",
+    "saldo": "Balance",
+    "vencimiento": "Due date",
+    "status": "Status",
+    "vencido": "Overdue",
+    "pay": "Collect",
+    "cancel": "Cancel charge",
+    "cancelTitle": "Cancel the charge for {{name}}?",
+    "cancelled": "Charge cancelled",
+    "motivo": "Reason",
+    "created": "Charge created",
+    "titleNew": "New charge",
+    "alumnoSearch": "Student (name or ID)",
+    "selectStudent": "Select a student",
+    "montoHint": "Empty = concept base amount",
+    "statuses": {
+      "PENDIENTE": "Pending",
+      "PARCIAL": "Partial",
+      "PAGADO": "Paid",
+      "CANCELADO": "Cancelled"
+    },
+    "generateTitle": "Generate bulk charges",
+    "scope": "Recipients",
+    "scopes": {
+      "group": "One group",
+      "term": "A whole term"
+    },
+    "grupo": "Group",
+    "generateHint": "Active enrolled students will be charged. Students with a current charge of the same concept, term and due date are skipped.",
+    "generated": "{{created}} charge(s) generated, {{skipped}} skipped",
+    "lateFeesTitle": "Apply late fees?",
+    "lateFeesMessage": "Computed on the balance of each overdue charge, per the settings (daily rate and grace days).",
+    "lateFeesDone": "Late fees: {{created}} new, {{updated}} updated"
+  },
+  "payments": {
+    "register": "Register payment",
+    "registerTitle": "Collect · {{concept}}",
+    "alumno": "Student",
+    "saldo": "Outstanding balance",
+    "monto": "Amount to pay",
+    "fecha": "Payment date",
+    "metodo": "Method",
+    "referencia": "Reference",
+    "folio": "Receipt",
+    "registeredBy": "Collected by",
+    "status": "Status",
+    "registered": "Payment registered · receipt {{folio}}",
+    "exceeds": "Cannot exceed the balance ({{saldo}})",
+    "cancel": "Cancel payment",
+    "cancelTitle": "Cancel payment {{folio}}?",
+    "cancelMessage": "The receipt number is kept and the charge regains its balance.",
+    "cancelled": "Payment cancelled",
+    "vigente": "Current",
+    "cancelado": "Cancelled",
+    "receipt": "Receipt",
+    "receiptPdf": "Print receipt",
+    "methods": {
+      "EFECTIVO": "Cash",
+      "TRANSFERENCIA": "Transfer",
+      "DEPOSITO": "Deposit",
+      "TARJETA": "Card",
+      "OTRO": "Other"
+    }
+  },
+  "receipt": {
+    "title": "Payment receipt",
+    "folio": "Receipt",
+    "fecha": "Date",
+    "alumno": "Student",
+    "matricula": "Student ID",
+    "concepto": "Concept",
+    "metodo": "Method",
+    "referencia": "Reference",
+    "monto": "Amount received",
+    "saldo": "Remaining charge balance",
+    "cobro": "Received by",
+    "cancelado": "CANCELLED"
+  },
+  "statement": {
+    "title": "Account statement",
+    "pdf": "Download PDF",
+    "cargos": "Charges",
+    "descuentos": "Discounts",
+    "pagado": "Paid",
+    "saldo": "Balance",
+    "vencido": "Overdue",
+    "empty": "No current charges",
+    "pagos": "Payments",
+    "generated": "Generated on {{date}}",
+    "sinPagos": "No payments"
+  },
+  "reasonRequired": "Write a reason (at least 3 characters)"
+}

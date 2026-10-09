@@ -5,6 +5,7 @@ import { registerPath, z } from "@core/swagger/registry";
 import { TableQuerySchema } from "@core/swagger/table.dto";
 import {
   DeactivateUserDto,
+  ResetUserPasswordDto,
   SetUserPermissionsDto,
   UserCreateDto,
   UserPermissionsViewSchema,
@@ -87,6 +88,46 @@ export const createUserRouter = (controller: UserController): Router => {
   });
 
   registerPath({
+    method: "post",
+    path: "/users/{id}/reactivate",
+    tags: ["Users"],
+    summary: "Reactiva una cuenta dada de baja",
+    security: bearer,
+    parameters: [idParam],
+    responses: {
+      200: { description: "Usuario reactivado", content: { "application/json": { schema: UserSchema } } },
+      409: { description: "La cuenta ya estaba activa" },
+    },
+  });
+
+  registerPath({
+    method: "post",
+    path: "/users/{id}/unlock",
+    tags: ["Users"],
+    summary: "Quita el bloqueo por intentos fallidos",
+    security: bearer,
+    parameters: [idParam],
+    responses: {
+      200: { description: "Usuario desbloqueado", content: { "application/json": { schema: UserSchema } } },
+      409: { description: "La cuenta no estaba bloqueada" },
+    },
+  });
+
+  registerPath({
+    method: "post",
+    path: "/users/{id}/reset-password",
+    tags: ["Users"],
+    summary: "Asigna una contraseña temporal (obliga a cambiarla y cierra sesiones)",
+    security: bearer,
+    parameters: [idParam],
+    request: { body: { required: true, content: { "application/json": { schema: ResetUserPasswordDto } } } },
+    responses: {
+      200: { description: "Contraseña temporal asignada", content: { "application/json": { schema: UserSchema } } },
+      403: { description: "Sin permiso o política ABAC" },
+    },
+  });
+
+  registerPath({
     method: "get",
     path: "/users/{id}/permissions",
     tags: ["Users"],
@@ -131,6 +172,9 @@ export const createUserRouter = (controller: UserController): Router => {
   router.post("/", requiresPermission("users.create"), asyncHandler(controller.create));
   router.patch("/:id", requiresPermission("users.edit"), asyncHandler(controller.update));
   router.delete("/:id", requiresPermission("users.delete"), asyncHandler(controller.deactivate));
+  router.post("/:id/reactivate", requiresPermission("users.delete"), asyncHandler(controller.reactivate));
+  router.post("/:id/unlock", requiresPermission("users.edit"), asyncHandler(controller.unlock));
+  router.post("/:id/reset-password", requiresPermission("users.edit"), asyncHandler(controller.resetPassword));
   router.get("/:id/permissions", requiresPermission("users.permissions"), asyncHandler(controller.listPermissions));
   router.put("/:id/permissions", requiresPermission("users.permissions"), asyncHandler(controller.setPermissions));
   router.delete("/:id/permissions/:permission", requiresPermission("users.permissions"), asyncHandler(controller.removePermission));

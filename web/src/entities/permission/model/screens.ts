@@ -18,7 +18,22 @@ export type ScreenRequirement =
   | { readonly allOf: readonly Permission[] };
 
 /** Claves del menú en el namespace `common` (para tipar la i18n). */
-export type NavLabelKey = "nav.home" | "nav.settings" | "nav.users" | "nav.roles";
+export type NavLabelKey =
+  | "nav.home"
+  | "nav.settings"
+  | "nav.users"
+  | "nav.roles"
+  | "nav.audit"
+  | "nav.catalogs"
+  | "nav.students"
+  | "nav.teachers"
+  | "nav.courses"
+  | "nav.groups"
+  | "nav.finance"
+  | "nav.reports"
+  | "nav.questions"
+  | "nav.exams"
+  | "nav.myExams";
 
 export interface AppScreen {
   readonly id: string;
@@ -43,6 +58,62 @@ export const APP_SCREENS: readonly AppScreen[] = [
     match: "exact",
   },
   {
+    id: "students",
+    labelKey: "nav.students",
+    path: "/students",
+    requirement: { anyOf: ["students.view"] },
+  },
+  {
+    id: "teachers",
+    labelKey: "nav.teachers",
+    path: "/teachers",
+    requirement: { anyOf: ["teachers.view"] },
+  },
+  {
+    id: "courses",
+    labelKey: "nav.courses",
+    path: "/courses",
+    requirement: { anyOf: ["courses.view"] },
+  },
+  {
+    id: "groups",
+    labelKey: "nav.groups",
+    path: "/groups",
+    requirement: { anyOf: ["groups.view"] },
+  },
+  {
+    id: "finance",
+    labelKey: "nav.finance",
+    path: "/finance",
+    // El alumno ve su estado de cuenta en su expediente, no la cobranza.
+    requirement: { anyOf: ["charges.create", "payments.register", "fee_concepts.manage"] },
+  },
+  {
+    id: "questions",
+    labelKey: "nav.questions",
+    path: "/questions",
+    requirement: { anyOf: ["questions.view"] },
+  },
+  {
+    id: "exams",
+    labelKey: "nav.exams",
+    path: "/exams",
+    // Quien administra exámenes (profesor/admin) o consulta resultados (control).
+    requirement: { anyOf: ["exams.manage", "attempts.review"] },
+  },
+  {
+    id: "myExams",
+    labelKey: "nav.myExams",
+    path: "/my-exams",
+    requirement: { anyOf: ["attempts.take"] },
+  },
+  {
+    id: "reports",
+    labelKey: "nav.reports",
+    path: "/reports",
+    requirement: { anyOf: ["reports.view"] },
+  },
+  {
     id: "users",
     labelKey: "nav.users",
     path: "/users",
@@ -53,6 +124,26 @@ export const APP_SCREENS: readonly AppScreen[] = [
     labelKey: "nav.roles",
     path: "/roles",
     requirement: { anyOf: ["roles.manage"] },
+  },
+  {
+    id: "audit",
+    labelKey: "nav.audit",
+    path: "/audit",
+    requirement: { anyOf: ["audit.view"] },
+  },
+  {
+    id: "catalogs",
+    labelKey: "nav.catalogs",
+    path: "/catalogs",
+    // `terms.view` solo no basta: el profesor lee ciclos para filtrar sus
+    // grupos (M07), pero no administra catálogos.
+    requirement: { anyOf: ["levels.view", "config.view"] },
+  },
+  {
+    id: "settings",
+    labelKey: "nav.settings",
+    path: "/settings",
+    requirement: { anyOf: ["config.view"] },
   },
 ];
 
