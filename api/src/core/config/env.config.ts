@@ -41,11 +41,18 @@ export const env = {
   STORAGE_DRIVER: process.env.STORAGE_DRIVER as "s3" | "local" | undefined,
   STORAGE_LOCAL_DIR: process.env.STORAGE_LOCAL_DIR ?? "storage/private",
 
-  // Almacenamiento S3 (opcional).
+  // Almacenamiento S3 (opcional; también sirve para Cloudflare R2/MinIO con S3_ENDPOINT).
   AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID,
   AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY,
   AWS_BUCKET_NAME: process.env.AWS_BUCKET_NAME,
   AWS_REGION: process.env.AWS_REGION ?? "us-east-2",
+  /** Endpoint S3 alternativo (R2: `https://<account>.r2.cloudflarestorage.com`). Vacío = AWS. */
+  S3_ENDPOINT: process.env.S3_ENDPOINT,
+  /** Fuerza path-style (R2/MinIO lo requieren); por defecto sí cuando hay endpoint. */
+  S3_FORCE_PATH_STYLE:
+    process.env.S3_FORCE_PATH_STYLE === "true" ||
+    ((process.env.S3_FORCE_PATH_STYLE === undefined || process.env.S3_FORCE_PATH_STYLE === "") &&
+      Boolean(process.env.S3_ENDPOINT)),
 
   // Correo (Resend principal, SMTP fallback, dry-run si falta todo).
   RESEND_API_KEY: process.env.RESEND_API_KEY,

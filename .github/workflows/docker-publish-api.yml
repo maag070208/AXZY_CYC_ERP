@@ -1,0 +1,87 @@
+name: Build & Push Docker Hub (API)
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+    paths:
+      - "api/**"
+      - ".github/workflows/docker-publish-api.yml"
+  workflow_dispatch:
+
+env:
+  IMAGE: axzydev/axzy_cyc_api
+
+jobs:
+  # Aplica todas las migraciones sobre una base vacía antes de publicar: una
+  # migración que dependa de otra con nombre posterior falla aquí y no en el
+  # servidor del cliente.
+  migraciones:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: cyc
+          POSTGRES_PASSWORD: cyc
+          POSTGRES_DB: cyc
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U cyc -d cyc"
+          --health-interval 5s --health-timeout 3s --health-retries 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Migraciones sobre una base vacía
+        working-directory: api
+        env:
+          DATABASE_URL: postgresql://cyc:cyc@localhost:5432/cyc?schema=public
+        run: npx --yes prisma@5.22.0 migrate deploy
+
+  docker:
+    needs: migraciones
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set image tag
+        id: tag
+        run: |
+          if [ "$GITHUB_REF_TYPE" = "tag" ]; then
+            echo "tag=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=latest" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver: docker-container
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: ./api
+          file: ./api/Dockerfile
+          push: true
+          # amd64 nativo (el runner es x86_64); sin QEMU el build tarda segundos.
+          platforms: linux/amd64
+          # Sin atestaciones: el manifiesto de provenance/SBOM alarga el export.
+          provenance: false
+          sbom: false
+          tags: |
+            ${{ env.IMAGE }}:latest
+            ${{ env.IMAGE }}:${{ steps.tag.outputs.tag }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

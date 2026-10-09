@@ -10,7 +10,8 @@ import { HttpError } from "@core/middlewares/error.middleware";
  * validan permiso y alcance.
  *
  * Driver (ver D-023, resuelve A-004 de forma provisional):
- * - `s3`    → si hay credenciales y bucket de AWS.
+ * - `s3`    → si hay credenciales y bucket (AWS o compatible: **Cloudflare R2**,
+ *   MinIO… con `S3_ENDPOINT`).
  * - `local` → directorio privado en disco (`STORAGE_LOCAL_DIR`, por defecto
  *   `./storage/private`). Es el driver por defecto fuera de producción y se
  *   puede forzar con `STORAGE_DRIVER=local` (on-premise / Docker con volumen).
@@ -32,6 +33,8 @@ const s3 = (): S3Client => {
   client ??= new S3Client({
     region: env.AWS_REGION,
     credentials: { accessKeyId: env.AWS_ACCESS_KEY_ID!, secretAccessKey: env.AWS_SECRET_ACCESS_KEY! },
+    // R2/MinIO: endpoint propio + path-style. Sin endpoint se usa AWS normal.
+    ...(env.S3_ENDPOINT ? { endpoint: env.S3_ENDPOINT, forcePathStyle: env.S3_FORCE_PATH_STYLE } : {}),
     requestChecksumCalculation: "WHEN_REQUIRED",
     responseChecksumValidation: "WHEN_REQUIRED",
   });

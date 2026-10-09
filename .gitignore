@@ -10,8 +10,8 @@ release/
 
 # Entorno (nunca versionar valores reales)
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
 
 # Logs
 *.log

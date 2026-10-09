@@ -36,9 +36,28 @@ arranque** si faltan las variables requeridas.
 
 | Variable | Descripción |
 |---|---|
-| `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` | Credenciales S3 |
-| `AWS_REGION` | Default `us-east-2` |
+| `STORAGE_DRIVER` | `local` (volumen) o `s3` |
+| `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` | Credenciales S3 (o Access Key/Secret de R2) |
+| `AWS_REGION` | Default `us-east-2`; en R2 usar `auto` |
 | `AWS_BUCKET_NAME` | Bucket de archivos |
+| `S3_ENDPOINT` | Opcional: endpoint compatible (Cloudflare R2/MinIO). Vacío = AWS |
+| `S3_FORCE_PATH_STYLE` | Path-style; por defecto `true` cuando hay `S3_ENDPOINT` |
+
+**Cloudflare R2** (recomendado para demo/deploy): crear un bucket, un token de
+R2 con permiso *Object Read & Write* (da **Access Key ID** + **Secret Access
+Key**) y configurar:
+
+```
+STORAGE_DRIVER=s3
+AWS_ACCESS_KEY_ID=<R2 Access Key ID>
+AWS_SECRET_ACCESS_KEY=<R2 Secret Access Key>
+AWS_BUCKET_NAME=cyc-expedientes
+AWS_REGION=auto
+S3_ENDPOINT=https://<account_id>.r2.cloudflarestorage.com
+```
+
+El bucket es **privado**; la API entrega los archivos por endpoints con permiso y
+alcance (nunca URLs públicas).
 
 ## 5. Correo (outbox)
 
