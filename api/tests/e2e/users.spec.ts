@@ -12,12 +12,12 @@ assertSafeDatabase();
 
 const RUN = newRunId();
 const ADMIN = { username: `${E2E_PREFIX}uadmin_${RUN}`, name: "E2E Admin Usuarios", roleKey: "ADMIN" };
-const CONTROL = { username: `${E2E_PREFIX}ucontrol_${RUN}`, name: "E2E Control", roleKey: "CONTROL_ESCOLAR" };
+const CONTROL = { username: `${E2E_PREFIX}ucontrol_${RUN}`, name: "E2E Control", roleKey: "SCHOOL_CONTROL" };
 
 let admin: APIRequestContext;
 let adminId: string;
 
-const newUser = (suffix: string, roles: string[] = ["ALUMNO"]) => ({
+const newUser = (suffix: string, roles: string[] = ["STUDENT"]) => ({
   username: `${E2E_PREFIX}${suffix}_${RUN}`,
   email: `${E2E_PREFIX}${suffix}_${RUN}@e2e.local`,
   name: `E2E ${suffix}`,
@@ -38,7 +38,7 @@ test.afterAll(async () => {
 
 test.describe("alta y consulta", () => {
   test("POST /users crea con multi-rol, obliga a cambiar contraseña y audita", async () => {
-    const input = newUser("alta", ["PROFESOR", "CONTROL_ESCOLAR"]);
+    const input = newUser("alta", ["TEACHER", "SCHOOL_CONTROL"]);
     const res = await admin.post("users", { data: input });
     expect(res.status()).toBe(201);
     const user = await res.json();
@@ -49,7 +49,7 @@ test.describe("alta y consulta", () => {
       mustChangePassword: true,
       locked: false,
     });
-    expect([...user.roles].sort()).toEqual(["CONTROL_ESCOLAR", "PROFESOR"]);
+    expect([...user.roles].sort()).toEqual(["SCHOOL_CONTROL", "TEACHER"]);
     expect(user.password ?? user.passwordHash).toBeUndefined();
 
     const log = await lastAudit("USER_CREATED", adminId);
@@ -91,10 +91,10 @@ test.describe("alta y consulta", () => {
   });
 
   test("/users/query filtra por rol y por estatus", async () => {
-    const input = newUser("filtro", ["PROFESOR"]);
+    const input = newUser("filtro", ["TEACHER"]);
     await admin.post("users", { data: input });
     const res = await admin.post("users/query", {
-      data: { page: 1, limit: 50, filters: { username: `filtro_${RUN}`, role: "PROFESOR", active: true } },
+      data: { page: 1, limit: 50, filters: { username: `filtro_${RUN}`, role: "TEACHER", active: true } },
     });
     expect(res.status()).toBe(200);
     const body = await res.json();
@@ -102,7 +102,7 @@ test.describe("alta y consulta", () => {
     expect(body.data[0].username).toBe(input.username);
 
     const none = await admin.post("users/query", {
-      data: { page: 1, limit: 50, filters: { username: `filtro_${RUN}`, role: "ALUMNO" } },
+      data: { page: 1, limit: 50, filters: { username: `filtro_${RUN}`, role: "STUDENT" } },
     });
     expect((await none.json()).total).toBe(0);
   });
@@ -120,20 +120,20 @@ test.describe("edición", () => {
   test("PATCH /users/:id cambia datos y reemplaza roles; audita antes/después", async () => {
     const created = await (await admin.post("users", { data: newUser("edit") })).json();
     const res = await admin.patch(`users/${created.id}`, {
-      data: { name: "E2E Editado", phone: "5550001111", roles: ["PROFESOR"] },
+      data: { name: "E2E Editado", phone: "5550001111", roles: ["TEACHER"] },
     });
     expect(res.status()).toBe(200);
     const user = await res.json();
-    expect(user).toMatchObject({ name: "E2E Editado", phone: "5550001111", roles: ["PROFESOR"] });
+    expect(user).toMatchObject({ name: "E2E Editado", phone: "5550001111", roles: ["TEACHER"] });
 
     const log = await lastAudit("USER_UPDATED", adminId);
     expect(log?.entityId).toBe(created.id);
-    expect(log?.previousState).toMatchObject({ name: created.name, roles: ["ALUMNO"] });
-    expect(log?.newState).toMatchObject({ name: "E2E Editado", roles: ["PROFESOR"] });
+    expect(log?.previousState).toMatchObject({ name: created.name, roles: ["STUDENT"] });
+    expect(log?.newState).toMatchObject({ name: "E2E Editado", roles: ["TEACHER"] });
   });
 
   test("nadie cambia sus propios roles → 409 CANNOT_CHANGE_OWN_PERMISSIONS", async () => {
-    const res = await admin.patch(`users/${adminId}`, { data: { roles: ["ALUMNO"] } });
+    const res = await admin.patch(`users/${adminId}`, { data: { roles: ["STUDENT"] } });
     expect(res.status()).toBe(409);
     expect((await res.json()).code).toBe("CANNOT_CHANGE_OWN_PERMISSIONS");
   });

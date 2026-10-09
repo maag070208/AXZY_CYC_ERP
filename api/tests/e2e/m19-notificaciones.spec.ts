@@ -24,7 +24,7 @@ assertSafeDatabase();
 
 const RUN = newRunId();
 const ADMIN = { username: `${E2E_PREFIX}nadmin_${RUN}`, name: "E2E Admin Avisos", roleKey: "ADMIN" };
-const CONTROL = { username: `${E2E_PREFIX}ncontrol_${RUN}`, name: "E2E Control Avisos", roleKey: "CONTROL_ESCOLAR" };
+const CONTROL = { username: `${E2E_PREFIX}ncontrol_${RUN}`, name: "E2E Control Avisos", roleKey: "SCHOOL_CONTROL" };
 const CLAVE = `E2E_AVISO_${RUN}`.toUpperCase().slice(0, 60);
 const MAIL = `e2e.tutor.${RUN}@e2e.local`.toLowerCase();
 

@@ -21,9 +21,9 @@ import { makeCourse, makeStudent, makeTeacher, makeTerm, slot } from "./support/
 assertSafeDatabase();
 
 const RUN = newRunId();
-const CONTROL = { username: `${E2E_PREFIX}rcontrol_${RUN}`, name: "E2E Control Reportes", roleKey: "CONTROL_ESCOLAR" };
-const NOEXPORT = { username: `${E2E_PREFIX}rnoexp_${RUN}`, name: "E2E Sin Exportar", roleKey: "CONTROL_ESCOLAR" };
-const PUPIL = { username: `${E2E_PREFIX}rpupil_${RUN}`, name: "E2E Alumno Reportes", roleKey: "ALUMNO" };
+const CONTROL = { username: `${E2E_PREFIX}rcontrol_${RUN}`, name: "E2E Control Reportes", roleKey: "SCHOOL_CONTROL" };
+const NOEXPORT = { username: `${E2E_PREFIX}rnoexp_${RUN}`, name: "E2E Sin Exportar", roleKey: "SCHOOL_CONTROL" };
+const PUPIL = { username: `${E2E_PREFIX}rpupil_${RUN}`, name: "E2E Alumno Reportes", roleKey: "STUDENT" };
 const ADMIN = { username: `${E2E_PREFIX}radmin_${RUN}`, name: "E2E Admin Reportes", roleKey: "ADMIN" };
 
 let control: APIRequestContext;

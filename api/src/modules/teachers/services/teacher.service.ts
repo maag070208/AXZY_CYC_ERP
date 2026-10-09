@@ -183,7 +183,7 @@ export class TeacherService {
 
   async create(input: TeacherCreateInput, actor: AuthenticatedUser): Promise<TeacherView & { invitationQueued: boolean }> {
     await this.assertEmailFree(input.email);
-    enforcePolicy("users.create", actor, { roles: ["PROFESOR"] });
+    enforcePolicy("users.create", actor, { roles: ["TEACHER"] });
     const token = randomToken();
     // Contraseña inutilizable: la persona la define con la invitación.
     const passwordHash = await hashPassword(randomToken());
@@ -198,7 +198,7 @@ export class TeacherService {
           name: `${input.nombres} ${input.apellidos}`,
           phone: input.telefono ?? null,
           mustChangePassword: true,
-          roles: { create: [{ roleKey: "PROFESOR" }] },
+          roles: { create: [{ roleKey: "TEACHER" }] },
         },
       });
       const row = await tx.teacher.create({
@@ -219,7 +219,7 @@ export class TeacherService {
       const actorFields = { userId: actor.id, userName: actor.username };
       await this.audit?.(
         { action: "USER_CREATED", entityType: "User", entityId: user.id, ...actorFields,
-          newState: { username, name: user.name, email: user.email, roles: ["PROFESOR"] } },
+          newState: { username, name: user.name, email: user.email, roles: ["TEACHER"] } },
         tx
       );
       await this.audit?.(

@@ -98,8 +98,8 @@
   },
   "roles": {
     "ADMIN": "Administrador",
-    "CONTROL_ESCOLAR": "Control Escolar",
-    "PROFESOR": "Profesor",
-    "ALUMNO": "Alumno"
+    "SCHOOL_CONTROL": "Control Escolar",
+    "TEACHER": "Profesor",
+    "STUDENT": "Alumno"
   }
 }

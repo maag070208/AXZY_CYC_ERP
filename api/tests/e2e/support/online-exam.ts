@@ -15,7 +15,7 @@ export interface Pupil {
 
 export const makePupil = async (run: string, label: string, groupId: string): Promise<Pupil> => {
   const username = `${E2E_PREFIX}${label}_${run}`.toLowerCase();
-  const user = await createAuthUser({ username, name: `E2E Alumno ${label}`, roleKey: "ALUMNO", password: E2E.password });
+  const user = await createAuthUser({ username, name: `E2E Alumno ${label}`, roleKey: "STUDENT", password: E2E.password });
   const student = await makeStudent(run, label, user.id);
   const enrollment = await db.enrollment.create({
     data: { studentId: student.id, groupId, fecha: new Date("2026-08-20T00:00:00Z") },

@@ -13,7 +13,7 @@ assertSafeDatabase();
 
 const RUN = newRunId();
 const ADMIN = { username: `${E2E_PREFIX}tadmin_${RUN}`, name: "E2E Admin Profes", roleKey: "ADMIN" };
-const CONTROL = { username: `${E2E_PREFIX}tcontrol_${RUN}`, name: "E2E Control Profes", roleKey: "CONTROL_ESCOLAR" };
+const CONTROL = { username: `${E2E_PREFIX}tcontrol_${RUN}`, name: "E2E Control Profes", roleKey: "SCHOOL_CONTROL" };
 
 let admin: APIRequestContext;
 let control: APIRequestContext;
@@ -55,7 +55,7 @@ test("alta: crea profesor, su cuenta PROFESOR pendiente y la invitación, todo a
   expect(body.account).toMatchObject({ active: true, pendingInvitation: true, username: input.email.split("@")[0] });
 
   const user = await db.user.findUnique({ where: { id: body.account.userId }, include: { roles: true } });
-  expect(user?.roles.map((r) => r.roleKey)).toEqual(["PROFESOR"]);
+  expect(user?.roles.map((r) => r.roleKey)).toEqual(["TEACHER"]);
   expect(user?.mustChangePassword).toBe(true);
   expect(await db.passwordResetToken.count({ where: { userId: user!.id, usedAt: null } })).toBe(1);
 

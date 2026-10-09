@@ -21,7 +21,7 @@ const RUN = newRunId();
 const ROLE_KEY = `${E2E_ROLE_PREFIX}${RUN.toUpperCase()}`;
 const ADMIN = { username: `${E2E_PREFIX}padmin_${RUN}`, name: "E2E Admin Acceso", roleKey: "ADMIN" };
 const OTHER_ADMIN = { username: `${E2E_PREFIX}padmin2_${RUN}`, name: "E2E Otro Admin", roleKey: "ADMIN" };
-const MEMBER = { username: `${E2E_PREFIX}pmember_${RUN}`, name: "E2E Miembro", roleKey: "ALUMNO" };
+const MEMBER = { username: `${E2E_PREFIX}pmember_${RUN}`, name: "E2E Miembro", roleKey: "STUDENT" };
 
 let admin: APIRequestContext;
 let adminId: string;
@@ -47,7 +47,7 @@ test.afterAll(async () => {
 test.describe("roles", () => {
   test("crear rol duplicando otro copia su matriz; clave y duplicado validados", async () => {
     const res = await admin.post("permissions/roles", {
-      data: { key: ROLE_KEY, name: "E2E Rol", module: "Pruebas", copyFrom: "CONTROL_ESCOLAR" },
+      data: { key: ROLE_KEY, name: "E2E Rol", module: "Pruebas", copyFrom: "SCHOOL_CONTROL" },
     });
     expect(res.status()).toBe(201);
     expect(await res.json()).toMatchObject({ key: ROLE_KEY, system: false, active: true, userCount: 0 });
@@ -65,13 +65,13 @@ test.describe("roles", () => {
     const rename = await admin.patch("permissions/roles/ADMIN", { data: { name: "Jefe" } });
     expect(rename.status()).toBe(409);
     expect((await rename.json()).code).toBe("ROLE_SYSTEM_PROTECTED");
-    const remove = await admin.delete("permissions/roles/ALUMNO");
+    const remove = await admin.delete("permissions/roles/STUDENT");
     expect((await remove.json()).code).toBe("ROLE_SYSTEM_PROTECTED");
   });
 
   test("la matriz otorga un permiso y /auth/me lo refleja; quitarlo lo retira", async () => {
     // El miembro recibe el rol de prueba como rol adicional.
-    const assign = await admin.put(`users/${memberId}/permissions`, { data: { roles: ["ALUMNO", ROLE_KEY] } });
+    const assign = await admin.put(`users/${memberId}/permissions`, { data: { roles: ["STUDENT", ROLE_KEY] } });
     expect(assign.status()).toBe(200);
 
     const grant = await admin.put("permissions/matrix", {
@@ -109,7 +109,7 @@ test.describe("roles", () => {
     expect(busy.status()).toBe(409);
     expect((await busy.json()).code).toBe("ROLE_HAS_USERS");
 
-    await admin.put(`users/${memberId}/permissions`, { data: { roles: ["ALUMNO"] } });
+    await admin.put(`users/${memberId}/permissions`, { data: { roles: ["STUDENT"] } });
     const removed = await admin.delete(`permissions/roles/${ROLE_KEY}`);
     expect(removed.status()).toBe(204);
     expect((await lastAudit("ROLE_DELETED", adminId))?.entityId).toBe(ROLE_KEY);
@@ -229,7 +229,7 @@ test.describe("políticas ABAC", () => {
           action: "users.reset_password",
           effect: "ALLOW",
           priority: 5,
-          conditions: [{ field: "target.roles", operator: "in", value: ["ALUMNO"] }],
+          conditions: [{ field: "target.roles", operator: "in", value: ["STUDENT"] }],
         },
       })
     ).json();

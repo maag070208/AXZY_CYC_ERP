@@ -13,9 +13,9 @@ import { EXE, JPG, PDF, PNG, TOO_BIG } from "./support/files";
 assertSafeDatabase();
 
 const RUN = newRunId();
-const CONTROL = { username: `${E2E_PREFIX}dcontrol_${RUN}`, name: "E2E Control Docs", roleKey: "CONTROL_ESCOLAR" };
-const PUPIL = { username: `${E2E_PREFIX}dpupil_${RUN}`, name: "E2E Alumno Docs", roleKey: "ALUMNO" };
-const TEACHER = { username: `${E2E_PREFIX}dprof_${RUN}`, name: "E2E Profesor Docs", roleKey: "PROFESOR" };
+const CONTROL = { username: `${E2E_PREFIX}dcontrol_${RUN}`, name: "E2E Control Docs", roleKey: "SCHOOL_CONTROL" };
+const PUPIL = { username: `${E2E_PREFIX}dpupil_${RUN}`, name: "E2E Alumno Docs", roleKey: "STUDENT" };
+const TEACHER = { username: `${E2E_PREFIX}dprof_${RUN}`, name: "E2E Profesor Docs", roleKey: "TEACHER" };
 
 let control: APIRequestContext;
 let pupilUserId: string;

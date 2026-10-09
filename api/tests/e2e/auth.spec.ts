@@ -20,10 +20,10 @@ assertSafeDatabase();
 
 const RUN = newRunId();
 const ADMIN = { username: `${E2E_PREFIX}admin_${RUN}`, name: "E2E Admin", roleKey: "ADMIN" };
-const LOCKED = { username: `${E2E_PREFIX}lock_${RUN}`, name: "E2E Bloqueo", roleKey: "ALUMNO" };
-const TEACHER = { username: `${E2E_PREFIX}prof_${RUN}`, name: "E2E Profesor", roleKey: "PROFESOR" };
-const RESET = { username: `${E2E_PREFIX}reset_${RUN}`, name: "E2E Recupera", roleKey: "ALUMNO" };
-const GONE = { username: `${E2E_PREFIX}baja_${RUN}`, name: "E2E Baja", roleKey: "ALUMNO" };
+const LOCKED = { username: `${E2E_PREFIX}lock_${RUN}`, name: "E2E Bloqueo", roleKey: "STUDENT" };
+const TEACHER = { username: `${E2E_PREFIX}prof_${RUN}`, name: "E2E Profesor", roleKey: "TEACHER" };
+const RESET = { username: `${E2E_PREFIX}reset_${RUN}`, name: "E2E Recupera", roleKey: "STUDENT" };
+const GONE = { username: `${E2E_PREFIX}baja_${RUN}`, name: "E2E Baja", roleKey: "STUDENT" };
 
 let adminId: string;
 let teacherId: string;

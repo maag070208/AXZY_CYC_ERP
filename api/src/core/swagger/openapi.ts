@@ -18,7 +18,7 @@ export const buildOpenApiDocument = () => {
       version: "1.0.0",
       description:
         "API del SGE (M02 acceso y bitácora, M11 configuración y catálogos). Autenticación JWT (Bearer) con access + refresh rotado. " +
-        "Roles base: ADMIN, CONTROL_ESCOLAR, PROFESOR, ALUMNO.",
+        "Roles base: ADMIN, SCHOOL_CONTROL, TEACHER, STUDENT.",
     },
     servers: [
       {

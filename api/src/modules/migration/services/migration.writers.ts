@@ -116,7 +116,7 @@ export const applyTeacher = async (tx: Tx, raw: Record<string, unknown>): Promis
       name: `${data.nombres} ${data.apellidos}`,
       phone: data.telefono,
       mustChangePassword: true,
-      roles: { create: [{ roleKey: "PROFESOR" }] },
+      roles: { create: [{ roleKey: "TEACHER" }] },
     },
   });
   await tx.teacher.create({

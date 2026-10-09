@@ -43,7 +43,7 @@ export const makeStudent = async (run: string, label: string, userId?: string) =
 /** Profesor con cuenta PROFESOR de contraseña conocida. */
 export const makeTeacher = async (run: string, label: string) => {
   const username = `${E2E_PREFIX}${label}_${run}`;
-  const user = await createAuthUser({ username, name: `E2E Prof ${label}`, roleKey: "PROFESOR", password: E2E.password });
+  const user = await createAuthUser({ username, name: `E2E Prof ${label}`, roleKey: "TEACHER", password: E2E.password });
   const teacher = await db.teacher.create({
     data: { nombres: "E2E Prof", apellidos: `${label} ${run}`, email: `${username}@e2e.local`, userId: user.id },
   });

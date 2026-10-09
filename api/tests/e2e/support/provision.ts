@@ -10,8 +10,8 @@ import { createAuthUser, db } from "./db";
  */
 const FIXED_USERS = [
   { username: "e2e_admin", name: "E2E Admin", roleKey: "ADMIN" },
-  { username: "e2e_control", name: "E2E Control Escolar", roleKey: "CONTROL_ESCOLAR" },
-  { username: "e2e_profesor", name: "E2E Profesor", roleKey: "PROFESOR" },
+  { username: "e2e_control", name: "E2E Control Escolar", roleKey: "SCHOOL_CONTROL" },
+  { username: "e2e_profesor", name: "E2E Profesor", roleKey: "TEACHER" },
 ] as const;
 
 const main = async (): Promise<void> => {

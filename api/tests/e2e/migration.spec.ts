@@ -13,7 +13,7 @@ assertSafeDatabase();
 
 const RUN = newRunId();
 const ADMIN = { username: `${E2E_PREFIX}adm_${RUN}`, name: "E2E Admin Migración", roleKey: "ADMIN" };
-const CONTROL = { username: `${E2E_PREFIX}ctl_${RUN}`, name: "E2E Control Migración", roleKey: "CONTROL_ESCOLAR" };
+const CONTROL = { username: `${E2E_PREFIX}ctl_${RUN}`, name: "E2E Control Migración", roleKey: "SCHOOL_CONTROL" };
 const STUDENT_CURP = makeCurp("2000-01-01", "M");
 const BAD_CURP = "XAXX010101HDFXXX01";
 const TEACHER_EMAIL = `e2e_${RUN}_mig@e2e.local`;
@@ -131,7 +131,7 @@ test.describe.serial("migración de históricos", () => {
 
     const teacher = await db.teacher.findUnique({ where: { email: TEACHER_EMAIL }, include: { user: { include: { roles: true } } } });
     expect(teacher?.userId).toBeTruthy();
-    expect(teacher?.user?.roles.map((r) => r.roleKey)).toContain("PROFESOR");
+    expect(teacher?.user?.roles.map((r) => r.roleKey)).toContain("TEACHER");
 
     const again = await upload(admin, "migration/execute", "Teacher", TEACHER_FILE, TEACHER_CSV, {}, { "Idempotency-Key": `${KEY}_t2` });
     expect((await again.json()).totals).toMatchObject({ inserted: 0, updated: 1 });

@@ -21,8 +21,8 @@ assertSafeDatabase();
 
 const RUN = newRunId();
 const ADMIN = { username: `${E2E_PREFIX}gadmin_${RUN}`, name: "E2E Admin Calificaciones", roleKey: "ADMIN" };
-const CONTROL = { username: `${E2E_PREFIX}gcontrol_${RUN}`, name: "E2E Control Calif", roleKey: "CONTROL_ESCOLAR" };
-const PUPIL = { username: `${E2E_PREFIX}gpupil_${RUN}`, name: "E2E Alumno Calif", roleKey: "ALUMNO" };
+const CONTROL = { username: `${E2E_PREFIX}gcontrol_${RUN}`, name: "E2E Control Calif", roleKey: "SCHOOL_CONTROL" };
+const PUPIL = { username: `${E2E_PREFIX}gpupil_${RUN}`, name: "E2E Alumno Calif", roleKey: "STUDENT" };
 
 let control: APIRequestContext;
 let prof: APIRequestContext;

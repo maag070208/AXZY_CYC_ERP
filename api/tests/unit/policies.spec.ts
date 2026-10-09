@@ -14,7 +14,7 @@ import type { PolicyActor, PolicyDef } from "../../src/core/policies/types";
  * que aplica, operadores y referencias al actor (`@user.*`).
  */
 
-const actor: PolicyActor = { id: "u-1", username: "ana", roles: ["CONTROL_ESCOLAR"] };
+const actor: PolicyActor = { id: "u-1", username: "ana", roles: ["SCHOOL_CONTROL"] };
 
 const policy = (overrides: Partial<PolicyDef>): PolicyDef => ({
   id: overrides.key ?? "p",
@@ -59,11 +59,11 @@ test.describe("evaluatePolicies", () => {
         key: "allow_alumnos",
         effect: "ALLOW",
         priority: 1,
-        conditions: [{ field: "target.roles", operator: "in", value: ["ALUMNO"] }],
+        conditions: [{ field: "target.roles", operator: "in", value: ["STUDENT"] }],
       }),
       policy({ key: "deny_rest", priority: 2 }),
     ];
-    expect(evaluatePolicies(list, "users.deactivate", actor, { target: { roles: ["ALUMNO"] } }).allowed).toBe(true);
+    expect(evaluatePolicies(list, "users.deactivate", actor, { target: { roles: ["STUDENT"] } }).allowed).toBe(true);
     expect(evaluatePolicies(list, "users.deactivate", actor, { target: { roles: ["ADMIN"] } })).toMatchObject({
       allowed: false,
       policy: { key: "deny_rest" },
@@ -84,26 +84,26 @@ test.describe("evaluatePolicies", () => {
 });
 
 test.describe("conditionHolds", () => {
-  const ctx = { target: { id: "u-2", roles: ["ADMIN", "PROFESOR"] }, amount: 1500, scope: "ALL", note: "urgente" };
+  const ctx = { target: { id: "u-2", roles: ["ADMIN", "TEACHER"] }, amount: 1500, scope: "ALL", note: "urgente" };
   const holds = (field: string, operator: Parameters<typeof conditionHolds>[0]["operator"], value: unknown) =>
     conditionHolds({ field, operator, value }, ctx, actor);
 
   test("eq / neq con escalares y arreglos (como conjunto)", () => {
     expect(holds("scope", "eq", "ALL")).toBe(true);
-    expect(holds("target.roles", "eq", ["PROFESOR", "ADMIN"])).toBe(true);
+    expect(holds("target.roles", "eq", ["TEACHER", "ADMIN"])).toBe(true);
     expect(holds("scope", "neq", "ALL")).toBe(false);
   });
 
   test("in / not_in: un arreglo casa si alguno de sus elementos está en la lista", () => {
     expect(holds("target.roles", "in", ["ADMIN"])).toBe(true);
     expect(holds("scope", "in", ["OWN", "AREA"])).toBe(false);
-    expect(holds("target.roles", "not_in", ["ALUMNO"])).toBe(true);
+    expect(holds("target.roles", "not_in", ["STUDENT"])).toBe(true);
   });
 
   test("contains / not_contains sobre arreglos y textos", () => {
     expect(holds("target.roles", "contains", "ADMIN")).toBe(true);
     expect(holds("note", "contains", "gen")).toBe(true);
-    expect(holds("target.roles", "not_contains", "ALUMNO")).toBe(true);
+    expect(holds("target.roles", "not_contains", "STUDENT")).toBe(true);
   });
 
   test("comparaciones numéricas; tipos distintos no casan", () => {

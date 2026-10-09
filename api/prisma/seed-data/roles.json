@@ -9,7 +9,7 @@
     "sortOrder": 1
   },
   {
-    "key": "CONTROL_ESCOLAR",
+    "key": "SCHOOL_CONTROL",
     "name": "CONTROL ESCOLAR",
     "module": "Académico",
     "staff": false,
@@ -18,8 +18,8 @@
     "sortOrder": 2
   },
   {
-    "key": "PROFESOR",
-    "name": "PROFESOR",
+    "key": "TEACHER",
+    "name": "TEACHER",
     "module": "Académico",
     "staff": false,
     "system": true,
@@ -27,8 +27,8 @@
     "sortOrder": 3
   },
   {
-    "key": "ALUMNO",
-    "name": "ALUMNO",
+    "key": "STUDENT",
+    "name": "STUDENT",
     "module": "Alumnos",
     "staff": false,
     "system": true,

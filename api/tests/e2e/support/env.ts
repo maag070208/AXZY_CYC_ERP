@@ -19,7 +19,7 @@ export const E2E = {
   prefix: E2E_PREFIX,
   password: process.env.E2E_PASSWORD ?? "e2e-Test-2026!",
   admin: { username: "e2e_admin", name: "E2E Admin", role: "ADMIN" as const },
-  student: { username: "e2e_alumno", name: "E2E Alumno", role: "ALUMNO" as const },
+  student: { username: "e2e_alumno", name: "E2E Alumno", role: "STUDENT" as const },
 };
 
 /**

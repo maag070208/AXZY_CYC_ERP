@@ -23,7 +23,7 @@ import { makePupil, type Pupil } from "./support/online-exam";
 assertSafeDatabase();
 
 const RUN = newRunId();
-const CONTROL = { username: `${E2E_PREFIX}acontrol_${RUN}`, name: "E2E Control Asistencia", roleKey: "CONTROL_ESCOLAR" };
+const CONTROL = { username: `${E2E_PREFIX}acontrol_${RUN}`, name: "E2E Control Asistencia", roleKey: "SCHOOL_CONTROL" };
 const PDF = Buffer.from("%PDF-1.4\n% e2e justificante\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF");
 
 let control: APIRequestContext;

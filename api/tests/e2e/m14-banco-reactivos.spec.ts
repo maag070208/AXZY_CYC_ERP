@@ -13,7 +13,7 @@ assertSafeDatabase();
 
 const RUN = newRunId();
 const ADMIN = { username: `${E2E_PREFIX}qadmin_${RUN}`, name: "E2E Admin Reactivos", roleKey: "ADMIN" };
-const CONTROL = { username: `${E2E_PREFIX}qcontrol_${RUN}`, name: "E2E Control Reactivos", roleKey: "CONTROL_ESCOLAR" };
+const CONTROL = { username: `${E2E_PREFIX}qcontrol_${RUN}`, name: "E2E Control Reactivos", roleKey: "SCHOOL_CONTROL" };
 
 let admin: APIRequestContext;
 let prof: APIRequestContext;

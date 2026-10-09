@@ -23,7 +23,7 @@ export interface RoleRow {
 }
 
 /** Rol por defecto al crear una cuenta sin roles explícitos. */
-export const DEFAULT_ROLE_KEY = "ALUMNO";
+export const DEFAULT_ROLE_KEY = "STUDENT";
 
 /** Normaliza filas a `RoleDef`. **Puro.** Descarta filas inválidas. */
 export const rolesFromRows = (rows: ReadonlyArray<RoleRow>): RoleDef[] => {
