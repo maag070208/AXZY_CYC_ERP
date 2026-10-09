@@ -31,6 +31,7 @@ export const es = {
     INVALID_CREDENTIALS: "Usuario o contraseña incorrectos",
     ACCOUNT_DEACTIVATED: "Tu cuenta fue dada de baja. Contacta al administrador.",
     ACCOUNT_LOCKED: "La cuenta está bloqueada temporalmente por intentos fallidos. Intenta de nuevo más tarde.",
+    RATE_LIMITED: "Demasiadas peticiones. Intenta de nuevo más tarde.",
     INVALID_REFRESH_TOKEN: "Token de renovación inválido o expirado",
     RESET_TOKEN_INVALID: "Token de recuperación inválido, expirado o ya usado",
 

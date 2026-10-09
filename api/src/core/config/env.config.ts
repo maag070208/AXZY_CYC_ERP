@@ -38,6 +38,15 @@ export const env = {
   MAX_LOGIN_ATTEMPTS: parseInt(process.env.MAX_LOGIN_ATTEMPTS ?? "5", 10),
   LOGIN_LOCK_MINUTES: parseInt(process.env.LOGIN_LOCK_MINUTES ?? "15", 10),
 
+  // Límite de peticiones por IP (M12). Fuera de producción el tope es alto para
+  // no estorbar a las suites de pruebas; en producción protege el login y la
+  // recuperación de contraseña.
+  RATE_LIMIT_WINDOW_MINUTES: parseInt(process.env.RATE_LIMIT_WINDOW_MINUTES ?? "15", 10),
+  RATE_LIMIT_LOGIN_MAX: parseInt(process.env.RATE_LIMIT_LOGIN_MAX ?? (process.env.NODE_ENV === "production" ? "20" : "1000"), 10),
+  RATE_LIMIT_PUBLIC_MAX: parseInt(process.env.RATE_LIMIT_PUBLIC_MAX ?? (process.env.NODE_ENV === "production" ? "30" : "1000"), 10),
+  /** Saltos de proxy delante de la API (nginx, Railway): de ahí sale la IP real del cliente. */
+  TRUST_PROXY: parseInt(process.env.TRUST_PROXY ?? "0", 10),
+
   // Política de contraseña.
   PASSWORD_MIN_LENGTH: parseInt(process.env.PASSWORD_MIN_LENGTH ?? "10", 10),
 

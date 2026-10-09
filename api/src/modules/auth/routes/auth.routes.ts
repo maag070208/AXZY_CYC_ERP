@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { authenticate } from "@core/middlewares/auth.middleware";
+import { loginRateLimit, publicRateLimit } from "@core/middlewares/rate-limit.middleware";
 import { asyncHandler } from "@core/utils/asyncHandler";
 import { registerPath } from "@core/swagger/registry";
 import {
@@ -31,7 +32,7 @@ export const createAuthRouter = (controller: AuthController): Router => {
       200: { description: "Tokens y usuario", content: { "application/json": { schema: LoginResponseSchema } } },
       400: { description: "Datos inválidos" },
       401: { description: "Credenciales inválidas o cuenta desactivada" },
-      429: { description: "Cuenta bloqueada temporalmente" },
+      429: { description: "Cuenta bloqueada temporalmente o demasiados intentos desde la misma IP" },
     },
   });
 
@@ -104,10 +105,10 @@ export const createAuthRouter = (controller: AuthController): Router => {
   });
 
   // Rutas públicas (antes de `authenticate`).
-  router.post("/login", asyncHandler(controller.login));
+  router.post("/login", loginRateLimit, asyncHandler(controller.login));
   router.post("/refresh", asyncHandler(controller.refresh));
-  router.post("/forgot-password", asyncHandler(controller.forgotPassword));
-  router.post("/reset-password", asyncHandler(controller.resetPassword));
+  router.post("/forgot-password", publicRateLimit, asyncHandler(controller.forgotPassword));
+  router.post("/reset-password", publicRateLimit, asyncHandler(controller.resetPassword));
 
   // Rutas protegidas.
   router.get("/me", authenticate, asyncHandler(controller.me));

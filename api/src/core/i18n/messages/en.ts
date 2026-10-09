@@ -31,6 +31,7 @@ export const en: Messages = {
     INVALID_CREDENTIALS: "Invalid username or password",
     ACCOUNT_DEACTIVATED: "Your account was deactivated. Contact the administrator.",
     ACCOUNT_LOCKED: "The account is temporarily locked due to failed attempts. Try again later.",
+    RATE_LIMITED: "Too many requests. Try again later.",
     INVALID_REFRESH_TOKEN: "Invalid or expired refresh token",
     RESET_TOKEN_INVALID: "Invalid, expired or already used reset token",
 

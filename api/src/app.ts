@@ -11,6 +11,8 @@ import apiRouter from "@modules/api.router";
 
 export const createApp = () => {
   const app = express();
+  // IP real del cliente detrás de nginx/Railway (la usa el límite de peticiones).
+  app.set("trust proxy", config.TRUST_PROXY);
   // `WEB_ORIGIN` admite lista separada por comas y comodines (p. ej. `https://*.axzy.dev`).
   const corsPolicy = parseCorsOrigins(config.WEB_ORIGIN);
 
