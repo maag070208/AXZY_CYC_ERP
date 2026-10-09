@@ -780,7 +780,7 @@ Respuesta guardada de una operación con `Idempotency-Key` (generación masiva).
 | Campo | Tipo | Nulo | Notas |
 |---|---|---|---|
 | `id` | String | no | PK; default `uuid()` |
-| `code` | String | no | `VarChar(60)`; Evento que la dispara (p. ej. `ALERTA_INASISTENCIA`); una por canal. |
+| `code` | String | no | `VarChar(60)`; Evento que la dispara (p. ej. `ABSENCE_ALERT`); una por canal. |
 | `name` | String | no | `VarChar(150)` |
 | `channel` | NotificationChannel | no | `EMAIL` / `SMS` / `WHATSAPP` / `IN_APP` |
 | `subject` | String | sí | `VarChar(200)` |
@@ -802,7 +802,7 @@ Respuesta guardada de una operación con `Idempotency-Key` (generación masiva).
 | `channel` | NotificationChannel | no | `EMAIL` / `SMS` / `WHATSAPP` / `IN_APP` |
 | `templateId` | String | sí |  |
 | `userId` | String | sí | Cuenta destinataria (bandeja y tiempo real), si se conoce. |
-| `origin` | String | no | default `"MANUAL"`; `VarChar(60)`; Evento o módulo de origen (`ALERTA_INASISTENCIA`, `MANUAL`…). |
+| `origin` | String | no | default `"MANUAL"`; `VarChar(60)`; Evento o módulo de origen (`ABSENCE_ALERT`, `MANUAL`…). |
 | `payload` | Json | no | default `"{}"` |
 | `subject` | String | sí | `VarChar(200)` |
 | `body` | String | no |  |

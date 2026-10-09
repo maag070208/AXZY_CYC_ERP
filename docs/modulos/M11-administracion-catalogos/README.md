@@ -194,12 +194,12 @@ del kit. i18n con namespace `config` (y `catalogs`).
 
 | Permiso | Roles (alcance) |
 |---|---|
-| `config.view` | ADMIN (ALL), CONTROL_ESCOLAR (ALL lectura) |
+| `config.view` | ADMIN (ALL), SCHOOL_CONTROL (ALL lectura) |
 | `config.manage` | ADMIN (ALL) |
-| `levels.view` / `levels.manage` | ADMIN (ALL); `view` también CONTROL_ESCOLAR (ALL) |
-| `terms.view` / `terms.manage` | ADMIN (ALL); `view` también CONTROL_ESCOLAR (ALL) |
-| `cancellation-reasons` (vía `students.movements` / `config.manage`) | ADMIN, CONTROL_ESCOLAR |
-| `document-types` (vía `documents.view` / `config.manage`) | ADMIN, CONTROL_ESCOLAR |
+| `levels.view` / `levels.manage` | ADMIN (ALL); `view` también SCHOOL_CONTROL (ALL) |
+| `terms.view` / `terms.manage` | ADMIN (ALL); `view` también SCHOOL_CONTROL (ALL) |
+| `cancellation-reasons` (vía `students.movements` / `config.manage`) | ADMIN, SCHOOL_CONTROL |
+| `document-types` (vía `documents.view` / `config.manage`) | ADMIN, SCHOOL_CONTROL |
 
 Los catálogos son globales: su alcance natural es `ALL`; no hay datos por
 propietario. Ver [`roles-permisos.md`](../../seguridad/roles-permisos.md).

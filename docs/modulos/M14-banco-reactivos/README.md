@@ -45,7 +45,7 @@ control escolar; lo consumen los módulos de exámenes.
 **Incluye**
 - CRUD de preguntas y sus opciones de respuesta.
 - Clasificación por curso, tema, tipo, dificultad y estado (`ACTIVE`/`INACTIVE`).
-- Imagen opcional por pregunta.
+- Imagen opcional por pregunta: **no implementada** en esta versión (el modelo no tiene el campo).
 - **Importación masiva** desde CSV con vista previa e idempotencia.
 - Desactivación lógica (nunca borrado físico de preguntas ya usadas).
 
@@ -222,10 +222,10 @@ servicio (`AND` en la consulta):
 
 | Permiso | Descripción | Alcance típico |
 |---|---|---|
-| `questions.view` | Ver preguntas | PROFESOR `AREA` (sus cursos), CONTROL_ESCOLAR `ALL`, ADMIN `ALL` |
-| `questions.create` | Crear | PROFESOR `AREA`, ADMIN `ALL` |
-| `questions.edit` | Editar/desactivar | PROFESOR `AREA`, ADMIN `ALL` |
-| `questions.import` | Importación masiva | ADMIN `ALL` (PROFESOR `AREA` opcional) |
+| `questions.view` | Ver preguntas | TEACHER `AREA` (sus cursos), SCHOOL_CONTROL `ALL`, ADMIN `ALL` |
+| `questions.create` | Crear | TEACHER `AREA`, ADMIN `ALL` |
+| `questions.edit` | Editar/desactivar | TEACHER `AREA`, ADMIN `ALL` |
+| `questions.import` | Importación masiva | ADMIN `ALL` (TEACHER `AREA` opcional) |
 
 `AREA` se resuelve por `courseId` (cursos del profesor). Ver
 [`roles-permisos.md`](../../seguridad/roles-permisos.md).
@@ -268,8 +268,11 @@ Ver [`bitacora.md`](../../seguridad/bitacora.md).
   idempotencia y preview de importación; bitácora en escrituras.
 - **Navegador Web E2E** (`web/tests/e2e`): alta con `ITFormBuilder`, listado con
   filtros, importación de CSV y desactivación.
-- **Spec(s) del módulo**: `api/tests/e2e/questions.spec.ts`,
-  `web/tests/e2e/questions.spec.ts`.
+- **Spec(s) del módulo**: `api/tests/e2e/m14-banco-reactivos.spec.ts`,
+  `web/tests/e2e/m14-m17-examenes-en-linea.spec.ts`; reglas puras en `api/tests/unit/online-exam.spec.ts`.
+- **CSV:** columnas canónicas `course,topic,type,text,points,difficulty,options,correct`;
+  los encabezados y tipos en español (`curso`, `tema`, `tipo`, `enunciado`, `puntos`,
+  `dificultad`, `opciones`, `correctas`; `OPCION_MULTIPLE`…) se aceptan por alias.
 
 Regla de trabajo: correr solo el spec del cambio. Ver
 [`estrategia-pruebas.md`](../../pruebas/estrategia-pruebas.md).

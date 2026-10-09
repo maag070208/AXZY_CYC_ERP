@@ -17,7 +17,7 @@
 | Método | Ruta | Permiso | Nota |
 |---|---|---|---|
 | POST | `/api/v1/teachers/query` | `teachers.view` | OWN = su propio perfil |
-| POST | `/api/v1/teachers` | `teachers.create` | Profesor + `User` PROFESOR + invitación (72 h) en una transacción |
+| POST | `/api/v1/teachers` | `teachers.create` | Profesor + `User` TEACHER + invitación (72 h) en una transacción |
 | GET · PATCH | `/api/v1/teachers/:id` | `teachers.view` · `teachers.edit` | La edición sincroniza nombre/correo/teléfono de la cuenta |
 | POST | `/api/v1/teachers/:id/deactivate` · `/reactivate` | `teachers.edit` (ALL) | Desactiva/reactiva también la cuenta y cierra sesiones |
 | POST | `/api/v1/teachers/:id/resend-invitation` | `teachers.edit` | Invalida la anterior; 409 si ya definió contraseña |
@@ -156,7 +156,7 @@ i18n con namespace **`teachers`**.
 
 ## 7. Permisos y alcance
 
-| Permiso | ADMIN | CONTROL_ESCOLAR | PROFESOR | ALUMNO |
+| Permiso | ADMIN | SCHOOL_CONTROL | TEACHER | STUDENT |
 |---|---|---|---|---|
 | `teachers.view` | ALL | ALL | OWN (su propio perfil) | · |
 | `teachers.create` | ALL | · | · | · |

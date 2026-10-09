@@ -143,7 +143,7 @@ en `online_exam_questions`.
 
 ## 5. API
 
-Módulo en `api/src/modules/online-exams/`
+Módulo en `api/src/modules/exams/` (`exam.service.ts`; rutas bajo `/online-exams`)
 (`routes/ · controllers/ · services/ · models/{dto,entity}/`), montado en
 `api.router.ts` con wiring DIP del `AuditPort`.
 
@@ -153,7 +153,7 @@ Módulo en `api/src/modules/online-exams/`
 | POST | `/api/v1/online-exams/query` | Listado server-side | `exams.view` |
 | POST | `/api/v1/online-exams` | Crear examen (borrador) | `exams.manage` |
 | PATCH | `/api/v1/online-exams/:id` | Editar configuración | `exams.manage` |
-| DELETE | `/api/v1/online-exams/:id` | Cerrar/baja lógica | `exams.manage` |
+| DELETE | `/api/v1/online-exams/:id` | Elimina un borrador (`409 EXAM_DRAFT_ONLY` si ya se publicó) | `exams.manage` |
 | POST | `/api/v1/online-exams/:id/questions` | Fijar/reemplazar preguntas | `exams.manage` |
 | DELETE | `/api/v1/online-exams/:id/questions/:questionId` | Quitar pregunta | `exams.manage` |
 | POST | `/api/v1/online-exams/:id/publish` | Publicar (`DRAFT → PUBLISHED`) | `exams.publish` |
@@ -206,9 +206,9 @@ servicio:
 
 | Permiso | Descripción | Alcance típico |
 |---|---|---|
-| `exams.view` | Ver exámenes | PROFESOR `AREA` (sus grupos), ALUMNO `OWN` (exámenes publicados de sus grupos), ADMIN/CONTROL_ESCOLAR `ALL` |
-| `exams.manage` | Crear/editar/configurar/cerrar | PROFESOR `AREA`, ADMIN `ALL` |
-| `exams.publish` | Publicar | PROFESOR `AREA`, ADMIN `ALL` |
+| `exams.view` | Ver exámenes | TEACHER `AREA` (sus grupos), STUDENT `OWN` (exámenes publicados de sus grupos), ADMIN/SCHOOL_CONTROL `ALL` |
+| `exams.manage` | Crear/editar/configurar/cerrar | TEACHER `AREA`, ADMIN `ALL` |
+| `exams.publish` | Publicar | TEACHER `AREA`, ADMIN `ALL` |
 
 `AREA` se resuelve por `groupId` (grupos del profesor). Ver
 [`roles-permisos.md`](../../seguridad/roles-permisos.md).
@@ -252,8 +252,8 @@ Ver [`bitacora.md`](../../seguridad/bitacora.md) (acciones M15/M16).
   (401/403); bitácora.
 - **Navegador Web E2E** (`web/tests/e2e`): crear examen, seleccionar reactivos,
   publicar y verificar bloqueo tras un intento.
-- **Spec(s) del módulo**: `api/tests/e2e/online-exams.spec.ts`,
-  `web/tests/e2e/online-exams.spec.ts`.
+- **Spec(s) del módulo**: `api/tests/e2e/m15-examenes-configuracion.spec.ts`,
+  `web/tests/e2e/m14-m17-examenes-en-linea.spec.ts`.
 
 Regla de trabajo: correr solo el spec del cambio. Ver
 [`estrategia-pruebas.md`](../../pruebas/estrategia-pruebas.md).

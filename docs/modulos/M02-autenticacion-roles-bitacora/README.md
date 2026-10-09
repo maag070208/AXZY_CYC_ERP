@@ -321,7 +321,7 @@ declaran **antes** de `router.use(authenticate)`.
 }
 ```
 
-**Matriz** (`PUT /permissions/matrix`): `{ "roleKey": "CONTROL_ESCOLAR",
+**Matriz** (`PUT /permissions/matrix`): `{ "roleKey": "SCHOOL_CONTROL",
 "permissionKey": "students.create", "scope": "ALL" }`.
 
 Errores según el [catálogo](../../api/errores.md): `TOKEN_MISSING`,
@@ -354,7 +354,7 @@ Pantallas con `ITPage` + `ITDataTable`/`ITFormBuilder`, `ITDialog`,
 
 ## 7. Permisos y alcance
 
-| Permiso | ADMIN | CONTROL_ESCOLAR | PROFESOR | ALUMNO |
+| Permiso | ADMIN | SCHOOL_CONTROL | TEACHER | STUDENT |
 |---|---|---|---|---|
 | `users.*` | ALL | · | · | · |
 | `roles.manage` | ALL | · | · | · |

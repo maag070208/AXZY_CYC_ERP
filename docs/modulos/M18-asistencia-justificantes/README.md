@@ -205,11 +205,11 @@ server-side.
 |---|---|---|---|
 | GET | `/api/v1/groups/:id/sessions` | Sesiones del grupo | `attendance.view` (AREA/OWN) |
 | POST | `/api/v1/groups/:id/sessions` | Crea una sesión de asistencia | `attendance.manage` (AREA) |
-| PUT | `/api/v1/sessions/:id/attendance` | Pase de lista (upsert por inscripción) | `attendance.manage` (AREA) |
-| POST | `/api/v1/attendance/query` | Listado server-side de asistencia | `attendance.view` |
+| PUT | `/api/v1/attendance-sessions/:id/attendance` | Pase de lista (upsert por inscripción) | `attendance.manage` (AREA) |
+| GET | `/api/v1/groups/:id/attendance-summary` · `/students/:id/attendance` | Porcentaje por alumno del grupo · asistencia de un alumno | `attendance.view` |
 | POST | `/api/v1/justifications` | Solicita un justificante (con archivo) | `attendance.justify` (OWN) |
 | PATCH | `/api/v1/justifications/:id/resolve` | Aprueba/rechaza un justificante | `attendance.justify` (AREA) |
-| GET | `/api/v1/reports/attendance` | Reporte de % por alumno/grupo | `attendance.view` / `reports.view` |
+| GET | `/api/v1/reports/attendance-by-group` | Reporte de % por alumno/grupo (M10) | `reports.view` |
 
 **Crear sesión** `POST /api/v1/groups/:id/sessions`:
 
@@ -217,7 +217,7 @@ server-side.
 { "date": "2026-06-01", "time": "08:00" }
 ```
 
-**Pase de lista** `PUT /api/v1/sessions/:id/attendance`:
+**Pase de lista** `PUT /api/v1/attendance-sessions/:id/attendance`:
 
 ```json
 { "items": [
@@ -257,8 +257,8 @@ Al aprobar, la `Attendance` asociada pasa a `JUSTIFIED` (regla 6).
 Pase de lista con `ITPage` + `ITDataTable` (una fila por inscripción, columnas con
 filtro/orden) y KPIs de % con `KpiTile`; la carga del justificante usa
 `ITDropfile` (archivo a S3) y `ITDialog`/`ITConfirmDialog` para la resolución.
-i18n con namespace **`attendance`**. La descarga del archivo usa URL firmada, no
-expone la ruta privada.
+i18n con namespace **`attendance`**. La descarga del archivo pasa por el endpoint autorizado
+`GET /justifications/:id/file` (nunca una URL pública; [D-023](../../../DECISIONES.md)).
 
 ## 7. Permisos y alcance
 

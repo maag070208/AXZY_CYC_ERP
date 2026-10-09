@@ -51,7 +51,7 @@ reglas complejas (M07, M08, M09, M16) ≈ 1.5–2 sprints.
 | M02 | ✅ Terminado (F1) | Usuarios CRUD multi-rol, baja/reactivación, desbloqueo, contraseña temporal y cambio obligatorio; consola `/roles` (roles, matriz, políticas ABAC); recuperación de contraseña; bitácora consultable `/audit` |
 | M11 | ✅ Terminado (F1) | `settings` + niveles, ciclos (uno activo), motivos de baja y tipos de documento; pantallas `/settings` y `/catalogs` |
 | M03 | ✅ Terminado (F2) | Alumnos: matrícula AAAA-NNNN, CURP con dígito verificador, tutores, homónimos, exportación, alcance por registro |
-| M04 | ✅ Terminado (F2) | Profesores con cuenta PROFESOR e invitación; baja/reactivación |
+| M04 | ✅ Terminado (F2) | Profesores con cuenta TEACHER e invitación; baja/reactivación |
 | M05 | ✅ Terminado (F2) | Bajas/reingresos con motivo e historial inmutable |
 | M06 | ✅ Terminado (F2) | Expediente privado (S3/local), validación por contenido, faltantes; kardex calculado + PDF (alimentado por M08 desde F3) |
 | M07 | ✅ Terminado (F3) | Cursos, grupos con horario, inscripciones serializables (cupo, duplicado, empalme), baja/cambio de grupo; AREA del profesor |
@@ -113,7 +113,7 @@ en bitácora; catálogos administrables; specs del módulo en verde.
 **Módulos:** M03, M04, M05, M06.
 
 - M03: altas/búsqueda de alumnos, validación CURP, matrícula `AAAA-NNNN`, tutores.
-- M04: profesores + creación de su `User` (rol PROFESOR) e invitación.
+- M04: profesores + creación de su `User` (rol TEACHER) e invitación.
 - M05: bajas/reingresos con historial y motivo obligatorio.
 - M06: expediente documental (S3, PDF/JPG/PNG ≤ 5 MB) y kardex (vista).
 - Web: fichas de alumno/profesor, movimientos, expediente.

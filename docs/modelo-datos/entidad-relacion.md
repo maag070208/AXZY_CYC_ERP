@@ -12,7 +12,6 @@ detalle de columnas y las convenciones **Prisma del estándar PTNV**.
 
 ```mermaid
 erDiagram
-    ROLES ||--o{ USERS : "asigna"
     ROLES ||--o{ ROLE_PERMISSIONS : "tiene"
     PERMISSIONS ||--o{ ROLE_PERMISSIONS : "concede"
     USERS ||--o{ AUDIT_LOGS : "genera"
@@ -54,26 +53,41 @@ erDiagram
     ATTENDANCE ||--o{ JUSTIFICATIONS : "justifica"
 
     NOTIFICATION_TEMPLATES ||--o{ NOTIFICATIONS : "usa"
+
+    USERS ||--o{ USER_ROLES : "tiene"
+    ROLES ||--o{ USER_ROLES : "asigna"
+    USERS ||--o{ USER_PERMISSIONS : "excepción"
+    POLICIES ||--o{ POLICY_CONDITIONS : "evalúa"
+    LEVELS ||--o{ COURSES : "clasifica"
+    DOCUMENT_TYPES ||--o{ DOCUMENTS : "tipifica"
+    PROGRAMS ||--o{ PROGRAM_SUBJECTS : "plan de estudios"
+    COURSES ||--o{ PROGRAM_SUBJECTS : "materia"
+    PROGRAMS ||--o{ STUDENT_PLANS : "se asigna"
+    STUDENTS ||--o{ STUDENT_PLANS : "contrata"
+    STUDENT_PLANS ||--o{ CHARGES : "genera"
+    MIGRATION_BATCHES ||--o{ MIGRATION_ROWS : "registra"
 ```
 
 ## 2. Agrupación por módulo
 
 | Módulo | Entidades |
 |---|---|
-| M02 | `roles`, `users`, `permissions`, `role_permissions`, `audit_logs` (+ `refresh_tokens`, `password_reset_tokens`, `login_attempts`) |
-| M03 | `students`, `guardians` |
+| M02 | `users`, `roles`, `permissions`, `role_permissions`, `user_roles`, `user_permissions`, `policies`, `policy_conditions`, `policy_roles`, `refresh_tokens`, `password_reset_tokens`, `audit_logs` |
+| M11 | `settings`, `levels`, `terms`, `cancellation_reasons`, `document_types` |
+| M03 | `students`, `guardians`, `student_number_sequences` |
 | M04 | `teachers` |
 | M05 | `student_movements` |
-| M06 | `documents`, `kardex` (vista) |
-| M07 | `courses`, `terms`, `groups`, `enrollments` |
+| M06 | `documents`; `kardex` es una vista calculada |
+| M07 | `courses`, `groups`, `enrollments` |
 | M08 | `assessments`, `grades` |
-| M09 | `fee_concepts`, `charges`, `payments` |
-| M11 | `settings`, catálogos (`levels`, `cancellation_reasons`, `document_types`) |
+| M09 | `fee_concepts`, `charges`, `payments`, `receipt_sequences`, `idempotency_records` |
 | M14 | `questions`, `question_options` |
 | M15 | `online_exams`, `online_exam_questions` |
-| M16 | `exam_attempts`, `attempt_answers` |
+| M16/M17 | `exam_attempts`, `attempt_answers` |
 | M18 | `attendance_sessions`, `attendance`, `justifications` |
-| M19 | `notification_templates`, `notifications` |
+| M19 | `notification_templates`, `notifications`, `notification_preferences` |
+| M20 | `migration_batches`, `migration_rows` |
+| M22 | `programs`, `program_subjects`, `student_plans` (y `charges.plan_id`) |
 
 ## 3. Notas de integridad
 

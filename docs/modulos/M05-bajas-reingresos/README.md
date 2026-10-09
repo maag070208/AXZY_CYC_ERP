@@ -141,7 +141,7 @@ alumnos): `routes/students.routes.ts` · `controllers/students.controller.ts` ·
 Request/response (Zod + resultado):
 
 ```ts
-// POST /api/v1/students/:id/baja
+// POST /api/v1/students/:id/withdrawal
 export const StudentBajaSchema = z.object({
   reason: z.string().min(3, "REASON_MIN_LENGTH").max(500),
   date: z.string().date(),              // YYYY-MM-DD
@@ -166,10 +166,9 @@ export const StudentBajaSchema = z.object({
 
 | Elemento | Capa FSD | Descripción |
 |---|---|---|
-| `studentMovement` | `entities/student` | API (`studentApi.WITHDRAWN/reentry/movements`) + tipo del movimiento |
-| Baja de alumno | `features/student/baja` | `model/useBaja.ts` + `ui/BajaDialog.tsx` (motivo + fecha) |
-| Reingreso de alumno | `features/student/reingreso` | `model/useReingreso.ts` + diálogo de confirmación |
-| Historial de movimientos | `features/student/movements` | Tabla de movimientos por alumno |
+| `studentMovement` | `entities/student` | API (`studentApi.withdraw` / `reenter` / `movements`) + tipo del movimiento |
+| Baja / reingreso | `features/student/movement-dialog` | `MovementDialog` (motivo + fecha; el mismo diálogo sirve a ambos movimientos) |
+| Historial | `features/student/movements-list` | `MovementsList` (pestaña «Movimientos») |
 | Detalle de alumno | `pages/students/StudentDetailPage.tsx` | Pestaña «Movimientos» dentro del expediente |
 
 - Pantalla de detalle con `ITPage`; el historial en `ITDataTable` (columnas
@@ -187,8 +186,8 @@ export const StudentBajaSchema = z.object({
 |---|---|---|
 | `students.movements` | `ALL` | Registrar baja/reingreso y consultar historial |
 
-- ADMIN y CONTROL_ESCOLAR: `ALL`. ALUMNO: `R (OWN)` solo su propio historial.
-  PROFESOR: sin acceso. Ver matriz en
+- ADMIN y SCHOOL_CONTROL: `ALL`. STUDENT: `R (OWN)` solo su propio historial.
+  TEACHER: sin acceso. Ver matriz en
   [`roles-permisos.md`](../../seguridad/roles-permisos.md).
 - El scoping se aplica en la consulta (`AND`), nunca en el cliente; `usePermission`
   solo oculta la UI.

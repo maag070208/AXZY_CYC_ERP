@@ -78,7 +78,7 @@ M18). Para optimizar se agregan, vía migración SQL, **índices de apoyo** y
    sirven desde **vistas materializadas** o con **índices** dedicados; el tablero
    nunca dispara *full scans* sobre `grades`, `payments` o `enrollments`.
 7. **Alcance `AREA` para profesor:** un `TEACHER` solo ve indicadores de sus
-   grupos/curso (`AREA`); CONTROL_ESCOLAR y ADMIN ven el consolidado (`ALL`).
+   grupos/curso (`AREA`); SCHOOL_CONTROL y ADMIN ven el consolidado (`ALL`).
 8. **Filas del tablero = indicadores:** cada KPI del tablero se alimenta de un
    endpoint de reporte; el fallo de un indicador no derriba el resto del tablero.
 9. **Consistencia de montos:** dinero en `Decimal` (nunca flotante); porcentajes
@@ -96,16 +96,16 @@ Módulo bajo `api/src/modules/reports/` (reutiliza servicios de M10)
 |---|---|---|---|
 | GET | `/api/v1/reports/:type` | Indicador/reporte con filtros y `?format=json\|xlsx\|pdf` | `reports.view` (export: `reports.export`) |
 | POST | `/api/v1/reports/:type/query` | Variante de tabla/consulta server-side | `reports.view` |
-| GET | `/api/v1/reports/dashboard` | Consolidado de KPIs del tablero | `reports.view` |
+| GET | `/api/v1/dashboard` | Consolidado de KPIs del tablero (amplía el de M10) | `reports.view` |
 
-Tipos (`:type`): `desercion`, `morosidad`, `ingresos-vs-proyeccion`,
-`rendimiento-curso`, `rendimiento-profesor`, `ocupacion-grupo`,
-`tendencia-inscripciones`.
+Tipos (`:type`, en inglés como los de M10): `dropout`, `delinquency`,
+`income-vs-projection`, `performance-by-course`, `performance-by-teacher`,
+`occupancy-by-group`, `enrollment-trend`.
 
-**`GET /api/v1/reports/morosidad`**:
+**`GET /api/v1/reports/delinquency`**:
 
 ```jsonc
-// GET /reports/morosidad?ciclo=2025-2026&nivel=Secundaria&grupo=…&format=json
+// GET /reports/delinquency?ciclo=2025-2026&nivel=Secundaria&grupo=…&format=json
 // Response 200
 {
   "type": "morosidad",
@@ -133,14 +133,14 @@ el mismo contenido, generado por el motor de M10.
 
 El tablero usa `ITPage` + `KpiTile` para cada indicador y las gráficas de
 `shared/ui/charts`; el detalle usa `ITDataTable` para el desglose. La generación de
-PDF se apoya en `widgets/*-pdf` con `@react-pdf/renderer` y descarga con
-`file-saver` (mismo patrón que M10). i18n con namespace **`reports`**.
+PDF y Excel los genera la **API** con el mismo motor de M10 (`xlsx` + `pdfkit`,
+[D-034](../../../DECISIONES.md)); la web solo descarga con `file-saver`. i18n con namespace **`reports`**.
 
 ## 7. Permisos y alcance
 
-- `reports.view` — consultar indicadores. ADMIN/CONTROL_ESCOLAR `ALL`; PROFESOR
+- `reports.view` — consultar indicadores. ADMIN/SCHOOL_CONTROL `ALL`; TEACHER
   `AREA` (solo sus grupos/curso).
-- `reports.export` — exportar a PDF/Excel. ADMIN/CONTROL_ESCOLAR `ALL`; PROFESOR
+- `reports.export` — exportar a PDF/Excel. ADMIN/SCHOOL_CONTROL `ALL`; TEACHER
   `AREA`.
 - El scoping `AREA` se aplica **en la consulta** (`AND`), nunca en el cliente; un
   profesor no puede ampliar su alcance con filtros. Fail-closed por

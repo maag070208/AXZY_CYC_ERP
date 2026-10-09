@@ -144,14 +144,14 @@ model AttemptAnswer {
 
 > Columnas estándar `created_at`/`updated_at` en ambas tablas; `deleted_at` **No
 > aplica** (registros inmutables). Detalle en
-> [`../../modelo-datos/diccionario-datos.md`](../../modelo-datos/diccionario-datos.md#m16--aplicación-al-alumno).
+> [`../../modelo-datos/diccionario-datos.md`](../../modelo-datos/diccionario-datos.md#m16m17--intentos-y-calificación).
 
 ## 4. Reglas de negocio
 
 Numeradas y verificables (cada una mapea a una prueba de §10):
 
 1. **Inscripción obligatoria.** Solo el alumno con `enrollment` **activo** en el
-   `group_id` del examen puede iniciar. En otro caso: 403 `INSUFFICIENT_PERMISSIONS`
+   `group_id` del examen puede iniciar. En otro caso: 409 `EXAM_NOT_AVAILABLE` con `details.reason = NOT_ENROLLED`
    (o 404 si el examen no existe).
 2. **Ventana de fechas.** El intento solo inicia si `opens_at ≤ now ≤ closes_at`
    y el examen está en status `PUBLISHED`. Fuera de eso: 409 `EXAM_NOT_AVAILABLE`.
@@ -165,7 +165,7 @@ Numeradas y verificables (cada una mapea a una prueba de §10):
    recibidas con `upsert` por `(attemptId, questionId)`; puede llamarse varias
    veces sin duplicar. El front agrupa los cambios cada pocos segundos.
 6. **Inmutabilidad al cerrar.** Un intento `SUBMITTED` o `EXPIRED` no admite más
-   respuestas ni un segundo `submit`: 409 `EXAM_NOT_AVAILABLE`.
+   respuestas ni un segundo `submit`: 409 `ATTEMPT_CLOSED`.
 7. **Respuestas válidas.** Cada `questionId` enviado debe pertenecer a
    `online_exam_questions` del examen del intento; si no, 400 `INVALID_REFERENCE`.
 8. **Eventos de foco (opcional).** Los cambios de pestaña/visibilidad se registran
@@ -174,7 +174,7 @@ Numeradas y verificables (cada una mapea a una prueba de §10):
 
 ## 5. API
 
-Módulo bajo `api/src/modules/attempts/` (`routes/ · controllers/ · services/ ·
+Módulo bajo `api/src/modules/exams/` (`attempt.service.ts`; rutas bajo `/attempts`) (`routes/ · controllers/ · services/ ·
 models/{dto,entity}/`). El alta de attempts cuelga del recurso `online-exams`
 (M15); el resto, de `attempts`.
 
@@ -217,7 +217,7 @@ models/{dto,entity}/`). El alta de attempts cuelga del recurso `online-exams`
 ```
 
 Responde `200` con `{ "saved": 2, "savedAt": "2026-06-01T15:00:42.000Z" }`.
-Si el intento ya cerró → 409 `EXAM_NOT_AVAILABLE`.
+Si el intento ya cerró o venció → 409 `ATTEMPT_CLOSED`.
 
 **Envío** `POST /api/v1/attempts/:id/submit` (body opcional con las respuestas
 pendientes; cierra y marca `finishedAt`):

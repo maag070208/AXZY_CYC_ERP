@@ -263,16 +263,16 @@ i18n con namespaces `fees`, `charges` y `payments`.
 
 | Permiso | Roles (alcance) |
 |---|---|
-| `fee_concepts.manage` | ADMIN (ALL), CONTROL_ESCOLAR (ALL) |
-| `charges.view` | ADMIN (ALL), CONTROL_ESCOLAR (ALL), ALUMNO (OWN) |
-| `charges.create` | ADMIN (ALL), CONTROL_ESCOLAR (ALL) |
-| `charges.generate` | ADMIN (ALL), CONTROL_ESCOLAR (ALL) |
-| `charges.cancel` | ADMIN (ALL), CONTROL_ESCOLAR (ALL) |
-| `payments.register` | ADMIN (ALL), CONTROL_ESCOLAR (ALL) |
-| `payments.cancel` | ADMIN (ALL), CONTROL_ESCOLAR (ALL) |
+| `fee_concepts.manage` | ADMIN (ALL), SCHOOL_CONTROL (ALL) |
+| `charges.view` | ADMIN (ALL), SCHOOL_CONTROL (ALL), STUDENT (OWN) |
+| `charges.create` | ADMIN (ALL), SCHOOL_CONTROL (ALL) |
+| `charges.generate` | ADMIN (ALL), SCHOOL_CONTROL (ALL) |
+| `charges.cancel` | ADMIN (ALL), SCHOOL_CONTROL (ALL) |
+| `payments.register` | ADMIN (ALL), SCHOOL_CONTROL (ALL) |
+| `payments.cancel` | ADMIN (ALL), SCHOOL_CONTROL (ALL) |
 
 El alumno y su tutor consultan únicamente su estado de cuenta (`OWN`). El
-CONTROL_ESCOLAR opera sobre todos los alumnos (`ALL`). El scoping por registro se
+SCHOOL_CONTROL opera sobre todos los alumnos (`ALL`). El scoping por registro se
 aplica en el servicio (`scopeOf`/`withinScope`), nunca en el cliente.
 
 ## 8. Validaciones

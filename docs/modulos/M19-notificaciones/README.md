@@ -93,7 +93,7 @@ enum NotificationStatus {
 
 model NotificationTemplate {
   id        String              @id @default(uuid())
-  /// Evento que la dispara (p. ej. `ALERTA_INASISTENCIA`); una por canal.
+  /// Evento que la dispara (p. ej. `ABSENCE_ALERT`); una por canal.
   code      String              @db.VarChar(60)
   name      String              @db.VarChar(150)
   channel   NotificationChannel
@@ -122,7 +122,7 @@ model Notification {
   templateId        String?             @map("template_id")
   /// Cuenta destinataria (bandeja y tiempo real), si se conoce.
   userId            String?             @map("user_id")
-  /// Evento o módulo de origen (`ALERTA_INASISTENCIA`, `MANUAL`…).
+  /// Evento o módulo de origen (`ABSENCE_ALERT`, `MANUAL`…).
   origin            String              @default("MANUAL") @db.VarChar(60)
   payload           Json                @default("{}")
   subject           String?             @db.VarChar(200)
@@ -192,7 +192,7 @@ FK a alumnos/usuarios: la clave es el `recipient` (desacopla el módulo).
    reencolado explícito.
 3. **Proveedores intercambiables:** todos implementan la interfaz
    `NotificationProvider` (`send(Notification): Promise<ProviderResult>`); el
-   proveedor por canal se resuelve por configuración (M11 `sys_config`).
+   proveedor por canal se resuelve por configuración (variables de entorno; ver [`entornos.md`](../../operacion/entornos.md)).
 4. **Render de plantillas:** `body`/`subject` admiten variables `{{code}}`; el
    envío valida que el `payload` cubra las variables declaradas; si falta alguna,
    no se encola y responde `VALIDATION_ERROR`.
@@ -217,7 +217,7 @@ FK a alumnos/usuarios: la clave es el `recipient` (desacopla el módulo).
 Módulo bajo `api/src/modules/notifications/`
 (`routes/ · controllers/ · services/ · models/{dto,entity}/ · providers/`). El
 subdirectorio `providers/` contiene las implementaciones (`resend`, `smtp`,
-`twilio`) detrás de la misma interfaz.
+`simulated` para SMS/WhatsApp hasta definir proveedor) detrás de la misma interfaz.
 
 | Método | Ruta | Descripción | Permiso |
 |---|---|---|---|
@@ -281,7 +281,7 @@ se integra en el canal de notificaciones ya provisto por `PrivateRoutes`.
 Permisos `recurso.accion` con alcance (`NONE/OWN/AREA/ALL`):
 
 - `notifications.view` — consultar plantillas e historial; ADMIN `ALL`,
-  CONTROL_ESCOLAR puede tener `ALL` en lectura para soporte.
+  SCHOOL_CONTROL puede tener `ALL` en lectura para soporte.
 - `notifications.manage` — CRUD de plantillas, envío manual y reintento; ADMIN `ALL`.
 
 Scoping por registro: el historial se filtra por los destinatarios dentro del
@@ -329,8 +329,8 @@ Los secretos del proveedor (API keys) nunca se guardan en `previousState`/
   de tabla; permisos 401/403; bitácora de plantillas; con proveedor *fake*.
 - **Navegador** (`web/tests/e2e`): alta/edición de plantilla, envío de prueba y
   filtrado del historial.
-- **Spec(s) del módulo:** `api/tests/e2e/notifications.spec.ts`,
-  `web/tests/e2e/notifications.spec.ts` (una prueba por regla numerada de §4).
+- **Spec(s) del módulo:** `api/tests/e2e/m19-notificaciones.spec.ts`,
+  `web/tests/e2e/m18-m19-asistencia-notificaciones.spec.ts`; reglas puras en `api/tests/unit/notifications.spec.ts` (una prueba por regla numerada de §4).
 
 ## 11. Criterios de aceptación
 

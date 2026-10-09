@@ -294,7 +294,7 @@ export const EnrollSchema = z.object({
 
 ## 7. Permisos y alcance
 
-| Permiso | ADMIN | CONTROL_ESCOLAR | PROFESOR | ALUMNO |
+| Permiso | ADMIN | SCHOOL_CONTROL | TEACHER | STUDENT |
 |---|---|---|---|---|
 | `courses.view` / `courses.manage` | ALL | view / NONE | view (AREA) | NONE |
 | `terms.view` / `terms.manage` | ALL | view / NONE | view | NONE |

@@ -1062,7 +1062,7 @@ enum NotificationStatus {
 
 model NotificationTemplate {
   id        String              @id @default(uuid())
-  /// Evento que la dispara (p. ej. `ALERTA_INASISTENCIA`); una por canal.
+  /// Evento que la dispara (p. ej. `ABSENCE_ALERT`); una por canal.
   code      String              @db.VarChar(60)
   name      String              @db.VarChar(150)
   channel   NotificationChannel
@@ -1091,7 +1091,7 @@ model Notification {
   templateId        String?             @map("template_id")
   /// Cuenta destinataria (bandeja y tiempo real), si se conoce.
   userId            String?             @map("user_id")
-  /// Evento o módulo de origen (`ALERTA_INASISTENCIA`, `MANUAL`…).
+  /// Evento o módulo de origen (`ABSENCE_ALERT`, `MANUAL`…).
   origin            String              @default("MANUAL") @db.VarChar(60)
   payload           Json                @default("{}")
   subject           String?             @db.VarChar(200)

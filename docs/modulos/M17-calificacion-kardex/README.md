@@ -248,14 +248,13 @@ Numeradas y verificables (cada una mapea a una prueba de §10):
 
 ## 5. API
 
-Módulo bajo `api/src/modules/attempts/` (la calificación se apoya en el recurso
+Módulo bajo `api/src/modules/exams/` (`exam-rules.ts`, `attempt.service.ts`; la calificación se apoya en el recurso
 `online-exams` de M15). Los listados densos de resultados usan el contrato
 server-side.
 
 | Método | Ruta | Descripción | Permiso |
 |---|---|---|---|
 | GET | `/api/v1/online-exams/:id/results` | Resultados del examen (intentos, puntajes, estatus) | `attempts.view` (AREA) |
-| POST | `/api/v1/online-exams/:id/results/query` | Listado server-side de resultados (alternativa densa) | `attempts.view` (AREA) |
 | GET | `/api/v1/attempts/:id` | Detalle del intento con respuestas y revisión | `attempts.view` (AREA) |
 | PATCH | `/api/v1/attempts/:id/review` | Revisión manual de una respuesta abierta | `attempts.review` (AREA) |
 | POST | `/api/v1/attempts/:id/regrade` | Recalcula y reescribe el `Grade` (idempotente) | `attempts.review` (AREA) |
@@ -282,7 +281,7 @@ reescribe el `Grade` definitivo.
 
 **Resultados** `GET /api/v1/online-exams/:id/results` devuelve, por alumno del
 grupo: intentos, puntaje vigente y si hay pendientes. Con paginación densa se
-prefiere `POST .../results/query` con `{ page, limit, filters, sort }`.
+se evaluará una variante server-side (no implementada: el grupo cabe en una respuesta).
 
 ## 6. Web
 

@@ -232,7 +232,7 @@ export const ValidateDocumentSchema = z.object({
 
 ## 7. Permisos y alcance
 
-| Permiso | ADMIN | CONTROL_ESCOLAR | PROFESOR | ALUMNO |
+| Permiso | ADMIN | SCHOOL_CONTROL | TEACHER | STUDENT |
 |---|---|---|---|---|
 | `documents.view` | ALL | ALL | AREA | OWN |
 | `documents.upload` | ALL | ALL | NONE | NONE |

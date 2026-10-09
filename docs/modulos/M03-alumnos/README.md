@@ -202,7 +202,7 @@ namespace **`students`**.
 
 ## 7. Permisos y alcance
 
-| Permiso | ADMIN | CONTROL_ESCOLAR | PROFESOR | ALUMNO |
+| Permiso | ADMIN | SCHOOL_CONTROL | TEACHER | STUDENT |
 |---|---|---|---|---|
 | `students.view` | ALL | ALL | AREA | OWN |
 | `students.create` | ALL | ALL | · | · |

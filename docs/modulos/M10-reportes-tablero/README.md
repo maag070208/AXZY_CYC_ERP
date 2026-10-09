@@ -151,8 +151,8 @@ i18n con namespace `reports` (y `dashboard`).
 
 | Permiso | Roles (alcance) |
 |---|---|
-| `reports.view` | ADMIN (ALL), CONTROL_ESCOLAR (ALL), PROFESOR (AREA) |
-| `reports.export` | ADMIN (ALL), CONTROL_ESCOLAR (ALL), PROFESOR (AREA) |
+| `reports.view` | ADMIN (ALL), SCHOOL_CONTROL (ALL), TEACHER (AREA) |
+| `reports.export` | ADMIN (ALL), SCHOOL_CONTROL (ALL), TEACHER (AREA) |
 
 El scoping `AREA` del profesor restringe todos los reportes a sus grupos; se
 aplica en la consulta (`AND`) para que ningún filtro lo amplíe. El alumno tiene

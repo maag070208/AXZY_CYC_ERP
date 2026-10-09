@@ -212,11 +212,11 @@ Permisos `recurso.accion` con alcance (`NONE/OWN/AREA/ALL`); ver
 
 | Permiso | Roles (alcance) |
 |---|---|
-| `assessments.view` | ADMIN (ALL), CONTROL_ESCOLAR (ALL lectura), PROFESOR (AREA), ALUMNO (OWN) |
-| `assessments.manage` | ADMIN (ALL), PROFESOR (AREA) |
-| `grades.view` | ADMIN (ALL), CONTROL_ESCOLAR (ALL), PROFESOR (AREA), ALUMNO (OWN) |
-| `grades.capture` | ADMIN (ALL), PROFESOR (AREA) |
-| `grades.export` | ADMIN (ALL), CONTROL_ESCOLAR (ALL), PROFESOR (AREA) |
+| `assessments.view` | ADMIN (ALL), SCHOOL_CONTROL (ALL lectura), TEACHER (AREA), STUDENT (OWN) |
+| `assessments.manage` | ADMIN (ALL), TEACHER (AREA) |
+| `grades.view` | ADMIN (ALL), SCHOOL_CONTROL (ALL), TEACHER (AREA), STUDENT (OWN) |
+| `grades.capture` | ADMIN (ALL), TEACHER (AREA) |
+| `grades.export` | ADMIN (ALL), SCHOOL_CONTROL (ALL), TEACHER (AREA) |
 
 El scoping por registro se aplica en el servicio (`scopeOf`/`withinScope`): el
 profesor se limita a los grupos donde figura como `groups.teacher_id`. El alumno
