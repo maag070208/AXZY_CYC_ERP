@@ -271,6 +271,8 @@ model Level {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
+  courses Course[]
+
   @@index([active])
   @@map("levels")
 }
@@ -285,6 +287,8 @@ model Term {
   activo      Boolean  @default(false)
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
+
+  groups Group[]
 
   @@index([activo])
   @@map("terms")
@@ -347,10 +351,11 @@ model Student {
   createdAt       DateTime      @default(now()) @map("created_at")
   updatedAt       DateTime      @updatedAt @map("updated_at")
 
-  user      User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
-  guardians Guardian[]
-  movements StudentMovement[]
-  documents Document[]
+  user        User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
+  guardians   Guardian[]
+  movements   StudentMovement[]
+  documents   Document[]
+  enrollments Enrollment[]
 
   @@index([status])
   @@index([apellidoPaterno, apellidoMaterno, nombres])
@@ -435,7 +440,8 @@ model Teacher {
   createdAt    DateTime      @default(now()) @map("created_at")
   updatedAt    DateTime      @updatedAt @map("updated_at")
 
-  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+  groups Group[]
 
   @@index([status])
   @@index([apellidos, nombres])
@@ -478,4 +484,141 @@ model Document {
   @@index([studentId, documentTypeId, status])
   @@index([status])
   @@map("documents")
+}
+
+// ---------------------------------------------------------------------------
+// M07 — Cursos, grupos e inscripciones
+// ---------------------------------------------------------------------------
+
+model Course {
+  id          String   @id @default(uuid())
+  /// Clave corta e inmutable en la práctica (p. ej. `MAT-101`).
+  clave       String   @unique
+  nombre      String
+  levelId     String?  @map("level_id")
+  descripcion String?
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  level  Level?  @relation(fields: [levelId], references: [id])
+  groups Group[]
+
+  @@index([active])
+  @@index([nombre])
+  @@map("courses")
+}
+
+model Group {
+  id        String    @id @default(uuid())
+  courseId  String    @map("course_id")
+  termId    String    @map("term_id")
+  teacherId String?   @map("teacher_id")
+  nombre    String
+  cupo      Int
+  /// `[{ dia: "LUNES", horaInicio: "08:00", horaFin: "09:00" }]`
+  horario   Json
+  aula      String?
+  active    Boolean   @default(true)
+  /// Cierre de calificaciones (M08): finales escritas y estatus aplicados.
+  closedAt  DateTime? @map("closed_at")
+  closedBy  String?   @map("closed_by")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  course      Course       @relation(fields: [courseId], references: [id])
+  term        Term         @relation(fields: [termId], references: [id])
+  teacher     Teacher?     @relation(fields: [teacherId], references: [id])
+  enrollments Enrollment[]
+  assessments Assessment[]
+
+  @@unique([courseId, termId, nombre])
+  @@index([termId])
+  @@index([teacherId])
+  @@index([active])
+  @@map("groups")
+}
+
+enum EnrollmentStatus {
+  INSCRITO
+  BAJA
+  ACREDITADO
+  REPROBADO
+}
+
+model Enrollment {
+  id              String           @id @default(uuid())
+  studentId       String           @map("student_id")
+  groupId         String           @map("group_id")
+  fecha           DateTime         @db.Date
+  status          EnrollmentStatus @default(INSCRITO)
+  /// Calificación final escrita al cerrar el grupo (M08).
+  finalGrade      Decimal?         @map("final_grade") @db.Decimal(5, 2)
+  bajaAt          DateTime?        @map("baja_at")
+  bajaMotivo      String?          @map("baja_motivo")
+  /// Si la baja fue por cambio de grupo, la inscripción destino.
+  transferredToId String?          @unique @map("transferred_to_id")
+  createdBy       String?          @map("created_by")
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+
+  student         Student     @relation(fields: [studentId], references: [id])
+  group           Group       @relation(fields: [groupId], references: [id])
+  transferredTo   Enrollment? @relation("EnrollmentTransfer", fields: [transferredToId], references: [id])
+  transferredFrom Enrollment? @relation("EnrollmentTransfer")
+  grades          Grade[]
+
+  @@index([studentId, status])
+  @@index([groupId, status])
+  @@map("enrollments")
+}
+
+// ---------------------------------------------------------------------------
+// M08 — Instrumentos de evaluación y calificaciones (captura manual)
+// ---------------------------------------------------------------------------
+
+enum AssessmentType {
+  PARCIAL
+  FINAL
+  TAREA
+  OTRO
+}
+
+model Assessment {
+  id          String         @id @default(uuid())
+  groupId     String         @map("group_id")
+  nombre      String
+  tipo        AssessmentType
+  /// Porcentaje; la suma de los activos del grupo debe ser 100.00 para cerrar.
+  ponderacion Decimal        @db.Decimal(5, 2)
+  fecha       DateTime?      @db.Date
+  maxScore    Decimal        @map("max_score") @db.Decimal(6, 2)
+  active      Boolean        @default(true)
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @updatedAt @map("updated_at")
+
+  group  Group   @relation(fields: [groupId], references: [id])
+  grades Grade[]
+
+  @@index([groupId])
+  @@map("assessments")
+}
+
+model Grade {
+  id            String    @id @default(uuid())
+  assessmentId  String    @map("assessment_id")
+  enrollmentId  String    @map("enrollment_id")
+  score         Decimal?  @db.Decimal(6, 2)
+  observaciones String?
+  capturedBy    String?   @map("captured_by")
+  capturedAt    DateTime? @map("captured_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  assessment Assessment @relation(fields: [assessmentId], references: [id])
+  enrollment Enrollment @relation(fields: [enrollmentId], references: [id])
+
+  @@unique([assessmentId, enrollmentId])
+  @@index([enrollmentId])
+  @@map("grades")
 }

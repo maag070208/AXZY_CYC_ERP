@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
 import bcrypt from "bcryptjs";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, type Prisma } from "@prisma/client";
 import { E2E_PREFIX } from "./env";
 
 /**
@@ -81,6 +81,7 @@ export const clearAccessE2E = async (): Promise<{ roles: number; policies: numbe
 
 /** Borra los registros de catálogos M11 creados por las suites. */
 export const clearCatalogsE2E = async (): Promise<number> => {
+  await clearAcademicE2E();
   const where = { nombre: { startsWith: E2E_CATALOG_PREFIX } };
   const counts = await Promise.all([
     db.level.deleteMany({ where }),
@@ -139,14 +140,47 @@ export const clearStudentsE2E = async (): Promise<number> => {
   // Archivos del driver local de almacenamiento (en S3 quedan a cargo del bucket de pruebas).
   const root = path.resolve(__dirname, "../../..", process.env.STORAGE_LOCAL_DIR ?? "storage/private");
   await Promise.all(ids.map((id) => fs.rm(path.join(root, "students", id), { recursive: true, force: true })));
+  await clearEnrollments({ studentId: { in: ids } });
   await db.document.deleteMany({ where: { studentId: { in: ids } } });
   await db.studentMovement.deleteMany({ where: { studentId: { in: ids } } });
   const result = await db.student.deleteMany({ where: { id: { in: ids } } });
   return result.count;
 };
 
+/** Inscripciones (y sus calificaciones) que cumplan `where`. */
+const clearEnrollments = async (where: Prisma.EnrollmentWhereInput): Promise<void> => {
+  await db.grade.deleteMany({ where: { enrollment: where } });
+  await db.enrollment.updateMany({ where, data: { transferredToId: null } });
+  await db.enrollment.deleteMany({ where });
+};
+
+/**
+ * Borra la oferta académica de prueba (M07/M08): cursos con clave `E2E…` y
+ * todo grupo de esos cursos, de ciclos `E2E…` o de profesores de prueba.
+ */
+export const clearAcademicE2E = async (): Promise<number> => {
+  const groups = await db.group.findMany({
+    where: {
+      OR: [
+        { course: { clave: { startsWith: E2E_CATALOG_PREFIX } } },
+        { term: { nombre: { startsWith: E2E_CATALOG_PREFIX } } },
+        { teacher: { email: { startsWith: E2E_PREFIX } } },
+      ],
+    },
+    select: { id: true },
+  });
+  const groupIds = groups.map((g) => g.id);
+  await clearEnrollments({ groupId: { in: groupIds } });
+  await db.grade.deleteMany({ where: { assessment: { groupId: { in: groupIds } } } });
+  await db.assessment.deleteMany({ where: { groupId: { in: groupIds } } });
+  const deleted = await db.group.deleteMany({ where: { id: { in: groupIds } } });
+  const courses = await db.course.deleteMany({ where: { clave: { startsWith: E2E_CATALOG_PREFIX } } });
+  return deleted.count + courses.count;
+};
+
 /** Borra los profesores de prueba (correo `e2e_…@e2e.local`); sus cuentas caen con `clearAuthE2E`. */
 export const clearTeachersE2E = async (): Promise<number> => {
+  await clearAcademicE2E();
   const result = await db.teacher.deleteMany({ where: { email: { startsWith: E2E_PREFIX } } });
   return result.count;
 };

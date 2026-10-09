@@ -137,12 +137,25 @@ test.describe("resolvedor con fixtures reales", () => {
       "documents.view": "AREA",
       "kardex.view": "AREA",
       "kardex.export": "AREA",
+      "terms.view": "ALL",
+      "courses.view": "AREA",
+      "groups.view": "AREA",
+      "enrollments.view": "AREA",
+      "assessments.view": "AREA",
+      "assessments.manage": "AREA",
+      "grades.view": "AREA",
+      "grades.capture": "AREA",
+      "grades.export": "AREA",
     });
     expect(permissionsOf(user("ALUMNO"))).toEqual({
       "students.view": "OWN",
       "documents.view": "OWN",
       "kardex.view": "OWN",
       "kardex.export": "OWN",
+      "groups.view": "OWN",
+      "enrollments.view": "OWN",
+      "assessments.view": "OWN",
+      "grades.view": "OWN",
     });
   });
 

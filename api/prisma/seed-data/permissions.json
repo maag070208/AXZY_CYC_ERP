@@ -250,5 +250,122 @@
     "sensitive": false,
     "active": true,
     "sortOrder": 2
+  },
+  {
+    "key": "courses.view",
+    "module": "Cursos",
+    "name": "Ver cursos",
+    "scopes": ["NONE", "AREA", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 1
+  },
+  {
+    "key": "courses.manage",
+    "module": "Cursos",
+    "name": "Administrar cursos",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 2
+  },
+  {
+    "key": "groups.view",
+    "module": "Grupos",
+    "name": "Ver grupos",
+    "scopes": ["NONE", "OWN", "AREA", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 1
+  },
+  {
+    "key": "groups.manage",
+    "module": "Grupos",
+    "name": "Administrar grupos",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 2
+  },
+  {
+    "key": "enrollments.view",
+    "module": "Inscripciones",
+    "name": "Ver inscripciones",
+    "scopes": ["NONE", "OWN", "AREA", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 1
+  },
+  {
+    "key": "enrollments.create",
+    "module": "Inscripciones",
+    "name": "Inscribir alumnos",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 2
+  },
+  {
+    "key": "enrollments.edit",
+    "module": "Inscripciones",
+    "name": "Cambiar de grupo",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 3
+  },
+  {
+    "key": "enrollments.delete",
+    "module": "Inscripciones",
+    "name": "Dar de baja inscripciones",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 4
+  },
+  {
+    "key": "assessments.view",
+    "module": "Calificaciones",
+    "name": "Ver instrumentos de evaluación",
+    "scopes": ["NONE", "OWN", "AREA", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 1
+  },
+  {
+    "key": "assessments.manage",
+    "module": "Calificaciones",
+    "name": "Administrar instrumentos y cerrar grupos",
+    "scopes": ["NONE", "AREA", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 2
+  },
+  {
+    "key": "grades.view",
+    "module": "Calificaciones",
+    "name": "Ver calificaciones",
+    "scopes": ["NONE", "OWN", "AREA", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 3
+  },
+  {
+    "key": "grades.capture",
+    "module": "Calificaciones",
+    "name": "Capturar calificaciones",
+    "scopes": ["NONE", "AREA", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 4
+  },
+  {
+    "key": "grades.export",
+    "module": "Calificaciones",
+    "name": "Exportar calificaciones",
+    "scopes": ["NONE", "AREA", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 5
   }
 ]

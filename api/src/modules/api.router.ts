@@ -9,6 +9,8 @@ import { createConfigModule } from "./config";
 import { createStudentsModule } from "./students";
 import { createTeachersModule } from "./teachers";
 import { createDocumentsModule } from "./documents";
+import { createCoursesModule } from "./courses";
+import { createGradesModule } from "./grades";
 
 // Puerto de auditoría (DIP): cada módulo recibe solo `createLog`, no el servicio.
 const { router: auditRouter, service: auditService } = createAuditModule();
@@ -23,6 +25,13 @@ const config = createConfigModule(auditPort.createLog);
 const students = createStudentsModule(auditPort.createLog);
 const teachers = createTeachersModule(auditPort.createLog);
 const documents = createDocumentsModule(students.students, auditPort.createLog);
+const courses = createCoursesModule(auditPort.createLog);
+const grades = createGradesModule(auditPort.createLog);
+
+// Puertos entre módulos: la baja del alumno (M05) cancela sus inscripciones
+// (M07) y el kardex (M06) lee las calificaciones (M08).
+students.movements.setEnrollmentCanceller(courses.enrollments.cancelForStudent);
+documents.kardex.setSource(grades.grades.kardexSource);
 
 const apiRouter = Router();
 
@@ -85,6 +94,13 @@ apiRouter.use("/students/:studentId", documents.studentRouter);
 apiRouter.use("/students", students.router);
 apiRouter.use("/documents", documents.documentsRouter);
 apiRouter.use("/teachers", teachers.router);
+apiRouter.use("/courses", courses.routers.courses);
+// Libro y cierre (M08) antes que `/groups` para no autenticar dos veces.
+apiRouter.use("/groups/:groupId", grades.routers.groupGrades);
+apiRouter.use("/groups", courses.routers.groups);
+apiRouter.use("/enrollments", courses.routers.enrollments);
+apiRouter.use("/assessments", grades.routers.assessments);
+apiRouter.use("/grades", grades.routers.grades);
 
 export { auditService };
 export default apiRouter;
