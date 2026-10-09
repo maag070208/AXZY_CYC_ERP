@@ -190,6 +190,30 @@ Plantilla:
 - **Estado:** aceptada
 - **Decisión:** `DELETE /students/:id` (M03) registra el mismo movimiento de baja con motivo que `POST /students/:id/baja` (M05): no hay baja sin historial. Motivo mínimo 3 caracteres (el catálogo incluye «Otro»). El alcance `AREA` se resuelve con `registerAreaResolver` que implementará M07 (grupos del profesor); sin resolvedor se comporta como `OWN` (fail-closed). La cancelación de inscripciones y la fuente académica del kardex son puertos que M07/M08 conectan.
 
+### D-027 — Inscripción serializable con reintento; sin Idempotency-Key
+- **Fecha:** 2026-10-09
+- **Estado:** aceptada
+- **Contexto:** M07 pide que dos inscripciones simultáneas al último lugar no pasen ambas y sugiere `Idempotency-Key`.
+- **Decisión:** Las reglas que leen y luego escriben (cupo, duplicado, empalme) corren en `serializable()` (`core/db/serializable.ts`): transacción `Serializable` con hasta 4 intentos y espera aleatoria; agotados → `409 CONCURRENT_UPDATE`. Además, índice único parcial `(student_id, group_id) WHERE status <> 'BAJA'` (una carrera contra él también responde `ALREADY_ENROLLED`). No se implementa `Idempotency-Key`: el índice ya hace idempotente la operación.
+- **Consecuencias / impacto:** M09 (cargos por inscripción) debe engancharse dentro de la misma transacción o por evento posterior al commit.
+
+### D-028 — Alcance académico: resolvedor `groups` y AREA de `students`
+- **Fecha:** 2026-10-09
+- **Estado:** aceptada
+- **Decisión:** M07 registra el resolvedor `groups` (grupos donde `teacher.userId` = la persona) y lo usan grupos, inscripciones, instrumentos y calificaciones (`byIds` sobre `groupId`). También registra el `AREA` de `students` (alumnos con inscripción vigente en sus grupos), que limita expediente y kardex del profesor. `OWN` del alumno = sus inscripciones vigentes. En escrituras fuera de ámbito se responde `403` (M08 §4.7); en lecturas, `404`.
+- **Consecuencias / impacto:** Un profesor con excepción `ALL` ve todo; quitarle un grupo le retira el acceso a esos alumnos de inmediato.
+
+### D-029 — Calificaciones en Decimal con ROUND_HALF_UP; cierre manual sin reapertura
+- **Fecha:** 2026-10-09
+- **Estado:** aceptada (resuelve A-002 parcialmente)
+- **Decisión:** Ponderaciones, máximos y calificaciones son `Decimal(…, 2)`; la final `Σ (score/max)·ponderación` se calcula con `Prisma.Decimal` y se redondea `ROUND_HALF_UP` a 2 decimales. El umbral es `MIN_PASSING_GRADE` (M11, global; `>=` acredita). El cierre es manual, exige ponderaciones al 100 % y todo capturado, escribe `finalGrade` y `ACREDITADO/REPROBADO` en la inscripción y bloquea el grupo (`409 GROUP_CLOSED`). No hay reapertura en esta versión.
+- **Consecuencias / impacto:** Un umbral por nivel/ciclo o la reapertura autorizada (con bitácora) quedan como extensión de M08/M17.
+
+### D-030 — El kardex lee inscripciones; cambio de grupo no duplica renglones
+- **Fecha:** 2026-10-09
+- **Estado:** aceptada
+- **Decisión:** La fuente académica del kardex (M06) es `GradeService.kardexSource`: un renglón por inscripción (las dadas de baja por cambio de grupo, con `transferredToId`, se omiten), calificaciones normalizadas a 0–100 por instrumento y final solo tras el cierre. `INSCRITO` se muestra como `EN_CURSO`.
+
 ---
 
 ## Mapeo desde la especificación original
@@ -211,7 +235,7 @@ Plantilla:
 | ID | Tema | Módulo | Pregunta | Estado |
 |---|---|---|---|---|
 | A-001 | Proveedor SMS/WhatsApp | M19 | ¿Twilio u otro? Ably ya se usa para tiempo real. | abierta |
-| A-002 | Regla de aprobación | M08 | ¿Umbral 70 configurable por nivel/ciclo? | abierta |
+| A-002 | Regla de aprobación | M08 | ¿Umbral 70 configurable por nivel/ciclo? | parcial: global en M11 ([D-029](#d-029--calificaciones-en-decimal-con-round_half_up-cierre-manual-sin-reapertura)) |
 | A-003 | Recargos por mora | M09 | ¿Se aplican? ¿Fórmula y periodicidad? | abierta |
 | A-004 | Almacenamiento de archivos | M06 | ¿S3 (estándar PTNV) o local? | provisional: ambos ([D-023](#d-023--almacenamiento-privado-s3-o-disco-local-resuelve-a-004-de-forma-provisional)) |
 | A-005 | Anti-fraude en examen | M16 | ¿Registrar cambios de pestaña? ¿Bloquear copiar/pegar? | abierta |
@@ -223,7 +247,7 @@ Plantilla:
 
 ## Cómo registrar una nueva decisión
 
-1. Elige el siguiente `D-###` libre (hoy: `D-027`).
+1. Elige el siguiente `D-###` libre (hoy: `D-031`).
 2. Copia la plantilla de arriba y llénala.
 3. Enlaza al documento/módulo afectado.
 4. Si reemplaza a otra, actualiza el estado de la anterior.

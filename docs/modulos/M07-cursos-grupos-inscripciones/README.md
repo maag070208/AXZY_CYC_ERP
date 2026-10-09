@@ -4,11 +4,35 @@
 |---|---|
 | **Código** | M07 |
 | **Versión** | 0.1 |
-| **Estado** | En diseño |
+| **Estado** | Terminado (F3) |
 | **Fase** | Académico (Expediente y academia) |
 | **Depende de** | M02 (autenticación y bitácora), M03 (alumnos), M04 (profesores), M11 (catálogos base) |
 | **Habilita a** | M05 (reinscripción tras reingreso), M06 (kardex), M08 (calificaciones), M09 (colegiaturas por ciclo), M15 (exámenes), M18 (asistencia) |
 | **Permisos** | `courses.*`, `terms.*`, `groups.*`, `enrollments.*` |
+
+## Implementación (F3, 2026-10-09)
+
+**Estado: terminado.** Código en `api/src/modules/courses` (cursos, grupos, inscripciones y alcance académico) y `web/src/{entities,features}/{course,group}`; páginas `/courses`, `/groups`, `/groups/:id` y la pestaña «Inscripciones» del expediente del alumno.
+
+| Método | Ruta | Permiso | Nota |
+|---|---|---|---|
+| POST · GET | `/api/v1/courses/query` · `/courses/options` | `courses.view` | AREA = cursos de sus grupos |
+| POST · GET · PATCH | `/api/v1/courses` · `/courses/:id` | `courses.manage` · `courses.view` | Clave única normalizada a mayúsculas (`409 COURSE_CLAVE_TAKEN`) |
+| DELETE · POST | `/api/v1/courses/:id` · `/:id/reactivate` | `courses.manage` | Baja lógica: no se abren grupos de un curso inactivo |
+| POST · GET | `/api/v1/groups/query` · `/groups/options` | `groups.view` | AREA = sus grupos (profesor); OWN = donde está inscrito (alumno) |
+| POST · GET · PATCH | `/api/v1/groups` · `/groups/:id` | `groups.manage` · `groups.view` | Curso y ciclo inmutables; `409 CUPO_BELOW_ENROLLED`, `GROUP_NAME_TAKEN` |
+| DELETE · POST | `/api/v1/groups/:id` · `/:id/reactivate` | `groups.manage` | Solo sin inscritos (`409 GROUP_HAS_ENROLLMENTS`) |
+| POST | `/api/v1/groups/:id/enroll` | `enrollments.create` | Transacción `Serializable` con reintento acotado |
+| POST | `/api/v1/enrollments/query` | `enrollments.view` | Filtros `groupId`, `studentId`, `termId`, `status`, `matricula`, `nombre` |
+| DELETE | `/api/v1/enrollments/:id` | `enrollments.delete` | Baja lógica con motivo opcional |
+| POST | `/api/v1/enrollments/:id/change-group` | `enrollments.edit` | Mismo curso y ciclo; origen en BAJA apuntando al destino |
+
+Diferencias con el borrador:
+- `Course` lleva `clave` única y `levelId` (FK al catálogo de niveles de M11) en lugar de `nivel` texto; solo `active` (sin `status` duplicado). `Group` agrega `closedAt/closedBy` (cierre de M08) y único `(courseId, termId, nombre)`. `Enrollment` agrega `finalGrade`, `bajaAt`, `bajaMotivo`, `transferredToId` y `createdBy`.
+- Días del horario en mayúsculas sin acento (`LUNES…DOMINGO`), horas `HH:mm`, intervalos semiabiertos `[inicio, fin)`: bloques contiguos no se empalman. El empalme se revisa contra las inscripciones `INSCRITO` del alumno en el **mismo ciclo**.
+- `Idempotency-Key` no se implementó: el índice único parcial y la transacción serializable ya impiden la doble inscripción (un reintento responde `409 ALREADY_ENROLLED`).
+- El ámbito `AREA` del profesor (sus grupos) se registra como resolvedor `groups` y publica también el `AREA` de `students`: expediente y kardex del profesor quedan limitados a los alumnos de sus grupos. Ver [D-027](../../../DECISIONES.md) y [D-028](../../../DECISIONES.md).
+- La baja del alumno (M05) cancela sus inscripciones vigentes en la misma transacción (puerto `setEnrollmentCanceller`).
 
 ## 1. Objetivo
 
@@ -298,13 +322,13 @@ ediciones bajo sus propios `entityType` con el mismo patrón.
 
 ## 11. Criterios de aceptación
 
-- [ ] Migración y modelo Prisma (`Course`, `Term`, `Group`, `Enrollment`, enums) con
+- [x] Migración y modelo Prisma (`Course`, `Term`, `Group`, `Enrollment`, enums) con
       índices únicos parciales.
-- [ ] Módulo API (routes/controller/service/dto/entity) con permisos, transacción
+- [x] Módulo API (routes/controller/service/dto/entity) con permisos, transacción
       serializable con reintento y bitácora.
-- [ ] Pantallas web con UI kit (cursos, ciclos, grupos, roster) e i18n.
-- [ ] Specs pasando (solo los del módulo).
-- [ ] Este README completo.
+- [x] Pantallas web con UI kit (cursos, ciclos, grupos, roster) e i18n.
+- [x] Specs pasando (solo los del módulo).
+- [x] Este README completo.
 
 ## 12. Decisiones abiertas
 

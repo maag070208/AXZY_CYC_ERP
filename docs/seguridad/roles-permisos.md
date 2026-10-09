@@ -85,10 +85,15 @@ Los roles `system` están protegidos de borrado/renombrado.
 | movements | CRUD | CRUD | · | R (OWN) |
 | documents | CRUD + validate | CRUD + validate | R (AREA) | R (OWN) |
 | kardex | R X | R X | R (AREA) | R (OWN) |
-| courses / terms | CRUD | R | R | · |
+| courses / terms | CRUD | R | R (cursos AREA; ciclos ALL) | · |
 | groups | CRUD | CRUD | R (AREA) | R (OWN) |
 | enrollments | CRUD | CRUD | R (AREA) | R (OWN) |
-| assessments / grades | CRUD | R | CRUD (AREA) | R (OWN) |
+| assessments / grades | CRUD + cierre | R X | CRUD + captura + cierre (AREA) X | R (OWN) |
+
+> **AREA académico (F3):** el ámbito del profesor son **sus grupos** (`groups.teacher_id`
+> → `teachers.user_id`), registrado por M07 como resolvedor `groups`; los alumnos con
+> inscripción vigente en esos grupos forman el `AREA` de `students` (expediente y kardex).
+> Fuera de su ámbito, las lecturas responden 404 y las escrituras 403. Ver D-028.
 | fees / charges / payments | CRUD | CRUD | · | R (OWN) |
 | reports | R X | R X | R (AREA) X | · |
 | questions / exams | CRUD | R | CRUD (AREA) | · |

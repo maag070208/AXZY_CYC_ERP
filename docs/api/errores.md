@@ -98,8 +98,21 @@ Envelope **plano** (estándar PTNV):
 | `ALREADY_ENROLLED` | 409 | Doble inscripción al mismo grupo |
 | `SCHEDULE_CONFLICT` | 409 | Empalme de horario |
 | `STUDENT_INACTIVE` | 409 | Alumno en baja |
-| `WEIGHTS_NOT_100` | 409 | Ponderaciones del grupo ≠ 100% |
+| `COURSE_NOT_FOUND` / `GROUP_NOT_FOUND` / `ENROLLMENT_NOT_FOUND` / `TERM_NOT_FOUND` | 404 (400 si viene en el body) | Curso, grupo, inscripción o ciclo inexistente o fuera de alcance |
+| `COURSE_CLAVE_TAKEN` / `GROUP_NAME_TAKEN` | 409 | Clave de curso repetida / nombre de grupo repetido en el mismo curso y ciclo |
+| `COURSE_INACTIVE` / `GROUP_INACTIVE` / `COURSE_ALREADY_ACTIVE` / `GROUP_ALREADY_ACTIVE` | 409 | Conflictos de estado de cursos y grupos |
+| `LEVEL_NOT_AVAILABLE` | 400 | Nivel del curso inexistente o inactivo |
+| `CUPO_BELOW_ENROLLED` / `GROUP_HAS_ENROLLMENTS` | 409 | Cupo menor que los inscritos / desactivar un grupo con inscritos |
+| `GROUP_CLOSED` | 409 | El grupo ya cerró calificaciones: no cambia (captura, instrumentos, inscripciones) |
+| `ENROLLMENT_NOT_ACTIVE` | 409 | Baja o cambio de una inscripción que no está vigente |
+| `GROUP_CHANGE_INVALID` | 400 | El destino no es otro grupo del mismo curso y ciclo |
+| `ASSESSMENT_NOT_FOUND` / `ASSESSMENT_INACTIVE` | 404 / 409 | Instrumento inexistente o desactivado |
+| `WEIGHTS_EXCEED_100` | 409 | Crear/editar haría que las ponderaciones activas pasen de 100% |
+| `WEIGHTS_NOT_100` | 409 | Cerrar con ponderaciones del grupo ≠ 100% |
+| `ASSESSMENTS_REQUIRED` / `GRADES_INCOMPLETE` | 409 | Cerrar sin instrumentos / con calificaciones faltantes |
 | `SCORE_OUT_OF_RANGE` | 400 | Calificación fuera de `[0, max_score]` |
+| `MAX_SCORE_BELOW_CAPTURED` | 409 | Bajar el máximo por debajo de calificaciones ya capturadas |
+| `ENROLLMENT_NOT_IN_GROUP` / `NOT_ENROLLED` | 400 / 409 | Captura para una inscripción de otro grupo / no vigente |
 | `EXAM_NOT_AVAILABLE` | 409 | Examen fuera de ventana / sin intentos |
 | `EXAM_PUBLISHED_LOCKED` | 409 | No editable con intentos iniciados |
 | `FILE_TYPE_NOT_ALLOWED` / `FILE_TOO_LARGE` | 400 | Validación de archivos |

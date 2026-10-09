@@ -52,12 +52,15 @@ reglas complejas (M07, M08, M09, M16) ≈ 1.5–2 sprints.
 | M03 | ✅ Terminado (F2) | Alumnos: matrícula AAAA-NNNN, CURP con dígito verificador, tutores, homónimos, exportación, alcance por registro |
 | M04 | ✅ Terminado (F2) | Profesores con cuenta PROFESOR e invitación; baja/reactivación |
 | M05 | ✅ Terminado (F2) | Bajas/reingresos con motivo e historial inmutable |
-| M06 | ✅ Terminado (F2) | Expediente privado (S3/local), validación por contenido, faltantes; kardex calculado + PDF (se llena en F3) |
-| M07–M10, M12–M21 | Documentado | Sin código |
+| M06 | ✅ Terminado (F2) | Expediente privado (S3/local), validación por contenido, faltantes; kardex calculado + PDF (alimentado por M08 desde F3) |
+| M07 | ✅ Terminado (F3) | Cursos, grupos con horario, inscripciones serializables (cupo, duplicado, empalme), baja/cambio de grupo; AREA del profesor |
+| M08 | ✅ Terminado (F3) | Instrumentos con ponderación, captura en lote, libro con proyección, cierre de grupo → kardex y estatus, exportación |
+| M09, M10, M12–M21 | Documentado | Sin código |
 | F0 — Infra | ✅ Completada | Monorepo + Docker por proyecto + `docker-compose` + CI (incluye e2e); migración `init` + seed; login por proxy de nginx verificado; e2e de auth (contrato + navegador) en verde |
 | F1 — Acceso y catálogos | ✅ Completada (pendiente H1 con el cliente) | Migración `f1_policies_catalogs`; unitarias 39, contrato API 64, navegador 30 — todo en verde |
 | F2 — Personas y expediente | ✅ Completada (pendiente H2 con el cliente) | Migración `f2_personas_expediente`; unitarias 51, contrato API 100, navegador 43 — todo en verde |
-| F3 — Gestión académica | ⏭️ Siguiente | M07 (cursos, grupos, inscripciones; conecta AREA, cancelación de inscripciones) y M08 (calificaciones; alimenta el kardex) |
+| F3 — Gestión académica | ✅ Completada (pendiente H3 con el cliente) | Migración `f3_academico`; unitarias 61, contrato API 127, navegador 52 — todo en verde |
+| F4 — Finanzas y reportes base | ⏭️ Siguiente | M09 (cargos, pagos, folios, estado de cuenta) y M10 (reportes y tablero) |
 
 ## 3. Detalle por fase
 

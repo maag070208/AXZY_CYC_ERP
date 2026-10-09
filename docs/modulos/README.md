@@ -35,8 +35,8 @@ abiertas, siguiendo la
 | Código | Módulo | Objetivo | Estado |
 |---|---|---|---|
 | M06 | [Kardex y expediente documental](M06-kardex-expediente/README.md) | Documentos y kardex por alumno | Terminado (F2) |
-| M07 | [Cursos, grupos e inscripciones](M07-cursos-grupos-inscripciones/README.md) | Oferta académica e inscripciones con reglas | Planeado |
-| M08 | [Exámenes y calificaciones](M08-examenes-calificaciones/README.md) | Captura de calificaciones y cálculo final | Planeado |
+| M07 | [Cursos, grupos e inscripciones](M07-cursos-grupos-inscripciones/README.md) | Oferta académica e inscripciones con reglas | Terminado (F3) |
+| M08 | [Exámenes y calificaciones](M08-examenes-calificaciones/README.md) | Captura de calificaciones y cálculo final | Terminado (F3) |
 
 ## Finanzas y administración
 
