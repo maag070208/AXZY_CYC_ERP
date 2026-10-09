@@ -141,9 +141,28 @@ export const clearStudentsE2E = async (): Promise<number> => {
   const root = path.resolve(__dirname, "../../..", process.env.STORAGE_LOCAL_DIR ?? "storage/private");
   await Promise.all(ids.map((id) => fs.rm(path.join(root, "students", id), { recursive: true, force: true })));
   await clearEnrollments({ studentId: { in: ids } });
+  await clearCharges({ studentId: { in: ids } });
   await db.document.deleteMany({ where: { studentId: { in: ids } } });
   await db.studentMovement.deleteMany({ where: { studentId: { in: ids } } });
   const result = await db.student.deleteMany({ where: { id: { in: ids } } });
+  return result.count;
+};
+
+/** Cargos (con sus pagos y recargos) que cumplan `where`. */
+const clearCharges = async (where: Prisma.ChargeWhereInput): Promise<void> => {
+  const charges = await db.charge.findMany({ where, select: { id: true } });
+  const ids = charges.map((c) => c.id);
+  const all = { OR: [{ id: { in: ids } }, { parentChargeId: { in: ids } }] };
+  await db.payment.deleteMany({ where: { charge: all } });
+  await db.charge.deleteMany({ where: { parentChargeId: { in: ids } } });
+  await db.charge.deleteMany({ where: { id: { in: ids } } });
+};
+
+/** Finanzas de prueba (M09): conceptos `E2E…`, sus cargos y las claves de idempotencia `e2e…`. */
+export const clearFinanceE2E = async (): Promise<number> => {
+  await clearCharges({ concept: { nombre: { startsWith: E2E_CATALOG_PREFIX } } });
+  await db.idempotencyRecord.deleteMany({ where: { key: { startsWith: "e2e" } } });
+  const result = await db.feeConcept.deleteMany({ where: { nombre: { startsWith: E2E_CATALOG_PREFIX } } });
   return result.count;
 };
 

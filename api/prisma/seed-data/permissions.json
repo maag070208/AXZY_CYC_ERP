@@ -367,5 +367,86 @@
     "sensitive": false,
     "active": true,
     "sortOrder": 5
+  },
+  {
+    "key": "fee_concepts.manage",
+    "module": "Cobranza",
+    "name": "Administrar conceptos de cobro",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 1
+  },
+  {
+    "key": "charges.view",
+    "module": "Cobranza",
+    "name": "Ver cargos, pagos y estados de cuenta",
+    "scopes": ["NONE", "OWN", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 2
+  },
+  {
+    "key": "charges.create",
+    "module": "Cobranza",
+    "name": "Crear cargos individuales",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 3
+  },
+  {
+    "key": "charges.generate",
+    "module": "Cobranza",
+    "name": "Generar cargos masivos y recargos",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 4
+  },
+  {
+    "key": "charges.cancel",
+    "module": "Cobranza",
+    "name": "Cancelar cargos",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 5
+  },
+  {
+    "key": "payments.register",
+    "module": "Cobranza",
+    "name": "Registrar pagos",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 6
+  },
+  {
+    "key": "payments.cancel",
+    "module": "Cobranza",
+    "name": "Cancelar pagos",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": true,
+    "active": true,
+    "sortOrder": 7
+  },
+  {
+    "key": "reports.view",
+    "module": "Reportes",
+    "name": "Ver reportes y tablero",
+    "scopes": ["NONE", "AREA", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 1
+  },
+  {
+    "key": "reports.export",
+    "module": "Reportes",
+    "name": "Exportar reportes",
+    "scopes": ["NONE", "AREA", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 2
   }
 ]

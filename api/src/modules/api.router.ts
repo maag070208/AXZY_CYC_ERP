@@ -11,6 +11,8 @@ import { createTeachersModule } from "./teachers";
 import { createDocumentsModule } from "./documents";
 import { createCoursesModule } from "./courses";
 import { createGradesModule } from "./grades";
+import { createFinanceModule } from "./finance";
+import { createReportsModule } from "./reports";
 
 // Puerto de auditoría (DIP): cada módulo recibe solo `createLog`, no el servicio.
 const { router: auditRouter, service: auditService } = createAuditModule();
@@ -27,6 +29,8 @@ const teachers = createTeachersModule(auditPort.createLog);
 const documents = createDocumentsModule(students.students, auditPort.createLog);
 const courses = createCoursesModule(auditPort.createLog);
 const grades = createGradesModule(auditPort.createLog);
+const finance = createFinanceModule(students.students, auditPort.createLog);
+const reports = createReportsModule(auditPort.createLog);
 
 // Puertos entre módulos: la baja del alumno (M05) cancela sus inscripciones
 // (M07) y el kardex (M06) lee las calificaciones (M08).
@@ -91,6 +95,7 @@ apiRouter.use("/cancellation-reasons", config.routers.cancellationReasons);
 apiRouter.use("/document-types", config.routers.documentTypes);
 // Expediente y kardex antes que `/students` para no autenticar dos veces.
 apiRouter.use("/students/:studentId", documents.studentRouter);
+apiRouter.use("/students/:studentId", finance.routers.student);
 apiRouter.use("/students", students.router);
 apiRouter.use("/documents", documents.documentsRouter);
 apiRouter.use("/teachers", teachers.router);
@@ -101,6 +106,11 @@ apiRouter.use("/groups", courses.routers.groups);
 apiRouter.use("/enrollments", courses.routers.enrollments);
 apiRouter.use("/assessments", grades.routers.assessments);
 apiRouter.use("/grades", grades.routers.grades);
+apiRouter.use("/fee-concepts", finance.routers.feeConcepts);
+apiRouter.use("/charges", finance.routers.charges);
+apiRouter.use("/payments", finance.routers.payments);
+apiRouter.use("/reports", reports.routers.reports);
+apiRouter.use("/dashboard", reports.routers.dashboard);
 
 export { auditService };
 export default apiRouter;

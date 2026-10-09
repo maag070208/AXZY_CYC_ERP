@@ -79,6 +79,28 @@ export const POLICY_ACTIONS: readonly PolicyActionDef[] = [
     ],
   },
   {
+    key: "charges.create",
+    module: "Cobranza",
+    description: "Alta de cargos (individual o masiva): permite topar descuentos",
+    fields: [
+      { path: "monto", type: "number", description: "Monto del cargo" },
+      { path: "descuento", type: "number", description: "Descuento aplicado" },
+      { path: "porcentajeDescuento", type: "number", description: "Descuento como % del monto (0–100)" },
+      { path: "conceptTipo", type: "string", description: "Tipo del concepto (INSCRIPCION, COLEGIATURA…)" },
+      { path: "masivo", type: "boolean", description: "Generación masiva (grupo o ciclo)" },
+    ],
+  },
+  {
+    key: "payments.cancel",
+    module: "Cobranza",
+    description: "Cancelación de un pago registrado",
+    fields: [
+      { path: "monto", type: "number", description: "Monto del pago" },
+      { path: "metodo", type: "string", description: "Método de pago" },
+      { path: "diasDesdeRegistro", type: "number", description: "Días desde que se registró el pago" },
+    ],
+  },
+  {
     key: "settings.update",
     module: "Configuración",
     description: "Cambio de un parámetro general",

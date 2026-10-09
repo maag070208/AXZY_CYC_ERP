@@ -146,6 +146,8 @@ test.describe("resolvedor con fixtures reales", () => {
       "grades.view": "AREA",
       "grades.capture": "AREA",
       "grades.export": "AREA",
+      "reports.view": "AREA",
+      "reports.export": "AREA",
     });
     expect(permissionsOf(user("ALUMNO"))).toEqual({
       "students.view": "OWN",
@@ -156,6 +158,7 @@ test.describe("resolvedor con fixtures reales", () => {
       "enrollments.view": "OWN",
       "assessments.view": "OWN",
       "grades.view": "OWN",
+      "charges.view": "OWN",
     });
   });
 
