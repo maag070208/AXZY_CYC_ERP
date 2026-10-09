@@ -6,10 +6,12 @@ import { useNavigate, useParams } from "react-router-dom";
 import { errorMessage } from "@app/toast/useNotify";
 import { attemptApi, type Attempt } from "@entities/online-exam";
 import { AttemptResult, ExamRunner } from "@features/exam/take-exam";
+import { useBreadcrumbs } from "@shared/lib/useBreadcrumbs";
 
 /** `/exam/:attemptId` (M16): presentar el intento o ver su resultado. */
 export default function ExamRunnerPage() {
   const { t } = useTranslation(["exams", "common"]);
+  const crumbs = useBreadcrumbs();
   const { attemptId } = useParams<{ attemptId: string }>();
   const navigate = useNavigate();
   const [attempt, setAttempt] = useState<Attempt | null>(null);
@@ -34,6 +36,8 @@ export default function ExamRunnerPage() {
       loading={!attempt && !error}
       error={error}
       backAction={attempt?.status === "IN_PROGRESS" ? undefined : () => navigate("/my-exams")}
+      // Durante el intento no hay migas: salir de la pantalla no debe quedar a un clic.
+      breadcrumbs={attempt?.status === "IN_PROGRESS" ? undefined : crumbs({ label: t("common:nav.myExams"), to: "/my-exams" }, { label: attempt?.title })}
     >
       {attempt?.status === "IN_PROGRESS" && <ExamRunner key={attempt.attemptId} attempt={attempt} onFinished={onFinished} />}
       {attempt && attempt.status !== "IN_PROGRESS" && (

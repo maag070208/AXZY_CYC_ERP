@@ -8,10 +8,12 @@ import { questionApi, type Question } from "@entities/question";
 import { QuestionsTable, type QuestionAction } from "@features/question/questions-list";
 import { QuestionFormDialog } from "@features/question/question-form";
 import { ImportQuestionsDialog } from "@features/question/import-questions";
+import { useBreadcrumbs } from "@shared/lib/useBreadcrumbs";
 
 /** `/questions` (M14): banco de reactivos. */
 export default function QuestionsPage() {
   const { t } = useTranslation(["exams", "common"]);
+  const crumbs = useBreadcrumbs();
   const notify = useNotify();
   const canCreate = useCan("questions.create");
   const canImport = useCan("questions.import");
@@ -41,6 +43,7 @@ export default function QuestionsPage() {
 
   return (
     <ITPage
+      breadcrumbs={crumbs({ label: t("common:nav.questions") })}
       noPadding
       title={t("questions.title")}
       description={t("questions.description", { count: total })}

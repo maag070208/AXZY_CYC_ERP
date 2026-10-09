@@ -8,10 +8,12 @@ import { useCan } from "@entities/user";
 import { groupApi, type Group } from "@entities/group";
 import { GroupsTable, useGroupsTable, type GroupAction } from "@features/group/groups-list";
 import { GroupFormDialog } from "@features/group/group-form";
+import { useBreadcrumbs } from "@shared/lib/useBreadcrumbs";
 
 /** `/groups` (M07): grupos por ciclo con cupo, horario y profesor. */
 export default function GroupsPage() {
   const { t } = useTranslation(["courses", "common"]);
+  const crumbs = useBreadcrumbs();
   const notify = useNotify();
   const navigate = useNavigate();
   const canManage = useCan("groups.manage");
@@ -45,6 +47,7 @@ export default function GroupsPage() {
   const name = toggling ? `${toggling.group.courseName} ${toggling.group.name}` : "";
   return (
     <ITPage
+      breadcrumbs={crumbs({ label: t("common:nav.groups") })}
       noPadding
       title={t("groups.title")}
       description={t("groups.description", { count: fx.total })}

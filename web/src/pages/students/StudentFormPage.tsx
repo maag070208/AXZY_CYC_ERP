@@ -6,10 +6,12 @@ import { useNavigate, useParams } from "react-router-dom";
 import { errorMessage, useNotify } from "@app/toast/useNotify";
 import { studentApi, type Student } from "@entities/student";
 import { StudentForm } from "@features/student/student-form";
+import { useBreadcrumbs } from "@shared/lib/useBreadcrumbs";
 
 /** `/students/new` y `/students/:id/edit`. */
 export default function StudentFormPage() {
   const { t } = useTranslation(["students", "common"]);
+  const crumbs = useBreadcrumbs();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const notify = useNotify();
@@ -28,6 +30,7 @@ export default function StudentFormPage() {
 
   return (
     <ITPage
+      breadcrumbs={crumbs({ label: t("common:nav.students"), to: "/students" }, { label: student?.fullName, to: `/students/${id}` }, { label: id ? t("form.titleEdit") : t("form.titleNew") })}
       title={id ? t("form.titleEdit") : t("form.titleNew")}
       description={student ? `${student.studentNumber} · ${student.fullName}` : undefined}
       icon={<FaUserGraduate size={20} />}

@@ -9,10 +9,12 @@ import { TemplatesTable, TemplateFormDialog } from "@features/notification/templ
 import { OutboxTable, SendDialog } from "@features/notification/outbox";
 import { PreferencesTable } from "@features/notification/preferences";
 import { InboxPanel } from "@features/notification/inbox";
+import { useBreadcrumbs } from "@shared/lib/useBreadcrumbs";
 
 /** `/notifications` (M19): bandeja interna, plantillas, outbox y preferencias. */
 export default function NotificationsPage() {
   const { t } = useTranslation(["notifications", "common"]);
+  const crumbs = useBreadcrumbs();
   const notify = useNotify();
   const canView = useCan("notifications.view");
   const canManage = useCan("notifications.manage");
@@ -90,6 +92,7 @@ export default function NotificationsPage() {
 
   return (
     <ITPage
+      breadcrumbs={crumbs({ label: t("common:nav.notifications") })}
       title={t("page.title")}
       description={t("page.description")}
       icon={<FaBell size={20} />}

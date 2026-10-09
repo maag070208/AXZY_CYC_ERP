@@ -11,6 +11,7 @@ import { groupApi, type Group } from "@entities/group";
 import { formatDay, fromDay, toDay } from "@shared/lib/day";
 import { formatMoney } from "@shared/lib/money";
 import { PanelCard } from "@shared/ui/panel-card";
+import { useBreadcrumbs } from "@shared/lib/useBreadcrumbs";
 
 const TERM_REPORTS: ReportType[] = ["enrollments-by-group", "grades-by-group", "payments-period", "debts"];
 const GROUP_REPORTS: ReportType[] = ["enrollments-by-group", "grades-by-group"];
@@ -20,6 +21,7 @@ const pickDay = (value: unknown): string => (value instanceof Date && !Number.is
 /** `/reports` (M10): reportes operativos con filtros server-side y exportación. */
 export default function ReportsPage() {
   const { t, i18n } = useTranslation(["reports", "common"]);
+  const crumbs = useBreadcrumbs();
   const notify = useNotify();
   const canExport = useCan("reports.export");
   const canTerms = useCan("terms.view");
@@ -77,6 +79,7 @@ export default function ReportsPage() {
 
   return (
     <ITPage
+      breadcrumbs={crumbs({ label: t("common:nav.reports") })}
       title={t("title")}
       description={t("description")}
       icon={<FaChartBar size={20} />}

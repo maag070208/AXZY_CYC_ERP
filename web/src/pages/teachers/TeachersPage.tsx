@@ -7,10 +7,12 @@ import { useCan } from "@entities/user";
 import { teacherApi, type Teacher } from "@entities/teacher";
 import { TeachersTable, useTeachersTable, type TeacherAction } from "@features/teacher/teachers-list";
 import { TeacherFormDialog } from "@features/teacher/teacher-form";
+import { useBreadcrumbs } from "@shared/lib/useBreadcrumbs";
 
 /** `/teachers` (M04): profesores, su cuenta e invitación. */
 export default function TeachersPage() {
   const { t } = useTranslation(["teachers", "common"]);
+  const crumbs = useBreadcrumbs();
   const notify = useNotify();
   const canCreate = useCan("teachers.create");
   const fx = useTeachersTable();
@@ -47,6 +49,7 @@ export default function TeachersPage() {
 
   return (
     <ITPage
+      breadcrumbs={crumbs({ label: t("common:nav.teachers") })}
       noPadding
       title={t("list.title")}
       description={t("list.description", { count: fx.total })}

@@ -7,10 +7,12 @@ import { useCan } from "@entities/user";
 import { courseApi, type Course } from "@entities/course";
 import { CoursesTable, useCoursesTable, type CourseAction } from "@features/course/courses-list";
 import { CourseFormDialog } from "@features/course/course-form";
+import { useBreadcrumbs } from "@shared/lib/useBreadcrumbs";
 
 /** `/courses` (M07): oferta académica. */
 export default function CoursesPage() {
   const { t } = useTranslation(["courses", "common"]);
+  const crumbs = useBreadcrumbs();
   const notify = useNotify();
   const canManage = useCan("courses.manage");
   const fx = useCoursesTable();
@@ -40,6 +42,7 @@ export default function CoursesPage() {
 
   return (
     <ITPage
+      breadcrumbs={crumbs({ label: t("common:nav.courses") })}
       noPadding
       title={t("courses.title")}
       description={t("courses.description", { count: fx.total })}

@@ -82,6 +82,13 @@ test.describe.serial("expediente de un alumno", () => {
     await page.getByRole("button", { name: "Guardar" }).click();
     await expect(page.getByText("Alumno actualizado")).toBeVisible();
     await expect(page.getByText("5587654321")).toBeVisible();
+
+    // Migas de pan: Inicio › Alumnos › nombre; «Alumnos» regresa al listado.
+    const crumbs = page.getByRole("navigation", { name: "Breadcrumb" });
+    await expect(crumbs).toContainText("Inicio");
+    await expect(crumbs).toContainText(NOMBRES);
+    await crumbs.getByRole("button", { name: "Alumnos" }).click();
+    await expect(page).toHaveURL(/#\/students$/);
   });
 
   test("baja con motivo del catálogo y reingreso; el historial lo muestra", async ({ page }) => {

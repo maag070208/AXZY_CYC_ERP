@@ -7,10 +7,12 @@ import { useNotify } from "@app/toast/useNotify";
 import { useCan } from "@entities/user";
 import { ExamsTable } from "@features/exam/exams-list";
 import { ExamFormDialog } from "@features/exam/exam-form";
+import { useBreadcrumbs } from "@shared/lib/useBreadcrumbs";
 
 /** `/exams` (M15): exámenes en línea de los grupos del alcance. */
 export default function ExamsPage() {
   const { t } = useTranslation(["exams", "common"]);
+  const crumbs = useBreadcrumbs();
   const navigate = useNavigate();
   const notify = useNotify();
   const canManage = useCan("exams.manage");
@@ -20,6 +22,7 @@ export default function ExamsPage() {
 
   return (
     <ITPage
+      breadcrumbs={crumbs({ label: t("common:nav.exams") })}
       noPadding
       title={t("exams.title")}
       description={t("exams.description", { count: total })}

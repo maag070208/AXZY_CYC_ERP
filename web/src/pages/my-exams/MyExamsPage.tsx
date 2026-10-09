@@ -7,12 +7,14 @@ import { errorMessage, useNotify } from "@app/toast/useNotify";
 import { onlineExamApi, type AvailableExam } from "@entities/online-exam";
 import { formatInstant } from "@shared/lib/day";
 import { PanelCard } from "@shared/ui/panel-card";
+import { useBreadcrumbs } from "@shared/lib/useBreadcrumbs";
 
 const STATE_COLORS = { OPEN: "success", NOT_OPEN: "primary", CLOSED: "secondary", NOT_PUBLISHED: "secondary" } as const;
 
 /** `/my-exams` (M16): exámenes en línea de los grupos del alumno. */
 export default function MyExamsPage() {
   const { t, i18n } = useTranslation(["exams", "common"]);
+  const crumbs = useBreadcrumbs();
   const navigate = useNavigate();
   const notify = useNotify();
   const [exams, setExams] = useState<AvailableExam[] | null>(null);
@@ -40,7 +42,7 @@ export default function MyExamsPage() {
 
   const date = (iso: string) => formatInstant(iso, i18n.language);
   return (
-    <ITPage title={t("my.title")} description={t("my.description")} icon={<FaFileSignature size={20} />} loading={!exams && !error} error={error}>
+    <ITPage breadcrumbs={crumbs({ label: t("common:nav.myExams") })} title={t("my.title")} description={t("my.description")} icon={<FaFileSignature size={20} />} loading={!exams && !error} error={error}>
       {exams && exams.length === 0 && <ITEmptyState title={t("my.empty")} />}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
         {exams?.map((exam) => (

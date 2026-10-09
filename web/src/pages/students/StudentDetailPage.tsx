@@ -16,6 +16,7 @@ import { KardexView } from "@widgets/kardex-pdf";
 import { AccountStatementView } from "@widgets/account-statement";
 import { PanelCard } from "@shared/ui/panel-card";
 import { formatDay } from "@shared/lib/day";
+import { useBreadcrumbs } from "@shared/lib/useBreadcrumbs";
 
 const ageOf = (birth: string): number => {
   const [y, m, d] = birth.split("-").map(Number);
@@ -35,6 +36,7 @@ function Field({ label, value }: { label: string; value: ReactNode }) {
 /** `/students/:id`: expediente del alumno con pestañas (datos, movimientos, documentos, kardex). */
 export default function StudentDetailPage() {
   const { t, i18n } = useTranslation(["students", "common"]);
+  const crumbs = useBreadcrumbs();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const notify = useNotify();
@@ -105,6 +107,7 @@ export default function StudentDetailPage() {
 
   return (
     <ITPage
+      breadcrumbs={crumbs({ label: t("common:nav.students"), to: "/students" }, { label: s?.fullName })}
       title={s?.fullName ?? t("list.title")}
       description={s ? `${t("detail.studentNumber")} ${s.studentNumber}` : undefined}
       icon={<FaUserGraduate size={20} />}

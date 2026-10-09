@@ -13,6 +13,7 @@ import { AssessmentsPanel } from "@features/grades/manage-assessments";
 import { GradebookGrid } from "@features/grades/capture-grades";
 import { SessionsPanel, GroupAttendanceSummary } from "@features/attendance/sessions-panel";
 import { PanelCard } from "@shared/ui/panel-card";
+import { useBreadcrumbs } from "@shared/lib/useBreadcrumbs";
 
 function Field({ label, value }: { label: string; value: ReactNode }) {
   return (
@@ -26,6 +27,7 @@ function Field({ label, value }: { label: string; value: ReactNode }) {
 /** `/groups/:id`: datos del grupo, alumnos inscritos y calificaciones (M07/M08). */
 export default function GroupDetailPage() {
   const { t } = useTranslation(["courses", "grades", "common"]);
+  const crumbs = useBreadcrumbs();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const notify = useNotify();
@@ -118,6 +120,7 @@ export default function GroupDetailPage() {
   const dropTitle = t("enrollments.dropTitle", { name: dropping?.studentName ?? "" });
   return (
     <ITPage
+      breadcrumbs={crumbs({ label: t("common:nav.groups"), to: "/groups" }, { label: g && `${g.courseName} · ${g.name}` })}
       title={g ? t("groups.detailTitle", { course: g.courseName, name: g.name }) : t("groups.title")}
       description={g ? `${g.courseCode} · ${g.termName}` : undefined}
       icon={<FaLayerGroup size={20} />}

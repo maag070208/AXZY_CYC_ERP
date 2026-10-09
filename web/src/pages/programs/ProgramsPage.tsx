@@ -7,10 +7,12 @@ import { useNotify } from "@app/toast/useNotify";
 import { useCan } from "@entities/user";
 import { ProgramsTable } from "@features/programs/programs-list";
 import { ProgramFormDialog } from "@features/programs/program-form";
+import { useBreadcrumbs } from "@shared/lib/useBreadcrumbs";
 
 /** `/programs` (M22): catálogo de carreras. */
 export default function ProgramsPage() {
   const { t } = useTranslation(["programs", "common"]);
+  const crumbs = useBreadcrumbs();
   const navigate = useNavigate();
   const notify = useNotify();
   const canManage = useCan("programs.manage");
@@ -21,6 +23,7 @@ export default function ProgramsPage() {
 
   return (
     <ITPage
+      breadcrumbs={crumbs({ label: t("common:nav.programs") })}
       noPadding
       title={t("list.title")}
       description={t("list.description", { count: total })}

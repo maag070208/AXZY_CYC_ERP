@@ -11,10 +11,12 @@ import { UsersTable, useUsersTable, type UserAction } from "@features/user/users
 import { UserFormDialog } from "@features/user/user-form";
 import { DeactivateUserDialog, ResetPasswordDialog } from "@features/user/user-actions";
 import { UserPermissionsDialog } from "@features/user/user-permissions";
+import { useBreadcrumbs } from "@shared/lib/useBreadcrumbs";
 
 /** `/users`: listado server-side + alta/edición, baja/reactivación, desbloqueo y permisos. */
 export default function UsersListPage() {
   const { t } = useTranslation(["users", "common"]);
+  const crumbs = useBreadcrumbs();
   const notify = useNotify();
   const canCreate = useCan("users.create");
   const currentUserId = useSelector((s: RootState) => s.auth.user?.id);
@@ -74,6 +76,7 @@ export default function UsersListPage() {
 
   return (
     <ITPage
+      breadcrumbs={crumbs({ label: t("common:nav.users") })}
       title={t("list.title")}
       description={t("list.description", { count: fx.total })}
       noPadding

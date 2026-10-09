@@ -9,6 +9,7 @@ import { programApi, type ProgramDetail } from "@entities/program";
 import { ProgramFormDialog } from "@features/programs/program-form";
 import { StudyPlanEditor } from "@features/programs/study-plan-editor";
 import { PanelCard } from "@shared/ui/panel-card";
+import { useBreadcrumbs } from "@shared/lib/useBreadcrumbs";
 
 function Field({ label, value }: { label: string; value: ReactNode }) {
   return (
@@ -24,6 +25,7 @@ const money = (value: number): string => `$${value.toLocaleString("es-MX", { min
 /** `/programs/:id` (M22): costos y plan de estudios de la carrera. */
 export default function ProgramDetailPage() {
   const { t } = useTranslation(["programs", "common"]);
+  const crumbs = useBreadcrumbs();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const notify = useNotify();
@@ -46,6 +48,7 @@ export default function ProgramDetailPage() {
 
   return (
     <ITPage
+      breadcrumbs={crumbs({ label: t("common:nav.programs"), to: "/programs" }, { label: p?.name })}
       title={p ? p.name : t("list.title")}
       description={p ? p.code : undefined}
       icon={<FaStream size={20} />}

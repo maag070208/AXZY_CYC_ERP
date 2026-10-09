@@ -6,10 +6,12 @@ import { errorMessage, useNotify } from "@app/toast/useNotify";
 import { useCan } from "@entities/user";
 import { StudentsTable, useStudentsTable } from "@features/student/students-list";
 import { KpiTile } from "@shared/ui/kpi-tile";
+import { useBreadcrumbs } from "@shared/lib/useBreadcrumbs";
 
 /** `/students`: búsqueda server-side, KPIs por estatus y exportación (M03). */
 export default function StudentsListPage() {
   const { t } = useTranslation(["students", "common"]);
+  const crumbs = useBreadcrumbs();
   const navigate = useNavigate();
   const notify = useNotify();
   const canCreate = useCan("students.create");
@@ -27,6 +29,7 @@ export default function StudentsListPage() {
 
   return (
     <ITPage
+      breadcrumbs={crumbs({ label: t("common:nav.students") })}
       noPadding
       title={t("list.title")}
       description={t("list.description", { count: fx.total })}

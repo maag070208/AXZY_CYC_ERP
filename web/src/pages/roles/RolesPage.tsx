@@ -6,14 +6,17 @@ import { RolesManager } from "@features/permission/roles-manager";
 import { MatrixEditor } from "@features/permission/matrix-editor";
 import { PoliciesManager } from "@features/permission/policies-manager";
 import { KpiTile } from "@shared/ui/kpi-tile";
+import { useBreadcrumbs } from "@shared/lib/useBreadcrumbs";
 
 /** Consola de acceso (`roles.manage`): roles, matriz rol × permiso y políticas ABAC. */
 export default function RolesPage() {
   const { t } = useTranslation(["roles", "common"]);
+  const crumbs = useBreadcrumbs();
   const { roles, loading, error, reload } = useRoles();
 
   return (
     <ITPage
+      breadcrumbs={crumbs({ label: t("common:nav.roles") })}
       noPadding
       title={t("title")}
       description={t("description")}

@@ -75,10 +75,28 @@ reglas complejas (M07, M08, M09, M16) ≈ 1.5–2 sprints.
 | F5 — Examen en línea | ✅ Completada (pendiente H5 con el cliente) | Migración `f5_examen_en_linea`; unitarias 76, contrato API 167, navegador 66 — todo en verde |
 | F6 — Asistencia y notificaciones | ✅ Completada (pendiente H6 con el cliente) | Migración `f6_asistencia_notificaciones`; unitarias 89, contrato API 184, navegador 68 — todo en verde |
 | F7 — Migración de históricos | ✅ Completada (pendiente H7 con el cliente) | Migración `f7_migracion_historica`; unitarias 98, contrato API 192, navegador 69 — todo en verde. CSV de alumnos/profesores con dry-run, idempotencia y respaldo previo |
-| F8 — Analítica ejecutiva | ⏭️ Siguiente | M21 (indicadores ejecutivos y vistas materializadas) |
-| F9 — Endurecimiento, despliegue y capacitación | Pendiente | M12 y M13: falta rate limiting, respaldos automáticos y sus scripts (`restore`, `cutover`), medición de cobertura y manuales |
+| F8 — Analítica ejecutiva | Pendiente (tramo B) | M21 (indicadores ejecutivos); va después del endurecimiento |
+| F9 — Endurecimiento, despliegue y capacitación | ⏭️ En curso (tramo A) | M12 primero (seguridad, respaldos, CI); M13 (manuales) al final |
 | F10 — Programas y planes de pago | ✅ Completada | M22; unitarias 110, contrato API 198, navegador 70 — todo en verde |
 | Refactor a inglés + i18n | ✅ Completado | [D-046](../../DECISIONES.md) y [D-049](../../DECISIONES.md): esquema, DTOs, rutas, códigos, llaves i18n y JSON guardado en inglés; migraciones `roles_english`, `lote1_catalogs_english`, `schema_english` y `english_followup`; las tres suites siguen en verde |
+
+### 2.1 Lo que falta y en qué orden
+
+Actualizado el 2026-10-09, con F0–F7 y F10 construidas. El orden cambia respecto
+al original: **el endurecimiento (M12) va antes que la analítica (M21)**, porque
+es requisito para salir a producción y el tablero ejecutivo puede llegar después
+del lanzamiento.
+
+| Tramo | Fase | Qué incluye | Estado |
+|---|---|---|---|
+| **A** | F9a — Endurecimiento (M12) | A1 *rate limiting* en login y endpoints públicos · A2 pruebas de seguridad (cabeceras, CORS, envelope) y barrido 401/403 de todos los endpoints · A3 respaldo y restauración (base + archivos) · A4 auditoría de dependencias en CI · A5 checklist OWASP revisado | En curso |
+| **B** | F8 — Analítica ejecutiva (M21) | Indicadores de deserción, morosidad, ingresos contra proyección, rendimiento, ocupación y tendencia; comparativo con el ciclo anterior; tablero y exportación | Siguiente |
+| **C** | F9b — Capacitación (M13) | Manual por rol, guía rápida de operación y material de capacitación | Después de B |
+| **D** | Pendientes de módulos ya entregados | M20: adaptadores de cursos, grupos, inscripciones, calificaciones, cargos, pagos y asistencia · M19: proveedor real de SMS/WhatsApp ([A-001](../../DECISIONES.md)) · M14: imagen por reactivo · i18n de los catálogos guardados ([D-049](../../DECISIONES.md)) | Depende de decisiones del cliente |
+
+**No depende de código:** la firma de alcance (H0) y las puertas de aceptación
+H1–H7 y H10 con el cliente; la medición de cobertura queda dentro del tramo A
+solo si la instrumentación resulta viable con Playwright.
 
 ## 3. Detalle por fase
 

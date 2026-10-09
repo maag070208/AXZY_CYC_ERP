@@ -6,16 +6,18 @@ import type { AppDispatch } from "@app/store";
 import { useNotify } from "@app/toast/useNotify";
 import { meThunk, useCan } from "@entities/user";
 import { SettingsForm } from "@features/config/edit-settings";
+import { useBreadcrumbs } from "@shared/lib/useBreadcrumbs";
 
 /** `/settings`: parámetros generales (lectura `config.view`, escritura `config.manage`). */
 export default function SettingsPage() {
   const { t } = useTranslation(["config", "common"]);
+  const crumbs = useBreadcrumbs();
   const dispatch = useDispatch<AppDispatch>();
   const notify = useNotify();
   const canManage = useCan("config.manage");
 
   return (
-    <ITPage title={t("settings.title")} description={t("settings.description")} icon={<FaCog size={20} />}>
+    <ITPage breadcrumbs={crumbs({ label: t("common:nav.settings") })} title={t("settings.title")} description={t("settings.description")} icon={<FaCog size={20} />}>
       <SettingsForm
         canManage={canManage}
         onSaved={() => {

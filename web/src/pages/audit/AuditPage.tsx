@@ -3,13 +3,16 @@ import { ITButton, ITFlex, ITPage, ITText } from "@axzydev/axzy_ui_system";
 import { FaHistory, FaSync } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
 import { AuditTable } from "@features/audit/audit-list";
+import { useBreadcrumbs } from "@shared/lib/useBreadcrumbs";
 
 /** `/audit` (`audit.view`): bitácora consultable. */
 export default function AuditPage() {
   const { t } = useTranslation(["audit", "common"]);
+  const crumbs = useBreadcrumbs();
   const [reloadKey, setReloadKey] = useState(0);
   return (
     <ITPage
+      breadcrumbs={crumbs({ label: t("common:nav.audit") })}
       noPadding
       title={t("title")}
       description={t("description")}

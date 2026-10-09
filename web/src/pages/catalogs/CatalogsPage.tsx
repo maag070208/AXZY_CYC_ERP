@@ -5,10 +5,12 @@ import { useCan } from "@entities/user";
 import type { CatalogResource } from "@entities/config";
 import { CatalogManager } from "@features/catalogs/manage-catalog";
 import { TermsManager } from "@features/catalogs/manage-terms";
+import { useBreadcrumbs } from "@shared/lib/useBreadcrumbs";
 
 /** `/catalogs`: catálogos base de M11; cada pestaña aparece según su permiso. */
 export default function CatalogsPage() {
   const { t } = useTranslation(["config", "common"]);
+  const crumbs = useBreadcrumbs();
   const can = {
     levelsView: useCan("levels.view"),
     levelsManage: useCan("levels.manage"),
@@ -35,7 +37,7 @@ export default function CatalogsPage() {
   ];
 
   return (
-    <ITPage noPadding title={t("catalogs.title")} description={t("catalogs.description")} icon={<FaListUl size={20} />}>
+    <ITPage breadcrumbs={crumbs({ label: t("common:nav.catalogs") })} noPadding title={t("catalogs.title")} description={t("catalogs.description")} icon={<FaListUl size={20} />}>
       <ITTabs items={items} />
     </ITPage>
   );

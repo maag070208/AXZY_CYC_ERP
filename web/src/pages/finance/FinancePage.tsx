@@ -13,10 +13,12 @@ import { GenerateChargesDialog } from "@features/finance/generate-charges";
 import { RegisterPaymentDialog } from "@features/finance/register-payment";
 import { useReceiptPrinter } from "@widgets/account-statement";
 import { ReasonDialog } from "@shared/ui/reason-dialog";
+import { useBreadcrumbs } from "@shared/lib/useBreadcrumbs";
 
 /** `/finance` (M09): cargos, pagos y conceptos de cobro. */
 export default function FinancePage() {
   const { t } = useTranslation(["finance", "common"]);
+  const crumbs = useBreadcrumbs();
   const notify = useNotify();
   const canCreate = useCan("charges.create");
   const canGenerate = useCan("charges.generate");
@@ -59,6 +61,7 @@ export default function FinancePage() {
 
   return (
     <ITPage
+      breadcrumbs={crumbs({ label: t("common:nav.finance") })}
       title={t("page.title")}
       description={t("page.description")}
       icon={<FaCashRegister size={20} />}

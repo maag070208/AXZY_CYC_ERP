@@ -12,6 +12,7 @@ import { ExamQuestionsBuilder } from "@features/exam/exam-builder";
 import { ExamResultsPanel } from "@features/exam/exam-results";
 import { formatInstant } from "@shared/lib/day";
 import { PanelCard } from "@shared/ui/panel-card";
+import { useBreadcrumbs } from "@shared/lib/useBreadcrumbs";
 
 function Field({ label, value }: { label: string; value: ReactNode }) {
   return (
@@ -27,6 +28,7 @@ type Pending = "publish" | "close" | "delete" | null;
 /** `/exams/:id`: configuración, reactivos y resultados de un examen (M15–M17). */
 export default function ExamDetailPage() {
   const { t, i18n } = useTranslation(["exams", "common"]);
+  const crumbs = useBreadcrumbs();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const notify = useNotify();
@@ -102,6 +104,7 @@ export default function ExamDetailPage() {
 
   return (
     <ITPage
+      breadcrumbs={crumbs({ label: t("common:nav.exams"), to: "/exams" }, { label: e?.title })}
       title={e ? e.title : t("exams.title")}
       description={e ? `${e.courseName} · ${e.groupName} · ${e.termName}` : undefined}
       icon={<FaClipboardCheck size={20} />}
