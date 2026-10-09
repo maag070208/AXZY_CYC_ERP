@@ -18,6 +18,11 @@ import GroupsPage from "@pages/groups/GroupsPage";
 import GroupDetailPage from "@pages/groups/GroupDetailPage";
 import FinancePage from "@pages/finance/FinancePage";
 import ReportsPage from "@pages/reports/ReportsPage";
+import QuestionsPage from "@pages/questions/QuestionsPage";
+import ExamsPage from "@pages/exams/ExamsPage";
+import ExamDetailPage from "@pages/exams/ExamDetailPage";
+import MyExamsPage from "@pages/my-exams/MyExamsPage";
+import ExamRunnerPage from "@pages/my-exams/ExamRunnerPage";
 import PrivateRoutes from "./guards/PrivateRoutes";
 import RequiresPermission from "./guards/RequirePermission";
 
@@ -101,6 +106,46 @@ export default function App() {
           element={
             <RequiresPermission permission={["charges.create", "payments.register", "fee_concepts.manage"]}>
               <FinancePage />
+            </RequiresPermission>
+          }
+        />
+        <Route
+          path="/questions"
+          element={
+            <RequiresPermission permission="questions.view">
+              <QuestionsPage />
+            </RequiresPermission>
+          }
+        />
+        <Route
+          path="/exams"
+          element={
+            <RequiresPermission permission={["exams.manage", "attempts.review"]}>
+              <ExamsPage />
+            </RequiresPermission>
+          }
+        />
+        <Route
+          path="/exams/:id"
+          element={
+            <RequiresPermission permission={["exams.manage", "attempts.review"]}>
+              <ExamDetailPage />
+            </RequiresPermission>
+          }
+        />
+        <Route
+          path="/my-exams"
+          element={
+            <RequiresPermission permission="attempts.take">
+              <MyExamsPage />
+            </RequiresPermission>
+          }
+        />
+        <Route
+          path="/exam/:attemptId"
+          element={
+            <RequiresPermission permission="attempts.take">
+              <ExamRunnerPage />
             </RequiresPermission>
           }
         />

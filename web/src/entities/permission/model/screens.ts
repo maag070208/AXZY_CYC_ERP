@@ -30,7 +30,10 @@ export type NavLabelKey =
   | "nav.courses"
   | "nav.groups"
   | "nav.finance"
-  | "nav.reports";
+  | "nav.reports"
+  | "nav.questions"
+  | "nav.exams"
+  | "nav.myExams";
 
 export interface AppScreen {
   readonly id: string;
@@ -84,6 +87,25 @@ export const APP_SCREENS: readonly AppScreen[] = [
     path: "/finance",
     // El alumno ve su estado de cuenta en su expediente, no la cobranza.
     requirement: { anyOf: ["charges.create", "payments.register", "fee_concepts.manage"] },
+  },
+  {
+    id: "questions",
+    labelKey: "nav.questions",
+    path: "/questions",
+    requirement: { anyOf: ["questions.view"] },
+  },
+  {
+    id: "exams",
+    labelKey: "nav.exams",
+    path: "/exams",
+    // Quien administra exámenes (profesor/admin) o consulta resultados (control).
+    requirement: { anyOf: ["exams.manage", "attempts.review"] },
+  },
+  {
+    id: "myExams",
+    labelKey: "nav.myExams",
+    path: "/my-exams",
+    requirement: { anyOf: ["attempts.take"] },
   },
   {
     id: "reports",

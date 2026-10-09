@@ -38,7 +38,10 @@
     "courses": "Cursos",
     "groups": "Grupos",
     "finance": "Cobranza",
-    "reports": "Reportes"
+    "reports": "Reportes",
+    "questions": "Reactivos",
+    "exams": "Exámenes en línea",
+    "myExams": "Mis exámenes"
   },
   "errors": {
     "network": "Error de red o del servidor",
@@ -69,7 +72,8 @@
     "invalidEmail": "Email inválido",
     "invalidCurp": "CURP inválida (formato o dígito verificador)",
     "reviewFields": "Revisa los campos marcados",
-    "invalidPhone": "Teléfono inválido"
+    "invalidPhone": "Teléfono inválido",
+    "invalidRange": "La fecha final debe ser posterior a la inicial"
   },
   "home": {
     "title": "Inicio",
