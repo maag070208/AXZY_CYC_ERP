@@ -19,6 +19,8 @@ Cubre **M02** (acceso, usuarios, consola de roles, recuperación) y **M11**
 | `documents.spec.ts` | `/students/:id` | Expediente (subida, validación, rechazo, baja, tipo inválido) y kardex en PDF |
 | `m07-cursos-grupos-inscripciones.spec.ts` | `/courses`, `/groups`, `/groups/:id` | Alta de curso y grupo con horario (empalme en pantalla), inscripción por búsqueda, cupo lleno, cambio de grupo, baja, historial del alumno, vista del profesor |
 | `m08-examenes-calificaciones.spec.ts` | `/groups/:id` (Calificaciones) | Instrumentos al 100 %, captura con validación de rango, proyección de la final, cierre y final en el kardex |
+| `m09-colegiaturas-pagos.spec.ts` | `/finance`, `/students/:id` (Estado de cuenta) | Concepto, cargo con descuento, cobro parcial con validación y recibo PDF, liquidación, cancelación con motivo, estado de cuenta PDF |
+| `m10-reportes-tablero.spec.ts` | `/`, `/reports` | Tablero con KPIs y gráficas, consulta y exportación xlsx/pdf, rango inválido, vista del profesor sin montos |
 | `m11-administracion-catalogos.spec.ts` | `/settings`, `/catalogs` | Parámetros persistentes, CRUD de motivo de baja, duplicado, solo lectura por rol |
 
 ## Cómo correrlas

@@ -1,0 +1,33 @@
+{
+  "title": "Reports",
+  "description": "Operational reports within your scope",
+  "report": "Report",
+  "run": "Run",
+  "exportXlsx": "Excel",
+  "exportPdf": "PDF",
+  "ciclo": "Term",
+  "grupo": "Group",
+  "from": "From",
+  "to": "To",
+  "activeTerm": "Active term",
+  "allGroups": "All",
+  "rows": "{{count}} row(s)",
+  "totals": "Totals",
+  "empty": "No rows for these filters",
+  "pick": "Pick a report and run it",
+  "financial": "With amounts",
+  "dashboard": {
+    "title": "Dashboard",
+    "activeStudents": "Active students",
+    "inactiveStudents": "Withdrawn: {{count}}",
+    "occupancy": "Average occupancy",
+    "groups": "{{count}} group(s) in {{term}}",
+    "noTerm": "No active term",
+    "monthIncome": "Income this month",
+    "totalDebt": "Total debt",
+    "overdue": "Overdue: {{amount}}",
+    "incomeChart": "Income by month",
+    "occupancyChart": "Occupancy by group",
+    "noGroups": "No groups in the active term"
+  }
+}

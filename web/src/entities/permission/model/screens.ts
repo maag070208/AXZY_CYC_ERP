@@ -28,7 +28,9 @@ export type NavLabelKey =
   | "nav.students"
   | "nav.teachers"
   | "nav.courses"
-  | "nav.groups";
+  | "nav.groups"
+  | "nav.finance"
+  | "nav.reports";
 
 export interface AppScreen {
   readonly id: string;
@@ -75,6 +77,19 @@ export const APP_SCREENS: readonly AppScreen[] = [
     labelKey: "nav.groups",
     path: "/groups",
     requirement: { anyOf: ["groups.view"] },
+  },
+  {
+    id: "finance",
+    labelKey: "nav.finance",
+    path: "/finance",
+    // El alumno ve su estado de cuenta en su expediente, no la cobranza.
+    requirement: { anyOf: ["charges.create", "payments.register", "fee_concepts.manage"] },
+  },
+  {
+    id: "reports",
+    labelKey: "nav.reports",
+    path: "/reports",
+    requirement: { anyOf: ["reports.view"] },
   },
   {
     id: "users",

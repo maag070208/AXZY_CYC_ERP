@@ -16,6 +16,8 @@ import TeachersPage from "@pages/teachers/TeachersPage";
 import CoursesPage from "@pages/courses/CoursesPage";
 import GroupsPage from "@pages/groups/GroupsPage";
 import GroupDetailPage from "@pages/groups/GroupDetailPage";
+import FinancePage from "@pages/finance/FinancePage";
+import ReportsPage from "@pages/reports/ReportsPage";
 import PrivateRoutes from "./guards/PrivateRoutes";
 import RequiresPermission from "./guards/RequirePermission";
 
@@ -91,6 +93,22 @@ export default function App() {
           element={
             <RequiresPermission permission="groups.view">
               <GroupDetailPage />
+            </RequiresPermission>
+          }
+        />
+        <Route
+          path="/finance"
+          element={
+            <RequiresPermission permission={["charges.create", "payments.register", "fee_concepts.manage"]}>
+              <FinancePage />
+            </RequiresPermission>
+          }
+        />
+        <Route
+          path="/reports"
+          element={
+            <RequiresPermission permission="reports.view">
+              <ReportsPage />
             </RequiresPermission>
           }
         />

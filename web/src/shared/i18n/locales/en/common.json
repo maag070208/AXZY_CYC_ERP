@@ -36,7 +36,9 @@
     "students": "Students",
     "teachers": "Teachers",
     "courses": "Courses",
-    "groups": "Groups"
+    "groups": "Groups",
+    "finance": "Billing",
+    "reports": "Reports"
   },
   "errors": {
     "network": "Network or server error",

@@ -5,12 +5,23 @@ import { useSelector } from "react-redux";
 import type { RootState } from "@app/store";
 import { KpiTile } from "@shared/ui/kpi-tile";
 import { PanelCard } from "@shared/ui/panel-card";
+import { useCan } from "@entities/user";
+import { DashboardView } from "@widgets/dashboard";
 
 export default function HomePage() {
   const { t } = useTranslation(["common"]);
   const user = useSelector((s: RootState) => s.auth.user);
   const permissionCount = Object.keys(user?.permissions ?? {}).length;
   const roles = (user?.roles ?? (user?.role ? [user.role] : [])).join(", ");
+  const canDashboard = useCan("reports.view");
+
+  if (canDashboard) {
+    return (
+      <ITPage title={t("home.title")} description={t("home.welcome", { name: user?.name ?? "" })} icon={<FaHouseUser size={20} />}>
+        <DashboardView />
+      </ITPage>
+    );
+  }
 
   return (
     <ITPage

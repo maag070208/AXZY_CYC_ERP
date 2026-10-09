@@ -36,7 +36,9 @@
     "students": "Alumnos",
     "teachers": "Profesores",
     "courses": "Cursos",
-    "groups": "Grupos"
+    "groups": "Grupos",
+    "finance": "Cobranza",
+    "reports": "Reportes"
   },
   "errors": {
     "network": "Error de red o del servidor",

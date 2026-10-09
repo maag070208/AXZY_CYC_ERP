@@ -11,6 +11,7 @@ import { MovementsList } from "@features/student/movements-list";
 import { DocumentsPanel } from "@features/document/documents-panel";
 import { EnrollmentsTable } from "@features/group/group-roster";
 import { KardexView } from "@widgets/kardex-pdf";
+import { AccountStatementView } from "@widgets/account-statement";
 import { PanelCard } from "@shared/ui/panel-card";
 import { formatDay } from "@shared/lib/day";
 
@@ -40,6 +41,7 @@ export default function StudentDetailPage() {
   const canDocuments = useCan("documents.view");
   const canKardex = useCan("kardex.view");
   const canEnrollments = useCan("enrollments.view");
+  const canAccount = useCan("charges.view");
   const [student, setStudent] = useState<Student | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [movement, setMovement] = useState<MovementType | null>(null);
@@ -140,6 +142,9 @@ export default function StudentDetailPage() {
               : []),
             ...(canEnrollments
               ? [{ id: "enrollments", label: t("detail.tabs.enrollments"), content: <EnrollmentsTable filter={{ studentId: s.id }} reloadKey={reloadKey} /> }]
+              : []),
+            ...(canAccount
+              ? [{ id: "account", label: t("detail.tabs.account"), content: <AccountStatementView key={reloadKey} studentId={s.id} /> }]
               : []),
             ...(canKardex
               ? [{ id: "kardex", label: t("detail.tabs.kardex"), content: <KardexView key={reloadKey} studentId={s.id} /> }]

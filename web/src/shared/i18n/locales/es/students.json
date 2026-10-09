@@ -70,7 +70,8 @@
       "movements": "Movimientos",
       "documents": "Expediente",
       "kardex": "Kardex",
-      "enrollments": "Inscripciones"
+      "enrollments": "Inscripciones",
+      "account": "Estado de cuenta"
     },
     "matricula": "Matrícula",
     "age": "{{age}} años",

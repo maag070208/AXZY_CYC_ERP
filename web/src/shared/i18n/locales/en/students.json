@@ -70,7 +70,8 @@
       "movements": "Movements",
       "documents": "Documents",
       "kardex": "Transcript",
-      "enrollments": "Enrollments"
+      "enrollments": "Enrollments",
+      "account": "Account statement"
     },
     "matricula": "Enrollment no.",
     "age": "{{age}} years",

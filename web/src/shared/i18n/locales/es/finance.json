@@ -1,0 +1,141 @@
+{
+  "page": {
+    "title": "Cobranza",
+    "description": "Cargos, pagos y conceptos de cobro",
+    "tabs": {
+      "charges": "Cargos",
+      "payments": "Pagos",
+      "concepts": "Conceptos"
+    }
+  },
+  "money": {
+    "currency": "MXN"
+  },
+  "concepts": {
+    "title": "Conceptos de cobro",
+    "new": "Nuevo concepto",
+    "nombre": "Concepto",
+    "descripcion": "Descripción",
+    "monto": "Monto base",
+    "tipo": "Tipo",
+    "status": "Estatus",
+    "titleNew": "Nuevo concepto",
+    "titleEdit": "Editar concepto",
+    "created": "Concepto creado",
+    "saved": "Concepto actualizado",
+    "deactivated": "Concepto desactivado",
+    "reactivated": "Concepto reactivado",
+    "reserved": "Sistema",
+    "types": {
+      "INSCRIPCION": "Inscripción",
+      "COLEGIATURA": "Colegiatura",
+      "MATERIAL": "Material",
+      "RECARGO": "Recargo",
+      "OTRO": "Otro"
+    }
+  },
+  "charges": {
+    "new": "Nuevo cargo",
+    "generate": "Generar cargos",
+    "lateFees": "Aplicar recargos",
+    "matricula": "Matrícula",
+    "alumno": "Alumno",
+    "concepto": "Concepto",
+    "descripcion": "Descripción",
+    "ciclo": "Ciclo",
+    "monto": "Monto",
+    "descuento": "Descuento",
+    "total": "Total",
+    "pagado": "Pagado",
+    "saldo": "Saldo",
+    "vencimiento": "Vencimiento",
+    "status": "Estatus",
+    "vencido": "Vencido",
+    "pay": "Cobrar",
+    "cancel": "Cancelar cargo",
+    "cancelTitle": "¿Cancelar el cargo de {{name}}?",
+    "cancelled": "Cargo cancelado",
+    "motivo": "Motivo",
+    "created": "Cargo creado",
+    "titleNew": "Nuevo cargo",
+    "alumnoSearch": "Alumno (nombre o matrícula)",
+    "selectStudent": "Selecciona un alumno",
+    "montoHint": "Vacío = monto base del concepto",
+    "statuses": {
+      "PENDIENTE": "Pendiente",
+      "PARCIAL": "Parcial",
+      "PAGADO": "Pagado",
+      "CANCELADO": "Cancelado"
+    },
+    "generateTitle": "Generar cargos masivos",
+    "scope": "Destinatarios",
+    "scopes": {
+      "group": "Un grupo",
+      "term": "Todo un ciclo"
+    },
+    "grupo": "Grupo",
+    "generateHint": "Se cargará a los alumnos activos inscritos. Si ya tienen un cargo vigente del mismo concepto, ciclo y vencimiento, se omiten.",
+    "generated": "{{created}} cargo(s) generado(s), {{skipped}} omitido(s)",
+    "lateFeesTitle": "¿Aplicar recargos por mora?",
+    "lateFeesMessage": "Se calcula sobre el saldo de cada cargo vencido, según la configuración (tasa diaria y días de gracia).",
+    "lateFeesDone": "Recargos: {{created}} nuevo(s), {{updated}} actualizado(s)"
+  },
+  "payments": {
+    "register": "Registrar pago",
+    "registerTitle": "Cobrar · {{concept}}",
+    "alumno": "Alumno",
+    "saldo": "Saldo pendiente",
+    "monto": "Monto a pagar",
+    "fecha": "Fecha de pago",
+    "metodo": "Método",
+    "referencia": "Referencia",
+    "folio": "Folio",
+    "registeredBy": "Cobró",
+    "status": "Estatus",
+    "registered": "Pago registrado · folio {{folio}}",
+    "exceeds": "No puede exceder el saldo ({{saldo}})",
+    "cancel": "Cancelar pago",
+    "cancelTitle": "¿Cancelar el pago {{folio}}?",
+    "cancelMessage": "El folio se conserva y el cargo vuelve a quedar con saldo.",
+    "cancelled": "Pago cancelado",
+    "vigente": "Vigente",
+    "cancelado": "Cancelado",
+    "receipt": "Recibo",
+    "receiptPdf": "Imprimir recibo",
+    "methods": {
+      "EFECTIVO": "Efectivo",
+      "TRANSFERENCIA": "Transferencia",
+      "DEPOSITO": "Depósito",
+      "TARJETA": "Tarjeta",
+      "OTRO": "Otro"
+    }
+  },
+  "receipt": {
+    "title": "Recibo de pago",
+    "folio": "Folio",
+    "fecha": "Fecha",
+    "alumno": "Alumno",
+    "matricula": "Matrícula",
+    "concepto": "Concepto",
+    "metodo": "Método",
+    "referencia": "Referencia",
+    "monto": "Importe recibido",
+    "saldo": "Saldo restante del cargo",
+    "cobro": "Recibió",
+    "cancelado": "CANCELADO"
+  },
+  "statement": {
+    "title": "Estado de cuenta",
+    "pdf": "Descargar PDF",
+    "cargos": "Cargos",
+    "descuentos": "Descuentos",
+    "pagado": "Pagado",
+    "saldo": "Saldo",
+    "vencido": "Vencido",
+    "empty": "Sin cargos vigentes",
+    "pagos": "Pagos",
+    "generated": "Generado el {{date}}",
+    "sinPagos": "Sin pagos"
+  },
+  "reasonRequired": "Escribe un motivo (mínimo 3 caracteres)"
+}

@@ -34,6 +34,8 @@ npm run test:e2e:report      # abrir el último reporte HTML
 | `documents.spec.ts` | M06 | Subida multipart, firmas de archivo, 5 MB, descarga privada, validación/rechazo/reemplazo, baja lógica, faltantes, kardex, alcance |
 | `m07-cursos-grupos-inscripciones.spec.ts` | M07 | Cursos, grupos (horario, cupo), inscripción con cupo/duplicado/empalme/alumno inactivo, concurrencia al último lugar, baja, cambio de grupo, baja del alumno (M05), alcance AREA/OWN |
 | `m08-examenes-calificaciones.spec.ts` | M08 | Instrumentos (suma ≤ 100), captura en lote con bitácora anterior/nuevo, rango, libro con proyección, cierre (umbral, estatus, kardex), exportación, alcance |
+| `m09-colegiaturas-pagos.spec.ts` | M09 | Conceptos, cargos, pagos parciales y folio, cancelaciones con bitácora, Idempotency-Key, concurrencia, política de descuento, generación masiva, recargos, estado de cuenta y alcance |
+| `m10-reportes-tablero.spec.ts` | M10 | Catálogo por alcance, validaciones, cada reporte, AREA del profesor, montos solo ALL, exportación xlsx/pdf auditada, tablero |
 | `m11-administracion-catalogos.spec.ts` | M11 | `settings` (todo o nada, bitácora, idioma), niveles, ciclos (uno activo), motivos de baja, tipos de documento |
 
 ## Qué cubre `auth.spec.ts` (M02)
