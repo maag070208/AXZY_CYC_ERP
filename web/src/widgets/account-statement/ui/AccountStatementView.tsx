@@ -128,7 +128,11 @@ export default function AccountStatementView({ studentId }: { studentId: string 
                         </button>
                       ))}
                     </td>
-                    <td className={`px-2 py-2 ${c.vencido ? "font-bold" : "text-slate-600"}`} style={c.vencido ? { color: "#dc2626" } : undefined}>{formatDay(c.fechaVencimiento, i18n.language)}</td>
+                    <td className="px-2 py-2">
+                      <span className={c.vencido ? "font-bold" : "text-slate-600"} style={c.vencido ? { color: "#dc2626" } : undefined} data-overdue={c.vencido || undefined}>
+                        {formatDay(c.fechaVencimiento, i18n.language)}
+                      </span>
+                    </td>
                     <td className="px-2 py-2 text-right">{money(c.total)}</td>
                     <td className="px-2 py-2 text-right">{money(c.pagado)}</td>
                     <td className="px-2 py-2 text-right font-black text-slate-800">{money(c.saldo)}</td>
