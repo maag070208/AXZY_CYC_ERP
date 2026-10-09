@@ -102,6 +102,38 @@ export const es = {
     TERM_DATES_INVALID: "La fecha de inicio no puede ser posterior a la de fin",
     TERM_ALREADY_ACTIVE: "El ciclo ya es el activo",
 
+    // --- Alumnos (M03) ---
+    STUDENT_NOT_FOUND: "Alumno no encontrado",
+    DUPLICATE_CURP: "Ya existe un alumno con esa CURP",
+    DUPLICATE_MATRICULA: "La matrícula {{matricula}} ya existe",
+    DUPLICATE_STUDENT: "Ya existe un alumno con el mismo nombre y fecha de nacimiento; confirma si es otra persona",
+    GUARDIAN_REQUIRED: "Un alumno menor de edad necesita al menos un tutor",
+    MULTIPLE_PAYMENT_RESPONSIBLES: "Solo un tutor puede ser responsable de pago",
+    USER_ALREADY_LINKED: "La cuenta ya está vinculada a otra persona",
+    FUTURE_DATE: "La fecha ({{field}}) no puede ser futura",
+
+    // --- Bajas y reingresos (M05) ---
+    STUDENT_INACTIVE: "El alumno ya está dado de baja",
+    STUDENT_ALREADY_ACTIVE: "El alumno ya está activo",
+    REASON_NOT_AVAILABLE: "El motivo de baja no existe o está inactivo",
+
+    // --- Profesores (M04) ---
+    TEACHER_NOT_FOUND: "Profesor no encontrado",
+    TEACHER_EMAIL_TAKEN: "Ya existe un profesor o una cuenta con ese correo",
+    TEACHER_INACTIVE: "El profesor está inactivo",
+    TEACHER_ALREADY_ACTIVE: "El profesor ya está activo",
+    TEACHER_HAS_NO_ACCOUNT: "El profesor no tiene cuenta vinculada",
+    INVITATION_NOT_PENDING: "La cuenta ya definió su contraseña: no hay invitación pendiente",
+
+    // --- Expediente (M06) ---
+    FILE_REQUIRED: "Debes adjuntar un archivo",
+    FILE_TYPE_NOT_ALLOWED: "Tipo de archivo no permitido (solo PDF, JPG o PNG)",
+    FILE_TOO_LARGE: "El archivo excede el máximo de {{maxMb}} MB",
+    DOCUMENT_NOT_FOUND: "Documento no encontrado",
+    DOCUMENT_TYPE_NOT_AVAILABLE: "El tipo de documento no existe o está inactivo",
+    DOCUMENT_ALREADY_REVIEWED: "El documento ya fue revisado",
+    DOCUMENT_FILE_MISSING: "El archivo del documento no está disponible",
+
     // --- Bitácora ---
     AUDIT_LOG_NOT_FOUND: "Registro de auditoría no encontrado",
   },
@@ -116,6 +148,8 @@ export const es = {
     NOMBRE_REQUIRED: "El nombre es obligatorio",
     INVALID_DATE: "Fecha inválida (AAAA-MM-DD)",
     POLICY_KEY_FORMAT: "La clave debe ir en minúsculas, dígitos y guion bajo",
+    INVALID_CURP: "CURP inválida (formato o dígito verificador)",
+    INVALID_PHONE: "Teléfono inválido",
   },
   labels: {
     system: "Sistema",

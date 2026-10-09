@@ -117,20 +117,33 @@ test.describe("resolvedor con fixtures reales", () => {
     expect(Object.values(admin).every((scope) => scope === "ALL")).toBe(true);
   });
 
-  test("CONTROL_ESCOLAR solo lee configuración y catálogos", () => {
-    expect(Object.keys(permissionsOf(user("CONTROL_ESCOLAR"))).sort()).toEqual([
-      "config.view",
-      "levels.view",
-      "terms.view",
-    ]);
+  test("CONTROL_ESCOLAR opera alumnos y expediente; solo lee configuración", () => {
+    const perms = permissionsOf(user("CONTROL_ESCOLAR"));
+    for (const key of ["students.create", "students.movements", "documents.validate", "kardex.export", "teachers.edit"]) {
+      expect(perms[key], key).toBe("ALL");
+    }
+    expect(perms["config.view"]).toBe("ALL");
+    expect(scopeOf(user("CONTROL_ESCOLAR"), "teachers.create")).toBe("NONE");
     expect(scopeOf(user("CONTROL_ESCOLAR"), "config.manage")).toBe("NONE");
     expect(scopeOf(user("CONTROL_ESCOLAR"), "audit.view")).toBe("NONE");
     expect(scopeOf(user("CONTROL_ESCOLAR"), "users.view")).toBe("NONE");
   });
 
-  test("PROFESOR y ALUMNO no tienen permisos de administración", () => {
-    expect(permissionsOf(user("PROFESOR"))).toEqual({});
-    expect(permissionsOf(user("ALUMNO"))).toEqual({});
+  test("PROFESOR y ALUMNO solo ven lo de su ámbito, sin administración", () => {
+    expect(permissionsOf(user("PROFESOR"))).toEqual({
+      "students.view": "AREA",
+      "teachers.view": "OWN",
+      "teachers.edit": "OWN",
+      "documents.view": "AREA",
+      "kardex.view": "AREA",
+      "kardex.export": "AREA",
+    });
+    expect(permissionsOf(user("ALUMNO"))).toEqual({
+      "students.view": "OWN",
+      "documents.view": "OWN",
+      "kardex.view": "OWN",
+      "kardex.export": "OWN",
+    });
   });
 
   test("el alcance mayor gana al combinar roles", () => {

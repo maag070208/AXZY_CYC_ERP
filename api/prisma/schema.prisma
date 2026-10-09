@@ -1,5 +1,6 @@
 // Esquema Prisma del SGE (CYC). M02: autenticación, roles, políticas ABAC y
-// bitácora. M11: parámetros generales y catálogos base.
+// bitácora. M11: parámetros generales y catálogos base. F2: alumnos (M03),
+// profesores (M04), bajas/reingresos (M05) y expediente documental (M06).
 // Convenciones: `id String @id @default(uuid())` (catálogos de seguridad usan
 // clave natural `key`), `createdAt`/`updatedAt`, `active` donde aplique y
 // `@@map("snake_case_plural")`.
@@ -44,6 +45,11 @@ model User {
   refreshTokens RefreshToken[]
   resetTokens   PasswordResetToken[]
   auditLogs     AuditLog[]
+  student       Student?
+  teacher       Teacher?
+  movements     StudentMovement[]
+  validatedDocs Document[]           @relation("DocumentValidator")
+  uploadedDocs  Document[]           @relation("DocumentUploader")
 
   @@index([active])
   @@map("users")
@@ -292,6 +298,8 @@ model CancellationReason {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
+  movements StudentMovement[]
+
   @@index([active])
   @@map("cancellation_reasons")
 }
@@ -305,6 +313,169 @@ model DocumentType {
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
+  documents Document[]
+
   @@index([active])
   @@map("document_types")
+}
+
+// ---------------------------------------------------------------------------
+// M03 — Alumnos
+// ---------------------------------------------------------------------------
+
+enum StudentStatus {
+  ACTIVO
+  BAJA
+}
+
+model Student {
+  id              String        @id @default(uuid())
+  /// `AAAA-NNNN`: año de ingreso + consecutivo. Inmutable.
+  matricula       String        @unique
+  nombres         String
+  apellidoPaterno String        @map("apellido_paterno")
+  apellidoMaterno String?       @map("apellido_materno")
+  curp            String        @unique
+  fechaNacimiento DateTime      @map("fecha_nacimiento") @db.Date
+  genero          String?
+  email           String?
+  telefono        String?
+  direccion       String?
+  status          StudentStatus @default(ACTIVO)
+  fechaIngreso    DateTime      @map("fecha_ingreso") @db.Date
+  userId          String?       @unique @map("user_id")
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+
+  user      User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
+  guardians Guardian[]
+  movements StudentMovement[]
+  documents Document[]
+
+  @@index([status])
+  @@index([apellidoPaterno, apellidoMaterno, nombres])
+  @@map("students")
+}
+
+/// Consecutivo de matrícula por año de ingreso (se incrementa en la transacción del alta).
+model MatriculaSequence {
+  year Int @id
+  last Int @default(0)
+
+  @@map("matricula_sequences")
+}
+
+model Guardian {
+  id                String   @id @default(uuid())
+  studentId         String   @map("student_id")
+  nombre            String
+  parentesco        String
+  telefono          String
+  email             String?
+  esResponsablePago Boolean  @default(false) @map("es_responsable_pago")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+  @@map("guardians")
+}
+
+// ---------------------------------------------------------------------------
+// M05 — Bajas y reingresos (historial inmutable)
+// ---------------------------------------------------------------------------
+
+enum MovementType {
+  BAJA
+  REINGRESO
+}
+
+model StudentMovement {
+  id            String       @id @default(uuid())
+  studentId     String       @map("student_id")
+  tipo          MovementType
+  motivo        String
+  /// Motivo del catálogo M11 (opcional; `motivo` guarda el texto).
+  reasonId      String?      @map("reason_id")
+  fecha         DateTime     @db.Date
+  observaciones String?
+  createdBy     String       @map("created_by")
+  createdAt     DateTime     @default(now()) @map("created_at")
+  updatedAt     DateTime     @updatedAt @map("updated_at")
+
+  student Student             @relation(fields: [studentId], references: [id])
+  author  User                @relation(fields: [createdBy], references: [id])
+  reason  CancellationReason? @relation(fields: [reasonId], references: [id])
+
+  @@index([studentId, fecha])
+  @@index([tipo])
+  @@index([createdBy])
+  @@map("student_movements")
+}
+
+// ---------------------------------------------------------------------------
+// M04 — Profesores
+// ---------------------------------------------------------------------------
+
+enum TeacherStatus {
+  ACTIVO
+  INACTIVO
+}
+
+model Teacher {
+  id           String        @id @default(uuid())
+  nombres      String
+  apellidos    String
+  email        String        @unique
+  telefono     String?
+  especialidad String?
+  status       TeacherStatus @default(ACTIVO)
+  userId       String?       @unique @map("user_id")
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([apellidos, nombres])
+  @@map("teachers")
+}
+
+// ---------------------------------------------------------------------------
+// M06 — Expediente documental (el kardex es una vista calculada)
+// ---------------------------------------------------------------------------
+
+enum DocumentStatus {
+  PENDIENTE
+  VALIDADO
+  RECHAZADO
+}
+
+model Document {
+  id             String         @id @default(uuid())
+  studentId      String         @map("student_id")
+  documentTypeId String         @map("document_type_id")
+  /// Clave privada del objeto (nombre aleatorio); nunca una URL pública.
+  filePath       String         @map("file_path")
+  originalName   String         @map("original_name")
+  mimeType       String         @map("mime_type")
+  size           Int
+  status         DocumentStatus @default(PENDIENTE)
+  uploadedBy     String         @map("uploaded_by")
+  validatedBy    String?        @map("validated_by")
+  validatedAt    DateTime?      @map("validated_at")
+  notas          String?
+  deletedAt      DateTime?      @map("deleted_at")
+  createdAt      DateTime       @default(now()) @map("created_at")
+  updatedAt      DateTime       @updatedAt @map("updated_at")
+
+  student      Student      @relation(fields: [studentId], references: [id])
+  documentType DocumentType @relation(fields: [documentTypeId], references: [id])
+  uploader     User         @relation("DocumentUploader", fields: [uploadedBy], references: [id])
+  validator    User?        @relation("DocumentValidator", fields: [validatedBy], references: [id], onDelete: SetNull)
+
+  @@index([studentId, documentTypeId, status])
+  @@index([status])
+  @@map("documents")
 }

@@ -21,26 +21,46 @@ export interface CreateAuthUserInput {
   email?: string;
 }
 
-/** Alta idempotente de un usuario E2E con un solo rol. */
+/**
+ * Alta idempotente de un usuario E2E con un solo rol. Si ya existe se
+ * restablece (contraseña, rol, activo, sin bloqueo) en lugar de borrarlo: un
+ * usuario que ya registró historial inmutable (movimientos, documentos) no se
+ * puede borrar.
+ */
 export const createAuthUser = async (input: CreateAuthUserInput): Promise<{ id: string }> => {
-  await db.user.deleteMany({ where: { username: input.username } });
   const passwordHash = await bcrypt.hash(input.password, 10);
-  return db.user.create({
-    data: {
-      username: input.username,
-      email: input.email ?? `${input.username}@e2e.local`,
-      passwordHash,
-      name: input.name,
-      roles: { create: [{ roleKey: input.roleKey }] },
-    },
+  const data = {
+    email: input.email ?? `${input.username}@e2e.local`,
+    passwordHash,
+    name: input.name,
+    active: true,
+    deactivatedAt: null,
+    deactivationReason: null,
+    failedAttempts: 0,
+    lockedUntil: null,
+    mustChangePassword: false,
+  };
+  const user = await db.user.upsert({
+    where: { username: input.username },
+    create: { username: input.username, ...data },
+    update: data,
     select: { id: true },
   });
+  await db.userRole.deleteMany({ where: { userId: user.id } });
+  await db.userPermission.deleteMany({ where: { userId: user.id } });
+  await db.userRole.create({ data: { userId: user.id, roleKey: input.roleKey } });
+  return user;
 };
 
 /** Borra los usuarios E2E (roles, tokens y excepciones caen en cascada). */
 export const clearAuthE2E = async (): Promise<number> => {
+  // Quien firmó historial inmutable fuera de los datos de prueba se conserva.
   const result = await db.user.deleteMany({
-    where: { username: { startsWith: E2E_PREFIX } },
+    where: {
+      username: { startsWith: E2E_PREFIX },
+      movements: { none: {} },
+      uploadedDocs: { none: {} },
+    },
   });
   return result.count;
 };
@@ -105,3 +125,23 @@ export const lastAudit = async (action: string, userId?: string) =>
     where: { action, ...(userId ? { userId } : {}) },
     orderBy: { createdAt: "desc" },
   });
+
+/** Borra los alumnos de prueba (`nombres` con prefijo `E2E`) y lo que cuelga de ellos. */
+export const clearStudentsE2E = async (): Promise<number> => {
+  const students = await db.student.findMany({
+    where: { nombres: { startsWith: E2E_CATALOG_PREFIX } },
+    select: { id: true },
+  });
+  const ids = students.map((s) => s.id);
+  if (ids.length === 0) return 0;
+  await db.document.deleteMany({ where: { studentId: { in: ids } } });
+  await db.studentMovement.deleteMany({ where: { studentId: { in: ids } } });
+  const result = await db.student.deleteMany({ where: { id: { in: ids } } });
+  return result.count;
+};
+
+/** Borra los profesores de prueba (correo `e2e_…@e2e.local`); sus cuentas caen con `clearAuthE2E`. */
+export const clearTeachersE2E = async (): Promise<number> => {
+  const result = await db.teacher.deleteMany({ where: { email: { startsWith: E2E_PREFIX } } });
+  return result.count;
+};

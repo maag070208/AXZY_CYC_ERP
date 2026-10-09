@@ -32,7 +32,9 @@
     "audit": "Bitácora",
     "catalogs": "Catálogos",
     "account": "Mi cuenta",
-    "changePassword": "Cambiar contraseña"
+    "changePassword": "Cambiar contraseña",
+    "students": "Alumnos",
+    "teachers": "Profesores"
   },
   "errors": {
     "network": "Error de red o del servidor",
@@ -61,8 +63,9 @@
     "minLength": "{{label}} debe tener al menos {{min}} caracteres",
     "thisField": "Este campo",
     "invalidEmail": "Email inválido",
-    "invalidCurp": "CURP debe tener 18 caracteres alfanuméricos",
-    "reviewFields": "Revisa los campos marcados"
+    "invalidCurp": "CURP inválida (formato o dígito verificador)",
+    "reviewFields": "Revisa los campos marcados",
+    "invalidPhone": "Teléfono inválido"
   },
   "home": {
     "title": "Inicio",

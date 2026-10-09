@@ -94,6 +94,34 @@ export const en: Messages = {
     TERM_DATES_INVALID: "Start date cannot be after end date",
     TERM_ALREADY_ACTIVE: "The term is already the active one",
 
+    STUDENT_NOT_FOUND: "Student not found",
+    DUPLICATE_CURP: "A student with that CURP already exists",
+    DUPLICATE_MATRICULA: "Enrollment number {{matricula}} already exists",
+    DUPLICATE_STUDENT: "A student with the same name and birth date exists; confirm it is a different person",
+    GUARDIAN_REQUIRED: "An underage student needs at least one guardian",
+    MULTIPLE_PAYMENT_RESPONSIBLES: "Only one guardian can be responsible for payments",
+    USER_ALREADY_LINKED: "The account is already linked to someone else",
+    FUTURE_DATE: "The date ({{field}}) cannot be in the future",
+
+    STUDENT_INACTIVE: "The student is already withdrawn",
+    STUDENT_ALREADY_ACTIVE: "The student is already active",
+    REASON_NOT_AVAILABLE: "The withdrawal reason does not exist or is inactive",
+
+    TEACHER_NOT_FOUND: "Teacher not found",
+    TEACHER_EMAIL_TAKEN: "A teacher or account with that email already exists",
+    TEACHER_INACTIVE: "The teacher is inactive",
+    TEACHER_ALREADY_ACTIVE: "The teacher is already active",
+    TEACHER_HAS_NO_ACCOUNT: "The teacher has no linked account",
+    INVITATION_NOT_PENDING: "The account already set its password: no pending invitation",
+
+    FILE_REQUIRED: "A file is required",
+    FILE_TYPE_NOT_ALLOWED: "File type not allowed (PDF, JPG or PNG only)",
+    FILE_TOO_LARGE: "The file exceeds the {{maxMb}} MB limit",
+    DOCUMENT_NOT_FOUND: "Document not found",
+    DOCUMENT_TYPE_NOT_AVAILABLE: "The document type does not exist or is inactive",
+    DOCUMENT_ALREADY_REVIEWED: "The document was already reviewed",
+    DOCUMENT_FILE_MISSING: "The document file is not available",
+
     AUDIT_LOG_NOT_FOUND: "Audit log entry not found",
   },
   validation: {
@@ -107,6 +135,8 @@ export const en: Messages = {
     NOMBRE_REQUIRED: "Name is required",
     INVALID_DATE: "Invalid date (YYYY-MM-DD)",
     POLICY_KEY_FORMAT: "Key must be lowercase letters, digits and underscores",
+    INVALID_CURP: "Invalid CURP (format or check digit)",
+    INVALID_PHONE: "Invalid phone number",
   },
   labels: {
     system: "System",

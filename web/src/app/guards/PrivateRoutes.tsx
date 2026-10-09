@@ -4,7 +4,16 @@ import {
   type ITSidebarProps,
 } from "@axzydev/axzy_ui_system";
 import { useCallback, useEffect, type ReactNode } from "react";
-import { FaCog, FaHistory, FaHouseUser, FaListUl, FaUserShield, FaUsers } from "react-icons/fa";
+import {
+  FaChalkboardTeacher,
+  FaCog,
+  FaHistory,
+  FaHouseUser,
+  FaListUl,
+  FaUserGraduate,
+  FaUserShield,
+  FaUsers,
+} from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -16,6 +25,8 @@ import cycMark from "@shared/assets/logos/logo-mark.svg";
 /** Icono del menú por pantalla (el catálogo vive en `@entities/permission`). */
 const NAV_ICONS: Record<string, ReactNode> = {
   home: <FaHouseUser size={14} />,
+  students: <FaUserGraduate size={14} />,
+  teachers: <FaChalkboardTeacher size={14} />,
   users: <FaUsers size={14} />,
   roles: <FaUserShield size={14} />,
   audit: <FaHistory size={14} />,

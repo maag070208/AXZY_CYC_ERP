@@ -33,6 +33,9 @@ export const buildOpenApiDocument = () => {
       { name: "Audit", description: "Bitácora" },
       { name: "Config", description: "Parámetros generales (M11)" },
       { name: "Catalogs", description: "Catálogos base (M11)" },
+      { name: "Students", description: "Alumnos (M03) y bajas/reingresos (M05)" },
+      { name: "Teachers", description: "Profesores (M04)" },
+      { name: "Documents", description: "Expediente documental y kardex (M06)" },
       { name: "Health", description: "Salud del servicio" },
     ],
   });

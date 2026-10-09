@@ -115,5 +115,140 @@
     "sensitive": false,
     "active": true,
     "sortOrder": 4
+  },
+  {
+    "key": "students.view",
+    "module": "Alumnos",
+    "name": "Ver alumnos",
+    "scopes": ["NONE", "OWN", "AREA", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 1
+  },
+  {
+    "key": "students.create",
+    "module": "Alumnos",
+    "name": "Dar de alta alumnos",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 2
+  },
+  {
+    "key": "students.edit",
+    "module": "Alumnos",
+    "name": "Editar alumnos",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 3
+  },
+  {
+    "key": "students.delete",
+    "module": "Alumnos",
+    "name": "Dar de baja alumnos",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 4
+  },
+  {
+    "key": "students.export",
+    "module": "Alumnos",
+    "name": "Exportar alumnos",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 5
+  },
+  {
+    "key": "students.movements",
+    "module": "Alumnos",
+    "name": "Bajas, reingresos e historial",
+    "scopes": ["NONE", "OWN", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 6
+  },
+  {
+    "key": "teachers.view",
+    "module": "Profesores",
+    "name": "Ver profesores",
+    "scopes": ["NONE", "OWN", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 1
+  },
+  {
+    "key": "teachers.create",
+    "module": "Profesores",
+    "name": "Dar de alta profesores",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 2
+  },
+  {
+    "key": "teachers.edit",
+    "module": "Profesores",
+    "name": "Editar profesores",
+    "scopes": ["NONE", "OWN", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 3
+  },
+  {
+    "key": "documents.view",
+    "module": "Expediente",
+    "name": "Ver expediente documental",
+    "scopes": ["NONE", "OWN", "AREA", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 1
+  },
+  {
+    "key": "documents.upload",
+    "module": "Expediente",
+    "name": "Subir documentos",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 2
+  },
+  {
+    "key": "documents.validate",
+    "module": "Expediente",
+    "name": "Validar o rechazar documentos",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 3
+  },
+  {
+    "key": "documents.delete",
+    "module": "Expediente",
+    "name": "Eliminar documentos",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 4
+  },
+  {
+    "key": "kardex.view",
+    "module": "Kardex",
+    "name": "Ver kardex",
+    "scopes": ["NONE", "OWN", "AREA", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 1
+  },
+  {
+    "key": "kardex.export",
+    "module": "Kardex",
+    "name": "Exportar kardex",
+    "scopes": ["NONE", "OWN", "AREA", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 2
   }
 ]

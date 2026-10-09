@@ -24,7 +24,9 @@ export type NavLabelKey =
   | "nav.users"
   | "nav.roles"
   | "nav.audit"
-  | "nav.catalogs";
+  | "nav.catalogs"
+  | "nav.students"
+  | "nav.teachers";
 
 export interface AppScreen {
   readonly id: string;
@@ -47,6 +49,18 @@ export const APP_SCREENS: readonly AppScreen[] = [
     labelKey: "nav.home",
     path: "/",
     match: "exact",
+  },
+  {
+    id: "students",
+    labelKey: "nav.students",
+    path: "/students",
+    requirement: { anyOf: ["students.view"] },
+  },
+  {
+    id: "teachers",
+    labelKey: "nav.teachers",
+    path: "/teachers",
+    requirement: { anyOf: ["teachers.view"] },
   },
   {
     id: "users",

@@ -32,7 +32,9 @@
     "audit": "Audit log",
     "catalogs": "Catalogs",
     "account": "My account",
-    "changePassword": "Change password"
+    "changePassword": "Change password",
+    "students": "Students",
+    "teachers": "Teachers"
   },
   "errors": {
     "network": "Network or server error",
@@ -61,8 +63,9 @@
     "minLength": "{{label}} must have at least {{min}} characters",
     "thisField": "This field",
     "invalidEmail": "Invalid email",
-    "invalidCurp": "CURP must have 18 alphanumeric characters",
-    "reviewFields": "Check the highlighted fields"
+    "invalidCurp": "Invalid CURP (format or check digit)",
+    "reviewFields": "Check the highlighted fields",
+    "invalidPhone": "Invalid phone number"
   },
   "home": {
     "title": "Home",

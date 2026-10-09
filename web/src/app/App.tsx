@@ -9,6 +9,9 @@ import AuditPage from "@pages/audit/AuditPage";
 import CatalogsPage from "@pages/catalogs/CatalogsPage";
 import SettingsPage from "@pages/settings/SettingsPage";
 import ChangePasswordPage from "@pages/account/ChangePasswordPage";
+import StudentsListPage from "@pages/students/StudentsListPage";
+import StudentFormPage from "@pages/students/StudentFormPage";
+import StudentDetailPage from "@pages/students/StudentDetailPage";
 import PrivateRoutes from "./guards/PrivateRoutes";
 import RequiresPermission from "./guards/RequirePermission";
 
@@ -23,6 +26,38 @@ export default function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/change-password" element={<ChangePasswordPage />} />
 
+        <Route
+          path="/students"
+          element={
+            <RequiresPermission permission="students.view">
+              <StudentsListPage />
+            </RequiresPermission>
+          }
+        />
+        <Route
+          path="/students/new"
+          element={
+            <RequiresPermission permission="students.create">
+              <StudentFormPage />
+            </RequiresPermission>
+          }
+        />
+        <Route
+          path="/students/:id"
+          element={
+            <RequiresPermission permission="students.view">
+              <StudentDetailPage />
+            </RequiresPermission>
+          }
+        />
+        <Route
+          path="/students/:id/edit"
+          element={
+            <RequiresPermission permission="students.edit">
+              <StudentFormPage />
+            </RequiresPermission>
+          }
+        />
         <Route
           path="/users"
           element={
