@@ -1,86 +1,98 @@
 # Respaldos y restauración
 
-Estándar PTNV: respaldos de PostgreSQL y del almacenamiento, con utilidades de
-restauración y regeneración de fixtures.
+Respaldo de PostgreSQL y de los archivos del expediente, con restauración
+probada (M12). Dos caminos que producen **el mismo formato**:
 
-> **Estado:** los scripts `restore`, `seed:from-backup`, `cutover` y
-> `legacy:extract` de las secciones 3–5 son el **diseño objetivo** (patrón PTNV) y
-> **todavía no existen** en `api/package.json`; se construyen en M12. Hoy se
-> respalda y restaura con `pg_dump` / `pg_restore` (sección 6) y, con el driver
-> `local`, hay que incluir el volumen de archivos (`STORAGE_LOCAL_DIR`).
+| Camino | Cuándo | Cómo |
+|---|---|---|
+| Servicio `backup` de `docker-compose` | Programado (cada 24 h por defecto) | Corre solo con `docker compose up -d` |
+| `pnpm --dir api backup` | A demanda: antes de una migración, de una importación (M20) o de restaurar | Usa `pg_dump` local o `docker exec` en `cyc-postgres` |
 
 ## 1. Qué se respalda
 
-| Elemento | Frecuencia | Retención sugerida |
+| Elemento | Archivo | Notas |
 |---|---|---|
-| PostgreSQL (`pg_dump -Fc`, formato custom) | Diario | 30 diarios + 12 mensuales |
-| Archivos (expedientes, justificantes) | S3: versionado del bucket · local: copia del volumen | Según política |
-| Configuración (`.env`, compose) | Al cambiar | Versionado seguro (no en repo) |
-| Bitácora | Incluida en el dump | Igual que la BD |
+| Base de datos | `cyc-AAAAMMDD-HHmmss.dump` | `pg_dump -Fc --no-owner` (incluye la bitácora) |
+| Integridad | `cyc-….dump.sha256` | Lo verifica la restauración |
+| Archivos (driver `local`) | `cyc-…-files.tar.gz` | Expedientes y justificantes de `STORAGE_LOCAL_DIR` |
+| Archivos (driver `s3`) | — | Se respaldan con el versionado del bucket |
+| Configuración (`.env`, compose) | — | Fuera del repo, en un almacén seguro |
 
-## 2. Programación
+Cada respaldo terminado registra la fecha en `settings.MIGRATION_LAST_BACKUP_AT`:
+M20 exige un respaldo de las últimas 24 h antes de importar (`409 BACKUP_REQUIRED`).
 
-- Respaldo **diario** en horario de baja actividad; **antes** de migraciones o
-  importaciones masivas (M20).
-- Almacenar fuera del servidor de producción y **cifrado**.
-- Verificar integridad (checksum) al generar.
-
-## 3. Restauración (herramienta del proyecto)
-
-La API expondrá la utilidad de restauración (mismo patrón que PTNV):
+## 2. Respaldo programado (compose)
 
 ```bash
-# Reemplaza la base con un respaldo (convierte el dump, restaura, aplica migraciones y concilia)
-npm run restore -- /ruta/sge-AAAA-MM-DD.dump
-npm run restore -- dump --yes        # base NO local (producción)
-npm run restore -- dump --fixtures   # además refresca las seeds
+docker compose up -d backup          # diario, en ./backups
+docker compose logs -f backup        # "[backup] cyc-… listo"
+BACKUP_INTERVAL_HOURS=0 docker compose run --rm backup   # uno solo y termina
 ```
 
-Hace, en orden: convierte el dump → **vacía el esquema y lo restaura tal cual** →
-`prisma migrate deploy` (el respaldo suele estar atrás en migraciones) → garantiza
-catálogos base → concilia/reporta. **Se niega** a tocar una base remota sin `--yes`.
-La API debe estar detenida durante la carga.
+| Variable | Default | Descripción |
+|---|---|---|
+| `BACKUP_DIR` | `./backups` | Carpeta del host donde quedan los archivos |
+| `BACKUP_INTERVAL_HOURS` | `24` | Frecuencia; `0` = un respaldo y termina (para un cron externo) |
+| `BACKUP_RETENTION_DAYS` | `30` | Se borran los `cyc-*` más antiguos |
 
-## 4. Regenerar fixtures con un respaldo
+Copiar la carpeta **fuera del servidor** (y cifrada) es responsabilidad de la
+operación: un respaldo que vive en el mismo disco que la base no protege de
+perder el servidor. En Railway se usan además los respaldos administrados del
+servicio de Postgres.
+
+## 3. Respaldo a demanda
 
 ```bash
-npm run seed:from-backup -- /ruta/sge-AAAA-MM-DD.dump
-npm run cutover    # lleva esos fixtures a una base (migrate deploy + seed forzado)
+pnpm --dir api backup                       # → api/backups/
+pnpm --dir api backup --container=otro      # si el contenedor no se llama cyc-postgres
 ```
 
-`seed:from-backup` lee el dump del **modelo actual** y escribe los fixtures JSON
-que consume el seed, con las columnas derivadas del DMMF de Prisma (una columna
-nueva entra sola). Deja constancia del respaldo de origen (nombre + sha256 + filas
-por tabla). No toca `permissions.json`/`role_permissions.json`/`roles.json`: son
-catálogo del repo.
+Lee `DATABASE_URL`, `BACKUP_DIR` (default `backups`), `BACKUP_RETENTION_DAYS` y
+`STORAGE_LOCAL_DIR` del `.env` de la API.
+
+## 4. Restauración
+
+```bash
+pnpm --dir api restore backups/cyc-AAAAMMDD-HHmmss.dump
+pnpm --dir api restore <archivo.dump> --yes     # base NO local (producción)
+```
+
+Hace, en orden: verifica el `sha256` → **vacía el esquema `public` y lo
+restaura** (la base queda exactamente como el respaldo) → `prisma migrate deploy`
+(el respaldo puede venir de una versión anterior) → reporta conteos de usuarios,
+alumnos, inscripciones, calificaciones y pagos para validar contra el origen.
+
+- **Se niega** a tocar una base que no es local sin `--yes`.
+- La API debe estar detenida durante la carga.
+- Los archivos se restauran aparte:
+  `tar -xzf cyc-…-files.tar.gz -C <STORAGE_LOCAL_DIR>`.
 
 ## 5. El arranque no siembra
 
-- El contenedor de la API corre `prisma migrate deploy && node dist/src/index.js`.
-  El seed **no** corre al arrancar (ver [D-017](../../DECISIONES.md)).
-- El seed es de solo lectura en bases con usuarios; solo escribe en base vacía o
-  con `cutover`.
+El contenedor de la API aplica `prisma migrate deploy` y arranca; el seed **no**
+corre al iniciar ([D-017](../../DECISIONES.md)). `pnpm --dir api seed` solo hace
+el *insert-missing* de permisos, roles y matriz, y crea el administrador inicial
+si la tabla `users` está vacía.
 
-## 6. Restauración manual (referencia)
+## 6. Pruebas de restauración
 
-```bash
-pg_restore --clean --no-owner -d "$DATABASE_URL" sge-AAAA-MM-DD.dump
-```
+- Probar la restauración **periódicamente** (p. ej. mensual) en una base aparte:
 
-1. Detener la aplicación (evitar escrituras).
-2. Restaurar la base.
-3. Restaurar archivos S3 si aplica.
-4. Aplicar migraciones pendientes.
-5. Verificar integridad (conteos de alumnos, pagos, calificaciones) y reactivar.
+  ```bash
+  DATABASE_URL=postgresql://…/cyc_restore_check pnpm --dir api restore <archivo.dump>
+  ```
 
-## 7. Pruebas de restauración
-
-- Probar la restauración **periódicamente** (p. ej. mensual) en ambiente aislado.
 - Documentar fecha, responsable y resultado. Un respaldo no probado no es válido.
+- Verificada el 2026-10-09: respaldo → restauración en base temporal → mismos
+  conteos que el origen.
 
-## 8. Responsabilidades
+## 7. Responsabilidades
 
 | Actividad | Responsable |
 |---|---|
-| Configurar/monitorear respaldos | Administrador de infraestructura |
+| Mantener el servicio `backup` y copiar los archivos fuera del servidor | Administrador de infraestructura |
 | Prueba de restauración | Administrador + control escolar (validación de datos) |
+
+> Los scripts `seed:from-backup`, `cutover` y `legacy:extract` del estándar PTNV
+> **no aplican** al SGE: allá convierten respaldos de un modelo anterior; aquí
+> los históricos entran por la importación CSV de M20 ([D-051](../../DECISIONES.md)).

@@ -42,7 +42,7 @@ contra servicios reales y unitarias de lógica pura. Ver [D-011](../../DECISIONE
 - [ ] Camino feliz + errores de validación + permisos (401/403) por endpoint.
 - [ ] Bitácora verificada en escrituras.
 - [ ] Casos límite (duplicados, rangos, cupo lleno, empalme, expiración).
-- [ ] Cobertura ≥ 70% en la lógica de servicios/reglas (objetivo: hoy **no se mide**; falta instrumentación, M12).
+- [ ] Cobertura ≥ 70 % en las reglas de negocio: `pnpm --dir api test:coverage` (c8 sobre las unitarias; alcance en `api/.c8rc.json`: `models/entity`, permisos, políticas y utilidades). Los servicios se cubren con las pruebas de contrato.
 
 ## 5. Reglas críticas con prueba obligatoria (CYC)
 
@@ -57,6 +57,7 @@ contra servicios reales y unitarias de lógica pura. Ver [D-011](../../DECISIONE
 | M16 | Acceso solo a inscrito; ventana de fechas; intentos; expiración en servidor |
 | M17 | Calificación automática; pendientes de revisión; escritura al kardex |
 | M02 | Lockout tras 5 intentos; RBAC/ABAC; `ACCESS_DENIED`; refresh rotado |
+| M12 | Límite de peticiones; 401/403 en **todos** los endpoints (barrido del OpenAPI); cabeceras; envelope sin detalles internos |
 
 ## 6. Aislamiento y datos de ejemplo
 
@@ -70,4 +71,5 @@ contra servicios reales y unitarias de lógica pura. Ver [D-011](../../DECISIONE
 - Job de migraciones corre `prisma migrate deploy` sobre base vacía para detectar
   migraciones rotas.
 - CI corre ambas suites completas (unitarias + contrato en `api/`, navegador en
-  `web/`) contra un Postgres de servicio. La medición de cobertura está pendiente (M12).
+  `web/`) contra un Postgres de servicio, con el umbral de cobertura y la
+  auditoría de dependencias (`pnpm audit --prod --audit-level high`) como requisito.

@@ -88,7 +88,7 @@ export const toPdf = (result: ReportResult, school: string): Promise<Buffer> =>
     doc.font("Helvetica-Bold").fontSize(9).fillColor("#0f172a").text(t("reports.totals"), left);
     doc.font("Helvetica").fontSize(8.5);
     for (const [key, value] of Object.entries(result.totals)) {
-      const money = ["amount", "balance", "overdue", "CASH", "TRANSFER", "DEPOSIT", "CARD", "OTHER"].includes(key);
+      const money = result.columns.find((c) => c.key === key)?.type === "money" || ["overdue", "CASH", "TRANSFER", "DEPOSIT", "CARD", "OTHER"].includes(key);
       const label = key === "rows" ? t("reports.rows") : result.columns.find((c) => c.key === key)?.label ?? key;
       const percent = result.columns.find((c) => c.key === key)?.type === "percent";
       const shown = money ? Number(value).toLocaleString("es-MX", { style: "currency", currency: "MXN" }) : percent ? `${value}%` : value;

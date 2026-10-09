@@ -65,7 +65,8 @@ reglas complejas (M07, M08, M09, M16) ≈ 1.5–2 sprints.
 | M18 | ✅ Terminado (F6) | Sesiones, pase de lista, justificantes con archivo validado, % de asistencia y alerta por umbral (`ATTENDANCE_THRESHOLD`); reporte `attendance-by-group` en M10 |
 | M19 | ✅ Terminado (F6) | Plantillas por clave+canal, outbox con reintentos/backoff, opt-out, bandeja interna y avisos; correo Resend/SMTP y SMS/WA simulados (A-001) |
 | M20 | ✅ Terminado (F7) | Migración CSV de alumnos y profesores: `plan()` compartido, dry-run, checksum, `Idempotency-Key`, respaldo previo, lotes/filas trazables y conciliación de totales |
-| M12, M13, M21 | Documentado | Sin código |
+| M12 | ✅ Terminado (F9a) | Límite de peticiones, cabeceras, barrido 401/403 de toda la API, respaldo/restauración (manual y programado), cobertura mínima y auditoría de dependencias en CI |
+| M13, M21 | Documentado | Sin código |
 | M22 | ✅ Terminado (F10) | Carreras (`Program`) con costos y periodos, plan de estudios (`ProgramSubject` + `Course`) y plan de pagos idempotente (`StudentPlan` + `Charge.planId`); día de vencimiento configurable y descuentos |
 | F0 — Infra | ✅ Completada | Monorepo + Docker por proyecto + `docker-compose` + CI (incluye e2e); migración `init` + seed; login por proxy de nginx verificado; e2e de auth (contrato + navegador) en verde |
 | F1 — Acceso y catálogos | ✅ Completada (pendiente H1 con el cliente) | Migración `f1_policies_catalogs`; unitarias 39, contrato API 64, navegador 30 — todo en verde |
@@ -76,7 +77,7 @@ reglas complejas (M07, M08, M09, M16) ≈ 1.5–2 sprints.
 | F6 — Asistencia y notificaciones | ✅ Completada (pendiente H6 con el cliente) | Migración `f6_asistencia_notificaciones`; unitarias 89, contrato API 184, navegador 68 — todo en verde |
 | F7 — Migración de históricos | ✅ Completada (pendiente H7 con el cliente) | Migración `f7_migracion_historica`; unitarias 98, contrato API 192, navegador 69 — todo en verde. CSV de alumnos/profesores con dry-run, idempotencia y respaldo previo |
 | F8 — Analítica ejecutiva | Pendiente (tramo B) | M21 (indicadores ejecutivos); va después del endurecimiento |
-| F9 — Endurecimiento, despliegue y capacitación | ⏭️ En curso (tramo A) | M12 primero (seguridad, respaldos, CI); M13 (manuales) al final |
+| F9 — Endurecimiento, despliegue y capacitación | Parcial: M12 ✅ · M13 pendiente | Unitarias 112 (cobertura de reglas 81.8 %), contrato API 203 — todo en verde; faltan los manuales (M13) |
 | F10 — Programas y planes de pago | ✅ Completada | M22; unitarias 110, contrato API 198, navegador 70 — todo en verde |
 | Refactor a inglés + i18n | ✅ Completado | [D-046](../../DECISIONES.md) y [D-049](../../DECISIONES.md): esquema, DTOs, rutas, códigos, llaves i18n y JSON guardado en inglés; migraciones `roles_english`, `lote1_catalogs_english`, `schema_english` y `english_followup`; las tres suites siguen en verde |
 
@@ -89,14 +90,13 @@ del lanzamiento.
 
 | Tramo | Fase | Qué incluye | Estado |
 |---|---|---|---|
-| **A** | F9a — Endurecimiento (M12) | A1 *rate limiting* en login y endpoints públicos · A2 pruebas de seguridad (cabeceras, CORS, envelope) y barrido 401/403 de todos los endpoints · A3 respaldo y restauración (base + archivos) · A4 auditoría de dependencias en CI · A5 checklist OWASP revisado | En curso |
-| **B** | F8 — Analítica ejecutiva (M21) | Indicadores de deserción, morosidad, ingresos contra proyección, rendimiento, ocupación y tendencia; comparativo con el ciclo anterior; tablero y exportación | Siguiente |
+| **A** | F9a — Endurecimiento (M12) | A1 *rate limiting* en login y endpoints públicos · A2 pruebas de seguridad (cabeceras, CORS, envelope) y barrido 401/403 de todos los endpoints · A3 respaldo y restauración (base + archivos) · A4 auditoría de dependencias en CI · A5 checklist OWASP revisado | ✅ Terminado ([D-051](../../DECISIONES.md)) |
+| **B** | F8 — Analítica ejecutiva (M21) | Indicadores de deserción, morosidad, ingresos contra proyección, rendimiento, ocupación y tendencia; comparativo con el ciclo anterior; tablero y exportación | ⏭️ En curso |
 | **C** | F9b — Capacitación (M13) | Manual por rol, guía rápida de operación y material de capacitación | Después de B |
 | **D** | Pendientes de módulos ya entregados | M20: adaptadores de cursos, grupos, inscripciones, calificaciones, cargos, pagos y asistencia · M19: proveedor real de SMS/WhatsApp ([A-001](../../DECISIONES.md)) · M14: imagen por reactivo · i18n de los catálogos guardados ([D-049](../../DECISIONES.md)) | Depende de decisiones del cliente |
 
 **No depende de código:** la firma de alcance (H0) y las puertas de aceptación
-H1–H7 y H10 con el cliente; la medición de cobertura queda dentro del tramo A
-solo si la instrumentación resulta viable con Playwright.
+H1–H7 y H10 con el cliente.
 
 ## 3. Detalle por fase
 

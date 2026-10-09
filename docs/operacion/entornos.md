@@ -31,6 +31,10 @@ arranque** si faltan las variables requeridas.
 | `INITIAL_ADMIN_USERNAME` / `INITIAL_ADMIN_PASSWORD` | — | Admin inicial (se crea si `users` está vacía) |
 | `MAX_LOGIN_ATTEMPTS` / `LOGIN_LOCK_MINUTES` | `5` / `15` | Bloqueo temporal por intentos fallidos |
 | `PASSWORD_MIN_LENGTH` | `10` | Longitud mínima de contraseña |
+| `RATE_LIMIT_WINDOW_MINUTES` | `15` | Ventana del límite de peticiones por IP |
+| `RATE_LIMIT_LOGIN_MAX` | `20` en producción · `1000` fuera | Intentos **fallidos** de login por IP en la ventana |
+| `RATE_LIMIT_PUBLIC_MAX` | `30` en producción · `1000` fuera | Peticiones por IP a recuperación de contraseña |
+| `TRUST_PROXY` | `0` | Saltos de proxy delante de la API (`1` con nginx o Railway); de ahí sale la IP del cliente |
 | `APP_URL` | — | URL pública de la web: arma los enlaces de recuperación e invitación (`${APP_URL}/#/reset-password`) |
 | `UPLOAD_MAX_BYTES` | `52428800` | Tamaño máximo de subida (M06 lo restringe a 5 MB) |
 | `ABLY_API_KEY` | — | Tiempo real (opcional: sin clave, los avisos internos se entregan sin *push*) |
@@ -81,7 +85,17 @@ las variables siguientes son la propuesta y el código aún no las consume.
 | `VITE_API_URL` | URL de la API (dev: `http://localhost:4001/api/v1`) |
 | `WEB_API_URL` | Runtime de la imagen nginx → `/config.js` (`__APP_CONFIG__.API_URL`) |
 
-## 8. Reglas
+## 8. Respaldos
+
+| Variable | Default | Descripción |
+|---|---|---|
+| `BACKUP_DIR` | `backups` (API) · `./backups` (compose) | Dónde quedan los respaldos |
+| `BACKUP_RETENTION_DAYS` | `30` | Días que se conservan |
+| `BACKUP_INTERVAL_HOURS` | `24` | Solo compose: frecuencia del servicio `backup` (`0` = uno y termina) |
+
+Ver [`respaldos.md`](respaldos.md).
+
+## 9. Reglas
 
 - **Nunca** versionar valores reales; solo `.env.example`.
 - Rotar cualquier credencial que haya estado en un `.env` commiteado.

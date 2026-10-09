@@ -9,8 +9,9 @@ Monorepo del **Sistema de Gestión Escolar**. La implementación sigue los
 > inscripciones y calificaciones), M09–M10 (cobranza y reportes), M14–M17 (examen
 > en línea), M18–M19 (asistencia y notificaciones), M20 (migración CSV) y M22
 > (programas y planes de pago), con pruebas unitarias, de contrato y de navegador
-> en CI. Pendientes: M21 (tablero ejecutivo, F8) y M12–M13 (endurecimiento y
-> capacitación, F9). Todo el código está en **inglés** con **i18n** `es`/`en`
+> en CI. M12 (endurecimiento: límite de peticiones, respaldos, barrido de
+> seguridad y cobertura) también está listo. Pendientes: M21 (tablero
+> ejecutivo, F8) y M13 (capacitación). Todo el código está en **inglés** con **i18n** `es`/`en`
 > ([D-046](DECISIONES.md), [D-049](DECISIONES.md)). Ver el
 > [plan por fases](docs/guia/plan-implementacion.md) y las [convenciones](docs/guia/convenciones.md).
 

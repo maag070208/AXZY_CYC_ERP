@@ -105,5 +105,5 @@ adaptadores siguientes. La ejecución real exige respaldo reciente
 (`settings.MIGRATION_LAST_BACKUP_AT`, ≤ 24 h) e `Idempotency-Key`, y revalida el
 `sha256` del archivo. Detalle y decisiones en
 [M20](../modulos/M20-migracion-historica/README.md) y
-[D-045](../../DECISIONES.md). Los scripts `restore` / `seed:from-backup` /
-`cutover` / `legacy:extract` siguen pendientes.
+[D-045](../../DECISIONES.md). El respaldo previo se hace con `pnpm --dir api backup` o el servicio `backup`
+(ver [`respaldos.md`](respaldos.md)).

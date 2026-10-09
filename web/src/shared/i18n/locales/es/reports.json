@@ -29,5 +29,33 @@
     "incomeChart": "Ingresos por mes",
     "occupancyChart": "Ocupación por grupo",
     "noGroups": "Sin grupos en el ciclo activo"
+  },
+  "executive": {
+    "title": "Tablero ejecutivo",
+    "description": "Indicadores del ciclo comparados con el anterior",
+    "term": "Ciclo",
+    "activeTerm": "Ciclo activo",
+    "level": "Nivel",
+    "course": "Curso",
+    "group": "Grupo",
+    "all": "Todos",
+    "noTerm": "No hay un ciclo activo: elige uno para ver sus indicadores.",
+    "enrolledCount": "Matrícula",
+    "dropoutRate": "Deserción",
+    "passRate": "Aprobación",
+    "averageGrade": "Promedio general",
+    "occupancy": "Ocupación",
+    "delinquencyRate": "Morosidad",
+    "pendingAmount": "Adeudo vencido",
+    "collected": "Cobrado",
+    "projected": "Proyectado: {{amount}}",
+    "noData": "Sin datos",
+    "versus": "{{delta}} vs. {{term}}",
+    "noPrevious": "Sin ciclo anterior para comparar",
+    "trendChart": "Tendencia de inscripciones",
+    "dropoutChart": "Deserción por ciclo",
+    "incomeChart": "Cobrado contra proyectado por mes de vencimiento",
+    "noIncome": "El ciclo no tiene cargos",
+    "reports": "Ver reportes de detalle"
   }
 }

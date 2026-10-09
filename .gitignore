@@ -29,7 +29,12 @@ pnpm-debug.log*
 /playwright-report
 /blob-report
 playwright/.cache
+coverage/
 
 # Prisma / migraciones locales
 api/prisma/legacy/*.sql
 api/prisma/*.dump
+
+# Respaldos locales (pnpm --dir api backup)
+api/backups/
+/backups/

@@ -14,7 +14,7 @@ Tecnologías del SGE, alineadas al **estándar PTNV** y al **Axzy UI System**
 | OpenAPI | `@asteasolutions/zod-to-openapi` + `swagger-ui-express` |
 | Autenticación | `jsonwebtoken` (access + refresh rotado) |
 | Hash de contraseñas | **bcryptjs** |
-| Seguridad | `helmet`, `cors` (lista de orígenes con comodines), bloqueo por intentos fallidos. El *rate limiting* por IP está pendiente (M12) |
+| Seguridad | `helmet`, `cors` (lista de orígenes con comodines), bloqueo por intentos fallidos y `express-rate-limit` por IP en login y recuperación |
 | Subida de archivos | `multer` (memoryStorage) |
 | Almacenamiento | Puerto único con dos drivers: **S3** (`@aws-sdk/client-s3`, o compatible) y **disco local** privado ([D-023](../../DECISIONES.md)) |
 | Avisos | Outbox propio en PostgreSQL (`notifications`, reintentos con backoff); correo por `resend` o `nodemailer` (SMTP); SMS/WhatsApp simulados |

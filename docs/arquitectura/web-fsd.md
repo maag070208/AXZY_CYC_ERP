@@ -97,6 +97,20 @@ Todo con el **Axzy UI System** (ver [`axzy-ui-system.md`](axzy-ui-system.md)):
 indicadores, `ITDataTable` para listados. Se usa `!` de Tailwind para sobreescribir
 utilidades del kit.
 
+### Migas de pan
+
+Toda página pasa `breadcrumbs` a `ITPage` (mismo patrón que PTNV): **Inicio ›
+sección › detalle**. El hook `useBreadcrumbs` (`@shared/lib/useBreadcrumbs`)
+pone «Inicio» y arma el resto; las etiquetas de sección salen de `common:nav.*`.
+
+```tsx
+const crumbs = useBreadcrumbs();
+<ITPage breadcrumbs={crumbs({ label: t("common:nav.students"), to: "/students" }, { label: student?.fullName })} />
+```
+
+La miga sin `to` es la página actual; una miga sin etiqueta (dato cargando) se
+omite. El intento de examen en curso no muestra migas.
+
 ## 8. PDFs y escritorio
 
 - PDFs con `@react-pdf/renderer` en `widgets/*-pdf` (membrete `PdfLetterhead`,

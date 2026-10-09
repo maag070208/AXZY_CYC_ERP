@@ -52,7 +52,8 @@
     "admin": "Administration",
     "adminAccess": "Access",
     "adminData": "Catalogs & settings",
-    "adminSystem": "System"
+    "adminSystem": "System",
+    "executive": "Executive dashboard"
   },
   "errors": {
     "network": "Network or server error",

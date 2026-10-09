@@ -52,7 +52,8 @@
     "admin": "Administración",
     "adminAccess": "Accesos",
     "adminData": "Catálogos y configuración",
-    "adminSystem": "Sistema"
+    "adminSystem": "Sistema",
+    "executive": "Tablero ejecutivo"
   },
   "errors": {
     "network": "Error de red o del servidor",

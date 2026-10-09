@@ -354,6 +354,20 @@ Plantilla:
   - **Actualización de una instalación existente:** el volumen `apistorage` creado por la imagen anterior pertenece a `root`, así que la API (uid 1000) no puede escribir el expediente (arranca, pero las subidas fallan con EACCES). Se corrige una vez con `docker compose run --rm --user root --entrypoint chown api -R node:node /app/storage`.
   - `prisma` deja de ser `devDependency`: el lockfile mueve la entrada de grupo (sin re-resolución) y en local `pnpm install` pedirá purgar `node_modules` una vez.
 
+### D-051 — Endurecimiento (M12): límite de peticiones, respaldos y verificación automática
+- **Fecha:** 2026-10-09
+- **Estado:** aceptada
+- **Contexto:** M12 pedía *rate limiting*, respaldos diarios con restauración, revisión OWASP y cobertura mínima, sin fijar cómo. La documentación heredada de PTNV describía scripts (`restore`, `seed:from-backup`, `cutover`, `legacy:extract`) que aquí no existían.
+- **Decisión:**
+  - **Límite de peticiones por IP** con `express-rate-limit` (en memoria): en `/auth/login` cuentan solo los intentos **fallidos** (complementa el bloqueo por cuenta de D-005); en `/auth/forgot-password` y `/auth/reset-password` cuentan todas. Responde `429 RATE_LIMITED` con el envelope estándar. Los topes son altos fuera de producción para no estorbar a las suites; `TRUST_PROXY` indica los saltos de proxy para conocer la IP real.
+  - **Respaldos** en formato custom de `pg_dump` con `sha256`, más los archivos del driver `local`: programados por el servicio `backup` de `docker-compose` y a demanda con `pnpm backup`; `pnpm restore` vacía el esquema, restaura, aplica migraciones y reporta conteos, y se niega a tocar una base no local sin `--yes`. Cada respaldo actualiza `settings.MIGRATION_LAST_BACKUP_AT` (lo exige M20).
+  - **No se portan** `seed:from-backup`, `cutover` ni `legacy:extract`: en PTNV convierten respaldos de un modelo anterior; aquí los históricos entran por el CSV de M20.
+  - **Control de acceso verificado contra el OpenAPI:** un spec recorre todas las operaciones documentadas y exige 401 sin token; un endpoint nuevo queda cubierto sin tocar la prueba.
+  - **Cobertura:** umbral de 70 % (c8) sobre las reglas de negocio puras (`models/entity`, permisos, políticas, utilidades); los servicios se validan con las pruebas de contrato contra la API real.
+  - **Auditoría de dependencias** en CI (`pnpm audit --prod --audit-level high`). Se aceptan dos avisos de `xlsx` porque solo afectan a la lectura de archivos y la API solo escribe.
+- **Alternativas consideradas:** limitador propio (menos probado para lo mismo); límite en nginx (no cubre Railway, donde no hay nginx delante de la API); medir cobertura de servicios instrumentando la API durante el e2e (más frágil que útil por ahora).
+- **Consecuencias / impacto:** con más de una réplica de la API el límite debe pasar a un almacén compartido. Copiar los respaldos fuera del servidor es tarea de operación. Ver [`docs/operacion/respaldos.md`](docs/operacion/respaldos.md) y [`docs/seguridad/seguridad-owasp.md`](docs/seguridad/seguridad-owasp.md).
+
 ---
 
 ## Mapeo desde la especificación original
@@ -387,7 +401,7 @@ Plantilla:
 
 ## Cómo registrar una nueva decisión
 
-1. Elige el siguiente `D-###` libre (hoy: `D-051`).
+1. Elige el siguiente `D-###` libre (hoy: `D-052`).
 2. Copia la plantilla de arriba y llénala.
 3. Enlaza al documento/módulo afectado.
 4. Si reemplaza a otra, actualiza el estado de la anterior.

@@ -17,7 +17,8 @@ export default function HomePage() {
 
   if (canDashboard) {
     return (
-      <ITPage title={t("home.title")} description={t("home.welcome", { name: user?.name ?? "" })} icon={<FaHouseUser size={20} />}>
+      <ITPage title={t("home.title")}
+        noPadding description={t("home.welcome", { name: user?.name ?? "" })} icon={<FaHouseUser size={20} />}>
         <DashboardView />
       </ITPage>
     );

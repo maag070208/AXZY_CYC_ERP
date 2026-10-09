@@ -29,5 +29,33 @@
     "incomeChart": "Income by month",
     "occupancyChart": "Occupancy by group",
     "noGroups": "No groups in the active term"
+  },
+  "executive": {
+    "title": "Executive dashboard",
+    "description": "Term indicators compared with the previous term",
+    "term": "Term",
+    "activeTerm": "Active term",
+    "level": "Level",
+    "course": "Course",
+    "group": "Group",
+    "all": "All",
+    "noTerm": "There is no active term: choose one to see its indicators.",
+    "enrolledCount": "Enrollment",
+    "dropoutRate": "Dropout",
+    "passRate": "Pass rate",
+    "averageGrade": "Overall average",
+    "occupancy": "Occupancy",
+    "delinquencyRate": "Delinquency",
+    "pendingAmount": "Overdue balance",
+    "collected": "Collected",
+    "projected": "Projected: {{amount}}",
+    "noData": "No data",
+    "versus": "{{delta}} vs. {{term}}",
+    "noPrevious": "No previous term to compare",
+    "trendChart": "Enrollment trend",
+    "dropoutChart": "Dropout by term",
+    "incomeChart": "Collected vs. projected by due month",
+    "noIncome": "The term has no charges",
+    "reports": "See detailed reports"
   }
 }

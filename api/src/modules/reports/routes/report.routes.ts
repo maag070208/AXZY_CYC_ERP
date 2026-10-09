@@ -23,6 +23,8 @@ export const createReportRouters = (controller: ReportController) => {
       { in: "path", name: "type", required: true, schema: { type: "string", enum: [...REPORT_TYPES] } },
       query("format", "json | xlsx | pdf (por defecto json)"),
       query("termId", "Ciclo (por defecto el activo)"),
+      query("levelId", "Nivel (indicadores de M21)"),
+      query("courseId", "Curso (indicadores de M21)"),
       query("groupId", "Grupo"),
       query("from", "Desde (AAAA-MM-DD)"),
       query("to", "Hasta (AAAA-MM-DD)"),
@@ -39,6 +41,12 @@ export const createReportRouters = (controller: ReportController) => {
     summary: "KPIs del tablero con el alcance de la persona (reports.view)",
     responses: { 200: { description: "Tablero" } },
   });
+  registerPath({
+    method: "get", path: "/dashboard/executive", tags: ["Reports"], security: bearer,
+    summary: "Tablero ejecutivo: indicadores del ciclo frente al anterior, tendencia e ingresos contra proyección (reports.view; montos solo con ALL)",
+    parameters: [query("termId", "Ciclo (por defecto el activo)"), query("levelId", "Nivel"), query("courseId", "Curso"), query("groupId", "Grupo")],
+    responses: { 200: { description: "{ term, previousTerm, indicators, enrollmentTrend, incomeVsProjection }" }, 400: { description: "Filtro inválido" } },
+  });
 
   const reports = Router();
   reports.use(authenticate, requiresPermission("reports.view"));
@@ -46,6 +54,8 @@ export const createReportRouters = (controller: ReportController) => {
   reports.get("/:type", asyncHandler(controller.run));
 
   const dashboard = Router();
-  dashboard.get("/", authenticate, requiresPermission("reports.view"), asyncHandler(controller.dashboard));
+  dashboard.use(authenticate, requiresPermission("reports.view"));
+  dashboard.get("/", asyncHandler(controller.dashboard));
+  dashboard.get("/executive", asyncHandler(controller.executive));
   return { reports, dashboard };
 };

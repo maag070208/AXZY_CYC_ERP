@@ -18,6 +18,7 @@ import GroupsPage from "@pages/groups/GroupsPage";
 import GroupDetailPage from "@pages/groups/GroupDetailPage";
 import FinancePage from "@pages/finance/FinancePage";
 import ReportsPage from "@pages/reports/ReportsPage";
+import ExecutivePage from "@pages/executive/ExecutivePage";
 import QuestionsPage from "@pages/questions/QuestionsPage";
 import ExamsPage from "@pages/exams/ExamsPage";
 import ExamDetailPage from "@pages/exams/ExamDetailPage";
@@ -180,6 +181,14 @@ export default function App() {
           element={
             <RequiresPermission permission="reports.view">
               <ReportsPage />
+            </RequiresPermission>
+          }
+        />
+        <Route
+          path="/executive"
+          element={
+            <RequiresPermission permission="reports.view">
+              <ExecutivePage />
             </RequiresPermission>
           }
         />

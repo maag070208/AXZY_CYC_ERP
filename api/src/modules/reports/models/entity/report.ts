@@ -14,6 +14,9 @@ export type ReportRow = Record<string, string | number | null>;
 
 export interface ReportFilters {
   termId?: string;
+  /** M21: nivel y curso acotan los indicadores académicos. */
+  levelId?: string;
+  courseId?: string;
   groupId?: string;
   from?: string;
   to?: string;
@@ -38,11 +41,28 @@ export const REPORT_TYPES = [
   "attendance-by-group",
   "payments-period",
   "debts",
+  // M21 — indicadores ejecutivos
+  "dropout",
+  "performance-by-course",
+  "performance-by-teacher",
+  "enrollment-trend",
+  "delinquency",
+  "income-vs-projection",
 ] as const;
 export type ReportType = (typeof REPORT_TYPES)[number];
 
 /** Reportes con montos: solo con alcance institucional (el profesor no ve dinero). */
-export const FINANCIAL_REPORTS: readonly ReportType[] = ["payments-period", "debts"];
+export const FINANCIAL_REPORTS: readonly ReportType[] = ["payments-period", "debts", "delinquency", "income-vs-projection"];
+
+/** Indicadores ejecutivos (M21): el tablero ejecutivo enlaza a estos reportes. */
+export const EXECUTIVE_REPORTS: readonly ReportType[] = [
+  "dropout",
+  "performance-by-course",
+  "performance-by-teacher",
+  "enrollment-trend",
+  "delinquency",
+  "income-vs-projection",
+];
 
 export const isReportType = (value: string): value is ReportType => (REPORT_TYPES as readonly string[]).includes(value);
 
@@ -61,4 +81,31 @@ export const lastMonths = (day: string, n: number): string[] => {
     const date = new Date(Date.UTC(y, m - 1 - (n - 1 - i), 1));
     return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}`;
   });
+};
+
+/** Porcentaje con un decimal; 0 cuando no hay base (evita dividir entre cero). */
+export const rate = (part: number, whole: number): number => (whole > 0 ? Math.round((part / whole) * 1000) / 10 : 0);
+
+/** Promedio con dos decimales; `null` sin datos. */
+export const average = (values: readonly number[]): number | null =>
+  values.length ? Math.round((values.reduce((sum, value) => sum + value, 0) / values.length) * 100) / 100 : null;
+
+/** Valor de un indicador frente al periodo anterior (M21 §4.3). */
+export interface Indicator {
+  value: number | null;
+  previous: number | null;
+  /** Variación absoluta (`value - previous`); `null` si falta alguno de los dos. */
+  delta: number | null;
+  /** Variación relativa en %; `null` si no hay periodo anterior o su valor es 0. */
+  deltaPercent: number | null;
+}
+
+export const indicator = (value: number | null, previous: number | null): Indicator => {
+  const comparable = value !== null && previous !== null;
+  return {
+    value,
+    previous,
+    delta: comparable ? Math.round((value - previous) * 100) / 100 : null,
+    deltaPercent: comparable && previous !== 0 ? Math.round(((value - previous) / Math.abs(previous)) * 1000) / 10 : null,
+  };
 };

@@ -12,15 +12,15 @@ Controles de seguridad del SGE, alineados al estándar PTNV. Complementa
 | **A03 Injection** | Prisma/consultas parametrizadas; validación Zod con whitelist; nunca concatenar SQL. |
 | **A04 Insecure Design** | Reglas de negocio explícitas y probadas (cupo, empalme, ponderaciones, intentos); límites de intentos; políticas ABAC. |
 | **A05 Security Misconfiguration** | `helmet`; CORS restringido (`WEB_ORIGIN`); sin debug en producción; `showFab=false` en el UI kit; sin seed en arranque. |
-| **A06 Vulnerable Components** | Dependencias con lockfile (`pnpm-lock.yaml`) e imágenes fijadas. Auditoría de dependencias en CI: **pendiente** (M12). |
-| **A07 Auth Failures** | Política de contraseña; bloqueo temporal tras 5 fallos; refresh rotado y revocable. *Rate limiting* por IP: **pendiente** (M12). |
+| **A06 Vulnerable Components** | Dependencias con lockfile (`pnpm-lock.yaml`) e imágenes fijadas; `pnpm audit --prod --audit-level high` en CI (ver §10). |
+| **A07 Auth Failures** | Política de contraseña; bloqueo temporal tras 5 fallos; refresh rotado y revocable; *rate limiting* por IP en login (solo fallidos) y recuperación de contraseña → `429 RATE_LIMITED`. |
 | **A08 Data Integrity Failures** | Validación de archivos (tipo/tamaño); migraciones versionadas; idempotencia; transacciones serializables en operaciones críticas. |
 | **A09 Logging Failures** | Bitácora de escrituras y accesos denegados; logs sin datos sensibles; monitoreo de auth. |
 | **A10 SSRF** | Sin peticiones a URLs provistas por el usuario; proveedores externos con endpoints fijos (S3, Resend/SMTP, Ably). |
 
 ## 2. Autenticación y sesión
 
-- JWT access + refresh **rotado**; bcryptjs; bloqueo tras 5 intentos (el *rate limiting* por IP está pendiente).
+- JWT access + refresh **rotado**; bcryptjs; bloqueo tras 5 intentos; *rate limiting* por IP (`RATE_LIMIT_*`, `TRUST_PROXY`).
 - `authenticate` relee la BD: usuario activo, roles, excepciones.
 - Ver [`../api/autenticacion.md`](../api/autenticacion.md).
 
@@ -65,7 +65,32 @@ Controles de seguridad del SGE, alineados al estándar PTNV. Complementa
 - Candado optimista donde aplique.
 - Idempotencia con `Idempotency-Key` en altas susceptibles de duplicarse.
 
-## 9. Checklist por módulo
+## 9. Verificación automática (M12)
+
+| Control | Prueba |
+|---|---|
+| Todo endpoint protegido responde 401 sin token y con token inválido | `api/tests/e2e/m12-seguridad.spec.ts` (barrido generado del OpenAPI: 196 operaciones) |
+| Solo salud y acceso son públicos | mismo spec (lista cerrada de 6 operaciones) |
+| Una cuenta sin permiso recibe 403 y queda `ACCESS_DENIED` en bitácora | mismo spec (barrido de administración con rol `STUDENT`) |
+| Cabeceras de seguridad y sin `X-Powered-By` | mismo spec; en la web, `nginx.conf` |
+| Errores sin stack ni nombres internos | mismo spec |
+| Límite de peticiones | `api/tests/unit/rate-limit.spec.ts` |
+| CORS por lista y comodines | `api/tests/unit/cors.spec.ts` |
+| Cobertura ≥ 70 % en reglas de negocio | `pnpm --dir api test:coverage` (c8; hoy 81.8 % de líneas) |
+
+## 10. Riesgos aceptados
+
+- **`xlsx` (SheetJS 0.18.5):** GHSA-4r6h-8v6p-xvw6 y GHSA-5pgg-2g8v-p4x9 afectan
+  al **leer** archivos; la API solo **escribe** hojas de cálculo (reportes y
+  exportaciones) y nunca procesa un `.xlsx` del usuario. Están en
+  `pnpm.auditConfig.ignoreGhsas` de `api/package.json`; si algún día se importa
+  Excel, hay que cambiar de librería antes.
+- **CSP:** desactivada en la API (solo responde JSON y Swagger) y sin política en
+  la web (el UI kit usa estilos en línea). Pendiente evaluar una CSP para el SPA.
+- **Límite de peticiones en memoria:** vale para una instancia; con varias
+  réplicas hay que moverlo a un almacén compartido.
+
+## 11. Checklist por módulo
 
 - [ ] Endpoint valida entrada (Zod) y whitelist.
 - [ ] Verifica permiso + alcance (y políticas ABAC si aplica).

@@ -4,11 +4,35 @@
 |---|---|
 | **Código** | M12 |
 | **Versión** | 0.1 |
-| **Estado** | Planeado |
+| **Estado** | Terminado (F9a, 2026-10-09) |
 | **Fase** | Calidad |
-| **Depende de** | Todos los módulos (M01–M21); cierra cada fase |
+| **Depende de** | Todos los módulos; cierra cada fase |
 | **Habilita a** | Puesta en producción y M13 (Gestión y capacitación) |
 | **Permisos** | No aplica (módulo transversal de proceso) |
+
+## Implementación (F9a, 2026-10-09)
+
+**Estado: terminado** en lo que es código y configuración. Ver [D-051](../../../DECISIONES.md).
+
+| Entregable | Dónde |
+|---|---|
+| Límite de peticiones por IP (`429 RATE_LIMITED`) | `api/src/core/middlewares/rate-limit.middleware.ts`, aplicado en `auth.routes.ts`; `TRUST_PROXY` en `app.ts` |
+| Cabeceras de seguridad | `helmet` en la API; `web/nginx.conf` para el SPA |
+| Barrido 401/403 de toda la API, envelope y endpoints públicos | `api/tests/e2e/m12-seguridad.spec.ts` (generado del OpenAPI) |
+| Respaldo y restauración | `pnpm --dir api backup` / `restore` (`api/prisma/{backup,restore,pg-tools}.ts`) y servicio `backup` en `docker-compose.yml` |
+| Cobertura ≥ 70 % en reglas de negocio | `pnpm --dir api test:coverage` (`api/.c8rc.json`); hoy 81.8 % de líneas |
+| Auditoría de dependencias | `pnpm audit --prod --audit-level high` en ambos jobs de CI |
+| Datos de ejemplo | `pnpm --dir api seed:demo` / `seed:mock` |
+
+Diferencias con el borrador: el control de acceso se prueba con un barrido
+generado del OpenAPI en lugar de un `access-control.spec.ts` escrito a mano; el
+CORS **sí** admite comodines de subdominio (`https://*.dominio`), probados en
+`cors.spec.ts`; no hay `seed.spec.ts` (el seed solo hace *insert-missing* y lo
+ejercita CI en base vacía).
+
+**Queda fuera del código:** HTTPS y dominio (los pone el hosting), copiar los
+respaldos fuera del servidor, la firma del checklist OWASP con el cliente y un
+*pentest* externo.
 
 ## 1. Objetivo
 
@@ -65,7 +89,7 @@ usuarios; solo escribe en base vacía o vía `cutover` (ver
    fallidos se bloquea temporalmente (`ACCOUNT_LOCKED`, 429).
 6. Transporte **HTTPS obligatorio** en producción, con `helmet`, HSTS, CSP,
    `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY` y `Referrer-Policy`.
-7. **CORS** restringido al origen del frontend (`WEB_ORIGIN`); no hay comodines.
+7. **CORS** restringido a los orígenes de `WEB_ORIGIN` (lista y comodines de subdominio; nunca `*` en producción).
 8. Las imágenes se construyen **multi-stage** y se publican **solo `linux/amd64`**;
    `nginx` sirve la web y hace proxy `/api`.
 9. **Respaldo diario** de PostgreSQL (`pg_dump -Fc`) en horario de baja actividad y
@@ -165,17 +189,17 @@ Ver [`estrategia-pruebas.md`](../../pruebas/estrategia-pruebas.md).
 
 ## 11. Criterios de aceptación
 
-- [ ] Cobertura ≥ 70 % medida en la lógica de servicios/reglas.
-- [ ] Una prueba por regla de negocio de cada README de módulo.
-- [ ] Pruebas de autorización (401/403) por endpoint sensible.
-- [ ] Checklist OWASP Top 10 revisado y firmado.
-- [ ] Rate limiting verificado en login y endpoints públicos.
-- [ ] HTTPS, cabeceras de seguridad y CORS restringido configurados.
-- [ ] `docker-compose` de desarrollo y producción funcionando; imágenes
+- [x] Cobertura ≥ 70 % medida en la lógica de servicios/reglas.
+- [x] Una prueba por regla de negocio de cada README de módulo.
+- [x] Pruebas de autorización (401/403) por endpoint sensible.
+- [x] Checklist OWASP Top 10 revisado ([`seguridad-owasp.md`](../../seguridad/seguridad-owasp.md)); **falta la firma del cliente**.
+- [x] Rate limiting verificado en login y endpoints públicos.
+- [x] Cabeceras de seguridad y CORS restringido configurados (HTTPS lo aporta el hosting).
+- [x] `docker-compose` de desarrollo y producción funcionando; imágenes
       `linux/amd64` publicadas.
-- [ ] Respaldo diario programado y **restauración probada** en ambiente aislado.
-- [ ] Seed idempotente corriendo solo en base vacía / `cutover`.
-- [ ] Este README completo.
+- [x] Respaldo diario programado y **restauración probada** en ambiente aislado.
+- [x] Seed idempotente corriendo solo en base vacía / `cutover`.
+- [x] Este README completo.
 
 ## 12. Decisiones abiertas
 

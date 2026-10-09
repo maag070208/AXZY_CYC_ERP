@@ -13,8 +13,13 @@ import { formatMoney } from "@shared/lib/money";
 import { PanelCard } from "@shared/ui/panel-card";
 import { useBreadcrumbs } from "@shared/lib/useBreadcrumbs";
 
-const TERM_REPORTS: ReportType[] = ["enrollments-by-group", "grades-by-group", "payments-period", "debts"];
-const GROUP_REPORTS: ReportType[] = ["enrollments-by-group", "grades-by-group"];
+const TERM_REPORTS: ReportType[] = [
+  "enrollments-by-group", "grades-by-group", "attendance-by-group", "payments-period", "debts",
+  "dropout", "performance-by-course", "performance-by-teacher", "enrollment-trend", "delinquency", "income-vs-projection",
+];
+const GROUP_REPORTS: ReportType[] = ["enrollments-by-group", "grades-by-group", "attendance-by-group", "dropout"];
+/** Sin ciclo elegido abarcan todos los ciclos (los demás usan el activo). */
+const ALL_TERMS_REPORTS: ReportType[] = ["payments-period", "debts", "delinquency", "income-vs-projection"];
 const RANGE_REPORTS: ReportType[] = ["students-inactive", "payments-period", "debts"];
 const pickDay = (value: unknown): string => (value instanceof Date && !Number.isNaN(value.getTime()) ? toDay(value) : "");
 
@@ -103,7 +108,7 @@ export default function ReportsPage() {
               options={catalog.map((r) => ({ value: r.type, label: r.financial ? `${r.title} · $` : r.title }))}
               onChange={(e) => { setType(e.target.value as ReportType); setResult(null); }} />
             {current && TERM_REPORTS.includes(current) && canTerms && (
-              <ITSelect name="termId" label={t("termName")} value={filters.termId ?? ""} placeholder={current === "payments-period" || current === "debts" ? t("allGroups") : t("activeTerm")}
+              <ITSelect name="termId" label={t("termName")} value={filters.termId ?? ""} placeholder={ALL_TERMS_REPORTS.includes(current) ? t("allGroups") : t("activeTerm")}
                 options={terms.map((x) => ({ value: x.id, label: x.name }))} onChange={(e) => { set("termId", e.target.value); set("groupId", ""); }} />
             )}
             {current && GROUP_REPORTS.includes(current) && (

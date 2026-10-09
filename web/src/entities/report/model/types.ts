@@ -3,8 +3,16 @@ export type ReportType =
   | "students-inactive"
   | "enrollments-by-group"
   | "grades-by-group"
+  | "attendance-by-group"
   | "payments-period"
-  | "debts";
+  | "debts"
+  // M21 — indicadores ejecutivos
+  | "dropout"
+  | "performance-by-course"
+  | "performance-by-teacher"
+  | "enrollment-trend"
+  | "delinquency"
+  | "income-vs-projection";
 
 export interface ReportCatalogItem {
   type: ReportType;
@@ -14,6 +22,8 @@ export interface ReportCatalogItem {
 
 export interface ReportFilters {
   termId?: string;
+  levelId?: string;
+  courseId?: string;
   groupId?: string;
   from?: string;
   to?: string;
@@ -49,5 +59,35 @@ export interface Dashboard {
   totalDebt: number | null;
   overdueDebt: number | null;
   incomeByMonth: Array<{ month: string; total: number }> | null;
+  generatedAt: string;
+}
+
+/** Valor de un indicador frente al ciclo anterior (M21). */
+export interface Indicator {
+  value: number | null;
+  previous: number | null;
+  delta: number | null;
+  deltaPercent: number | null;
+}
+
+export type ExecutiveFilters = Pick<ReportFilters, "termId" | "levelId" | "courseId" | "groupId">;
+
+export interface ExecutiveDashboard {
+  term: { id: string; name: string } | null;
+  previousTerm: { id: string; name: string } | null;
+  indicators: {
+    enrolledCount: Indicator;
+    dropoutRate: Indicator;
+    passRate: Indicator;
+    averageGrade: Indicator;
+    occupancy: Indicator;
+    /** Solo con alcance institucional; `null` para el profesor. */
+    delinquencyRate: Indicator | null;
+    pendingAmount: Indicator | null;
+    collected: Indicator | null;
+    projected: Indicator | null;
+  };
+  enrollmentTrend: Array<{ termId: string; termName: string; initialCount: number; withdrawnCount: number; dropoutRate: number }>;
+  incomeVsProjection: Array<{ month: string; projected: number; collected: number }> | null;
   generatedAt: string;
 }

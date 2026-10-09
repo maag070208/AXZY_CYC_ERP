@@ -24,7 +24,7 @@ Envelope **plano** (estándar PTNV):
 | 403 | Sin permiso/alcance, política ABAC lo niega |
 | 404 | Recurso o ruta inexistente |
 | 409 | Duplicado (`DUPLICATE_RECORD`), conflicto de estado (cupo, empalme, carrera) |
-| 429 | Bloqueo por intentos fallidos (`ACCOUNT_LOCKED`). El *rate limiting* por IP está pendiente (M12) |
+| 429 | Bloqueo por intentos fallidos (`ACCOUNT_LOCKED`) o límite de peticiones por IP (`RATE_LIMITED`) |
 | 500 | Error no controlado (`INTERNAL_ERROR`) |
 | 503 | Dependencia no disponible (almacenamiento sin configurar, BD no lista) |
 
@@ -77,6 +77,7 @@ parámetros que acompañan al error en `details`.
 | `INVALID_CREDENTIALS` | 401 | Usuario o contraseña incorrectos |
 | `ACCOUNT_DEACTIVATED` | 401 | Tu cuenta fue dada de baja. Contacta al administrador. |
 | `ACCOUNT_LOCKED` | 429 | La cuenta está bloqueada temporalmente por intentos fallidos. Intenta de nuevo más tarde. |
+| `RATE_LIMITED` | 429 | Demasiadas peticiones. Intenta de nuevo más tarde. |
 | `INVALID_REFRESH_TOKEN` | 401 | Token de renovación inválido o expirado |
 | `RESET_TOKEN_INVALID` | 422 | Token de recuperación inválido, expirado o ya usado |
 

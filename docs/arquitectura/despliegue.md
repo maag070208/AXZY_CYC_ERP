@@ -77,8 +77,8 @@ docker compose up --build -d
 - HTTPS obligatorio en producción; cabeceras de seguridad (`helmet`), HSTS, CSP,
   `X-Content-Type-Options`, `X-Frame-Options`.
 - CORS restringido al origen del frontend (`WEB_ORIGIN`).
-- Rate limiting en login y endpoints públicos: **pendiente** (M12); hoy solo
-  existe el bloqueo temporal por intentos fallidos.
+- Rate limiting por IP en login y recuperación de contraseña (`RATE_LIMIT_*`);
+  detrás de un proxy hay que fijar `TRUST_PROXY` para que cuente la IP real.
 
 ## 6. Escritorio (opcional, no implementado)
 
@@ -92,8 +92,8 @@ por protocolo `app://` y resuelve la URL de la API por
 - [ ] `.env` con secretos reales (nunca en el repo).
 - [ ] HTTPS y cabeceras de seguridad activas.
 - [ ] CORS restringido al origen del frontend.
-- [ ] Rate limiting en login y endpoints públicos (pendiente de implementar, M12).
+- [ ] `TRUST_PROXY` acorde al despliegue (1 detrás de nginx/Railway) para el límite de peticiones.
 - [ ] `prisma migrate deploy` aplicado (sin seed en arranque).
 - [ ] Backfills insert-missing (permisos/roles/políticas/sys_config) al arrancar.
-- [ ] Respaldos automáticos configurados (ver [`../operacion/respaldos.md`](../operacion/respaldos.md)).
+- [ ] Servicio `backup` arriba y sus archivos copiándose fuera del servidor (ver [`../operacion/respaldos.md`](../operacion/respaldos.md)).
 - [ ] Healthchecks (`/api/v1/health`, `/health/ready`) y monitoreo.

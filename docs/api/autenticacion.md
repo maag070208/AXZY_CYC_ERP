@@ -93,8 +93,10 @@ La web guarda este mapa y arma el menú (`APP_SCREENS`) y los gates
 
 ## 8. Seguridad adicional
 
-- Bloqueo temporal por intentos fallidos (`MAX_LOGIN_ATTEMPTS`, `LOGIN_LOCK_MINUTES`).
-  El *rate limiting* por IP en `/auth/login` y `/auth/forgot-password` está
-  **pendiente** (M12).
+- Bloqueo temporal por cuenta tras intentos fallidos (`MAX_LOGIN_ATTEMPTS`, `LOGIN_LOCK_MINUTES`).
+- *Rate limiting* por IP → `429 RATE_LIMITED` con `Retry-After`: en `/auth/login`
+  cuentan solo los intentos fallidos (`RATE_LIMIT_LOGIN_MAX`); en
+  `/auth/forgot-password` y `/auth/reset-password`, todas las peticiones
+  (`RATE_LIMIT_PUBLIC_MAX`). Ventana `RATE_LIMIT_WINDOW_MINUTES` (15 min).
 - Cada 403 de `requiresPermission` se audita como `ACCESS_DENIED`.
 - HTTPS obligatorio; cookies `Secure`/`SameSite` si se usan.

@@ -33,6 +33,7 @@ JWT_REFRESH_EXPIRES_IN=30d
 MAX_LOGIN_ATTEMPTS=5
 LOGIN_LOCK_MINUTES=15
 PASSWORD_MIN_LENGTH=10
+TRUST_PROXY=1
 INITIAL_ADMIN_USERNAME=admin
 INITIAL_ADMIN_PASSWORD=<fuerte>
 WEB_ORIGIN=https://cyc.axzy.dev,https://*.axzy.dev
@@ -50,6 +51,11 @@ AWS_REGION=us-east-2
 
 Notas:
 - **No** definas `PORT`: Railway lo inyecta y la API lo respeta.
+- `TRUST_PROXY=1`: Railway pone un proxy delante; sin esto el límite de peticiones
+  vería una sola IP para todos los clientes.
+- **Respaldos:** activa los respaldos del servicio Postgres en Railway; para uno a
+  demanda, `DATABASE_URL=<url pública> pnpm --dir api backup` desde tu equipo
+  (requiere `pg_dump` local).
 - El contenedor corre `prisma migrate deploy` al arrancar (el `CMD` del Dockerfile).
 - El **admin inicial** se crea en el primer arranque si la tabla `users` está vacía.
 - `WEB_ORIGIN` son los orígenes permitidos por CORS (`https://…`, sin barra

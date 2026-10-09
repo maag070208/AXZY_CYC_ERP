@@ -4,7 +4,7 @@ import {
   type ITSidebarProps,
 } from "@axzydev/axzy_ui_system";
 import { useCallback, useEffect, type ReactNode } from "react";
-import { FaBook, FaCashRegister, FaChalkboardTeacher, FaChartBar, FaClipboardCheck, FaCog, FaFileSignature, FaQuestionCircle, FaHistory, FaHouseUser, FaLayerGroup, FaListUl, FaUserGraduate, FaUserShield, FaUsers, FaUserCheck, FaBell, FaDatabase, FaUserFriends, FaGraduationCap, FaSlidersH, FaStream } from "react-icons/fa";
+import { FaBook, FaCashRegister, FaChalkboardTeacher, FaChartBar, FaChartLine, FaClipboardCheck, FaCog, FaFileSignature, FaQuestionCircle, FaHistory, FaHouseUser, FaLayerGroup, FaListUl, FaUserGraduate, FaUserShield, FaUsers, FaUserCheck, FaBell, FaDatabase, FaUserFriends, FaGraduationCap, FaSlidersH, FaStream } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -32,6 +32,7 @@ const NAV_ICONS: Record<string, ReactNode> = {
   notifications: <FaBell size={14} />,
   migration: <FaDatabase size={14} />,
   reports: <FaChartBar size={14} />,
+  executive: <FaChartLine size={14} />,
   users: <FaUsers size={14} />,
   roles: <FaUserShield size={14} />,
   audit: <FaHistory size={14} />,
@@ -155,7 +156,7 @@ export default function PrivateRoutes() {
   };
 
   return (
-    <ITLayout topBar={topBar} sidebar={sidebar} contentClassName="max-w-screen! m-0! !px-2">
+    <ITLayout topBar={topBar} sidebar={sidebar} contentClassName="max-w-screen! m-0! !px-0">
       <Outlet />
     </ITLayout>
   );

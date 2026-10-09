@@ -42,6 +42,11 @@ services:
       MAX_LOGIN_ATTEMPTS: ${MAX_LOGIN_ATTEMPTS:-5}
       LOGIN_LOCK_MINUTES: ${LOGIN_LOCK_MINUTES:-15}
       PASSWORD_MIN_LENGTH: ${PASSWORD_MIN_LENGTH:-10}
+      # Límite de peticiones por IP en login y recuperación de contraseña (M12).
+      RATE_LIMIT_LOGIN_MAX: ${RATE_LIMIT_LOGIN_MAX:-20}
+      RATE_LIMIT_PUBLIC_MAX: ${RATE_LIMIT_PUBLIC_MAX:-30}
+      # La web (nginx) hace de proxy: un salto para conocer la IP real del cliente.
+      TRUST_PROXY: ${TRUST_PROXY:-1}
       INITIAL_ADMIN_USERNAME: ${INITIAL_ADMIN_USERNAME:-admin}
       INITIAL_ADMIN_PASSWORD: ${INITIAL_ADMIN_PASSWORD:-Cambiar-2026!}
       WEB_ORIGIN: ${WEB_ORIGIN:-http://localhost:8080}
@@ -84,6 +89,44 @@ services:
       WEB_API_URL: ${WEB_API_URL:-/api/v1}
     ports:
       - "${WEB_PORT:-8080}:80"
+
+  # Respaldo programado (M12): `pg_dump` en formato custom + archivos del
+  # expediente, con retención. Restaurar: `pnpm --dir api restore <archivo.dump>`.
+  backup:
+    image: postgres:16-alpine
+    container_name: cyc-backup
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGHOST: postgres
+      PGDATABASE: ${POSTGRES_DB:-cyc}
+      PGUSER: ${POSTGRES_USER:-cyc}
+      PGPASSWORD: ${POSTGRES_PASSWORD:-cyc_dev_pwd}
+      BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-30}
+      # 0 = un solo respaldo y termina (útil para probar o para un cron externo).
+      BACKUP_INTERVAL_HOURS: ${BACKUP_INTERVAL_HOURS:-24}
+    volumes:
+      - ${BACKUP_DIR:-./backups}:/backups
+      - apistorage:/storage:ro
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        while true; do
+          name="cyc-$$(date +%Y%m%d-%H%M%S)"
+          if pg_dump -Fc --no-owner -f "/backups/$$name.dump"; then
+            (cd /backups && sha256sum "$$name.dump" > "$$name.dump.sha256")
+            if [ -n "$$(ls -A /storage/private 2>/dev/null)" ]; then tar -czf "/backups/$$name-files.tar.gz" -C /storage/private .; fi
+            psql -qc "UPDATE settings SET value = to_jsonb(to_char(now() AT TIME ZONE 'UTC', 'YYYY-MM-DD\"T\"HH24:MI:SS.MS\"Z\"')), updated_at = now() WHERE key = 'MIGRATION_LAST_BACKUP_AT'"
+            find /backups -name 'cyc-*' -mtime "+$$BACKUP_RETENTION_DAYS" -delete
+            echo "[backup] $$name listo"
+          else
+            echo "[backup] $$name FALLÓ" >&2
+          fi
+          [ "$$BACKUP_INTERVAL_HOURS" = "0" ] && exit 0
+          sleep "$$((BACKUP_INTERVAL_HOURS * 3600))"
+        done
 
 volumes:
   pgdata:

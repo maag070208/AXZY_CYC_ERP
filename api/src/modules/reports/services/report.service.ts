@@ -20,6 +20,7 @@ import {
   type ReportRow,
   type ReportType,
 } from "../models/entity/report";
+import { ExecutiveService } from "./executive.service";
 
 const col = (key: string, type: ColumnType = "text"): ReportColumn => ({
   key,
@@ -52,7 +53,10 @@ export interface Dashboard {
  * en sus grupos y sus alumnos) y los reportes con montos exigen `ALL`.
  */
 export class ReportService {
-  constructor(private readonly db: PrismaClient = prismaClient) {}
+  constructor(
+    private readonly db: PrismaClient = prismaClient,
+    private readonly executive: ExecutiveService = new ExecutiveService(db)
+  ) {}
 
   /** Catálogo de reportes que la persona puede ejecutar. */
   catalog(user: UserPermissions): Array<{ type: ReportType; title: string; financial: boolean }> {
@@ -72,13 +76,16 @@ export class ReportService {
       if (typeof value !== "string") throw new HttpError(400, "INVALID_FILTER", { field: key });
       return value;
     };
-    const filters: ReportFilters = { termId: text("termId"), groupId: text("groupId"), from: text("from"), to: text("to"), status: text("status") };
+    const filters: ReportFilters = {
+      termId: text("termId"), levelId: text("levelId"), courseId: text("courseId"), groupId: text("groupId"),
+      from: text("from"), to: text("to"), status: text("status"),
+    };
     for (const key of ["from", "to"] as const) {
       if (filters[key] && !isRealDay(filters[key] as string)) throw new HttpError(400, "INVALID_FILTER", { field: key });
     }
     if (filters.from && filters.to && filters.from > filters.to) throw new HttpError(400, "INVALID_RANGE");
     const uuid = /^[0-9a-f-]{36}$/i;
-    for (const key of ["termId", "groupId"] as const) {
+    for (const key of ["termId", "levelId", "courseId", "groupId"] as const) {
       if (filters[key] && !uuid.test(filters[key] as string)) throw new HttpError(400, "INVALID_FILTER", { field: key });
     }
     return filters;
@@ -126,6 +133,18 @@ export class ReportService {
         return { ...base, ...(await this.paymentsPeriod(filters)) };
       case "debts":
         return { ...base, ...(await this.debts(filters)) };
+      case "dropout":
+        return { ...base, ...(await this.executive.dropout(user, filters)) };
+      case "performance-by-course":
+        return { ...base, ...(await this.executive.performanceByCourse(user, filters)) };
+      case "performance-by-teacher":
+        return { ...base, ...(await this.executive.performanceByTeacher(user, filters)) };
+      case "enrollment-trend":
+        return { ...base, ...(await this.executive.enrollmentTrend(user, filters)) };
+      case "delinquency":
+        return { ...base, ...(await this.executive.delinquency(filters)) };
+      case "income-vs-projection":
+        return { ...base, ...(await this.executive.incomeVsProjection(filters)) };
     }
   }
 
@@ -172,6 +191,8 @@ export class ReportService {
           { active: true },
           ...(term ? [{ termId: term.id }] : []),
           ...(filters.groupId ? [{ id: filters.groupId }] : []),
+          ...(filters.courseId ? [{ courseId: filters.courseId }] : []),
+          ...(filters.levelId ? [{ course: { levelId: filters.levelId } }] : []),
           ...(scoped ? [scoped] : []),
         ],
       },

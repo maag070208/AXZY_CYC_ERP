@@ -4,6 +4,7 @@ import { prismaClient } from "@core/config/database";
 import { HttpError } from "@core/middlewares/error.middleware";
 import { scopeOf } from "@core/permissions";
 import type { AuditLogger } from "@modules/audit";
+import type { ExecutiveService } from "../services/executive.service";
 import type { ReportService } from "../services/report.service";
 import { toPdf, toXlsx } from "../services/report-export";
 
@@ -17,6 +18,7 @@ const actor = (req: Request) => {
 export class ReportController {
   constructor(
     private readonly reports: ReportService,
+    private readonly executiveService: ExecutiveService,
     private readonly audit?: AuditLogger,
     private readonly db: PrismaClient = prismaClient
   ) {}
@@ -59,5 +61,11 @@ export class ReportController {
 
   dashboard = async (req: Request, res: Response) => {
     res.json(await this.reports.dashboard(actor(req)));
+  };
+
+  /** Tablero ejecutivo (M21): indicadores del ciclo frente al anterior. */
+  executive = async (req: Request, res: Response) => {
+    const filters = this.reports.parseFilters(req.query as Record<string, unknown>);
+    res.json(await this.executiveService.dashboard(actor(req), filters));
   };
 }

@@ -1,0 +1,16 @@
+{
+  "all": true,
+  "include": [
+    "src/**/models/entity/*.ts",
+    "src/core/permissions/*.ts",
+    "src/core/policies/*.ts",
+    "src/core/utils/*.ts",
+    "src/core/config/cors.ts",
+    "src/core/middlewares/rate-limit.middleware.ts"
+  ],
+  "reporter": ["text-summary"],
+  "check-coverage": true,
+  "lines": 70,
+  "statements": 70,
+  "branches": 70
+}
