@@ -23,8 +23,8 @@ interface Operation {
 let guest: APIRequestContext;
 let pupil: APIRequestContext;
 let pupilId: string;
-let secured: Operation[] = [];
-let open: Operation[] = [];
+const secured: Operation[] = [];
+const open: Operation[] = [];
 
 test.beforeAll(async () => {
   guest = await anon();
