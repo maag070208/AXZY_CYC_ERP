@@ -25,7 +25,7 @@ arranque** si faltan las variables requeridas.
 |---|---|---|
 | `NODE_ENV` | `development` | Entorno |
 | `TZ` / `APP_TIMEZONE` | `America/Mexico_City` | Zona horaria de presentación |
-| `WEB_ORIGIN` | — | Origen permitido por CORS |
+| `WEB_ORIGIN` | — | Origen(es) permitido(s) por CORS: lista por comas y comodines (`https://*.dominio`) |
 | `JWT_EXPIRES_IN` | `7d` | Vida del access token |
 | `JWT_REFRESH_EXPIRES_IN` | `30d` | Vida del refresh token |
 | `INITIAL_ADMIN_USERNAME` / `INITIAL_ADMIN_PASSWORD` | — | Admin inicial |

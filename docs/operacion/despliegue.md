@@ -35,8 +35,8 @@ LOGIN_LOCK_MINUTES=15
 PASSWORD_MIN_LENGTH=10
 INITIAL_ADMIN_USERNAME=admin
 INITIAL_ADMIN_PASSWORD=<fuerte>
-WEB_ORIGIN=https://<tu-dominio-hostinger>
-APP_URL=https://<tu-dominio-hostinger>
+WEB_ORIGIN=https://cyc.axzy.dev,https://*.axzy.dev
+APP_URL=https://cyc.axzy.dev
 STORAGE_DRIVER=local
 # Integraciones (opcionales)
 ABLY_API_KEY=<ably>
@@ -52,8 +52,9 @@ Notas:
 - **No** definas `PORT`: Railway lo inyecta y la API lo respeta.
 - El contenedor corre `prisma migrate deploy` al arrancar (el `CMD` del Dockerfile).
 - El **admin inicial** se crea en el primer arranque si la tabla `users` está vacía.
-- `WEB_ORIGIN` es el origen permitido por CORS; debe ser exactamente la URL de la web
-  (`https://…`, sin barra final). Con la web en otro dominio es **obligatorio**.
+- `WEB_ORIGIN` son los orígenes permitidos por CORS (`https://…`, sin barra
+  final). Admite **varios separados por coma** y comodines de subdominio
+  (`https://*.axzy.dev`). Con la web en otro dominio es **obligatorio**.
 
 ### 1.3 Dominio público
 **Settings → Networking → Generate Domain** → obtienes algo como

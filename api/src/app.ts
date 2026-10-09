@@ -3,6 +3,7 @@ import express from "express";
 import helmet from "helmet";
 import morgan from "morgan";
 import { env as config } from "@core/config/env.config";
+import { isOriginAllowed, parseCorsOrigins } from "@core/config/cors";
 import { errorMiddleware, notFoundMiddleware } from "@core/middlewares/error.middleware";
 import { setupSwagger } from "@core/swagger/setup";
 import { languageMiddleware } from "@core/i18n/language.middleware";
@@ -10,10 +11,12 @@ import apiRouter from "@modules/api.router";
 
 export const createApp = () => {
   const app = express();
+  // `WEB_ORIGIN` admite lista separada por comas y comodines (p. ej. `https://*.axzy.dev`).
+  const corsPolicy = parseCorsOrigins(config.WEB_ORIGIN);
 
   app.use([
     cors({
-      origin: config.WEB_ORIGIN,
+      origin: (origin, callback) => callback(null, isOriginAllowed(origin, corsPolicy)),
       methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     }),
     express.json({ limit: "1mb" }),
