@@ -20,7 +20,7 @@
 | GET | `/api/v1/reports/:type?format=json\|xlsx\|pdf&termId&groupId&from&to&status` | `reports.view` (+ `reports.export` para archivos) | Exportación auditada `REPORT_EXPORTED` |
 | GET | `/api/v1/dashboard` | `reports.view` | KPIs en vivo; montos solo con alcance ALL |
 
-Tipos: `students-active`, `students-inactive`, `enrollments-by-group`, `grades-by-group`, `payments-period`, `debts`. Desde M18 existe también `attendance-by-group` (asistencia por alumno y grupo).
+Tipos: `students-active`, `students-inactive`, `enrollments-by-group`, `grades-by-group`, `payments-period`, `debts`. Desde M18 existe también `attendance-by-group` (asistencia por alumno y grupo) y desde M21, los indicadores ejecutivos (`dropout`, `performance-by-course`, `performance-by-teacher`, `enrollment-trend`, `delinquency`, `income-vs-projection`).
 
 Decisiones (sección 12):
 - Los reportes por ciclo usan el **ciclo activo** por defecto; `payments-period` usa el **mes en curso** si no hay rango y `debts` todos los ciclos salvo filtro.

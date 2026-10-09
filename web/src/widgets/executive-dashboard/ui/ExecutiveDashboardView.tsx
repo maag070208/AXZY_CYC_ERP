@@ -19,11 +19,17 @@ export default function ExecutiveDashboardView({ filters }: { filters: Executive
   const { termId, levelId, courseId, groupId } = filters;
 
   useEffect(() => {
+    // Al cambiar un filtro, la respuesta de la consulta anterior puede llegar
+    // después que la nueva: se descarta para no pintar indicadores de otro filtro.
+    let stale = false;
     setError(null);
     reportApi
       .executive({ termId, levelId, courseId, groupId })
-      .then(setData)
-      .catch((err) => setError(errorMessage(err, t("common:errors.load"))));
+      .then((result) => !stale && setData(result))
+      .catch((err) => !stale && setError(errorMessage(err, t("common:errors.load"))));
+    return () => {
+      stale = true;
+    };
   }, [termId, levelId, courseId, groupId, t]);
 
   if (error) return <ITAlert variant="error">{error}</ITAlert>;

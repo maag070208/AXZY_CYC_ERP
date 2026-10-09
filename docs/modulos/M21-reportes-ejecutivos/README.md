@@ -4,11 +4,32 @@
 |---|---|
 | **Código** | M21 |
 | **Versión** | 0.1 |
-| **Estado** | Planeado |
+| **Estado** | Terminado (F8, 2026-10-09) |
 | **Fase** | Extras |
 | **Depende de** | M03 (alumnos), M05 (bajas/reingresos), M07 (grupos/inscripciones), M08 (calificaciones), M09 (cargos/pagos), M10 (reportes básicos y export), M18 (asistencia) |
 | **Habilita a** | Dirección y coordinación académica (toma de decisiones), M10 (gráficas avanzadas) |
 | **Permisos** | `reports.view`, `reports.export` (alcance `AREA` para profesor) |
+
+## Implementación (F8, 2026-10-09)
+
+**Estado: terminado.** Código en `api/src/modules/reports` (`services/executive.service.ts`, reglas en `models/entity/report.ts`) y `web/src/{entities/report,widgets/executive-dashboard,pages/executive}`; pantalla `/executive` (menú «Tablero ejecutivo», `reports.view`). Ver [D-052](../../../DECISIONES.md).
+
+| Método | Ruta | Permiso | Nota |
+|---|---|---|---|
+| GET | `/api/v1/dashboard/executive?termId&levelId&courseId&groupId` | `reports.view` | Indicadores `{ value, previous, delta, deltaPercent }` frente al ciclo anterior, tendencia de 6 ciclos e ingresos contra proyección (montos solo con `ALL`) |
+| GET | `/api/v1/reports/:type` | `reports.view` (+ `reports.export`) | Tipos nuevos: `dropout`, `performance-by-course`, `performance-by-teacher`, `enrollment-trend`, `delinquency`, `income-vs-projection` |
+
+Diferencias con el borrador:
+- Los indicadores son **tipos de reporte de M10** (no un contrato aparte): heredan filtros, alcance, exportación `xlsx`/`pdf` y bitácora `REPORT_EXPORTED`. No existen `REPORT_GENERATED` ni `REPORT_VIEW_REFRESHED`.
+- **Sin vistas materializadas ni migración**: se calcula en vivo con los índices existentes.
+- La ocupación por grupo es el reporte `enrollments-by-group` de M10.
+- La proyección de ingresos es lo facturado (cargos vigentes), no una meta capturada en `settings`.
+- El tablero es `GET /dashboard/executive`; no hay `POST /reports/:type/query`.
+
+Pruebas: `api/tests/unit/executive.spec.ts`, `api/tests/e2e/m21-reportes-ejecutivos.spec.ts` y `web/tests/e2e/m21-tablero-ejecutivo.spec.ts`.
+
+> **Cómo leer este documento:** la sección «Implementación» manda sobre el diseño
+> original de las secciones siguientes.
 
 ## 1. Objetivo
 
@@ -186,14 +207,14 @@ vistas materializadas bajo demanda se registra como `REPORT_VIEW_REFRESHED`. Ver
 
 ## 11. Criterios de aceptación
 
-- [ ] Migración con índices de apoyo y vistas materializadas.
-- [ ] Módulo API (routes/controller/service/dto/entity) de solo lectura, con
+- [x] Consultas con los índices existentes (sin vistas materializadas: [D-052](../../../DECISIONES.md)).
+- [x] Módulo API (routes/controller/service/dto/entity) de solo lectura, con
       permisos, alcance `AREA` y bitácora de acceso/exportación.
-- [ ] Indicadores de §4.1 calculados y comparables entre periodos.
-- [ ] Exportación PDF/Excel reutilizando el motor de M10.
-- [ ] Pantallas web (tablero + detalle) con `KpiTile` y `shared/ui/charts`.
-- [ ] Specs pasando (solo los del módulo).
-- [ ] Este README completo.
+- [x] Indicadores de §4.1 calculados y comparables entre periodos.
+- [x] Exportación PDF/Excel reutilizando el motor de M10.
+- [x] Pantallas web (tablero + detalle) con `KpiTile` y `shared/ui/charts`.
+- [x] Specs pasando (solo los del módulo).
+- [x] Este README completo.
 
 ## 12. Decisiones abiertas
 

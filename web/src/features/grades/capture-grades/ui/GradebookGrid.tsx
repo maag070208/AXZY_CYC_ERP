@@ -38,14 +38,21 @@ export default function GradebookGrid({ groupId, reloadKey, onClosed }: Props) {
   const [confirmClose, setConfirmClose] = useState(false);
 
   const load = useCallback(() => {
+    // Una carga reemplazada por otra no debe pisar el libro ni borrar lo que
+    // ya se está capturando: su respuesta se descarta.
+    let stale = false;
     gradeApi
       .gradebook(groupId)
       .then((b) => {
+        if (stale) return;
         setBook(b);
         setDraft({});
         setError(null);
       })
-      .catch((err) => setError(errorMessage(err, t("common:errors.load"))));
+      .catch((err) => !stale && setError(errorMessage(err, t("common:errors.load"))));
+    return () => {
+      stale = true;
+    };
   }, [groupId, t]);
   useEffect(load, [load, reloadKey]);
 

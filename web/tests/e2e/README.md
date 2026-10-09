@@ -24,6 +24,7 @@ Cubre los módulos construidos (M02–M11, M14–M20 y M22):
 | `m18-m19-asistencia-notificaciones.spec.ts` | `/groups/:id` (Asistencia), `/attendance`, `/notifications` | Pase de lista, justificante y su resolución, plantillas y bandeja |
 | `m20-migracion.spec.ts` | `/migration` | Asistente de importación CSV con vista previa e historial |
 | `m22-programas-planes-pago.spec.ts` | `/programs`, `/students/:id` (Plan de pagos) | Carrera, plan de estudios, asignación con descuento y plan del alumno |
+| `m21-tablero-ejecutivo.spec.ts` | `/executive` | Indicadores del ciclo elegido, bloque de cobranza solo con alcance institucional, acceso desde el menú |
 | `m11-administracion-catalogos.spec.ts` | `/settings`, `/catalogs` | Parámetros persistentes, CRUD de motivo de baja, duplicado, solo lectura por rol |
 
 ## Cómo correrlas

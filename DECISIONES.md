@@ -368,6 +368,23 @@ Plantilla:
 - **Alternativas consideradas:** limitador propio (menos probado para lo mismo); límite en nginx (no cubre Railway, donde no hay nginx delante de la API); medir cobertura de servicios instrumentando la API durante el e2e (más frágil que útil por ahora).
 - **Consecuencias / impacto:** con más de una réplica de la API el límite debe pasar a un almacén compartido. Copiar los respaldos fuera del servidor es tarea de operación. Ver [`docs/operacion/respaldos.md`](docs/operacion/respaldos.md) y [`docs/seguridad/seguridad-owasp.md`](docs/seguridad/seguridad-owasp.md).
 
+### D-052 — Indicadores ejecutivos (M21): definiciones y cálculo en vivo
+- **Fecha:** 2026-10-09
+- **Estado:** aceptada
+- **Contexto:** M21 dejaba abiertas las fórmulas, la fuente de la proyección de ingresos, el alcance del profesor y si hacían falta vistas materializadas.
+- **Decisión:**
+  - **Mismo motor que M10.** Los indicadores son tipos de reporte nuevos (`dropout`, `performance-by-course`, `performance-by-teacher`, `enrollment-trend`, `delinquency`, `income-vs-projection`): heredan catálogo, filtros, alcance, exportación XLSX/PDF y bitácora. La ocupación por grupo ya la daba `enrollments-by-group`.
+  - **Deserción** = bajas ÷ matrícula inicial del grupo. La matrícula inicial cuenta toda inscripción que no salió por **cambio de grupo** (D-030): un cambio no es deserción.
+  - **Rendimiento** = promedio de calificaciones finales y % de acreditados sobre lo ya cerrado (`PASSED` + `FAILED`). Sin cierres el valor es `null`, no 0 %.
+  - **Morosidad** = cargos vencidos con saldo ÷ cargos ya vencidos, y su monto pendiente.
+  - **Ingresos contra proyección:** lo *proyectado* son los cargos vigentes (monto − descuento) y lo *cobrado*, los pagos vigentes de esos mismos cargos, agrupados por **mes de vencimiento**. No se captura una meta aparte: la proyección es lo facturado.
+  - **Comparación:** el tablero (`GET /dashboard/executive`) devuelve cada indicador como `{ value, previous, delta, deltaPercent }` frente al ciclo inmediato anterior por fecha de inicio; la tendencia muestra el ciclo elegido y los cinco anteriores.
+  - **Filtros** por ciclo, nivel, curso y grupo en los indicadores académicos; los de cobranza solo por ciclo (un cargo no pertenece a un grupo).
+  - **Alcance:** el profesor ve los indicadores académicos de sus grupos; los de cobranza exigen `ALL` (igual que M10, D-034).
+  - **Sin vistas materializadas.** Se calcula en vivo con los índices existentes; se añadirán cuando una medición muestre que hacen falta.
+- **Alternativas consideradas:** un módulo aparte con su propio formato de respuesta (duplicaba exportación y permisos); capturar una meta de ingresos en `settings` (un dato más que mantener y que nadie pidió).
+- **Consecuencias / impacto:** Los tipos nuevos aparecen solos en `/reports`. Si el cliente define otra fórmula, cambia en `ExecutiveService` sin tocar el contrato. Ver [`docs/modulos/M21-reportes-ejecutivos/README.md`](docs/modulos/M21-reportes-ejecutivos/README.md).
+
 ---
 
 ## Mapeo desde la especificación original
@@ -401,7 +418,7 @@ Plantilla:
 
 ## Cómo registrar una nueva decisión
 
-1. Elige el siguiente `D-###` libre (hoy: `D-052`).
+1. Elige el siguiente `D-###` libre (hoy: `D-053`).
 2. Copia la plantilla de arriba y llénala.
 3. Enlaza al documento/módulo afectado.
 4. Si reemplaza a otra, actualiza el estado de la anterior.

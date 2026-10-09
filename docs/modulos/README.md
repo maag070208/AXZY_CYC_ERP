@@ -63,5 +63,5 @@ abiertas, siguiendo la
 | M18 | [Asistencia y justificantes](M18-asistencia-justificantes/README.md) | Control de asistencia | Terminado (F6) |
 | M19 | [Notificaciones](M19-notificaciones/README.md) | Correo, SMS y WhatsApp | Terminado (F6) |
 | M20 | [Migración de datos históricos](M20-migracion-historica/README.md) | Importación repetible e idempotente | Terminado (F7) |
-| M21 | [Reportes y tablero ejecutivo](M21-reportes-ejecutivos/README.md) | Indicadores avanzados | Planeado |
+| M21 | [Reportes y tablero ejecutivo](M21-reportes-ejecutivos/README.md) | Indicadores avanzados | Terminado (F8) |
 | M22 | [Programas, plan de estudios y plan de pagos](M22-programas-planes-pago/README.md) | Carreras, materias por periodo y plan de pagos del alumno | Terminado (F10) |

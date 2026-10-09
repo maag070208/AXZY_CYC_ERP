@@ -45,6 +45,7 @@ npm run test:e2e:report      # abrir el último reporte HTML
 | `migration.spec.ts` | M20 | Vista previa sin escribir, ejecución con `Idempotency-Key`, checksum, respaldo previo, alumnos y profesores |
 | `m22-programs-plans.spec.ts` | M22 | Carreras, plan de estudios, plan de pagos idempotente, descuentos, cancelación |
 | `m12-seguridad.spec.ts` | M12 | Cabeceras, envelope sin detalles internos, endpoints públicos declarados y barrido 401/403 de toda la API a partir del OpenAPI |
+| `m21-reportes-ejecutivos.spec.ts` | M21 | Deserción, rendimiento, tendencia, morosidad e ingresos contra proyección; tablero ejecutivo con comparación, filtros y alcance; exportación |
 | `m11-administracion-catalogos.spec.ts` | M11 | `settings` (todo o nada, bitácora, idioma), niveles, ciclos (uno activo), motivos de baja, tipos de documento |
 
 ## Qué cubre `auth.spec.ts` (M02)
