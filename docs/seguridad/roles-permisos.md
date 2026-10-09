@@ -51,7 +51,7 @@ Los roles `system` están protegidos de borrado/renombrado.
 | `config` | `config.view`, `config.manage` |
 | `levels` | `levels.view`, `levels.manage` (catálogo M11) |
 | `students` | `students.view`, `students.create`, `students.edit`, `students.delete`, `students.export` |
-| `students` | `students.movements` (bajas/reingresos) |
+| `students` | `students.movements` (bajas/reingresos; ALL u OWN) |
 | `teachers` | `teachers.view`, `teachers.create`, `teachers.edit` |
 | `documents` | `documents.view`, `documents.upload`, `documents.validate`, `documents.delete` |
 | `kardex` | `kardex.view`, `kardex.export` |

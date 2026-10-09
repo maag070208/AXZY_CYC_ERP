@@ -49,9 +49,15 @@ reglas complejas (M07, M08, M09, M16) ≈ 1.5–2 sprints.
 | M01 | Documentado | Falta aprobación del cliente por escrito |
 | M02 | ✅ Terminado (F1) | Usuarios CRUD multi-rol, baja/reactivación, desbloqueo, contraseña temporal y cambio obligatorio; consola `/roles` (roles, matriz, políticas ABAC); recuperación de contraseña; bitácora consultable `/audit` |
 | M11 | ✅ Terminado (F1) | `settings` + niveles, ciclos (uno activo), motivos de baja y tipos de documento; pantallas `/settings` y `/catalogs` |
-| M03–M10, M12–M21 | Documentado | Sin código |
+| M03 | ✅ Terminado (F2) | Alumnos: matrícula AAAA-NNNN, CURP con dígito verificador, tutores, homónimos, exportación, alcance por registro |
+| M04 | ✅ Terminado (F2) | Profesores con cuenta PROFESOR e invitación; baja/reactivación |
+| M05 | ✅ Terminado (F2) | Bajas/reingresos con motivo e historial inmutable |
+| M06 | ✅ Terminado (F2) | Expediente privado (S3/local), validación por contenido, faltantes; kardex calculado + PDF (se llena en F3) |
+| M07–M10, M12–M21 | Documentado | Sin código |
 | F0 — Infra | ✅ Completada | Monorepo + Docker por proyecto + `docker-compose` + CI (incluye e2e); migración `init` + seed; login por proxy de nginx verificado; e2e de auth (contrato + navegador) en verde |
 | F1 — Acceso y catálogos | ✅ Completada (pendiente H1 con el cliente) | Migración `f1_policies_catalogs`; unitarias 39, contrato API 64, navegador 30 — todo en verde |
+| F2 — Personas y expediente | ✅ Completada (pendiente H2 con el cliente) | Migración `f2_personas_expediente`; unitarias 51, contrato API 100, navegador 43 — todo en verde |
+| F3 — Gestión académica | ⏭️ Siguiente | M07 (cursos, grupos, inscripciones; conecta AREA, cancelación de inscripciones) y M08 (calificaciones; alimenta el kardex) |
 
 ## 3. Detalle por fase
 

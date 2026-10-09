@@ -3,12 +3,27 @@
 | Campo | Valor |
 |---|---|
 | **Código** | M03 |
-| **Versión** | 0.1 |
-| **Estado** | Planeado |
+| **Versión** | 1.0 |
+| **Estado** | Terminado (F2, 2026-10-09) |
 | **Fase** | Personas |
 | **Depende de** | M02 (usuarios, roles y bitácora) |
 | **Habilita a** | M05 (bajas/reingresos), M06 (kardex/expediente), M07 (inscripciones), M09 (cargos) |
 | **Permisos** | `students.view`, `students.create`, `students.edit`, `students.delete`, `students.export` |
+
+## Implementación (F2, 2026-10-09)
+
+**Estado: terminado.** Código en `api/src/modules/students` y `web/src/{entities,features}/student`, páginas `/students`, `/students/new`, `/students/:id`, `/students/:id/edit`.
+
+| Método | Ruta | Permiso | Nota |
+|---|---|---|---|
+| POST | `/api/v1/students/query` | `students.view` | Filtros `nombre` (por palabras), `matricula`, `curp`, `status`, `fechaIngreso` (rango); alcance por registro |
+| GET | `/api/v1/students/summary` | `students.view` | Totales activos/baja dentro del alcance |
+| POST | `/api/v1/students` | `students.create` | Genera la matrícula; `confirmDuplicate` para homónimos |
+| GET · PATCH | `/api/v1/students/:id` | `students.view` · `students.edit` | Tutores se reemplazan completos; la matrícula no es editable |
+| DELETE | `/api/v1/students/:id` | `students.delete` | Baja lógica = movimiento de baja con motivo (M05) |
+| POST | `/api/v1/students/export` | `students.export` | Excel con los filtros vigentes; audita `STUDENTS_EXPORTED` |
+
+Diferencias con el borrador: el homónimo responde `409 DUPLICATE_STUDENT` (con `details.matches`) en lugar de `DUPLICATE_RECORD`; la matrícula usa un consecutivo atómico por año (`matricula_sequences`); el alcance `AREA` del profesor queda listo para M07 (sin grupos no ve alumnos). Decisiones: [D-023](../../../DECISIONES.md), [D-026](../../../DECISIONES.md).
 
 ## 1. Objetivo
 
@@ -225,12 +240,12 @@ reingreso con motivo/historial pertenecen a M05. Ver
 
 ## 11. Criterios de aceptación
 
-- [ ] Migración y modelos Prisma (`students`, `guardians`) con índices y únicos.
-- [ ] Módulo API `students` (routes/controller/service/dto/entity) con permisos,
+- [x] Migración y modelos Prisma (`students`, `guardians`) con índices y únicos.
+- [x] Módulo API `students` (routes/controller/service/dto/entity) con permisos,
       alcance y bitácora.
-- [ ] Pantallas web (listado, alta, edición) con UI kit e i18n `students`.
-- [ ] Specs del módulo pasando.
-- [ ] Este README completo.
+- [x] Pantallas web (listado, alta, edición) con UI kit e i18n `students`.
+- [x] Specs del módulo pasando.
+- [x] Este README completo.
 
 ## 12. Decisiones abiertas
 

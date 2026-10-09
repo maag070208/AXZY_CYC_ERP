@@ -29,6 +29,9 @@ npm run test:e2e:report      # abrir el último reporte HTML
 | `auth.spec.ts` | M02 | Login, lockout, `/auth/me`, refresh rotado, logout, recuperación de contraseña de punta a punta, autorización por endpoint |
 | `users.spec.ts` | M02 | CRUD de usuarios, multi-rol, validaciones, baja/reactivación, desbloqueo, contraseña temporal y cambio propio, bitácora |
 | `permissions.spec.ts` | M02 | Roles dinámicos, matriz (anti-lockout), excepciones por persona, políticas ABAC (prioridad, roles, `@user.id`) |
+| `students.spec.ts` | M03/M05 | Alta con matrícula, CURP, homónimos, tutores, búsqueda, edición, alcance OWN/AREA, exportación, baja/reingreso e historial |
+| `teachers.spec.ts` | M04 | Alta transaccional con cuenta e invitación, edición sincronizada, baja/reactivación, reenvío, alcance OWN |
+| `documents.spec.ts` | M06 | Subida multipart, firmas de archivo, 5 MB, descarga privada, validación/rechazo/reemplazo, baja lógica, faltantes, kardex, alcance |
 | `m11-administracion-catalogos.spec.ts` | M11 | `settings` (todo o nada, bitácora, idioma), niveles, ciclos (uno activo), motivos de baja, tipos de documento |
 
 ## Qué cubre `auth.spec.ts` (M02)
@@ -63,7 +66,8 @@ npm run --silent test:e2e:reset-token -- e2e_usuario   # token de recuperación 
 
 Cada corrida crea usuarios con el prefijo `e2e_` y un sufijo único
 (`newRunId()`); roles `E2E_*`, políticas `e2e_*` y registros de catálogo
-`E2E …`. `afterAll` los borra (`clearAuthE2E`, `clearAccessE2E`,
+`E2E …`, alumnos con `nombres` `E2E …` (y sus archivos del driver local) y
+profesores con correo `e2e_…`. `afterAll` los borra (`clearAuthE2E`, `clearAccessE2E`,
 `clearCatalogsE2E`) y restaura los parámetros que tocó. Ningún dato real del
 cliente se toca.
 

@@ -3,12 +3,26 @@
 | Campo | Valor |
 |---|---|
 | **Código** | M06 |
-| **Versión** | 0.1 |
-| **Estado** | En diseño |
+| **Versión** | 1.0 |
+| **Estado** | Terminado (F2, 2026-10-09) |
 | **Fase** | Académico (Expediente y academia) |
 | **Depende de** | M02 (autenticación, roles y bitácora), M03 (alumnos), M07 (inscripciones), M08 (calificaciones finales), M11 (`document_types`) |
 | **Habilita a** | M10/M21 (reportes con estatus documental), M17 (kardex alimentado por exámenes) |
 | **Permisos** | `documents.view`, `documents.upload`, `documents.validate`, `documents.delete`, `kardex.view`, `kardex.export` |
+
+## Implementación (F2, 2026-10-09)
+
+**Estado: terminado** (el kardex se llenará con cursos y calificaciones en F3). Código en `api/src/modules/documents`, `web/src/features/document/documents-panel` y `web/src/widgets/kardex-pdf`; pestañas «Expediente» y «Kardex» del alumno.
+
+| Método | Ruta | Permiso |
+|---|---|---|
+| GET · POST | `/api/v1/students/:studentId/documents` | `documents.view` · `documents.upload` |
+| GET | `/api/v1/documents/:id/download` | `documents.view` (alcance del alumno) |
+| PATCH | `/api/v1/documents/:id/validate` | `documents.validate` |
+| DELETE | `/api/v1/documents/:id` | `documents.delete` |
+| GET | `/api/v1/students/:studentId/kardex` | `kardex.view` |
+
+Diferencias con el borrador: el tipo de documento es FK al catálogo `document_types` de M11 (no un enum), así «faltantes» sale directo de `obligatorio`; el almacenamiento es privado con driver S3 o local ([D-023](../../../DECISIONES.md)); el PDF del kardex se genera en el navegador con `@react-pdf/renderer` (permiso `kardex.export`), sin endpoint `/kardex/pdf` ([D-024](../../../DECISIONES.md)); un alumno en BAJA conserva su expediente en solo lectura (`409 STUDENT_INACTIVE` al escribir).
 
 ## 1. Objetivo
 
@@ -255,12 +269,12 @@ metadatos y la clave del objeto.
 
 ## 11. Criterios de aceptación
 
-- [ ] Migración y modelo Prisma (`Document` + enums, índices y `deletedAt`).
-- [ ] Módulo API (routes/controller/service/dto/entity) con `multer`
+- [x] Migración y modelo Prisma (`Document` + enums, índices y `deletedAt`).
+- [x] Módulo API (routes/controller/service/dto/entity) con `multer`
       `memoryStorage`, S3 privado, permisos y bitácora.
-- [ ] Pantallas web con UI kit (expediente + kardex + export PDF) e i18n.
-- [ ] Specs pasando (solo los del módulo).
-- [ ] Este README completo.
+- [x] Pantallas web con UI kit (expediente + kardex + export PDF) e i18n.
+- [x] Specs pasando (solo los del módulo).
+- [x] Este README completo.
 
 ## 12. Decisiones abiertas
 

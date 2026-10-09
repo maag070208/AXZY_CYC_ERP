@@ -167,6 +167,29 @@ Plantilla:
 - **Estado:** aceptada
 - **Decisión:** `api/` es dueño de la base: expone `test:e2e:provision` (usuarios fijos por rol), `test:e2e:clean` (borra todo lo `e2e_`/`E2E`) y `test:e2e:reset-token` (token de recuperación conocido). La suite web los invoca en `globalSetup`/`globalTeardown` y en los specs; nunca toca la base directo. CI corre ambas suites contra Postgres de servicio.
 
+### D-023 — Almacenamiento privado: S3 o disco local (resuelve A-004 de forma provisional)
+- **Fecha:** 2026-10-09
+- **Estado:** aceptada
+- **Contexto:** A-004 (¿S3 o local?) seguía abierta y M06 necesita guardar expedientes ya.
+- **Decisión:** Un solo puerto (`core/services/storage.ts`) con dos drivers: `s3` (si hay credenciales) y `local` (directorio privado `STORAGE_LOCAL_DIR`, rutas confinadas). Sin variable, S3 si existe; si no, local fuera de producción. En producción sin ninguno → `503 STORAGE_NOT_CONFIGURED`. `docker-compose` usa `local` con volumen `apistorage`. Nunca hay URLs públicas: los archivos salen por endpoints con permiso y alcance.
+- **Consecuencias / impacto:** Cambiar a S3 es configurar variables; los respaldos deben incluir el volumen cuando el driver es local (M12).
+
+### D-024 — Tipo de documento como catálogo y kardex PDF en el navegador
+- **Fecha:** 2026-10-09
+- **Estado:** aceptada
+- **Decisión:** `documents.documentTypeId` es FK a `document_types` (M11), no un enum fijo: los faltantes salen de `obligatorio` y el catálogo es administrable. El kardex se calcula al vuelo (nunca se persiste) y su PDF se arma en la web con `@react-pdf/renderer`, cargado bajo demanda y protegido por `kardex.export`; no hay endpoint `/kardex/pdf`.
+- **Consecuencias / impacto:** Si se requiere un PDF firmado/sellado por el servidor, se agrega el endpoint reutilizando `KardexService`.
+
+### D-025 — Invitación del profesor sin outbox (hasta M19)
+- **Fecha:** 2026-10-09
+- **Estado:** aceptada
+- **Decisión:** El alta del profesor crea profesor + cuenta PROFESOR + token de invitación (restablecimiento de un uso, 72 h) en una transacción; el correo sale después del commit y no bloquea. M19 reemplazará el envío directo por el outbox con reintentos. El username se deriva del correo (numerado si choca).
+
+### D-026 — Bajas: siempre con movimiento; alcance AREA por resolvedor
+- **Fecha:** 2026-10-09
+- **Estado:** aceptada
+- **Decisión:** `DELETE /students/:id` (M03) registra el mismo movimiento de baja con motivo que `POST /students/:id/baja` (M05): no hay baja sin historial. Motivo mínimo 3 caracteres (el catálogo incluye «Otro»). El alcance `AREA` se resuelve con `registerAreaResolver` que implementará M07 (grupos del profesor); sin resolvedor se comporta como `OWN` (fail-closed). La cancelación de inscripciones y la fuente académica del kardex son puertos que M07/M08 conectan.
+
 ---
 
 ## Mapeo desde la especificación original
@@ -190,7 +213,7 @@ Plantilla:
 | A-001 | Proveedor SMS/WhatsApp | M19 | ¿Twilio u otro? Ably ya se usa para tiempo real. | abierta |
 | A-002 | Regla de aprobación | M08 | ¿Umbral 70 configurable por nivel/ciclo? | abierta |
 | A-003 | Recargos por mora | M09 | ¿Se aplican? ¿Fórmula y periodicidad? | abierta |
-| A-004 | Almacenamiento de archivos | M06 | ¿S3 (estándar PTNV) o local? | abierta |
+| A-004 | Almacenamiento de archivos | M06 | ¿S3 (estándar PTNV) o local? | provisional: ambos ([D-023](#d-023--almacenamiento-privado-s3-o-disco-local-resuelve-a-004-de-forma-provisional)) |
 | A-005 | Anti-fraude en examen | M16 | ¿Registrar cambios de pestaña? ¿Bloquear copiar/pegar? | abierta |
 | A-006 | Alerta de inasistencia | M18 | ¿Umbral por defecto (80%) configurable? | abierta |
 | A-007 | Acceso de alumnos | M02/M16 | ¿Los alumnos entran al portal o solo presencial? | abierta |
@@ -200,7 +223,7 @@ Plantilla:
 
 ## Cómo registrar una nueva decisión
 
-1. Elige el siguiente `D-###` libre (hoy: `D-023`).
+1. Elige el siguiente `D-###` libre (hoy: `D-027`).
 2. Copia la plantilla de arriba y llénala.
 3. Enlaza al documento/módulo afectado.
 4. Si reemplaza a otra, actualiza el estado de la anterior.

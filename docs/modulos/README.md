@@ -26,15 +26,15 @@ abiertas, siguiendo la
 
 | Código | Módulo | Objetivo | Estado |
 |---|---|---|---|
-| M03 | [Alumnos](M03-alumnos/README.md) | Altas y búsqueda de alumnos | Planeado |
-| M04 | [Profesores](M04-profesores/README.md) | Altas de profesores y su cuenta | Planeado |
-| M05 | [Bajas y reingresos](M05-bajas-reingresos/README.md) | Movimientos conservando historial | Planeado |
+| M03 | [Alumnos](M03-alumnos/README.md) | Altas y búsqueda de alumnos | Terminado (F2) |
+| M04 | [Profesores](M04-profesores/README.md) | Altas de profesores y su cuenta | Terminado (F2) |
+| M05 | [Bajas y reingresos](M05-bajas-reingresos/README.md) | Movimientos conservando historial | Terminado (F2) |
 
 ## Expediente y academia
 
 | Código | Módulo | Objetivo | Estado |
 |---|---|---|---|
-| M06 | [Kardex y expediente documental](M06-kardex-expediente/README.md) | Documentos y kardex por alumno | Planeado |
+| M06 | [Kardex y expediente documental](M06-kardex-expediente/README.md) | Documentos y kardex por alumno | Terminado (F2) |
 | M07 | [Cursos, grupos e inscripciones](M07-cursos-grupos-inscripciones/README.md) | Oferta académica e inscripciones con reglas | Planeado |
 | M08 | [Exámenes y calificaciones](M08-examenes-calificaciones/README.md) | Captura de calificaciones y cálculo final | Planeado |
 

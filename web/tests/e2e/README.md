@@ -14,6 +14,9 @@ Cubre **M02** (acceso, usuarios, consola de roles, recuperación) y **M11**
 | `users.spec.ts` | `/users`, `/change-password` | Alta multi-rol, edición, baja con motivo, reactivación, primer acceso con contraseña temporal |
 | `roles.spec.ts` | `/roles` | Rol nuevo (copiando permisos), matriz con anti-lockout, política DENY aplicada por la API |
 | `password-recovery.spec.ts` | `/forgot-password`, `/reset-password` | Solicitud sin revelar cuentas, enlace inválido, restablecer y token de un uso |
+| `students.spec.ts` | `/students` | Alta con tutor y matrícula, CURP inválida, homónimo, búsqueda, edición, baja/reingreso con historial |
+| `teachers.spec.ts` | `/teachers` | Alta con invitación, primer acceso con la invitación, edición, baja/reactivación |
+| `documents.spec.ts` | `/students/:id` | Expediente (subida, validación, rechazo, baja, tipo inválido) y kardex en PDF |
 | `m11-administracion-catalogos.spec.ts` | `/settings`, `/catalogs` | Parámetros persistentes, CRUD de motivo de baja, duplicado, solo lectura por rol |
 
 ## Cómo correrlas

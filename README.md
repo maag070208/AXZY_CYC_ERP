@@ -3,10 +3,11 @@
 Monorepo del **Sistema de Gestión Escolar**. La implementación sigue los
 **estándares de la casa (PTNV)** y el **Axzy UI System**.
 
-> **Estado:** documentación completa (M01–M21). **F0 y F1 terminadas:** M02
-> (acceso, roles, políticas ABAC, bitácora y recuperación de contraseña) y M11
-> (configuración y catálogos) en `api/` y `web/`, con pruebas unitarias, de
-> contrato y de navegador en CI. Se construye módulo a módulo siguiendo el
+> **Estado:** documentación completa (M01–M21). **F0, F1 y F2 terminadas:**
+> M02 (acceso, roles, políticas ABAC, bitácora, recuperación de contraseña),
+> M11 (configuración y catálogos), M03 (alumnos), M04 (profesores), M05
+> (bajas/reingresos) y M06 (expediente y kardex) en `api/` y `web/`, con pruebas
+> unitarias, de contrato y de navegador en CI. Sigue F3 (M07–M08). Se construye módulo a módulo siguiendo el
 > [roadmap](docs/guia/roadmap.md) y las [convenciones](docs/guia/convenciones.md).
 
 ---

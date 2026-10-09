@@ -72,7 +72,7 @@ Envelope **plano** (estándar PTNV):
 | `INVALID_FILTER` | 400 | Valor de filtro no admitido por la columna |
 | `INVALID_RANGE` | 400 | Rango de fechas invertido |
 | `INVALID_IDEMPOTENCY_KEY` | 400 | `Idempotency-Key` con formato inválido |
-| `REQUIRED_FIELD` / `INVALID_CURP` / `INVALID_EMAIL` / `INVALID_FORMAT` | 400 | Validaciones específicas |
+| `REQUIRED_FIELD` / `INVALID_CURP` / `INVALID_EMAIL` / `INVALID_PHONE` / `INVALID_DATE` | 400 | Validaciones específicas (dentro de `VALIDATION_ERROR.details`) |
 
 ### Recursos y conflictos
 | `code` | HTTP | Descripción |
@@ -81,6 +81,18 @@ Envelope **plano** (estándar PTNV):
 | `RECORD_NOT_FOUND` | 404 | Registro inexistente |
 | `DUPLICATE_RECORD` | 409 | Clave única repetida |
 | `DUPLICATE_CURP` | 409 | CURP ya registrada |
+| `DUPLICATE_STUDENT` | 409 | Homónimo (nombre + nacimiento); se confirma con `confirmDuplicate` |
+| `GUARDIAN_REQUIRED` / `MULTIPLE_PAYMENT_RESPONSIBLES` | 400 | Menor sin tutor / más de un responsable de pago |
+| `STUDENT_NOT_FOUND` | 404 | Alumno inexistente o fuera de alcance |
+| `STUDENT_ALREADY_ACTIVE` | 409 | Reingreso de un alumno activo |
+| `REASON_NOT_AVAILABLE` | 400 | Motivo de baja inexistente o inactivo |
+| `FUTURE_DATE` | 400 | Fecha futura (nacimiento, movimiento) |
+| `USER_ALREADY_LINKED` | 409 | La cuenta ya está vinculada a otra persona |
+| `TEACHER_NOT_FOUND` / `TEACHER_EMAIL_TAKEN` | 404 / 409 | Profesor inexistente / correo usado por profesor o cuenta |
+| `TEACHER_INACTIVE` / `TEACHER_ALREADY_ACTIVE` / `INVITATION_NOT_PENDING` | 409 | Conflictos de estado del profesor |
+| `FILE_REQUIRED` / `DOCUMENT_TYPE_NOT_AVAILABLE` | 400 | Subida sin archivo / tipo de documento inactivo |
+| `DOCUMENT_NOT_FOUND` / `DOCUMENT_FILE_MISSING` | 404 | Documento inexistente o fuera de alcance / archivo ausente |
+| `DOCUMENT_ALREADY_REVIEWED` | 409 | Validar o rechazar un documento ya revisado |
 | `DUPLICATE_MATRICULA` | 409 | Matrícula repetida |
 | `GROUP_FULL` | 409 | Grupo sin cupo |
 | `ALREADY_ENROLLED` | 409 | Doble inscripción al mismo grupo |
