@@ -3,8 +3,8 @@
 | Campo | Valor |
 |---|---|
 | **Código** | M02 |
-| **Versión** | 0.1 |
-| **Estado** | Planeado |
+| **Versión** | 1.0 |
+| **Estado** | Terminado (F1, 2026-10-09) |
 | **Fase** | Núcleo |
 | **Depende de** | M01 (alcance y flujos aprobados) |
 | **Habilita a** | M03, M04, M07, M11 y, en cadena, todos los módulos (es la base de acceso y auditoría) |
@@ -219,6 +219,13 @@ model AuditLog {
 }
 ```
 
+> **Implementado (diferencias con el borrador de arriba):** el lockout vive en
+> `users.failedAttempts/lockedUntil` (no hay tabla `login_attempts`: los intentos
+> quedan en bitácora como `AUTH_LOGIN_FAILED`/`AUTH_ACCOUNT_LOCKED`);
+> `user_roles` usa PK compuesta `(userId, roleKey)`; las relaciones de seguridad
+> borran en cascada; se agregan `policies`, `policy_conditions` y `policy_roles`
+> ([D-018](../../../DECISIONES.md)). Fuente: `api/prisma/schema.prisma`.
+
 **Índices:** `users.username`/`users.email` únicos; `login_attempts(identifier,
 attemptedAt)`; `audit_logs` por `action`, `(entityType, entityId)`, `userId` y
 `createdAt`; `refresh_tokens.userId`.
@@ -261,26 +268,35 @@ en `api.router.ts` (ver [`../../arquitectura/api-modular.md`](../../arquitectura
 
 | Método | Ruta | Descripción | Permiso |
 |---|---|---|---|
-| POST | `/api/v1/auth/login` | Inicia sesión | Público |
+| POST | `/api/v1/auth/login` | Inicia sesión (username o email) | Público |
 | POST | `/api/v1/auth/refresh` | Rota el refresh y emite nuevo access | Refresh token |
-| GET | `/api/v1/auth/me` | Usuario, roles y mapa de permisos | Autenticado |
-| POST | `/api/v1/auth/logout` | Revoca el refresh vigente | Autenticado |
-| POST | `/api/v1/auth/forgot-password` | Solicita recuperación | Público |
+| GET | `/api/v1/auth/me` | Usuario, roles, mapa de permisos, idioma y `mustChangePassword` | Autenticado |
+| POST | `/api/v1/auth/logout` | Revoca el refresh enviado (o todos) | Autenticado |
+| POST | `/api/v1/auth/change-password` | Cambio propio; revoca sesiones y emite tokens | Autenticado |
+| POST | `/api/v1/auth/forgot-password` | Solicita recuperación (siempre 200) | Público |
 | POST | `/api/v1/auth/reset-password` | Restablece con token de un uso | Público |
-| POST | `/api/v1/users/query` | Listado server-side | `users.view` |
-| POST | `/api/v1/users` | Alta de usuario | `users.create` |
-| GET | `/api/v1/users/:id` | Detalle | `users.view` |
-| PATCH | `/api/v1/users/:id` | Edición | `users.edit` |
-| DELETE | `/api/v1/users/:id` | Baja lógica | `users.delete` |
-| PUT | `/api/v1/users/:id/permissions` | Excepciones/roles por persona | `users.permissions` |
-| POST | `/api/v1/audit/query` | Listado de bitácora | `audit.view` |
-| GET | `/api/v1/audit` | Consulta con filtros | `audit.view` |
-| POST | `/api/v1/permissions/roles/query` | Listado de roles | `roles.manage` |
-| POST | `/api/v1/permissions/roles` | Crear rol | `roles.manage` |
-| PATCH | `/api/v1/permissions/roles/:key` | Editar rol | `roles.manage` |
-| PUT | `/api/v1/permissions/matrix` | Actualiza matriz rol×permiso×alcance | `roles.manage` |
-| POST | `/api/v1/permissions/query` | Catálogo de permisos | `roles.manage` |
-| POST | `/api/v1/permissions/policies` | Crear política ABAC | `roles.manage` |
+| POST | `/api/v1/users/query` | Listado server-side (filtros `username`, `name`, `email`, `role`, `active`) | `users.view` |
+| GET | `/api/v1/users` · `/users/:id` | Lista y detalle | `users.view` |
+| POST | `/api/v1/users` | Alta (multi-rol, contraseña temporal) | `users.create` |
+| PATCH | `/api/v1/users/:id` | Edición (datos y roles) | `users.edit` |
+| DELETE | `/api/v1/users/:id` | Baja lógica con motivo; cierra sesiones | `users.delete` |
+| POST | `/api/v1/users/:id/reactivate` | Reactiva una cuenta dada de baja | `users.delete` |
+| POST | `/api/v1/users/:id/unlock` | Quita el bloqueo por intentos | `users.edit` |
+| POST | `/api/v1/users/:id/reset-password` | Contraseña temporal (obliga a cambiarla) | `users.edit` |
+| GET | `/api/v1/users/:id/permissions` | Rol, excepción y efectivo por permiso | `users.permissions` |
+| PUT | `/api/v1/users/:id/permissions` | Roles y/o una excepción por persona | `users.permissions` |
+| DELETE | `/api/v1/users/:id/permissions/:permission` | Quita una excepción | `users.permissions` |
+| POST | `/api/v1/audit/query` · GET `/audit` · GET `/audit/:id` | Bitácora | `audit.view` |
+| GET | `/api/v1/permissions/catalog` · `/permissions/roles` | Catálogo activo y roles con conteo | Autenticado |
+| GET | `/api/v1/permissions/admin` | Roles, catálogo completo y matriz | `roles.manage` |
+| POST · PATCH · DELETE | `/api/v1/permissions/roles[/:key]` | Roles dinámicos (duplicar con `copyFrom`) | `roles.manage` |
+| POST · PATCH | `/api/v1/permissions/catalog[/:key]` | Catálogo de permisos | `roles.manage` |
+| PUT | `/api/v1/permissions/matrix` | Matriz rol×permiso×alcance (anti-lockout) | `roles.manage` |
+| GET | `/api/v1/permissions/policies/actions` | Acciones que admiten políticas y sus campos | `roles.manage` |
+| GET · POST · PATCH · DELETE | `/api/v1/permissions/policies[/:id]` | Políticas ABAC | `roles.manage` |
+| POST | `/api/v1/permissions/reload` | Recarga caches (multi-instancia) | `roles.manage` |
+
+Contrato completo en Swagger (`/docs`).
 
 Las rutas públicas (`login`, `refresh`, `forgot-password`, `reset-password`) se
 declaran **antes** de `router.use(authenticate)`.
@@ -323,19 +339,18 @@ Errores según el [catálogo](../../api/errores.md): `TOKEN_MISSING`,
 
 | Elemento | Capa FSD | Descripción |
 |---|---|---|
-| `auth` | `entities/auth` | slice de sesión (token, refresh, permisos, hooks) |
-| `permission` | `entities/permission` | `APP_SCREENS` (pantalla→permiso), `usePermission`, `useCan` |
-| `user` | `entities/user` | API + tipos de usuario |
-| `audit` | `entities/audit` | API + tipos de bitácora |
-| `login` | `features/auth/login` | Formulario de acceso |
-| `forgot-password` / `reset-password` | `features/auth/*` | Recuperación |
-| `user-crud` | `features/user/*` | Alta/edición, asignación de roles |
-| `permission-console` | `features/permission/*` | Roles, matriz, políticas, excepciones |
-| `audit-view` | `features/audit/*` | Filtros y detalle de bitácora |
-| `/login` | `pages/login` | Pantalla de acceso |
-| `/users` | `pages/users` | `ITPage` + `ITDataTable` + `ITDialog`/`ITFormBuilder` |
-| `/roles` | `pages/roles` | Consola de acceso (`ITTabs` para matriz/políticas) |
-| `/audit` | `pages/audit` | `ITDataTable` + `ITDatePicker` (rango) |
+| `user` | `entities/user` | Slice de sesión, `usePermission`/`useCan`, `authApi`/`usersApi` |
+| `permission` | `entities/permission` | `APP_SCREENS`, `permissionApi` (roles, matriz, políticas), `useRoles` |
+| `audit` | `entities/audit` | `auditApi` + tipos |
+| `login` · `forgot-password` · `reset-password` · `change-password` | `features/auth/*` | Acceso y recuperación |
+| `users-list` · `user-form` · `user-actions` · `user-permissions` | `features/user/*` | Tabla, alta/edición multi-rol, baja/reactivación/temporal, excepciones |
+| `roles-manager` · `matrix-editor` · `policies-manager` | `features/permission/*` | Consola de acceso |
+| `audit-list` | `features/audit/*` | Tabla + detalle antes/después |
+| `/login`, `/forgot-password`, `/reset-password` | `pages/auth` | Públicas (`AuthLayout`) |
+| `/change-password` | `pages/account` | Obligatoria con contraseña temporal |
+| `/users` | `pages/users` | `ITPage` + `ITDataTable` + `ITDialog` |
+| `/roles` | `pages/roles` | `ITTabs`: Roles · Matriz · Políticas |
+| `/audit` | `pages/audit` | `ITDataTable` con rango de fechas |
 
 Pantallas con `ITPage` + `ITDataTable`/`ITFormBuilder`, `ITDialog`,
 `ITSearchSelect` (roles), `PanelCard` y `KpiTile` (resumen de actividad). Gate por
@@ -398,22 +413,25 @@ Acciones registradas vía `AuditPort` con `previousState`/`newState`
 - Navegador (`web/tests/e2e`): flujo de login → guard → logout; gate de menú por
   permiso; consola `/roles`; `insecure-context` sin truenos.
 - Verificación de bitácora en cada escritura (login/bloqueo y cambios de acceso).
-- Spec(s) del módulo: `api/tests/e2e/auth.spec.ts`,
-  `api/tests/e2e/permissions.spec.ts`, `web/tests/e2e/auth.spec.ts`.
+- Spec(s) del módulo: `api/tests/e2e/auth.spec.ts`, `api/tests/e2e/users.spec.ts`,
+  `api/tests/e2e/permissions.spec.ts`; `api/tests/unit/policies.spec.ts`;
+  `web/tests/e2e/auth.spec.ts`, `web/tests/e2e/users.spec.ts`,
+  `web/tests/e2e/roles.spec.ts`, `web/tests/e2e/password-recovery.spec.ts`.
 
 ## 11. Criterios de aceptación
 
-- [ ] Migración y modelos Prisma (`users`, `roles`, `permissions`,
-      `role_permissions`, `user_roles`, `user_permissions`, `refresh_tokens`,
-      `password_reset_tokens`, `login_attempts`, `audit_logs`).
-- [ ] Módulos API `auth`/`users`/`audit`/`permissions` con permisos y bitácora.
-- [ ] Middlewares `authenticate` (relee BD) y `requiresPermission` (fail-closed).
-- [ ] Pantallas web (login, usuarios, consola de roles, bitácora) con UI kit.
-- [ ] Specs del módulo pasando.
-- [ ] Este README completo.
+- [x] Migración y modelos Prisma (`init` + `f1_policies_catalogs`).
+- [x] Módulos API `auth`/`users`/`audit`/`permissions` con permisos, políticas y bitácora.
+- [x] Middlewares `authenticate` (relee BD) y `requiresPermission` (fail-closed).
+- [x] Pantallas web (login, recuperación, cambio de contraseña, usuarios, consola de roles, bitácora) con UI kit.
+- [x] Specs del módulo pasando (contrato API, unitarias y navegador).
+- [x] Este README completo.
 
 ## 12. Decisiones abiertas
 
+- Resueltas en F1: semántica de políticas ([D-018](../../../DECISIONES.md)),
+  contraseña temporal y reactivación ([D-019](../../../DECISIONES.md)), enlace de
+  recuperación ([D-020](../../../DECISIONES.md)).
 - Acceso de alumnos al portal (A-007).
 - Proveedor de notificaciones para recuperación de contraseña (A-001).
 - Longitud mínima definitiva de contraseña (aquí default 10; política final en M11).

@@ -22,6 +22,15 @@ npm test -- -g "refresh"     # por nombre
 npm run test:e2e:report      # abrir el último reporte HTML
 ```
 
+## Specs
+
+| Archivo | Módulo | Cubre |
+|---|---|---|
+| `auth.spec.ts` | M02 | Login, lockout, `/auth/me`, refresh rotado, logout, recuperación de contraseña de punta a punta, autorización por endpoint |
+| `users.spec.ts` | M02 | CRUD de usuarios, multi-rol, validaciones, baja/reactivación, desbloqueo, contraseña temporal y cambio propio, bitácora |
+| `permissions.spec.ts` | M02 | Roles dinámicos, matriz (anti-lockout), excepciones por persona, políticas ABAC (prioridad, roles, `@user.id`) |
+| `m11-administracion-catalogos.spec.ts` | M11 | `settings` (todo o nada, bitácora, idioma), niveles, ciclos (uno activo), motivos de baja, tipos de documento |
+
 ## Qué cubre `auth.spec.ts` (M02)
 
 - `POST /auth/login`: feliz (tokens + usuario con permisos), credenciales
@@ -46,14 +55,17 @@ es el dueño de la base, así que los crea y borra:
 
 ```bash
 npm run test:e2e:provision   # e2e_admin, e2e_control, e2e_profesor
-npm run test:e2e:clean       # borra todo lo que lleva el prefijo e2e_
+npm run test:e2e:clean       # borra todo lo que lleva el prefijo e2e_/E2E
+npm run --silent test:e2e:reset-token -- e2e_usuario   # token de recuperación conocido
 ```
 
 ## Aislamiento y limpieza
 
 Cada corrida crea usuarios con el prefijo `e2e_` y un sufijo único
-(`newRunId()`). `afterAll` los borra con `clearAuthE2E`; roles, tokens y
-excepciones caen en cascada. Ningún dato real del cliente se toca.
+(`newRunId()`); roles `E2E_*`, políticas `e2e_*` y registros de catálogo
+`E2E …`. `afterAll` los borra (`clearAuthE2E`, `clearAccessE2E`,
+`clearCatalogsE2E`) y restaura los parámetros que tocó. Ningún dato real del
+cliente se toca.
 
 ## Seguridad
 

@@ -9,7 +9,15 @@
     "search": "Search...",
     "back": "Back",
     "reload": "Reload",
-    "logout": "Sign out"
+    "logout": "Sign out",
+    "close": "Close",
+    "confirm": "Confirm",
+    "add": "Add",
+    "remove": "Remove",
+    "activate": "Activate",
+    "deactivate": "Deactivate",
+    "reactivate": "Reactivate",
+    "saving": "Saving…"
   },
   "breadcrumbs": {
     "home": "Home"
@@ -20,19 +28,33 @@
     "users": "Users",
     "roles": "Roles and permissions",
     "notifications": "Notifications",
-    "logout": "Sign out"
+    "logout": "Sign out",
+    "audit": "Audit log",
+    "catalogs": "Catalogs",
+    "account": "My account",
+    "changePassword": "Change password"
   },
   "errors": {
     "network": "Network or server error",
     "load": "Error loading",
-    "save": "Error saving"
+    "save": "Error saving",
+    "forbidden": "You are not allowed to do this"
   },
   "labels": {
     "inactive": "inactive",
     "active": "active",
     "role": "Role",
     "permissions": "Permissions",
-    "processing": "Processing..."
+    "processing": "Processing...",
+    "yes": "Yes",
+    "no": "No",
+    "all": "All",
+    "status": "Status",
+    "name": "Name",
+    "actions": "Actions",
+    "createdAt": "Created",
+    "updatedAt": "Updated",
+    "none": "—"
   },
   "validation": {
     "required": "{{label}} is required",
@@ -46,5 +68,17 @@
     "title": "Home",
     "description": "School Management System dashboard",
     "welcome": "Welcome, {{name}}"
+  },
+  "toast": {
+    "saved": "Changes saved",
+    "created": "Record created",
+    "deactivated": "Record deactivated",
+    "reactivated": "Record reactivated"
+  },
+  "scopes": {
+    "NONE": "No access",
+    "OWN": "Own",
+    "AREA": "Area",
+    "ALL": "All"
   }
 }

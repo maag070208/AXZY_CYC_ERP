@@ -49,6 +49,7 @@ Los roles `system` están protegidos de borrado/renombrado.
 | `roles` | `roles.manage` (consola de acceso: roles, matriz, políticas, catálogo) |
 | `audit` | `audit.view` |
 | `config` | `config.view`, `config.manage` |
+| `levels` | `levels.view`, `levels.manage` (catálogo M11) |
 | `students` | `students.view`, `students.create`, `students.edit`, `students.delete`, `students.export` |
 | `students` | `students.movements` (bajas/reingresos) |
 | `teachers` | `teachers.view`, `teachers.create`, `teachers.edit` |
@@ -99,13 +100,36 @@ Los roles `system` están protegidos de borrado/renombrado.
 ## 6. Políticas ABAC (contexto)
 
 Reglas que actúan **después** de que el RBAC autorizó. Se administran en la
-consola `/roles` → Políticas. Ejemplo: prohibir que quien creó una orden de pago
-la apruebe (separación de funciones), o limitar pagos grandes a ADMIN.
+consola `/roles` → Políticas (`/permissions/policies`). Ejemplo: prohibir que
+quien creó una orden de pago la apruebe (separación de funciones), o impedir que
+se dé de baja a una cuenta ADMIN. Ver [D-018](../../DECISIONES.md).
 
-- Acciones registradas en `core/policies/actions.ts` (frontera de seguridad) con
-  sus campos permitidos.
-- **Primera regla que casa por prioridad decide**; sin coincidencia → se permite.
-- Efectos `ALLOW`/`DENY`; condiciones `campo operador valor` (con `@user.id`).
+- **Frontera de seguridad:** solo hay políticas para las acciones registradas en
+  `api/src/core/policies/actions.ts`, y sus condiciones solo leen los campos que
+  cada acción declara (`POLICY_ACTION_UNKNOWN` / `POLICY_FIELD_UNKNOWN`).
+- **Evaluación:** se toman las políticas activas de la acción cuyo rol aplica al
+  actor (sin roles = todos), en orden de `priority` **ascendente** (empate por
+  `key`); la **primera** cuyas condiciones se cumplen **todas** decide con su
+  efecto (`ALLOW`/`DENY`). Sin coincidencia → se permite.
+- **Condiciones:** `campo operador valor`. Operadores `eq`, `neq`, `in`,
+  `not_in`, `contains`, `not_contains`, `gt`, `gte`, `lt`, `lte`, `exists`. Un
+  arreglo "está en" una lista si alguno de sus elementos lo está. `valor` es
+  JSON y admite `"@user.id"`, `"@user.username"` y `"@user.roles"`.
+- **Denegación:** `403 POLICY_DENIED` y `ACCESS_DENIED` en bitácora con la clave
+  de la política.
+
+| Acción | Campos | Dónde se aplica |
+|---|---|---|
+| `users.create` | `roles` | Alta de cuenta |
+| `users.update` | `target.id`, `target.roles`, `roles` | Edición de cuenta |
+| `users.deactivate` | `target.id`, `target.roles` | Baja lógica |
+| `users.reset_password` | `target.id`, `target.roles` | Contraseña temporal |
+| `users.permissions.set` | `target.id`, `target.roles`, `roles`, `permission`, `scope` | Roles/excepciones por persona |
+| `roles.matrix.update` | `roleKey`, `permissionKey`, `scope` | Cada celda de la matriz |
+| `settings.update` | `key` | Cada parámetro general (M11) |
+
+Los módulos siguientes registran sus acciones (p. ej. `payments.approve` con
+`amount` y `createdById` en M09).
 
 ## 7. Implementación
 

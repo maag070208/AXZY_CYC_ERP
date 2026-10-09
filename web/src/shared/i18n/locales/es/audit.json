@@ -1,0 +1,19 @@
+{
+  "title": "Bitácora",
+  "description": "Toda escritura y cada acceso denegado quedan registrados.",
+  "table": {
+    "date": "Fecha",
+    "action": "Acción",
+    "entity": "Entidad",
+    "entityId": "Id",
+    "user": "Usuario",
+    "system": "Sistema"
+  },
+  "detail": {
+    "title": "Detalle del registro",
+    "previous": "Estado anterior",
+    "next": "Estado nuevo",
+    "metadata": "Metadatos",
+    "empty": "(vacío)"
+  }
+}

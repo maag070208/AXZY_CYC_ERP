@@ -1,94 +1,160 @@
-import {
-  ITBadget,
-  ITDataTable,
-  ITFlex,
-  ITText,
-} from "@axzydev/axzy_ui_system";
+import { ITBadget, ITButton, ITDataTable, ITFlex, ITText } from "@axzydev/axzy_ui_system";
 import type {
   Column,
   ITDataTableFetchParams,
   ITDataTableResponse,
 } from "@axzydev/axzy_ui_system";
+import { FaEdit, FaKey, FaLockOpen, FaUndo, FaUserShield, FaUserSlash } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
-import type { User } from "@entities/user";
-import { dyn } from "@shared/i18n";
+import { useCan, type User } from "@entities/user";
+import type { RoleAdmin } from "@entities/permission";
 import type { UseUsersTable } from "../model/useUsersTable";
+
+export type UserAction = "edit" | "deactivate" | "reactivate" | "unlock" | "resetPassword" | "permissions";
 
 interface Props {
   fx: UseUsersTable;
+  roles: RoleAdmin[];
+  /** Id de la sesión: sobre la propia cuenta no se ofrecen bajas ni permisos. */
+  currentUserId?: string;
+  onAction: (action: UserAction, user: User) => void;
 }
 
-export default function UsersTable({ fx }: Props) {
-  const { t: tt } = useTranslation(["users", "common"]);
-  const tr = dyn(tt);
+const formatDate = (iso: string | null, locale: string): string | null =>
+  iso ? new Date(iso).toLocaleString(locale, { dateStyle: "short", timeStyle: "short" }) : null;
+
+export default function UsersTable({ fx, roles, currentUserId, onAction }: Props) {
+  const { t, i18n } = useTranslation(["users", "common"]);
+  const canEdit = useCan("users.edit");
+  const canDelete = useCan("users.delete");
+  const canPermissions = useCan("users.permissions");
+  const roleName = (key: string) => roles.find((role) => role.key === key)?.name ?? key;
+
+  const actionButton = (action: UserAction, user: User, icon: React.ReactNode, color = "secondary") => (
+    <ITButton
+      key={action}
+      variant="text"
+      color={color as "secondary"}
+      size="sm"
+      title={t(`actions.${action}`)}
+      ariaLabel={`${t(`actions.${action}`)} ${user.username}`}
+      onClick={() => onAction(action, user)}
+    >
+      {icon}
+    </ITButton>
+  );
 
   const columns: Column<User>[] = [
     {
       key: "username",
-      label: tt("table.username"),
+      label: t("table.username"),
       type: "string",
-      width: 160,
+      width: 170,
       filter: true,
       sortable: true,
-      render: (u) => (
-        <ITText className="text-[12px] font-black text-slate-700">@{u.username}</ITText>
-      ),
+      render: (u) => <ITText className="text-[12px] font-black text-slate-700">@{u.username}</ITText>,
     },
     {
       key: "name",
-      label: tt("table.name"),
+      label: t("table.name"),
       type: "string",
-      width: 260,
+      width: 220,
       filter: true,
       sortable: true,
       render: (u) => <ITText className="text-[12px] text-slate-800">{u.name}</ITText>,
     },
     {
-      key: "role",
-      label: tt("table.role"),
+      key: "email",
+      label: t("table.email"),
       type: "string",
-      width: 160,
+      width: 220,
       filter: true,
-      sortable: false,
+      sortable: true,
+      truncate: true,
+    },
+    {
+      key: "role",
+      label: t("table.roles"),
+      type: "catalog",
+      width: 200,
+      filter: "catalog",
+      catalogOptions: { data: roles.map((role) => ({ id: role.key, name: role.name })) },
       render: (u) => (
-        <ITBadget color="info" size="lg">
-          {tr(`roles.${u.role}`, { defaultValue: u.role })}
-        </ITBadget>
+        <ITFlex gap={1} wrap="wrap">
+          {u.roles.map((role) => (
+            <ITBadget key={role} color="info" size="sm">
+              {roleName(role)}
+            </ITBadget>
+          ))}
+        </ITFlex>
       ),
     },
     {
       key: "active",
-      label: tt("table.status"),
+      label: t("table.status"),
       type: "boolean",
-      width: 130,
+      width: 150,
       filter: true,
-      sortable: false,
+      sortable: true,
       render: (u) => (
-        <ITBadget color={u.active ? "success" : "danger"} size="lg">
-          {u.active ? tt("table.statusActive") : tt("table.statusInactive")}
-        </ITBadget>
+        <ITFlex gap={1} wrap="wrap">
+          <ITBadget color={u.active ? "success" : "danger"} size="sm">
+            {u.active ? t("table.statusActive") : t("table.statusInactive")}
+          </ITBadget>
+          {u.locked && (
+            <ITBadget color="warning" size="sm">
+              {t("table.locked")}
+            </ITBadget>
+          )}
+        </ITFlex>
       ),
+    },
+    {
+      key: "lastLoginAt",
+      label: t("table.lastLogin"),
+      type: "string",
+      width: 150,
+      sortable: true,
+      render: (u) => (
+        <ITText className="text-[11px] text-slate-500">
+          {formatDate(u.lastLoginAt, i18n.language) ?? t("table.never")}
+        </ITText>
+      ),
+    },
+    {
+      key: "actions",
+      label: t("common:labels.actions"),
+      type: "actions",
+      width: 200,
+      actions: (u) => {
+        const self = u.id === currentUserId;
+        return (
+          <ITFlex gap={1} align="center">
+            {canEdit && actionButton("edit", u, <FaEdit size={12} />)}
+            {canPermissions && !self && actionButton("permissions", u, <FaUserShield size={12} />)}
+            {canEdit && !self && actionButton("resetPassword", u, <FaKey size={12} />)}
+            {canEdit && u.locked && actionButton("unlock", u, <FaLockOpen size={12} />, "warning")}
+            {canDelete && !self && u.active && actionButton("deactivate", u, <FaUserSlash size={12} />, "danger")}
+            {canDelete && !u.active && actionButton("reactivate", u, <FaUndo size={12} />, "success")}
+          </ITFlex>
+        );
+      },
     },
   ];
 
   return (
-    <ITFlex direction="column" className="w-full">
-      <ITDataTable
-        columns={columns as unknown as Column<Record<string, unknown>>[]}
-        fetchData={
-          fx.fetchTableData as unknown as (
-            p: ITDataTableFetchParams
-          ) => Promise<ITDataTableResponse<Record<string, unknown>>>
-        }
-        reloadTrigger={fx.reloadKey}
-        defaultItemsPerPage={50}
-        itemsPerPageOptions={[25, 50, 100]}
-        layout="fixed"
-        density="compact"
-        virtualized
-        virtualizedMaxHeight={480}
-        rowHeight={50}
-      />
-    </ITFlex>
+    <ITDataTable
+      columns={columns as unknown as Column<Record<string, unknown>>[]}
+      fetchData={
+        fx.fetchTableData as unknown as (
+          p: ITDataTableFetchParams
+        ) => Promise<ITDataTableResponse<Record<string, unknown>>>
+      }
+      reloadTrigger={fx.reloadKey}
+      defaultItemsPerPage={25}
+      itemsPerPageOptions={[25, 50, 100]}
+      layout="fixed"
+      density="compact"
+    />
   );
 }

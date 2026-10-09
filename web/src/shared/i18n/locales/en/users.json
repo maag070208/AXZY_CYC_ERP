@@ -8,10 +8,16 @@
   "table": {
     "username": "Username",
     "name": "Name",
+    "email": "Email",
     "role": "Role",
+    "roles": "Roles",
     "status": "Status",
     "statusActive": "Active",
-    "statusInactive": "Inactive"
+    "statusInactive": "Inactive",
+    "locked": "Locked",
+    "lastLogin": "Last sign-in",
+    "never": "Never",
+    "mustChange": "Temporary password"
   },
   "form": {
     "titleNew": "New user",
@@ -19,26 +25,80 @@
     "username": "Username",
     "name": "Name",
     "email": "Email",
-    "password": "Password",
+    "phone": "Phone",
+    "password": "Initial password",
+    "passwordHint": "The person must change it on first sign-in.",
+    "roles": "Roles",
+    "rolesHint": "Effective permissions are the union of the roles.",
     "role": "Role",
     "active": "Active",
     "save": "Save",
     "saving": "Saving…",
     "cancel": "Cancel",
-    "saved": "User saved successfully",
+    "saved": "User saved",
+    "created": "User created",
     "errorLoad": "Could not load the user",
+    "ownRoles": "You cannot change your own roles.",
     "validation": {
       "usernameRequired": "Username is required",
       "usernameMin": "Username must have at least {{min}} characters",
       "usernameMax": "Username must have at most {{max}} characters",
       "nameRequired": "Name is required",
       "passwordRequired": "Password is required",
-      "passwordMin": "Password must have at least {{min}} characters"
+      "passwordMin": "Password must have at least {{min}} characters",
+      "rolesRequired": "Pick at least one role"
     }
+  },
+  "actions": {
+    "edit": "Edit",
+    "deactivate": "Deactivate",
+    "reactivate": "Reactivate",
+    "unlock": "Unlock",
+    "resetPassword": "Temporary password",
+    "permissions": "Permissions"
+  },
+  "deactivate": {
+    "title": "Deactivate {{name}}",
+    "message": "The account will not be able to sign in and its sessions will be closed. The record is kept.",
+    "reason": "Reason (optional)",
+    "confirm": "Deactivate",
+    "done": "Account deactivated"
+  },
+  "reactivate": {
+    "title": "Reactivate {{name}}",
+    "message": "The account will be able to sign in again.",
+    "done": "Account reactivated"
+  },
+  "unlock": {
+    "done": "Account unlocked"
+  },
+  "resetPassword": {
+    "title": "Temporary password for {{name}}",
+    "message": "Their sessions will be closed and they must change it on next sign-in. Share it through a safe channel.",
+    "password": "Temporary password",
+    "done": "Temporary password set"
+  },
+  "permissions": {
+    "title": "Permissions of {{name}}",
+    "description": "What each role grants and the per-person exceptions. A current exception wins over the role.",
+    "permission": "Permission",
+    "module": "Module",
+    "fromRole": "From role",
+    "exception": "Exception",
+    "effective": "Effective",
+    "expires": "Expires",
+    "noException": "No exception",
+    "setException": "Set",
+    "removeException": "Remove exception",
+    "reason": "Reason",
+    "sensitive": "Sensitive",
+    "saved": "Exception saved",
+    "removed": "Exception removed",
+    "own": "You cannot change your own permissions."
   },
   "roles": {
     "ADMIN": "Administrator",
-    "CONTROL_ESCOLAR": "School Control",
+    "CONTROL_ESCOLAR": "School Services",
     "PROFESOR": "Teacher",
     "ALUMNO": "Student"
   }

@@ -1,12 +1,13 @@
-import { ITFlex, ITText } from "@axzydev/axzy_ui_system";
 import { useSelector } from "react-redux";
-import { Navigate, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import type { RootState } from "@app/store";
 import { LoginForm, useLogin } from "@features/auth/login";
-import { LottieLoader } from "@shared/ui/lottie-loader";
+import { AuthLayout } from "@shared/ui/auth-layout";
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation(["auth"]);
   const { token } = useSelector((s: RootState) => s.auth);
   const login = useLogin();
 
@@ -18,38 +19,23 @@ export default function LoginPage() {
   };
 
   return (
-    <ITFlex
-      as="div"
-      align="center"
-      justify="center"
-      grow
-      className="relative min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 p-4"
-    >
-      <ITFlex direction="column" align="center" gap={6} className="w-full max-w-md">
-        <LottieLoader animation="logo" size={150} />
-
-        <ITText as="h1" className="text-center text-lg font-semibold text-slate-700">
-          Sistema de Gestión Escolar
-        </ITText>
-
-        <LoginForm
-          username={login.username}
-          password={login.password}
-          setUsername={login.setUsername}
-          setPassword={login.setPassword}
-          errors={login.errors}
-          deactivatedMsg={login.deactivatedMsg}
-          isSubmitting={login.isSubmitting}
-          canSubmit={login.canSubmit}
-          toast={login.toast}
-          dismissToast={login.dismissToast}
-          onSubmit={handleSubmit}
-        />
-      </ITFlex>
-
-      <ITText as="p" className="absolute bottom-4 text-xs font-medium text-slate-400">
-        v{__APP_VERSION__}
-      </ITText>
-    </ITFlex>
+    <AuthLayout>
+      <LoginForm
+        username={login.username}
+        password={login.password}
+        setUsername={login.setUsername}
+        setPassword={login.setPassword}
+        errors={login.errors}
+        deactivatedMsg={login.deactivatedMsg}
+        isSubmitting={login.isSubmitting}
+        canSubmit={login.canSubmit}
+        toast={login.toast}
+        dismissToast={login.dismissToast}
+        onSubmit={handleSubmit}
+      />
+      <Link to="/forgot-password" className="text-xs font-semibold text-primary-600 hover:underline">
+        {t("forgotLink")}
+      </Link>
+    </AuthLayout>
   );
 }

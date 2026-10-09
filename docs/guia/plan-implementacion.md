@@ -47,9 +47,11 @@ reglas complejas (M07, M08, M09, M16) ≈ 1.5–2 sprints.
 | Módulo | Estado | Nota |
 |---|---|---|
 | M01 | Documentado | Falta aprobación del cliente por escrito |
-| M02 | En desarrollo (F0 ✅) | Login → `/auth/me` → logout funcionando en local y Docker; RBAC/ABAC + bitácora; 20 pruebas unitarias en verde |
-| M03–M21 | Documentado | Sin código |
-| F0 — Infra | ✅ Completada | Monorepo + Docker por proyecto + `docker-compose` + CI; migración inicial `init` + seed; login por proxy de nginx verificado |
+| M02 | ✅ Terminado (F1) | Usuarios CRUD multi-rol, baja/reactivación, desbloqueo, contraseña temporal y cambio obligatorio; consola `/roles` (roles, matriz, políticas ABAC); recuperación de contraseña; bitácora consultable `/audit` |
+| M11 | ✅ Terminado (F1) | `settings` + niveles, ciclos (uno activo), motivos de baja y tipos de documento; pantallas `/settings` y `/catalogs` |
+| M03–M10, M12–M21 | Documentado | Sin código |
+| F0 — Infra | ✅ Completada | Monorepo + Docker por proyecto + `docker-compose` + CI (incluye e2e); migración `init` + seed; login por proxy de nginx verificado; e2e de auth (contrato + navegador) en verde |
+| F1 — Acceso y catálogos | ✅ Completada (pendiente H1 con el cliente) | Migración `f1_policies_catalogs`; unitarias 39, contrato API 64, navegador 30 — todo en verde |
 
 ## 3. Detalle por fase
 

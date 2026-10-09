@@ -50,13 +50,18 @@ Envelope **plano** (estándar PTNV):
 | `ACCOUNT_DEACTIVATED` | 401 | Cuenta desactivada |
 | `ACCOUNT_LOCKED` | 429 | Bloqueo temporal por intentos |
 | `RESET_TOKEN_INVALID` | 422 | Token de recuperación inválido/expirado/usado |
+| `CURRENT_PASSWORD_INVALID` | 422 | Cambio de contraseña con la actual incorrecta |
+| `PASSWORD_REUSED` | 422 | La contraseña nueva es igual a la actual |
+| `USER_NOT_LOCKED` | 409 | Desbloqueo de una cuenta que no está bloqueada |
 
 ### Autorización
 | `code` | HTTP | Descripción |
 |---|---|---|
 | `UNAUTHENTICATED` | 401 | Endpoint protegido sin sesión |
 | `INSUFFICIENT_PERMISSIONS` | 403 | Sin permiso o alcance NONE |
-| `POLICY_DENIED` | 403 | Política ABAC denegó |
+| `POLICY_DENIED` | 403 | Política ABAC denegó (se audita como `ACCESS_DENIED`) |
+| `POLICY_ACTION_UNKNOWN` / `POLICY_FIELD_UNKNOWN` | 400 | La política apunta a una acción o campo no registrado |
+| `POLICY_KEY_TAKEN` | 409 | Clave de política repetida |
 | `CANNOT_CHANGE_OWN_PERMISSIONS` | 409 | No puede alterar sus propios permisos |
 
 ### Validación y datos
@@ -90,6 +95,11 @@ Envelope **plano** (estándar PTNV):
 | `IDEMPOTENCY_KEY_REUSED` | 409 | Clave usada por otro usuario |
 | `CONCURRENT_UPDATE` | 409 | Choque en transacción serializable |
 | `STORAGE_NOT_CONFIGURED` | 503 | S3 no configurado |
+| `SETTING_UNKNOWN` / `SETTING_INVALID` / `SETTINGS_REQUIRED` | 400 | `PUT /settings` con clave desconocida, valor inválido o vacío (todo o nada) |
+| `CATALOG_ITEM_NOT_FOUND` | 404 | Registro de catálogo M11 inexistente |
+| `CATALOG_ITEM_ALREADY_INACTIVE` | 409 | Desactivar un registro ya inactivo |
+| `TERM_DATES_INVALID` | 400 | Ciclo con inicio posterior al fin |
+| `TERM_ALREADY_ACTIVE` | 409 | Activar el ciclo que ya es el activo |
 | `RATE_LIMITED` | 429 | Demasiadas peticiones |
 | `INTERNAL_ERROR` / `DATABASE_ERROR` | 500 | Error no controlado |
 

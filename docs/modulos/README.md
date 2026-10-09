@@ -19,8 +19,8 @@ abiertas, siguiendo la
 
 | Código | Módulo | Objetivo | Estado |
 |---|---|---|---|
-| M02 | [Autenticación, roles y bitácora](M02-autenticacion-roles-bitacora/README.md) | Login, RBAC y auditoría | Planeado |
-| M11 | [Administración y catálogos](M11-administracion-catalogos/README.md) | Configuración y catálogos base | Planeado |
+| M02 | [Autenticación, roles y bitácora](M02-autenticacion-roles-bitacora/README.md) | Login, RBAC y auditoría | Terminado (F1) |
+| M11 | [Administración y catálogos](M11-administracion-catalogos/README.md) | Configuración y catálogos base | Terminado (F1) |
 
 ## Personas
 

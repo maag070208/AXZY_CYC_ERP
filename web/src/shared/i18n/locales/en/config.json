@@ -1,0 +1,66 @@
+{
+  "settings": {
+    "title": "Settings",
+    "description": "General parameters consumed by every module.",
+    "school": "School data",
+    "academic": "Academic rules",
+    "finance": "Late fees",
+    "system": "System",
+    "saved": "Settings saved",
+    "readOnly": "Read only: you need config.manage to edit.",
+    "SCHOOL_NAME": "Institution name",
+    "SCHOOL_ADDRESS": "Address",
+    "SCHOOL_PHONE": "Phone",
+    "SCHOOL_EMAIL": "Contact email",
+    "MIN_PASSING_GRADE": "Minimum passing grade",
+    "ATTENDANCE_THRESHOLD": "Attendance threshold (%)",
+    "LATE_FEE_enabled": "Charge late fees",
+    "LATE_FEE_dailyRate": "Daily rate (0–1)",
+    "LATE_FEE_graceDays": "Grace days",
+    "LANGUAGE": "System language",
+    "languages": {
+      "es": "Español",
+      "en": "English"
+    }
+  },
+  "catalogs": {
+    "title": "Catalogs",
+    "description": "Base catalogs: levels, school terms, withdrawal reasons and document types.",
+    "tabs": {
+      "levels": "Levels",
+      "terms": "School terms",
+      "cancellation-reasons": "Withdrawal reasons",
+      "document-types": "Document types"
+    },
+    "new": "New",
+    "newTitle": "New record",
+    "editTitle": "Edit record",
+    "nombre": "Name",
+    "orden": "Order",
+    "obligatorio": "Required",
+    "active": "Active",
+    "created": "Record created",
+    "saved": "Record saved",
+    "deactivated": "Record deactivated",
+    "reactivated": "Record reactivated",
+    "deactivateTitle": "Deactivate “{{name}}”",
+    "deactivateMessage": "It stops being offered in forms but is kept for history.",
+    "nombreRequired": "Name is required",
+    "readOnly": "Read only"
+  },
+  "terms": {
+    "new": "New term",
+    "nombre": "Name",
+    "fechaInicio": "Start",
+    "fechaFin": "End",
+    "activo": "Active",
+    "current": "Active term",
+    "none": "No active term",
+    "activate": "Activate",
+    "activateTitle": "Activate “{{name}}”",
+    "activateMessage": "It becomes the active term and the previous one is deactivated.",
+    "activated": "Term activated",
+    "datesInvalid": "Start date cannot be after end date",
+    "datesRequired": "Pick start and end dates"
+  }
+}

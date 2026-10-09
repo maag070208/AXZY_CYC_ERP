@@ -18,7 +18,13 @@ export type ScreenRequirement =
   | { readonly allOf: readonly Permission[] };
 
 /** Claves del menú en el namespace `common` (para tipar la i18n). */
-export type NavLabelKey = "nav.home" | "nav.settings" | "nav.users" | "nav.roles";
+export type NavLabelKey =
+  | "nav.home"
+  | "nav.settings"
+  | "nav.users"
+  | "nav.roles"
+  | "nav.audit"
+  | "nav.catalogs";
 
 export interface AppScreen {
   readonly id: string;
@@ -53,6 +59,24 @@ export const APP_SCREENS: readonly AppScreen[] = [
     labelKey: "nav.roles",
     path: "/roles",
     requirement: { anyOf: ["roles.manage"] },
+  },
+  {
+    id: "audit",
+    labelKey: "nav.audit",
+    path: "/audit",
+    requirement: { anyOf: ["audit.view"] },
+  },
+  {
+    id: "catalogs",
+    labelKey: "nav.catalogs",
+    path: "/catalogs",
+    requirement: { anyOf: ["levels.view", "terms.view", "config.view"] },
+  },
+  {
+    id: "settings",
+    labelKey: "nav.settings",
+    path: "/settings",
+    requirement: { anyOf: ["config.view"] },
   },
 ];
 

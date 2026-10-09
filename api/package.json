@@ -18,7 +18,8 @@
     "test:e2e": "playwright test",
     "test:e2e:provision": "ts-node -T tests/e2e/support/provision.ts",
     "test:e2e:clean": "ts-node -T tests/e2e/support/clean.ts",
-    "test:e2e:report": "playwright show-report"
+    "test:e2e:report": "playwright show-report",
+    "test:e2e:reset-token": "ts-node -T tests/e2e/support/reset-token.ts"
   },
   "prisma": {
     "seed": "ts-node -r tsconfig-paths/register prisma/seed.ts"

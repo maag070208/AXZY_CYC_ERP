@@ -4,7 +4,7 @@ import {
   type ITSidebarProps,
 } from "@axzydev/axzy_ui_system";
 import { useCallback, useEffect, type ReactNode } from "react";
-import { FaHouseUser, FaUserShield, FaUsers } from "react-icons/fa";
+import { FaCog, FaHistory, FaHouseUser, FaListUl, FaUserShield, FaUsers } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -18,6 +18,9 @@ const NAV_ICONS: Record<string, ReactNode> = {
   home: <FaHouseUser size={14} />,
   users: <FaUsers size={14} />,
   roles: <FaUserShield size={14} />,
+  audit: <FaHistory size={14} />,
+  catalogs: <FaListUl size={14} />,
+  settings: <FaCog size={14} />,
 };
 
 export default function PrivateRoutes() {
@@ -50,6 +53,11 @@ export default function PrivateRoutes() {
 
   if (!token) {
     return <Navigate to="/login" replace state={{ from: location }} />;
+  }
+
+  // Contraseña temporal: no se navega a ningún otro lado hasta cambiarla.
+  if (user?.mustChangePassword && location.pathname !== "/change-password") {
+    return <Navigate to="/change-password" replace />;
   }
 
   // El menú se arma desde el catálogo de pantallas (`APP_SCREENS`) y los
@@ -86,7 +94,10 @@ export default function PrivateRoutes() {
       ? {
           userName: user.name ?? "—",
           userEmail: user.username,
-          menuItems: [{ label: tt("nav.logout"), onClick: handleLogout }],
+          menuItems: [
+            { label: tt("nav.changePassword"), onClick: () => navigate("/change-password") },
+            { label: tt("nav.logout"), onClick: handleLogout },
+          ],
         }
       : undefined,
   };

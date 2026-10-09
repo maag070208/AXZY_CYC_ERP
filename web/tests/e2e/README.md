@@ -4,12 +4,17 @@ Pruebas de navegador **reales**: Chromium abre la app servida por Vite, opera lo
 formularios como una persona y todo pega contra la API de verdad en
 `localhost:4001`, que escribe en Postgres de verdad. No hay mocks de red.
 
-Cubre el módulo **M02** (autenticación, sesión, permisos y usuarios):
+Cubre **M02** (acceso, usuarios, consola de roles, recuperación) y **M11**
+(configuración y catálogos):
 
 | Archivo | Pantalla | Flujo |
 |---|---|---|
 | `auth.spec.ts` | `/login` | Acceso válido/inválido, guard de rutas, persistencia de sesión, logout (revoca el refresh), renovación de un access vencido, rutas por permiso |
 | `insecure-context.spec.ts` | todas | Sin `crypto.randomUUID` (cliente por `http://IP:8080`) |
+| `users.spec.ts` | `/users`, `/change-password` | Alta multi-rol, edición, baja con motivo, reactivación, primer acceso con contraseña temporal |
+| `roles.spec.ts` | `/roles` | Rol nuevo (copiando permisos), matriz con anti-lockout, política DENY aplicada por la API |
+| `password-recovery.spec.ts` | `/forgot-password`, `/reset-password` | Solicitud sin revelar cuentas, enlace inválido, restablecer y token de un uso |
+| `m11-administracion-catalogos.spec.ts` | `/settings`, `/catalogs` | Parámetros persistentes, CRUD de motivo de baja, duplicado, solo lectura por rol |
 
 ## Cómo correrlas
 
@@ -42,7 +47,9 @@ prueba (`e2e_admin`, `e2e_control`, `e2e_profesor`) los provisiona el paquete
 en `support/env.ts` arma la URL.
 
 **Aislamiento y limpieza.** La suite no toca datos reales: todo lo que crea
-lleva el prefijo `E2E` y lo borra el teardown de `api/`.
+lleva el prefijo `e2e_`/`E2E` y lo borra el teardown de `api/`; los parámetros
+generales que cambia se restauran al terminar. Los tokens de recuperación los
+emite `api/` (`test:e2e:reset-token`).
 
 **Serie, no paralelo.** `workers: 1` a propósito: los tests comparten la base.
 

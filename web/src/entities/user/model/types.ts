@@ -26,8 +26,10 @@ export interface AuthUser {
   roles?: UserRole[];
   /** Permisos efectivos; opcional porque la sesión persistida se rehidrata con `meThunk`. */
   permissions?: PermissionMap;
-  /** Idioma del sistema (`sys_config.LANGUAGE`). */
+  /** Idioma del sistema (`settings.LANGUAGE`). */
   language?: AppLanguage;
+  /** Contraseña temporal: la app obliga a cambiarla antes de seguir. */
+  mustChangePassword?: boolean;
   active?: boolean;
 }
 
@@ -55,35 +57,78 @@ export interface RefreshResponse {
   refreshToken: string;
 }
 
-/** Usuario del listado server-side. */
-export interface User extends AuthUser {
+/** Cuenta tal como la devuelve `/users` (listado, detalle y escrituras). */
+export interface User {
+  id: string;
+  username: string;
+  email: string;
+  name: string;
+  phone: string | null;
   active: boolean;
-  email?: string | null;
+  /** Rol principal (el de menor `sortOrder`). */
+  role: UserRole;
+  roles: UserRole[];
+  lastLoginAt: string | null;
+  deactivatedAt: string | null;
+  deactivationReason: string | null;
+  mustChangePassword: boolean;
+  /** Bloqueo temporal vigente por intentos fallidos. */
+  locked: boolean;
+  lockedUntil: string | null;
+  createdAt: string;
 }
 
 /** `POST /users`. */
 export interface CreateUserInput {
   username: string;
   name: string;
-  email?: string;
+  email: string;
   password: string;
-  role?: UserRole;
-  roles?: UserRole[];
-  active?: boolean;
+  phone?: string;
+  roles: UserRole[];
 }
 
-/** `PATCH /users/:id`. */
+/** `PATCH /users/:id` (si vienen `roles`, reemplazan a los actuales). */
 export interface UpdateUserInput {
-  username?: string;
   name?: string;
-  email?: string | null;
-  role?: UserRole;
+  email?: string;
+  phone?: string | null;
   roles?: UserRole[];
-  active?: boolean;
 }
 
-/** `PUT /users/:id/permissions` (roles y excepciones por persona). */
+/** Excepción de permiso por persona. */
+export interface PermissionException {
+  scope: Scope;
+  reason: string | null;
+  expiresAt: string | null;
+  grantedById: string | null;
+}
+
+/** Fila de `GET /users/:id/permissions`: lo del rol, la excepción y el efectivo. */
+export interface UserPermissionRow {
+  permission: Permission;
+  module: string;
+  name: string;
+  scopes: Scope[];
+  sensitive: boolean;
+  roleScope: Scope;
+  effective: Scope;
+  exception: PermissionException | null;
+}
+
+export interface UserPermissionsView {
+  roles: UserRole[];
+  permissions: UserPermissionRow[];
+}
+
+/** `PUT /users/:id/permissions` (roles y/o una excepción). */
 export interface SetUserPermissionsInput {
   roles?: UserRole[];
-  permissions?: PermissionMap;
+  exception?: {
+    permission: Permission;
+    scope: Scope;
+    reason?: string;
+    /** ISO o `null` (sin vencimiento); ausente = vigencia por defecto. */
+    expiresAt?: string | null;
+  };
 }

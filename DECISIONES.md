@@ -135,6 +135,38 @@ Plantilla:
 - **Estado:** aceptada
 - **Decisión:** El contenedor de la API arranca con `prisma migrate deploy && node dist/src/index.js`. El seed **no** corre al arrancar; solo insert-missing de catálogos/permisos/políticas y auditorías de solo lectura. El seed manual se corre en base vacía o con `cutover`.
 
+### D-018 — Políticas ABAC: acciones registradas, primera que casa decide
+- **Fecha:** 2026-10-09
+- **Estado:** aceptada
+- **Contexto:** La spec pide políticas ABAC "después del RBAC" sin fijar su semántica.
+- **Decisión:** Tablas `policies`/`policy_conditions`/`policy_roles`. Solo hay políticas para acciones registradas en `core/policies/actions.ts` (frontera de seguridad: cada acción declara los campos que una condición puede leer). Orden por `priority` ascendente (empate por `key`); la primera cuyas condiciones se cumplen todas decide; sin coincidencia se permite. Valores con referencias `@user.id|username|roles`. Denegar = `403 POLICY_DENIED` + `ACCESS_DENIED` en bitácora. Las políticas se cachean junto con catálogo y matriz y se recargan tras cada escritura.
+- **Alternativas consideradas:** DSL libre de expresiones (más potente, imposible de validar); "DENY gana siempre" (impide excepciones ALLOW por prioridad).
+- **Consecuencias / impacto:** Cada módulo nuevo registra sus acciones y llama `enforcePolicy` en el servicio. Ver [`docs/seguridad/roles-permisos.md`](docs/seguridad/roles-permisos.md) §6.
+
+### D-019 — Cuentas: contraseña temporal, cambio obligatorio y reactivación
+- **Fecha:** 2026-10-09
+- **Estado:** aceptada
+- **Decisión:** Toda cuenta creada por un administrador nace con `mustChangePassword`; la web no deja navegar fuera de `/change-password` hasta cambiarla (`POST /auth/change-password`, que revoca sesiones y emite tokens nuevos). El administrador puede asignar una contraseña temporal (`POST /users/:id/reset-password`, `users.edit`), desbloquear (`/unlock`, `users.edit`) y reactivar (`/reactivate`, `users.delete`, el mismo permiso que la baja). Nadie cambia sus propios roles tampoco por `PATCH /users/:id`.
+- **Consecuencias / impacto:** Bitácora `USER_PASSWORD_RESET`, `USER_UNLOCKED`, `USER_REACTIVATED`, `PASSWORD_CHANGED` (nunca la contraseña).
+
+### D-020 — Enlace de recuperación bajo HashRouter
+- **Fecha:** 2026-10-09
+- **Estado:** aceptada
+- **Decisión:** El correo de recuperación apunta a `${APP_URL}/#/reset-password?token=…` porque la web usa `HashRouter` (nginx sirve un solo `index.html`).
+
+### D-021 — M11: `settings` clave/valor validado por clave; ciclos en M11
+- **Fecha:** 2026-10-09
+- **Estado:** aceptada
+- **Contexto:** Decisiones abiertas del README de M11 (forma de `settings`, dueño de `terms`).
+- **Decisión:** `settings` es clave/valor `jsonb`; las claves las siembra la migración y la API solo actualiza `value`, validado con un esquema zod por clave (`SETTING_SCHEMAS`). `PUT /settings` es todo o nada y audita `SYS_CONFIG_UPDATED` por clave con antes/después (secretos enmascarados). `LANGUAGE` alimenta el idioma del sistema. El modelo `Term` se crea en M11 (campos de la spec) y M07 le agrega sus relaciones; "un solo ciclo activo" se garantiza con transacción + índice único parcial `terms_single_active`. Catálogos con campos de la spec en español (`nombre`, `orden`, `obligatorio`) y `nombre` único.
+- **Alternativas consideradas:** fila única tipada para `settings` (rompe con cada parámetro nuevo); `terms` hasta M07 (bloquea catálogos de F1).
+- **Consecuencias / impacto:** El índice parcial no lo modela Prisma: si un `migrate dev` futuro propone borrarlo, conservarlo a mano. Motivos de baja y tipos de documento se leen con `config.view` (o `students.movements` / `documents.view` cuando existan) y se escriben con `config.manage`; niveles y ciclos usan `levels.*` / `terms.*`.
+
+### D-022 — Pruebas E2E: la API provee los escenarios de la suite web
+- **Fecha:** 2026-10-09
+- **Estado:** aceptada
+- **Decisión:** `api/` es dueño de la base: expone `test:e2e:provision` (usuarios fijos por rol), `test:e2e:clean` (borra todo lo `e2e_`/`E2E`) y `test:e2e:reset-token` (token de recuperación conocido). La suite web los invoca en `globalSetup`/`globalTeardown` y en los specs; nunca toca la base directo. CI corre ambas suites contra Postgres de servicio.
+
 ---
 
 ## Mapeo desde la especificación original
@@ -168,7 +200,7 @@ Plantilla:
 
 ## Cómo registrar una nueva decisión
 
-1. Elige el siguiente `D-###` libre (hoy: `D-018`).
+1. Elige el siguiente `D-###` libre (hoy: `D-023`).
 2. Copia la plantilla de arriba y llénala.
 3. Enlaza al documento/módulo afectado.
 4. Si reemplaza a otra, actualiza el estado de la anterior.
