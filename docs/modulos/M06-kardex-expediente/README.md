@@ -12,7 +12,7 @@
 
 ## Implementación (F2, 2026-10-09)
 
-**Estado: terminado** (el kardex se llenará con cursos y calificaciones en F3). Código en `api/src/modules/documents`, `web/src/features/document/documents-panel` y `web/src/widgets/kardex-pdf`; pestañas «Expediente» y «Kardex» del alumno.
+**Estado: terminado** (desde F3 el kardex se alimenta de M07/M08). Código en `api/src/modules/documents`, `web/src/features/document/documents-panel` y `web/src/widgets/kardex-pdf`; pestañas «Expediente» y «Kardex» del alumno.
 
 | Método | Ruta | Permiso |
 |---|---|---|
@@ -23,6 +23,11 @@
 | GET | `/api/v1/students/:studentId/kardex` | `kardex.view` |
 
 Diferencias con el borrador: el tipo de documento es FK al catálogo `document_types` de M11 (no un enum), así «faltantes» sale directo de `required`; el almacenamiento es privado con driver S3 o local ([D-023](../../../DECISIONES.md)); el PDF del kardex se genera en el navegador con `@react-pdf/renderer` (permiso `kardex.export`), sin endpoint `/kardex/pdf` ([D-024](../../../DECISIONES.md)); un alumno en BAJA conserva su expediente en solo lectura (`409 STUDENT_INACTIVE` al escribir).
+
+> **Cómo leer este documento:** la sección «Implementación» de arriba describe lo
+> construido y **manda** sobre el diseño original de las secciones siguientes.
+> Los nombres de campos, enums, rutas y códigos ya están en inglés
+> ([D-046](../../../DECISIONES.md), [D-049](../../../DECISIONES.md)).
 
 ## 1. Objetivo
 
@@ -170,8 +175,7 @@ interface Kardex {
 
 ## 5. API
 
-Módulo bajo `api/src/modules/documents/` (documentos) y
-`api/src/modules/kardex/` (kardex) con `routes/ · controllers/ · services/ ·
+Módulo bajo `api/src/modules/documents/` (documentos y `KardexService`) con `routes/ · controllers/ · services/ ·
 models/{dto,entity}/`. Ver [`api-modular.md`](../../arquitectura/api-modular.md).
 
 | Método | Ruta | Descripción | Permiso |
@@ -182,7 +186,6 @@ models/{dto,entity}/`. Ver [`api-modular.md`](../../arquitectura/api-modular.md)
 | PATCH | `/api/v1/documents/:id/validate` | Valida o rechaza un documento | `documents.validate` |
 | DELETE | `/api/v1/documents/:id` | Baja lógica del documento | `documents.delete` |
 | GET | `/api/v1/students/:id/kardex` | Kardex calculado (JSON) | `kardex.view` |
-| GET | `/api/v1/students/:id/kardex/pdf` | Kardex en PDF | `kardex.export` |
 
 Request/response (Zod + resultado):
 
@@ -249,7 +252,7 @@ export const ValidateDocumentSchema = z.object({
 
 - Archivo: whitelist de MIME real (`%PDF`, `FF D8 FF`, `89 50 4E 47`), extensión
   coherente y `size ≤ 5 MB`.
-- `type` ∈ `DocumentType`; `status` de validación ∈ `{VALIDATED, REJECTED}`.
+- `documentTypeId` de un tipo activo del catálogo (M11); `status` de validación ∈ `{VALIDATED, REJECTED}`.
 - `notes` `max 1000`; `file` obligatorio.
 - IDs (`studentId`, `documentId`) UUID.
 - Códigos: `FILE_TYPE_NOT_ALLOWED`, `FILE_TOO_LARGE`, `REQUIRED_FIELD`,
@@ -276,7 +279,7 @@ metadatos y la clave del objeto.
 - **Contrato** (`api/tests/e2e`): subida multipart PDF/JPG/PNG válida → 201;
   archivo excedido → 400 `FILE_TOO_LARGE`; tipo no permitido → 400
   `FILE_TYPE_NOT_ALLOWED`; validar → 200; descarga sin permiso → 403; descarga
-  fuera de alcance → 403; kardex → 200; export PDF → 200 `application/pdf`.
+  fuera de alcance → 404; kardex → 200 (el PDF se arma en el navegador, [D-024](../../../DECISIONES.md)).
 - **Navegador** (`web/tests/e2e`): subir, validar y eliminar documento; abrir y
   exportar el kardex.
 - **Spec del módulo**: `tests/e2e/documents-kardex.spec.ts`.

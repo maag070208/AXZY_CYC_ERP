@@ -25,6 +25,11 @@
 
 Diferencias con el borrador: el homónimo responde `409 DUPLICATE_STUDENT` (con `details.matches`) en lugar de `DUPLICATE_RECORD`; la matrícula usa un consecutivo atómico por año (`student_number_sequences`); el alcance `AREA` del profesor queda listo para M07 (sin grupos no ve alumnos). Decisiones: [D-023](../../../DECISIONES.md), [D-026](../../../DECISIONES.md).
 
+> **Cómo leer este documento:** la sección «Implementación» de arriba describe lo
+> construido y **manda** sobre el diseño original de las secciones siguientes.
+> Los nombres de campos, enums, rutas y códigos ya están en inglés
+> ([D-046](../../../DECISIONES.md), [D-049](../../../DECISIONES.md)).
+
 ## 1. Objetivo
 
 Registrar y consultar el **expediente base del alumno** —identificado por matrícula
@@ -124,7 +129,7 @@ La **matrícula** es inmutable tras el alta; la **baja** es lógica (`status`), 
    `400 INVALID_CURP`.
 3. No se permite CURP repetida → `409 DUPLICATE_CURP`.
 4. Se advierte el duplicado por **nombre(s) + apellidos + fecha de nacimiento** →
-   `409 DUPLICATE_RECORD` (requiere confirmación explícita para continuar).
+   `409 DUPLICATE_STUDENT` con `details.matches` (se continúa enviando `confirmDuplicate`).
 5. Si el alumno es **menor de edad** (< 18 años) se exige **al menos un tutor**.
 6. A lo sumo **un tutor** por alumno con `isPaymentResponsible = true`.
 7. La matrícula **no se puede modificar** en edición; la CURP solo se corrige con
@@ -169,7 +174,7 @@ models/{dto,entity}/`), con `requiresPermission` y alcance por registro.
 }
 ```
 La respuesta incluye el `id` y la **matrícula generada**. Errores:
-`DUPLICATE_CURP`, `DUPLICATE_STUDENT_NUMBER`, `DUPLICATE_RECORD`, `INVALID_CURP`,
+`DUPLICATE_CURP`, `DUPLICATE_STUDENT_NUMBER`, `DUPLICATE_STUDENT`, `INVALID_CURP`,
 `REQUIRED_FIELD`, `VALIDATION_ERROR`.
 
 **Listado** (`POST /students/query`): contrato de tabla
@@ -238,7 +243,7 @@ reingreso con motivo/historial pertenecen a M05. Ver
   CURP, detección de duplicado por nombre + fecha, regla «menor exige tutor»,
   responsable de pago único.
 - Contrato (`api/tests/e2e`): alta, detalle, edición, baja, contrato de
-  `/students/query`, `DUPLICATE_CURP`/`DUPLICATE_STUDENT_NUMBER`/`DUPLICATE_RECORD`,
+  `/students/query`, `DUPLICATE_CURP`/`DUPLICATE_STUDENT_NUMBER`/`DUPLICATE_STUDENT`,
   permisos (401/403) y bitácora verificada.
 - Navegador (`web/tests/e2e`): alta de alumno con tutor, búsqueda y edición;
   gate por permiso; `insecure-context` sin truenos.
@@ -257,9 +262,8 @@ reingreso con motivo/historial pertenecen a M05. Ver
 ## 12. Decisiones abiertas
 
 - Acceso de alumnos al portal y uso de `userId` (A-007).
-- Origen del **consecutivo** de matrícula: ¿por año global o por nivel? (registrar).
-- Tratamiento de duplicado por nombre + fecha: ¿bloqueo o confirmación explícita?
-  (propuesto: confirmación).
+- **Resuelto:** el consecutivo de matrícula es global por año (`student_number_sequences`).
+- **Resuelto:** el duplicado por nombre + fecha pide confirmación explícita (`confirmDuplicate`).
 
 Ver [`DECISIONES.md`](../../../DECISIONES.md).
 

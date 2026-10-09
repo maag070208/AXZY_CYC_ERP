@@ -8,7 +8,7 @@
 | **Fase** | Personas |
 | **Depende de** | M02 (autenticación, roles y bitácora), M03 (alumnos), M07 (inscripciones que se cancelan) |
 | **Habilita a** | M06 (expediente y kardex histórico), M07 (reingreso y reinscripción), M10/M21 (reportes de deserción y reactivación) |
-| **Permisos** | `students.movements` (alcance `ALL`) |
+| **Permisos** | `students.movements` (`ALL` para operar; `OWN` para que el alumno consulte su historial) |
 
 ## Implementación (F2, 2026-10-09)
 
@@ -20,7 +20,12 @@
 | POST | `/api/v1/students/:id/reentry` | `students.movements` |
 | GET | `/api/v1/students/:id/movements` | `students.movements` |
 
-Body: `{ reason (≥ 3), reasonId? (catálogo M11), date? (AAAA-MM-DD, no futura en America/Mexico_City; por defecto hoy), notes? }`. Reingreso de un alumno activo → `409 STUDENT_ALREADY_ACTIVE`. La cancelación de inscripciones es un puerto que conectará M07 (hoy `cancelledEnrollments: 0`). Sin `Idempotency-Key`: repetir la baja ya responde 409 por estado. Ver [D-026](../../../DECISIONES.md).
+Body: `{ reason (≥ 3), reasonId? (catálogo M11), date? (AAAA-MM-DD, no futura en America/Mexico_City; por defecto hoy), notes? }`. Reingreso de un alumno activo → `409 STUDENT_ALREADY_ACTIVE`. La cancelación de inscripciones es un puerto que M07 ya conecta (`setEnrollmentCanceller`): la baja cancela las inscripciones vigentes en la misma transacción. Sin `Idempotency-Key`: repetir la baja ya responde 409 por estado. Ver [D-026](../../../DECISIONES.md).
+
+> **Cómo leer este documento:** la sección «Implementación» de arriba describe lo
+> construido y **manda** sobre el diseño original de las secciones siguientes.
+> Los nombres de campos, enums, rutas y códigos ya están en inglés
+> ([D-046](../../../DECISIONES.md), [D-049](../../../DECISIONES.md)).
 
 ## 1. Objetivo
 
@@ -117,7 +122,7 @@ reportes; `createdBy` para auditoría.
 10. **Fecha de movimiento**: `date` no puede ser futura respecto a la fecha de
     calendario local (`America/Mexico_City`).
 11. **Alcance**: un usuario con `students.movements` en `ALL` gestiona movimientos
-    de cualquier alumno; no existe alcance `OWN` para este recurso.
+    de cualquier alumno; con `OWN`, el alumno solo consulta su propio historial.
 
 ## 5. API
 
@@ -138,7 +143,7 @@ Request/response (Zod + resultado):
 ```ts
 // POST /api/v1/students/:id/baja
 export const StudentBajaSchema = z.object({
-  reason: z.string().min(5, "REQUIRED_FIELD").max(500),
+  reason: z.string().min(3, "REASON_MIN_LENGTH").max(500),
   date: z.string().date(),              // YYYY-MM-DD
   notes: z.string().max(1000).optional(),
 }).openapi("StudentBaja");
@@ -152,8 +157,8 @@ export const StudentBajaSchema = z.object({
 }
 ```
 
-- Escrituras no idempotentes aceptan `Idempotency-Key` (`^[A-Za-z0-9_-]{8,100}$`);
-  repetir la baja devuelve el resultado previo (ver [D-013](../../../DECISIONES.md)).
+- Sin `Idempotency-Key`: repetir la baja ya responde `409` por estado
+  ([D-026](../../../DECISIONES.md)).
 - Errores con el envelope plano de [`errores.md`](../../api/errores.md):
   `STUDENT_INACTIVE` (409), `RECORD_NOT_FOUND` (404), `VALIDATION_ERROR` (400).
 
@@ -192,7 +197,7 @@ export const StudentBajaSchema = z.object({
 
 ## 8. Validaciones
 
-- Zod en `models/dto`: `reason` (`min 5`, `max 500`, requerido), `date`
+- Zod en `models/dto`: `reason` (`min 3`, `max 500`, requerido), `date`
   (`YYYY-MM-DD`, no futura), `notes` (`max 1000`), `id` de alumno UUID.
 - `type` de movimiento es inmutable y se define por endpoint (no viaja en el body).
 - Códigos/mensajes: `REQUIRED_FIELD`, `INVALID_FORMAT`, `INVALID_RANGE` (fecha

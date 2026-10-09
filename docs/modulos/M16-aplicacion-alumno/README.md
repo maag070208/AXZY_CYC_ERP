@@ -29,6 +29,11 @@ Decisiones (sección 12):
 - Cambios de pestaña registrados sin invalidar. Ver [D-037](../../../DECISIONES.md).
 - Solo alumnos con cuenta vinculada a su expediente. Ver [D-040](../../../DECISIONES.md).
 
+> **Cómo leer este documento:** la sección «Implementación» de arriba describe lo
+> construido y **manda** sobre el diseño original de las secciones siguientes.
+> Los nombres de campos, enums, rutas y códigos ya están en inglés
+> ([D-046](../../../DECISIONES.md), [D-049](../../../DECISIONES.md)).
+
 ## 1. Objetivo
 
 Permitir que el alumno **inscrito** presente un examen publicado en línea desde el
@@ -310,13 +315,13 @@ respuestas correctas ni el contenido de los reactivos.
 
 ## 11. Criterios de aceptación
 
-- [ ] Migración y modelos Prisma (`ExamAttempt`, `AttemptAnswer`, enum `AttemptStatus`).
-- [ ] Módulo API (`routes/controller/service/dto/entity`) con permisos, alcance e idempotencia.
-- [ ] Autosave, envío manual y expiración automática en el servidor.
-- [ ] Pantalla de examen con `ITPage`/`PanelCard` y UI kit (temporizador de servidor, autosave, aviso).
-- [ ] Bitácora (`ATTEMPT_STARTED`, `ATTEMPT_SUBMITTED`, `ATTEMPT_EXPIRED`) verificada.
-- [ ] Specs del módulo pasando (solo los del módulo).
-- [ ] Este README completo.
+- [x] Migración y modelos Prisma (`ExamAttempt`, `AttemptAnswer`, enum `AttemptStatus`).
+- [x] Módulo API (`routes/controller/service/dto/entity`) con permisos, alcance e idempotencia.
+- [x] Autosave, envío manual y expiración automática en el servidor.
+- [x] Pantalla de examen con `ITPage`/`PanelCard` y UI kit (temporizador de servidor, autosave, aviso).
+- [x] Bitácora (`ATTEMPT_STARTED`, `ATTEMPT_SUBMITTED`, `ATTEMPT_EXPIRED`) verificada.
+- [x] Specs del módulo pasando (solo los del módulo).
+- [x] Este README completo.
 
 ## 12. Decisiones abiertas
 

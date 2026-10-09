@@ -34,6 +34,11 @@ Decisiones (sección 12):
 - Un justificante por falta con archivo validado por contenido (S3/disco, D-023); aprobar cambia la falta a JUSTIFICADA, rechazar permite nueva solicitud. Ver [D-043](../../../DECISIONES.md).
 - Reporte `attendance-by-group` en M10 y bitácora de sesión creada/anulada y asistencia registrada.
 
+> **Cómo leer este documento:** la sección «Implementación» de arriba describe lo
+> construido y **manda** sobre el diseño original de las secciones siguientes.
+> Los nombres de campos, enums, rutas y códigos ya están en inglés
+> ([D-046](../../../DECISIONES.md), [D-049](../../../DECISIONES.md)).
+
 ## 1. Objetivo
 
 Registrar el pase de lista por sesión de grupo, calcular el porcentaje de
@@ -316,13 +321,13 @@ Nunca se registra el contenido del archivo, solo su ruta y metadatos.
 
 ## 11. Criterios de aceptación
 
-- [ ] Migración y modelos Prisma (`AttendanceSession`, `Attendance`, `Justification`, enums).
-- [ ] Módulo API (`routes/controller/service/dto/entity`) con permisos, alcance y bitácora.
-- [ ] Pase de lista, cálculo de % y alerta por umbral.
-- [ ] Justificantes con archivo a S3 y resolución (aprobar/rechazar).
-- [ ] Pantallas web con UI kit (`ITPage`, `ITDataTable`, `ITDropfile`, `ITDialog`, `KpiTile`).
-- [ ] Specs del módulo pasando (solo los del módulo).
-- [ ] Este README completo.
+- [x] Migración y modelos Prisma (`AttendanceSession`, `Attendance`, `Justification`, enums).
+- [x] Módulo API (`routes/controller/service/dto/entity`) con permisos, alcance y bitácora.
+- [x] Pase de lista, cálculo de % y alerta por umbral.
+- [x] Justificantes con archivo a S3 y resolución (aprobar/rechazar).
+- [x] Pantallas web con UI kit (`ITPage`, `ITDataTable`, `ITDropfile`, `ITDialog`, `KpiTile`).
+- [x] Specs del módulo pasando (solo los del módulo).
+- [x] Este README completo.
 
 ## 12. Decisiones abiertas
 

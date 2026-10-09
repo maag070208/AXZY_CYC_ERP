@@ -28,6 +28,11 @@ Decisiones tomadas (sección 12): el cierre es **manual** y definitivo en esta v
 
 Otros detalles: la bitácora distingue `GRADE_CAPTURED`, `GRADE_UPDATED` (con valor anterior y nuevo) y `GRADE_CLEARED`; recapturar el mismo valor no genera registro. Bajar `maxScore` por debajo de una calificación ya capturada responde `409 MAX_SCORE_BELOW_CAPTURED`. El kardex (M06) lee las inscripciones por el puerto `KardexService.setSource`: calificaciones en escala 0–100 por instrumento, final solo tras el cierre y sin los renglones de cambio de grupo.
 
+> **Cómo leer este documento:** la sección «Implementación» de arriba describe lo
+> construido y **manda** sobre el diseño original de las secciones siguientes.
+> Los nombres de campos, enums, rutas y códigos ya están en inglés
+> ([D-046](../../../DECISIONES.md), [D-049](../../../DECISIONES.md)).
+
 ## 1. Objetivo
 
 Permitir que el profesor registre los instrumentos de evaluación (parciales,
@@ -138,7 +143,7 @@ las `Grade` no se borran (se recapturan y su historial queda en la bitácora).
 
 ## 5. API
 
-Módulos bajo `api/src/modules/assessments/` y `api/src/modules/grades/`
+Módulo único `api/src/modules/grades/` (evaluaciones, calificaciones y libro)
 (`routes/ · controllers/ · services/ · models/{dto,entity}/`). Listados
 server-side con `POST /…/query`.
 

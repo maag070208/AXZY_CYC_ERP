@@ -20,7 +20,7 @@
 | GET | `/api/v1/reports/:type?format=json\|xlsx\|pdf&termId&groupId&from&to&status` | `reports.view` (+ `reports.export` para archivos) | Exportación auditada `REPORT_EXPORTED` |
 | GET | `/api/v1/dashboard` | `reports.view` | KPIs en vivo; montos solo con alcance ALL |
 
-Tipos: `students-active`, `students-inactive`, `enrollments-by-group`, `grades-by-group`, `payments-period`, `debts`. **`attendance-list` no está disponible** hasta M18 (responde `404 REPORT_NOT_FOUND`).
+Tipos: `students-active`, `students-inactive`, `enrollments-by-group`, `grades-by-group`, `payments-period`, `debts`. Desde M18 existe también `attendance-by-group` (asistencia por alumno y grupo).
 
 Decisiones (sección 12):
 - Los reportes por ciclo usan el **ciclo activo** por defecto; `payments-period` usa el **mes en curso** si no hay rango y `debts` todos los ciclos salvo filtro.
@@ -28,6 +28,11 @@ Decisiones (sección 12):
 - Los reportes con **montos** (`payments-period`, `debts`) exigen alcance `ALL` (`403 REPORT_REQUIRES_FULL_SCOPE`): el profesor no ve dinero; su tablero muestra alumnos y ocupación de sus grupos.
 - KPIs **en vivo** (sin caché); `REPORT_VIEWED` no se registra (solo exportaciones). Ver [D-034](../../../DECISIONES.md) y [D-035](../../../DECISIONES.md).
 - Gráficas sin librería (`shared/ui/charts`: barras y avance en HTML/CSS).
+
+> **Cómo leer este documento:** la sección «Implementación» de arriba describe lo
+> construido y **manda** sobre el diseño original de las secciones siguientes.
+> Los nombres de campos, enums, rutas y códigos ya están en inglés
+> ([D-046](../../../DECISIONES.md), [D-049](../../../DECISIONES.md)).
 
 ## 1. Objetivo
 
@@ -86,7 +91,7 @@ Los datos se leen con consultas de agregación (`groupBy`, `_sum`, `_count`) y
 7. `?format=xlsx|pdf` aplica **exactamente los mismos filtros** que la consulta
    JSON vigente (sin divergencia de criterio).
 8. Los reportes de adeudos excluyen cargos `CANCELLED` y pagos cancelados.
-9. Un `:type` de reporte desconocido responde `NOT_FOUND` (404).
+9. Un `:type` de reporte desconocido responde `404 REPORT_NOT_FOUND`.
 10. La exportación requiere además el permiso `reports.export`.
 
 ## 5. API
@@ -100,7 +105,7 @@ Módulo bajo `api/src/modules/reports/`
 | GET | `/api/v1/dashboard` | KPIs del tablero (alumnos activos, ocupación, ingresos del mes, adeudos) | `reports.view` |
 
 `:type` ∈ `students-active` · `students-inactive` · `enrollments-by-group` ·
-`attendance-list` · `grades-by-group` · `payments-period` · `debts`.
+`attendance-by-group` · `grades-by-group` · `payments-period` · `debts`.
 
 **Reporte** `GET /api/v1/reports/grades-by-group?termId=…&groupId=…&format=json`:
 ```jsonc
@@ -155,7 +160,7 @@ aplica en la consulta (`AND`) para que ningún filtro lo amplíe. El alumno tien
 
 ## 8. Validaciones
 
-- `:type` debe pertenecer al catálogo de reportes (`NOT_FOUND` si no existe).
+- `:type` debe pertenecer al catálogo de reportes (`REPORT_NOT_FOUND` si no existe).
 - `format` ∈ `json|xlsx|pdf` (`VALIDATION_ERROR`); por defecto `json`.
 - `termId`, `groupId`, `status`: valores válidos; referencias inexistentes →
   `INVALID_REFERENCE`.
@@ -183,7 +188,7 @@ por el middleware de permisos. No se persiste el contenido del reporte.
   agregación de montos `Decimal`, exclusión de cancelados) y
   `dashboard.service.spec.ts` (KPIs y ocupación).
 - Contrato (`api/tests/e2e`): `?format=json|xlsx|pdf`, respeto de alcance `AREA`
-  para profesor, `NOT_FOUND` para tipo desconocido, `INVALID_RANGE`,
+  para profesor, `REPORT_NOT_FOUND` para tipo desconocido, `INVALID_RANGE`,
   `REPORT_EXPORTED` en bitácora.
 - Navegador (`web/tests/e2e`): tablero con KPIs/gráficas y exportación de un reporte.
 - Spec(s) del módulo: `api/tests/e2e/m10-reportes-tablero.spec.ts`,

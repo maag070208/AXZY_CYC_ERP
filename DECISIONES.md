@@ -158,7 +158,7 @@ Plantilla:
 - **Fecha:** 2026-10-09
 - **Estado:** aceptada
 - **Contexto:** Decisiones abiertas del README de M11 (forma de `settings`, dueño de `terms`).
-- **Decisión:** `settings` es clave/valor `jsonb`; las claves las siembra la migración y la API solo actualiza `value`, validado con un esquema zod por clave (`SETTING_SCHEMAS`). `PUT /settings` es todo o nada y audita `SYS_CONFIG_UPDATED` por clave con antes/después (secretos enmascarados). `LANGUAGE` alimenta el idioma del sistema. El modelo `Term` se crea en M11 (campos de la spec) y M07 le agrega sus relaciones; "un solo ciclo activo" se garantiza con transacción + índice único parcial `terms_single_active`. Catálogos con campos de la spec en español (`nombre`, `orden`, `obligatorio`) y `nombre` único.
+- **Decisión:** `settings` es clave/valor `jsonb`; las claves las siembra la migración y la API solo actualiza `value`, validado con un esquema zod por clave (`SETTING_SCHEMAS`). `PUT /settings` es todo o nada y audita `SYS_CONFIG_UPDATED` por clave con antes/después (secretos enmascarados). `LANGUAGE` alimenta el idioma del sistema. El modelo `Term` se crea en M11 (campos de la spec) y M07 le agrega sus relaciones; "un solo ciclo activo" se garantiza con transacción + índice único parcial `terms_single_active`. Catálogos con campos de la spec en español (`nombre`, `orden`, `obligatorio`) y `nombre` único *(renombrados a `name`, `sortOrder` y `required` por [D-046](#d-046--idioma-código-en-inglés-comentarios-en-español-e-i18n-en-api-y-web))*.
 - **Alternativas consideradas:** fila única tipada para `settings` (rompe con cada parámetro nuevo); `terms` hasta M07 (bloquea catálogos de F1).
 - **Consecuencias / impacto:** El índice parcial no lo modela Prisma: si un `migrate dev` futuro propone borrarlo, conservarlo a mano. Motivos de baja y tipos de documento se leen con `config.view` (o `students.movements` / `documents.view` cuando existan) y se escriben con `config.manage`; niveles y ciclos usan `levels.*` / `terms.*`.
 
@@ -188,7 +188,7 @@ Plantilla:
 ### D-026 — Bajas: siempre con movimiento; alcance AREA por resolvedor
 - **Fecha:** 2026-10-09
 - **Estado:** aceptada
-- **Decisión:** `DELETE /students/:id` (M03) registra el mismo movimiento de baja con motivo que `POST /students/:id/baja` (M05): no hay baja sin historial. Motivo mínimo 3 caracteres (el catálogo incluye «Otro»). El alcance `AREA` se resuelve con `registerAreaResolver` que implementará M07 (grupos del profesor); sin resolvedor se comporta como `OWN` (fail-closed). La cancelación de inscripciones y la fuente académica del kardex son puertos que M07/M08 conectan.
+- **Decisión:** `DELETE /students/:id` (M03) registra el mismo movimiento de baja con motivo que `POST /students/:id/baja` (M05; hoy `/students/:id/withdrawal`, D-049): no hay baja sin historial. Motivo mínimo 3 caracteres (el catálogo incluye «Otro»). El alcance `AREA` se resuelve con `registerAreaResolver` que implementará M07 (grupos del profesor); sin resolvedor se comporta como `OWN` (fail-closed). La cancelación de inscripciones y la fuente académica del kardex son puertos que M07/M08 conectan.
 
 ### D-027 — Inscripción serializable con reintento; sin Idempotency-Key
 - **Fecha:** 2026-10-09
@@ -283,7 +283,7 @@ Plantilla:
 ### D-044 — Outbox de notificaciones con reintentos y canales simulados
 - **Fecha:** 2026-10-09
 - **Estado:** aceptada
-- **Decisión:** las plantillas se identifican por clave+canal (una activa por combinación) con variables `{{var}}`. El outbox reclama con `FOR UPDATE SKIP LOCKED` y backoff exponencial hasta `maxAttempts`; el envío es idempotente por `Idempotency-Key`. Correo por Resend/SMTP o simulado; SMS y WhatsApp simulados hasta definir proveedor ([A-001](#decisiones-abiertas-pendientes-de-definir)). El canal `INTERNO` tiene bandeja propia y aviso en tiempo real best-effort por Ably. Las bajas (opt-out) no aplican a los avisos obligatorios.
+- **Decisión:** las plantillas se identifican por clave+canal (una activa por combinación) con variables `{{var}}`. El outbox reclama con `FOR UPDATE SKIP LOCKED` y backoff exponencial hasta `maxAttempts`; el envío es idempotente por `Idempotency-Key`. Correo por Resend/SMTP o simulado; SMS y WhatsApp simulados hasta definir proveedor ([A-001](#decisiones-abiertas-pendientes-de-definir)). El canal `INTERNO` (hoy `IN_APP`) tiene bandeja propia y aviso en tiempo real best-effort por Ably. Las bajas (opt-out) no aplican a los avisos obligatorios.
 
 ### D-045 — M20 primera entrega: CSV de alumnos y profesores (resuelve las decisiones abiertas de M20)
 - **Fecha:** 2026-10-09
@@ -293,7 +293,7 @@ Plantilla:
 ### D-046 — Idioma: código en inglés, comentarios en español e i18n en API y WEB
 - **Fecha:** 2026-10-09
 - **Estado:** aceptada
-- **Decisión:** **todo el código en inglés** (identificadores, funciones, tipos, enums, modelos y columnas Prisma, DTOs, rutas, permisos y claves de rol) y **comentarios/documentación en español**; **todo lo visible se internacionaliza**: la API por `Accept-Language` sobre `src/core/i18n/messages/{es,en}` (las claves de error son códigos, nunca texto) y la web por namespaces de `i18next` sin texto hardcodeado. Los **roles base** usan claves en inglés `ADMIN`, `SCHOOL_CONTROL`, `TEACHER`, `STUDENT` y su **nombre visible se traduce por i18n** (no se guarda como texto en la BD). Los identificadores existentes en español (`ACTIVO`, `nombres`, `COLEGIATURA`, `CONTROL_ESCOLAR`…) se migran a inglés de forma **transversal**; el código **nuevo** nace en inglés. Complementa [§11 de convenciones](docs/guia/convenciones.md).
+- **Decisión:** **todo el código en inglés** (identificadores, funciones, tipos, enums, modelos y columnas Prisma, DTOs, rutas, permisos y claves de rol) y **comentarios/documentación en español**; **todo lo visible se internacionaliza**: la API por `Accept-Language` sobre `src/core/i18n/messages/{es,en}` (las claves de error son códigos, nunca texto) y la web por namespaces de `i18next` sin texto hardcodeado. Los **roles base** usan claves en inglés `ADMIN`, `SCHOOL_CONTROL`, `TEACHER`, `STUDENT` y su **nombre visible se traduce por i18n** (no se guarda como texto en la BD). Los identificadores existentes en español (`ACTIVO`, `nombres`, `COLEGIATURA`, `CONTROL_ESCOLAR`…) se migran a inglés de forma **transversal**; el código **nuevo** nace en inglés. Complementa [§11 de convenciones](docs/guia/convenciones.md). **Completada por [D-049](#d-049--cierre-del-refactor-a-inglés-e-i18n-completa-d-046).**
 
 ### D-047 — Programas (carreras), plan de estudios y plan de pagos
 - **Fecha:** 2026-10-09
@@ -307,9 +307,29 @@ Plantilla:
   - **Reinscripción:** se cobra **una vez por periodo** (no una sola al ingreso). Total de cargos = `periodCount × (1 + monthsPerPeriod)`. Si el cliente no la cobra, `enrollmentFee = 0`.
   - **Día de vencimiento:** fijo y configurable en `settings.PAYMENT_DUE_DAY` (default **5**); la reinscripción del periodo vence en su primer mes y las mensualidades en los meses siguientes. Los meses/periodos salen del **calendario del `Term`** (`Term.calendar`, configurable; natural en español por defecto), no hardcodeado.
   - **Inscripción separada:** asignar el plan **solo genera cargos**; la inscripción a grupos (cupo/horario) es de **M07**. Acción opcional «Asignar plan e inscribir» que llama a **ambos servicios** sin acoplarlos.
-  - **Conceptos:** dos genéricos `INSCRIPCION` y `COLEGIATURA`; el **monto sale del plan** (`Charge.monto`).
+  - **Conceptos:** dos genéricos `INSCRIPCION` y `COLEGIATURA` (hoy `ENROLLMENT` y `TUITION`); el **monto sale del plan** (`Charge.monto`, hoy `Charge.amount`).
   - **Prorrateo:** **no automático** en la v1; el admin puede **ajustar el primer cargo** con motivo (bitácora `CHARGE_ADJUSTED`). Regla automática solo si el cliente la define.
   - **Descuentos/becas:** campos en el plan (`discountPercent` **o** `discountAmount` + `discountReason`); los cargos se generan con el descuento aplicado para que los reportes salgan directo.
+
+### D-049 — Cierre del refactor a inglés e i18n (completa D-046)
+- **Fecha:** 2026-10-09
+- **Estado:** aceptada
+- **Contexto:** D-046 fijó la regla y una primera pasada (migraciones `roles_english`, `lote1_catalogs_english` y `schema_english`) renombró el esquema, los enums y buena parte del código con búsqueda y reemplazo. Quedaron en español los campos derivados de las respuestas (`saldo`, `termNombre`, `horaInicio`…), dos rutas, varios códigos de error, las llaves i18n, el JSON ya guardado y las pruebas de la web; además, el reemplazo ciego alteró frases (títulos de pruebas, descripciones de Swagger, un correo).
+- **Decisión:** se termina la migración con estas reglas:
+  - **Contrato de la API en inglés, sin excepciones.** Campos de respuesta (`balance`, `termName`, `courseName`, `fullName`, `enrolledCount`, `dueDate`, `receiptNumber`, `attemptCount`…), rutas (`/students/:id/withdrawal`, `/students/:id/reentry`), códigos de error (`COURSE_CODE_TAKEN`, `CAPACITY_BELOW_ENROLLED`, `DUPLICATE_STUDENT_NUMBER`, `NAME_REQUIRED`, `CODE_FORMAT`) y parámetros `{{…}}` de los mensajes.
+  - **JSON guardado.** El horario de los grupos es `[{ day, startTime, endTime }]` con `day` ∈ `MONDAY…SUNDAY`; los campos de las políticas ABAC de cobranza son `amount`, `discount`, `discountPercent`, `conceptType`, `bulk`, `method` y `daysSinceRegistered`.
+  - **Avisos.** Eventos `ABSENCE_ALERT`, `JUSTIFICATION_RESOLVED`, `EXAM_PUBLISHED`, `PAYMENT_RECEIVED` y `PAYMENT_DUE_SOON`; variables de plantilla con el nombre del campo (`{{name}}`, `{{courseName}}`, `{{balance}}`, `{{receiptNumber}}`…).
+  - **Llaves i18n en inglés** en la API (`core/i18n/messages/{es,en}.ts`) y en la web (`shared/i18n/locales/{es,en}`), con las mismas llaves en ambos idiomas. Ningún texto visible queda en el código de la API: correos, encabezados de exportación, etiquetas de reportes, motivos automáticos y mensajes del importador de reactivos salen del catálogo.
+  - **Roles base por i18n.** La web muestra `ADMIN`, `SCHOOL_CONTROL`, `TEACHER` y `STUDENT` con `users:roles.<KEY>` (helper `roleLabel`); los roles creados por el administrador muestran su `name`.
+  - **Entrada del usuario en español por alias.** Los CSV de reactivos y de migración tienen columnas canónicas en inglés y aceptan los encabezados en español (`curso` → `course`, `nombre` → `name`…), los tipos de reactivo en español y `OTRO` como género.
+  - **Se queda en español** lo que D-046 ya exceptuaba: comentarios, documentación, títulos de pruebas y descripciones de Swagger.
+- **Migración de datos:** `20261009100000_english_followup` renombra los índices que conservaban el nombre de la columna anterior y convierte, sin pérdida, el horario de los grupos, el género `OTRO`, las plantillas y el outbox de avisos (clave, variables e idempotencia) y las condiciones de las políticas.
+- **Alternativas consideradas:** dejar el contrato a medias (campos en español sobre columnas en inglés: se descartó, es justo la inconsistencia que D-046 quería quitar); abrir `/api/v2` (innecesario: el único consumidor es la web de este repo y se actualiza en el mismo cambio).
+- **Consecuencias / impacto:**
+  - Es un cambio **incompatible** del contrato: cualquier integración externa futura debe partir de los nombres en inglés.
+  - El historial no se reescribe: la bitácora anterior conserva los nombres en español en `previousState`/`newState`, igual que las respuestas guardadas en `idempotency_records`.
+  - **Pendiente** (datos y textos que aún no pasan por i18n): `permissions.name`/`module` del catálogo de permisos, las descripciones de acciones y campos de `core/policies/actions.ts`, el contenido de las plantillas de aviso sembradas (solo español; son editables), los conceptos «Reinscripción»/«Colegiatura» que crea el plan de pagos y los nombres de archivo de las descargas (`alumnos-….xlsx`, `calificaciones-….xlsx`, `recibo-….pdf`).
+  - Ver [§11 de convenciones](docs/guia/convenciones.md) y el [diccionario de datos](docs/modelo-datos/diccionario-datos.md) (generado desde el esquema).
 
 ---
 
@@ -344,7 +364,7 @@ Plantilla:
 
 ## Cómo registrar una nueva decisión
 
-1. Elige el siguiente `D-###` libre (hoy: `D-049`).
+1. Elige el siguiente `D-###` libre (hoy: `D-050`).
 2. Copia la plantilla de arriba y llénala.
 3. Enlaza al documento/módulo afectado.
 4. Si reemplaza a otra, actualiza el estado de la anterior.

@@ -36,6 +36,11 @@ Decisiones (sección 12) y diferencias con el borrador:
 - La generación masiva solo carga a alumnos **ACTIVOS** con inscripción vigente; el método de pago agrega `CARD`. Ver [D-031](../../../DECISIONES.md) … [D-033](../../../DECISIONES.md).
 - Notas de crédito / saldo a favor: fuera de alcance de esta versión.
 
+> **Cómo leer este documento:** la sección «Implementación» de arriba describe lo
+> construido y **manda** sobre el diseño original de las secciones siguientes.
+> Los nombres de campos, enums, rutas y códigos ya están en inglés
+> ([D-046](../../../DECISIONES.md), [D-049](../../../DECISIONES.md)).
+
 ## 1. Objetivo
 
 Administrar los conceptos de cobro y los cargos de cada alumno, y registrar los
@@ -203,7 +208,7 @@ model Payment {
 
 ## 5. API
 
-Módulos bajo `api/src/modules/fees/` (conceptos), `charges/` y `payments/`
+Módulo único `api/src/modules/finance/` (conceptos, cargos y pagos)
 (`routes/ · controllers/ · services/ · models/{dto,entity}/`). Listados
 server-side con `POST /…/query`.
 
@@ -217,7 +222,7 @@ server-side con `POST /…/query`.
 | POST | `/api/v1/charges` | Crea cargo individual | `charges.create` |
 | POST | `/api/v1/charges/generate` | Generación masiva (grupo o ciclo) — `Idempotency-Key` | `charges.generate` |
 | DELETE | `/api/v1/charges/:id` | Cancela cargo con motivo | `charges.cancel` |
-| GET | `/api/v1/students/:id/account-statement` | Estado de cuenta (`?format=json\|pdf`) | `charges.view` |
+| GET | `/api/v1/students/:id/account-statement` | Estado de cuenta (JSON; el PDF se arma en la web) | `charges.view` |
 | POST | `/api/v1/payments/query` | Listado server-side de pagos | `charges.view` |
 | POST | `/api/v1/payments` | Registra pago manual (+`Idempotency-Key`) | `payments.register` |
 | DELETE | `/api/v1/payments/:id` | Cancela pago con motivo | `payments.cancel` |
@@ -248,7 +253,7 @@ Reusar la clave con otro usuario → 409 `IDEMPOTENCY_KEY_REUSED`.
 | Generación de cargos | `features/charges/generate-charges` | Masiva por grupo/ciclo |
 | Registro de pago | `features/payments/register-payment` | `ITDialog` + `ITInputNumber` |
 | Estado de cuenta | `widgets/account-statement` / `widgets/account-statement-pdf` | Vista y PDF |
-| Pantallas | `pages/fee-concepts`, `pages/charges`, `pages/payments` | Listados con `ITDataTable` |
+| Pantalla | `pages/finance` (pestañas Cargos · Pagos · Conceptos) | Listados con `ITDataTable` |
 
 Montos con `ITInputNumber`; fechas con `ITDatePicker`; selección de alumno/cargo
 con `ITSearchSelect`; exportación PDF vía `@react-pdf/renderer` y `file-saver`.
@@ -276,7 +281,7 @@ aplica en el servicio (`scopeOf`/`withinScope`), nunca en el cliente.
 - `dueDate` y `date`: fechas válidas (`@db.Date`).
 - `method` y `type`: dentro del enum; `status` no se acepta del cliente.
 - `reference`: texto opcional (máx. 120).
-- Pago mayor al saldo → `VALIDATION_ERROR`; cargo no pagable → `CHARGE_ALREADY_PAID`.
+- Pago mayor al saldo → `400 PAYMENT_EXCEEDS_BALANCE` (con el saldo en `details.balance`); cargo no pagable → `CHARGE_ALREADY_PAID`.
 - `Idempotency-Key` con formato `^[A-Za-z0-9_-]{8,100}$` (`INVALID_IDEMPOTENCY_KEY`).
 - `feeConceptId`/`groupId`/`termId` inexistentes → `INVALID_REFERENCE`.
 - Filtro no admitido → 400 `INVALID_FILTER`.

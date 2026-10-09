@@ -6,7 +6,7 @@
 | **Versión** | 1.0 |
 | **Estado** | Terminado (F2, 2026-10-09) |
 | **Fase** | Personas |
-| **Depende de** | M02 (usuarios, roles y bitácora), M19 (correo/outbox para la invitación) |
+| **Depende de** | M02 (usuarios, roles y bitácora) |
 | **Habilita a** | M07 (asignación de grupos), M08 (captura de calificaciones), M18 (asistencia) |
 | **Permisos** | `teachers.view`, `teachers.create`, `teachers.edit` |
 
@@ -24,6 +24,11 @@
 
 Diferencias con el borrador: el correo duplicado responde `409 TEACHER_EMAIL_TAKEN` (también si es el correo de otra cuenta); la invitación es un token de restablecimiento de un uso y se envía tras el commit (sin outbox hasta M19). Ver [D-025](../../../DECISIONES.md).
 
+> **Cómo leer este documento:** la sección «Implementación» de arriba describe lo
+> construido y **manda** sobre el diseño original de las secciones siguientes.
+> Los nombres de campos, enums, rutas y códigos ya están en inglés
+> ([D-046](../../../DECISIONES.md), [D-049](../../../DECISIONES.md)).
+
 ## 1. Objetivo
 
 Dar de alta al **profesor** y crear de forma automática su **cuenta de usuario con
@@ -35,7 +40,7 @@ pueda acceder a sus grupos en cuanto se le asignen.
 **Incluye**
 - Alta del profesor (datos personales, contacto, especialidad, estatus).
 - Creación transaccional del `User` asociado con rol `TEACHER`.
-- Envío de **invitación** para definir contraseña (correo vía outbox M19).
+- Envío de **invitación** para definir contraseña (correo directo tras el commit; [D-025](../../../DECISIONES.md)).
 - Búsqueda server-side y edición; vinculación/desvinculación de la cuenta.
 - Activación/desactivación (baja lógica del profesor y de su cuenta).
 
@@ -85,10 +90,10 @@ tiene cuenta, el servicio crea el `User` y lo enlaza en la misma transacción.
 
 ## 4. Reglas de negocio
 
-1. El **correo** del profesor es único → `409 DUPLICATE_RECORD` (campo `email`).
+1. El **correo** del profesor es único → `409 TEACHER_EMAIL_TAKEN` (también si ya es el correo de otra cuenta).
 2. Al crear un profesor **se crea su `User`** con rol `TEACHER` y estado
    `mustChangePassword = true` (cuenta pendiente de definir contraseña).
-3. Se envía una **invitación** por correo (patrón outbox → M19) para definir la
+3. Se envía una **invitación** por correo (envío directo tras el commit, en el idioma de la petición) para definir la
    contraseña; la invitación se encola y no bloquea la respuesta del alta.
 4. El alta de profesor + usuario + encolado de invitación ocurre en **una
    transacción**; si algo falla, no queda profesor sin cuenta ni cuenta huérfana.
@@ -126,7 +131,7 @@ models/{dto,entity}/`), con `requiresPermission` y wiring DIP de `AuditPort` y
 }
 ```
 Respuesta: el `Teacher` creado con `userId` de su cuenta y un indicador de que la
-invitación quedó encolada. Errores: `DUPLICATE_RECORD` (email),
+invitación quedó en camino (`invitationQueued`). Errores: `TEACHER_EMAIL_TAKEN`,
 `VALIDATION_ERROR`, `REQUIRED_FIELD`, `INVALID_EMAIL`.
 
 **Listado** (`POST /teachers/query`): contrato `{ page, limit, filters, sort }` →
@@ -164,7 +169,7 @@ y la baja de cuentas se apoyan en los permisos de M02 (`users.*`). Ver
 ## 8. Validaciones
 
 - **Zod** en `models/dto`: `firstNames`/`surnames` requeridos (`REQUIRED_FIELD`);
-  `email` válido y único (`INVALID_EMAIL`/`DUPLICATE_RECORD`); `phone`
+  `email` válido y único (`INVALID_EMAIL`/`TEACHER_EMAIL_TAKEN`); `phone`
   (`INVALID_FORMAT`); `specialty` opcional.
 - Web con `@shared/validation` (`validateEmail`, `validatePhone`,
   `validateRequired`) que devuelve `string | null`.
@@ -188,7 +193,7 @@ se registran contraseñas ni tokens de invitación. Ver
 - Unitarias (`api/tests/unit`): generación de `username` único, estado inicial de
   la cuenta (`mustChangePassword`), regla de baja que desactiva la cuenta.
 - Contrato (`api/tests/e2e`): alta de profesor crea `User` con rol `TEACHER` y
-  encola la invitación; `DUPLICATE_RECORD` por email; edición; contrato de
+  envía la invitación; `TEACHER_EMAIL_TAKEN` por email; edición; contrato de
   `/teachers/query`; permisos (401/403); bitácora verificada.
 - Navegador (`web/tests/e2e`): alta de profesor con aviso de invitación y listado;
   gate por permiso; `insecure-context` sin truenos.
@@ -206,9 +211,8 @@ se registran contraseñas ni tokens de invitación. Ver
 
 ## 12. Decisiones abiertas
 
-- Formato de `username` autogenerado a partir del correo/nombre (registrar).
-- Invitación: ¿token de un solo uso (patrón reset-password de M02) o enlace
-  genérico? (propuesto: token de un solo uso).
+- **Resuelto ([D-025](../../../DECISIONES.md)):** el `username` se deriva del correo (numerado si choca) y la
+  invitación es un token de restablecimiento de un solo uso (72 h).
 - ¿Se permite profesor sin cuenta (solo presencial) en algún caso?
 
 Ver [`DECISIONES.md`](../../../DECISIONES.md).

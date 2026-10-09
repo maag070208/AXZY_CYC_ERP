@@ -34,6 +34,11 @@ Diferencias con el borrador:
 - El ámbito `AREA` del profesor (sus grupos) se registra como resolvedor `groups` y publica también el `AREA` de `students`: expediente y kardex del profesor quedan limitados a los alumnos de sus grupos. Ver [D-027](../../../DECISIONES.md) y [D-028](../../../DECISIONES.md).
 - La baja del alumno (M05) cancela sus inscripciones vigentes en la misma transacción (puerto `setEnrollmentCanceller`).
 
+> **Cómo leer este documento:** la sección «Implementación» de arriba describe lo
+> construido y **manda** sobre el diseño original de las secciones siguientes.
+> Los nombres de campos, enums, rutas y códigos ya están en inglés
+> ([D-046](../../../DECISIONES.md), [D-049](../../../DECISIONES.md)).
+
 ## 1. Objetivo
 
 Administrar la **oferta académica** (cursos, ciclos y grupos) y las
@@ -215,8 +220,9 @@ enum EnrollmentStatus {
 
 ## 5. API
 
-Módulo bajo `api/src/modules/courses/`, `terms/`, `groups/` y `enrollments/`, cada
-uno con `routes/ · controllers/ · services/ · models/{dto,entity}/`. Listados
+Módulo único `api/src/modules/courses/` (cursos, grupos, inscripciones y alcance
+académico) con `routes/ · controllers/ · services/ · models/{dto,entity}/`; los
+ciclos (`terms`) se sirven desde `modules/config` (M11). Listados
 mediante **`POST /…/query`** (contrato ITDataTable). Ver
 [`api-modular.md`](../../arquitectura/api-modular.md) y
 [`convenciones.md`](../../api/convenciones.md).
@@ -259,8 +265,8 @@ export const EnrollSchema = z.object({
 - Errores del catálogo (ver [`errores.md`](../../api/errores.md)): `GROUP_FULL`,
   `ALREADY_ENROLLED`, `SCHEDULE_CONFLICT`, `STUDENT_INACTIVE`, `CONCURRENT_UPDATE`
   (409); `VALIDATION_ERROR`/`INVALID_RANGE` (400).
-- `POST /groups/:id/enroll` acepta `Idempotency-Key` para evitar inscripciones
-  duplicadas por reintentos de red.
+- `POST /groups/:id/enroll` **no** usa `Idempotency-Key`: el índice único parcial
+  ya la hace idempotente ([D-027](../../../DECISIONES.md)).
 
 ## 6. Web
 
@@ -274,7 +280,7 @@ export const EnrollSchema = z.object({
 | Cambiar de grupo | `features/enrollment/changeGroup` | Selección de grupo destino + revalidación |
 | Baja de inscripción | `features/enrollment/delete` | `ITConfirmDialog` |
 | Cursos | `pages/courses/CoursesPage.tsx` | `ITPage` + `ITDataTable` + `ITFormBuilder` |
-| Ciclos | `pages/terms/TermsPage.tsx` | Listado y activación |
+| Ciclos | `pages/catalogs` (pestaña de M11) | Listado y activación |
 | Grupos | `pages/groups/GroupsPage.tsx` | Listado y alta/edición de grupos |
 | Roster del grupo | `pages/groups/GroupDetailPage.tsx` | Inscritos + acciones |
 

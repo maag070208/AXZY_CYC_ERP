@@ -31,6 +31,11 @@ Decisiones (sección 12):
 - Bitácora: `MIGRATION_BATCH_PREVIEWED` y `MIGRATION_BATCH_EXECUTED` (totales y metadatos, sin el dataset).
 - Los rechazos se calculan antes de escribir (validación de fila y duplicados por clave natural), de modo que nunca abortan las filas aceptadas del lote.
 
+> **Cómo leer este documento:** la sección «Implementación» de arriba describe lo
+> construido y **manda** sobre el diseño original de las secciones siguientes.
+> Los nombres de campos, enums, rutas y códigos ya están en inglés
+> ([D-046](../../../DECISIONES.md), [D-049](../../../DECISIONES.md)).
+
 ## 1. Objetivo
 
 Importar de forma **repetible, idempotente y auditable** los datos históricos de

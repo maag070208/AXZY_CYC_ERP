@@ -28,6 +28,11 @@ Decisiones (sección 12):
 - Un reactivo usado en un intento queda congelado (solo desactivar). Ver [D-038](../../../DECISIONES.md).
 - Importación en dos pasos: vista previa con filas rechazadas y aplicar idempotente. Ver [D-041](../../../DECISIONES.md).
 
+> **Cómo leer este documento:** la sección «Implementación» de arriba describe lo
+> construido y **manda** sobre el diseño original de las secciones siguientes.
+> Los nombres de campos, enums, rutas y códigos ya están en inglés
+> ([D-046](../../../DECISIONES.md), [D-049](../../../DECISIONES.md)).
+
 ## 1. Objetivo
 
 Administrar el banco de reactivos del que se arman los exámenes en línea: crear,
@@ -271,12 +276,12 @@ Regla de trabajo: correr solo el spec del cambio. Ver
 
 ## 11. Criterios de aceptación
 
-- [ ] Migración y modelo Prisma (`Question`, `QuestionOption`).
-- [ ] Módulo API (routes/controller/service/dto/entity) con permisos y bitácora.
-- [ ] Importación CSV con preview e idempotencia.
-- [ ] Pantallas web con `ITDataTable` + `ITFormBuilder` + `ITDropfile`.
-- [ ] Specs pasando (solo los del módulo).
-- [ ] Este README completo.
+- [x] Migración y modelo Prisma (`Question`, `QuestionOption`).
+- [x] Módulo API (routes/controller/service/dto/entity) con permisos y bitácora.
+- [x] Importación CSV con preview e idempotencia.
+- [x] Pantallas web con `ITDataTable` + `ITFormBuilder` + `ITDropfile`.
+- [x] Specs pasando (solo los del módulo).
+- [x] Este README completo.
 
 ## 12. Decisiones abiertas
 

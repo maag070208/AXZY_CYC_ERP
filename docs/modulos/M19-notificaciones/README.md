@@ -37,6 +37,11 @@ Decisiones (sección 12):
 - El puerto `Notifier` dispara `ABSENCE_ALERT`, `JUSTIFICATION_RESOLVED`, `EXAM_PUBLISHED`, `PAYMENT_RECEIVED` y `PAYMENT_DUE_SOON` (barrido horario idempotente).
 - Las bajas (opt-out) no aplican a los avisos obligatorios.
 
+> **Cómo leer este documento:** la sección «Implementación» de arriba describe lo
+> construido y **manda** sobre el diseño original de las secciones siguientes.
+> Los nombres de campos, enums, rutas y códigos ya están en inglés
+> ([D-046](../../../DECISIONES.md), [D-049](../../../DECISIONES.md)).
+
 ## 1. Objetivo
 
 Enviar avisos por correo, SMS y WhatsApp a alumnos, tutores y personal con
@@ -329,16 +334,16 @@ Los secretos del proveedor (API keys) nunca se guardan en `previousState`/
 
 ## 11. Criterios de aceptación
 
-- [ ] Migración y modelo Prisma (`NotificationTemplate`, `Notification`,
+- [x] Migración y modelo Prisma (`NotificationTemplate`, `Notification`,
       `NotificationPreference`).
-- [ ] Módulo API (routes/controller/service/dto/entity + `providers/`) con
+- [x] Módulo API (routes/controller/service/dto/entity + `providers/`) con
       permisos y bitácora.
-- [ ] Worker de drenado con reintentos y backoff operativo.
-- [ ] Interfaz `NotificationProvider` con al menos un proveedor de correo y *fake*
+- [x] Worker de drenado con reintentos y backoff operativo.
+- [x] Interfaz `NotificationProvider` con al menos un proveedor de correo y *fake*
       para pruebas.
-- [ ] Pantallas web con UI kit (plantillas, historial, preferencias).
-- [ ] Specs pasando (solo los del módulo).
-- [ ] Este README completo.
+- [x] Pantallas web con UI kit (plantillas, historial, preferencias).
+- [x] Specs pasando (solo los del módulo).
+- [x] Este README completo.
 
 ## 12. Decisiones abiertas
 

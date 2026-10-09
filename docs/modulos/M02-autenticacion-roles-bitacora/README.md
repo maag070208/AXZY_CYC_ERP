@@ -221,8 +221,7 @@ model AuditLog {
 > borran en cascada; se agregan `policies`, `policy_conditions` y `policy_roles`
 > ([D-018](../../../DECISIONES.md)). Fuente: `api/prisma/schema.prisma`.
 
-**Índices:** `users.username`/`users.email` únicos; `login_attempts(identifier,
-attemptedAt)`; `audit_logs` por `action`, `(entityType, entityId)`, `userId` y
+**Índices:** `users.username`/`users.email` únicos; `audit_logs` por `action`, `(entityType, entityId)`, `userId` y
 `createdAt`; `refresh_tokens.userId`.
 **Relaciones:** `User 1—N UserRole/RolePermission` vía `UserRole` y
 `UserPermission`; `Role 1—N RolePermission`; `Permission 1—N RolePermission`;

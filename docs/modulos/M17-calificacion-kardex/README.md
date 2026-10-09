@@ -25,6 +25,11 @@ Decisiones (sección 12):
 - El puntaje elegido por criterio se normaliza a la escala de la evaluación vinculada y se escribe en el libro de M08; el kardex lo recibe al cerrar el grupo. Ver [D-039](../../../DECISIONES.md).
 - Bitácora: cierre del intento (enviado/expirado), revisión, recalificación y la escritura de la calificación.
 
+> **Cómo leer este documento:** la sección «Implementación» de arriba describe lo
+> construido y **manda** sobre el diseño original de las secciones siguientes.
+> Los nombres de campos, enums, rutas y códigos ya están en inglés
+> ([D-046](../../../DECISIONES.md), [D-049](../../../DECISIONES.md)).
+
 ## 1. Objetivo
 
 Calificar automáticamente las preguntas cerradas al enviar el intento, dejar las
@@ -357,13 +362,13 @@ nuevo `GRADE_WRITTEN`.
 
 ## 11. Criterios de aceptación
 
-- [ ] Migración/campos de trazabilidad sobre `ExamAttempt` (si se aprueban).
-- [ ] Servicio de calificación automática de cerradas y de pendientes de abiertas.
-- [ ] Escritura de `Grade` en el `Assessment` con criterio de intentos configurado.
-- [ ] Módulo API (`routes/controller/service/dto`) con permisos AREA y bitácora.
-- [ ] Pantallas de resultados y revisión con UI kit (`ITDataTable`, `KpiTile`, `ITDialog`).
-- [ ] Specs del módulo pasando (solo los del módulo).
-- [ ] Este README completo.
+- [x] Migración/campos de trazabilidad sobre `ExamAttempt` (si se aprueban).
+- [x] Servicio de calificación automática de cerradas y de pendientes de abiertas.
+- [x] Escritura de `Grade` en el `Assessment` con criterio de intentos configurado.
+- [x] Módulo API (`routes/controller/service/dto`) con permisos AREA y bitácora.
+- [x] Pantallas de resultados y revisión con UI kit (`ITDataTable`, `KpiTile`, `ITDialog`).
+- [x] Specs del módulo pasando (solo los del módulo).
+- [x] Este README completo.
 
 ## 12. Decisiones abiertas
 
