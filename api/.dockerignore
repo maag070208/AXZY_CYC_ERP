@@ -1,3 +1,5 @@
+.git
+.gitignore
 node_modules
 dist
 .env
@@ -6,6 +8,9 @@ dist
 tests
 test-results
 playwright-report
+coverage
+*.tsbuildinfo
+.eslintcache
 *.log
 .DS_Store
 

@@ -333,6 +333,29 @@ Plantilla:
 
 ---
 
+### D-050 — Imagen Docker de la API: solo dependencias de producción, usuario `node` y entrypoint con `exec`
+- **Fecha:** 2026-10-09
+- **Estado:** aceptada
+- **Contexto:** La imagen copiaba al runtime el `node_modules` completo del builder (Playwright, ESLint, TypeScript, ts-node, nodemon) y arrancaba como **root** con `sh -c "npx prisma migrate deploy && node dist/src/index.js"`, de modo que el PID 1 era el shell y no la API. Medición del `api/Dockerfile` anterior: **716 MB**, con 315 MB de `node_modules`.
+- **Decisión:** reestructurar el `Dockerfile` en cuatro etapas (`base` → `tools` → `build`/`prod-deps` → `runtime`):
+  - Base **`node:20-bookworm-slim`** en todas las etapas, más `openssl` (Prisma detecta la plataforma leyendo libssl).
+  - **`prod-deps`**: `pnpm install --prod`; al runtime solo van las dependencias de producción. `prisma` pasa a `dependencies` porque el contenedor aplica las migraciones.
+  - **Sin pnpm en el runtime**: la etapa `runtime` sale de `base`, no de `tools`.
+  - **Usuario `node`** (uid 1000) y `/app/storage/private` con ese dueño, para que el volumen nombrado herede el permiso y el expediente se escriba sin root.
+  - **`docker-entrypoint.sh`** aplica `prisma migrate deploy` y hace `exec` del `CMD`: PID 1 = node (SIGTERM directo) y el `CMD` sigue siendo sustituible (`docker run … sh`).
+  - Cliente Prisma generado **solo para la plataforma nativa** (los motores `musl` que declara el esquema son 16 MB muertos en una imagen glibc) y **caché de side-effects de pnpm desactivada**, que arrastraba motores de la libssl de otra imagen base.
+  - `HEALTHCHECK` en la imagen, además del que ya define `docker-compose`.
+- **Alternativas consideradas:** seguir en `bullseye-slim` (sin ganancia y con base más vieja); `node:20-alpine` (menos MB, pero exige `libc6-compat` y afinar el binario musl: más superficie de fallo); mover las migraciones a una tarea previa al despliegue (pre-deploy de Railway) para no meter el CLI de Prisma en la imagen — se descarta porque el despliegue documentado es un solo servicio y `migrate deploy` al arrancar evita olvidos; quitar `npm` del runtime (se deja para no perder el `npm run` de emergencia).
+- **Consecuencias / impacto:**
+  - Imagen **716 MB → 603 MB** (−15,8 %) y `node_modules` **315 MB → 206 MB**, sin Playwright/ESLint/TypeScript/nodemon en producción.
+  - Verificado con un smoke test contra Postgres 16: 16 migraciones aplicadas por el entrypoint, backfill del catálogo (70 permisos), administrador inicial, `/api/v1/health` y `/api/v1/health/ready` en 200 (dentro y desde el host), escritura en el volumen, `uid=1000(node)` y `/proc/1/comm = node` (el baseline: `sh` y root).
+  - **El contenedor ya no trae `ts-node`**: para sembrar desde dentro de la imagen se usa el script nuevo `seed:dist` (`node dist/prisma/seed.js`, ya compilado). Desde el host no cambia nada (`pnpm --dir api seed`).
+  - Los fixtures `prisma/seed-data/*.json` **deben** seguir copiándose a la imagen: los lee el backfill de arranque (`core/utils/seed-data-dir.ts`). Sin ellos la API arranca con todo en 403 y sin administrador.
+  - **Actualización de una instalación existente:** el volumen `apistorage` creado por la imagen anterior pertenece a `root`, así que la API (uid 1000) no puede escribir el expediente (arranca, pero las subidas fallan con EACCES). Se corrige una vez con `docker compose run --rm --user root --entrypoint chown api -R node:node /app/storage`.
+  - `prisma` deja de ser `devDependency`: el lockfile mueve la entrada de grupo (sin re-resolución) y en local `pnpm install` pedirá purgar `node_modules` una vez.
+
+---
+
 ## Mapeo desde la especificación original
 
 | Spec original | Estándar aplicado |
@@ -364,7 +387,7 @@ Plantilla:
 
 ## Cómo registrar una nueva decisión
 
-1. Elige el siguiente `D-###` libre (hoy: `D-050`).
+1. Elige el siguiente `D-###` libre (hoy: `D-051`).
 2. Copia la plantilla de arriba y llénala.
 3. Enlaza al documento/módulo afectado.
 4. Si reemplaza a otra, actualiza el estado de la anterior.

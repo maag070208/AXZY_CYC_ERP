@@ -58,9 +58,11 @@ despliegue con Docker. Ver [D-014](../../DECISIONES.md).
 
 ## Docker
 
-- **`api/Dockerfile`**: multi-stage (builder Node + runtime slim); aplica
+- **`api/Dockerfile`**: multi-stage (builder Node + runtime `bookworm-slim` sin
+  herramientas de build, usuario `node`); el `ENTRYPOINT` aplica
   `prisma migrate deploy` y arranca (`node dist/src/index.js`). El seed **no**
-  corre al arrancar.
+  corre al arrancar; dentro del contenedor se siembra con `npm run seed:dist`
+  (ver [D-050](../../DECISIONES.md)).
 - **`web/Dockerfile`**: builder Vite + runtime **nginx**; sirve el SPA y hace
   proxy de `/api/` al contenedor `api`.
 - **`docker-compose.yml`**: postgres + api + web, con healthchecks y volúmenes.

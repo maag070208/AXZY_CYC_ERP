@@ -27,11 +27,21 @@ docker compose up --build -d
 
 - **API** (`api/Dockerfile`): multi-stage con **BuildKit** (`# syntax=docker/dockerfile:1`)
   y **cache mounts** para la caché de pnpm; la capa de dependencias va **antes**
-  del código. Runtime bullseye-slim; `CMD`:
-  ```
-  npx prisma migrate deploy && node dist/src/index.js
-  ```
-  **El seed no corre al arrancar** (ver [D-017](../../DECISIONES.md)).
+  del código. Etapas: `base` (bookworm-slim + `openssl`) → `tools` (+ pnpm, solo
+  para instalar) → `build` (todas las dependencias + `tsc`) y `prod-deps`
+  (`pnpm install --prod`) → `runtime` (**sin pnpm ni herramientas de build**,
+  usuario `node`). El `ENTRYPOINT` (`docker-entrypoint.sh`) aplica
+  `prisma migrate deploy` y hace `exec` del `CMD` (`node dist/src/index.js`), así
+  el PID 1 es la API y recibe SIGTERM. **El seed no corre al arrancar** (ver
+  [D-017](../../DECISIONES.md)); dentro del contenedor, que no trae `ts-node`, se
+  siembra con `npm run seed:dist`. Ver [D-050](../../DECISIONES.md).
+
+> **Actualizar una instalación ya desplegada:** el volumen `apistorage` de un
+> despliegue anterior quedó con dueño `root`, así que la API (uid 1000) no podrá
+> escribir el expediente. Se arregla una sola vez:
+> ```bash
+> docker compose run --rm --user root --entrypoint chown api -R node:node /app/storage
+> ```
 - **Web** (`web/Dockerfile`): builder Vite → runtime **`nginx:1.27-alpine`**.
   La imagen usa `build:image` (`vite build` sin `tsc`; el typecheck corre en
   local/CI).
