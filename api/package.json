@@ -1,6 +1,6 @@
 {
   "name": "cyc-api",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "API del Sistema de Gestión Escolar (CYC). Módulo M02: autenticación, roles y bitácora.",
   "main": "dist/src/index.js",
   "license": "MIT",

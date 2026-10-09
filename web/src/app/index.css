@@ -1,7 +1,7 @@
-@layer theme, base, axzy-ui-system, components, utilities;
+@layer theme, base, components, utilities, axzy-ui-system;
 
 @import "tailwindcss";
-@import "@axzydev/axzy_ui_system/layered.css";
+@import "@axzydev/axzy_ui_system/dist/index.css" layer(axzy-ui-system);
 
 
 :root {
@@ -19,35 +19,6 @@
 /* Forzar que el modal sea más ancho para que quepan 2 columnas */
 .it-dialog-panel {
   width: min(94vw, 900px) !important;
-}
-
-/* El UI System usa el patrón `hidden <bp>:flex|block` (barra lateral, barra
-   superior, columnas). Mientras su CSS publicado no viaje en su propia capa,
-   esas utilidades conviven con las de la app y `.hidden` puede ganarle a la
-   variante por orden de emisión aunque el punto de quiebre aplique: el menú
-   lateral y el nombre del usuario se quedaban sin pintar en escritorio. Esta
-   regla restaura el patrón con más especificidad (dos clases, sin `!important`).
-   Al actualizar el UI System a la versión con `dist/layered.css`, sobra. */
-@media (min-width: 40rem) {
-  .hidden.sm\:block { display: block; }
-  .hidden.sm\:flex { display: flex; }
-  .hidden.sm\:inline-flex { display: inline-flex; }
-}
-@media (min-width: 48rem) {
-  .hidden.md\:block { display: block; }
-  .hidden.md\:flex { display: flex; }
-  .hidden.md\:grid { display: grid; }
-}
-@media (min-width: 64rem) {
-  .hidden.lg\:block { display: block; }
-  .hidden.lg\:flex { display: flex; }
-  .hidden.lg\:inline-flex { display: inline-flex; }
-  .hidden.lg\:grid { display: grid; }
-}
-@media (min-width: 80rem) {
-  .hidden.xl\:block { display: block; }
-  .hidden.xl\:flex { display: flex; }
-  .hidden.xl\:grid { display: grid; }
 }
 
 html {
