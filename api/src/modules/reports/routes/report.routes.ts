@@ -43,9 +43,18 @@ export const createReportRouters = (controller: ReportController) => {
   });
   registerPath({
     method: "get", path: "/dashboard/executive", tags: ["Reports"], security: bearer,
-    summary: "Tablero ejecutivo: indicadores del ciclo frente al anterior, tendencia e ingresos contra proyección (reports.view; montos solo con ALL)",
+    summary:
+      "Tablero de Inicio: indicadores del ciclo frente al anterior, gastos contra ingresos, cartera, alertas y detalle operativo " +
+      "(reports.view; el bloque de montos y gastos solo con ALL y expenses.view)",
     parameters: [query("termId", "Ciclo (por defecto el activo)"), query("levelId", "Nivel"), query("courseId", "Curso"), query("groupId", "Grupo")],
-    responses: { 200: { description: "{ term, previousTerm, indicators, enrollmentTrend, incomeVsProjection }" }, 400: { description: "Filtro inválido" } },
+    responses: {
+      200: {
+        description:
+          "{ term, previousTerm, indicators, movements, enrollmentByLevel, enrollmentTrend, incomeVsProjection, incomeVsExpenses, " +
+          "expenses, financialPosition, incomeByConcept, recentPayments, recentMovements, groupsByOccupancy, alerts }",
+      },
+      400: { description: "Filtro inválido" },
+    },
   });
 
   const reports = Router();

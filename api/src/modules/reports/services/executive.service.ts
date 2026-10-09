@@ -347,8 +347,8 @@ export class ExecutiveService {
     return totals.map((row) => ({ ...row, share: rate(row.total, all) }));
   }
 
-  /** Tasa de asistencia del ciclo/filtros: presente o retardo sobre lo registrado. */
-  private attendanceScope(user: UserPermissions, termId: string | null, filters: ReportFilters): Prisma.AttendanceWhereInput {
+  /** Alcance de las listas: ciclo y filtros del grupo de cada sesión. */
+  private attendanceScope(termId: string | null, filters: ReportFilters): Prisma.AttendanceWhereInput {
     const group: Prisma.GroupWhereInput = {
       ...(termId ? { termId } : {}),
       ...(filters.courseId ? { courseId: filters.courseId } : {}),
@@ -364,7 +364,7 @@ export class ExecutiveService {
     filters: ReportFilters
   ): Promise<number | null> {
     const scoped = await groupScope(user, "reports.view");
-    const where = this.attendanceScope(user, termId, filters);
+    const where = this.attendanceScope(termId, filters);
     const group = where.session && typeof where.session === "object" ? (where.session as { group: Prisma.GroupWhereInput }).group : {};
     const records = await this.db.attendance.findMany({
       where: { ...where, ...(scoped ? { enrollment: { group: { AND: [group, scoped] } } } : {}) },

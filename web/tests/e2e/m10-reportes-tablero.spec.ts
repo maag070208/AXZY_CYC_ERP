@@ -14,10 +14,10 @@ test("Inicio muestra el tablero con KPIs y gráficas", async ({ page }) => {
   await signIn(page, E2E.control.username);
   await page.goto(route("/"));
   const dashboard = page.locator("[data-role=dashboard]");
-  await expect(dashboard.getByText("Alumnos activos")).toBeVisible();
-  await expect(dashboard.getByText("Ingresos del mes")).toBeVisible();
-  await expect(dashboard.getByText("Adeudo total")).toBeVisible();
-  await expect(dashboard.getByRole("img", { name: "Ingresos por mes" })).toBeVisible();
+  await expect(dashboard.getByText("Alumnos inscritos")).toBeVisible();
+  await expect(dashboard.getByText("Ingresos cobrados")).toBeVisible();
+  await expect(dashboard.getByText("Adeudo vencido")).toBeVisible();
+  await expect(dashboard.getByRole("img", { name: "Ingresos vs. gastos" })).toBeVisible();
 });
 
 test("consulta el reporte de inscripciones y lo exporta a Excel y PDF", async ({ page }) => {
@@ -51,8 +51,8 @@ test("el profesor ve el tablero sin montos y no tiene reportes de dinero", async
   await signIn(page, E2E.teacher.username);
   await page.goto(route("/"));
   const dashboard = page.locator("[data-role=dashboard]");
-  await expect(dashboard.getByText("Alumnos activos")).toBeVisible();
-  await expect(dashboard.getByText("Ingresos del mes")).toHaveCount(0);
+  await expect(dashboard.getByText("Alumnos inscritos")).toBeVisible();
+  await expect(dashboard.getByText("Ingresos cobrados")).toHaveCount(0);
   await page.goto(route("/reports"));
   const options = await page.locator('select[name="report"] option').allInnerTexts();
   expect(options.join("|")).not.toContain("Adeudos");

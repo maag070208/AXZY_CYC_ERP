@@ -3,14 +3,15 @@ import { E2E, newRunId, route } from "./support/env";
 import { apiAs, signIn } from "./support/api";
 
 /**
- * Tablero ejecutivo (M21) en el navegador: indicadores del ciclo elegido,
- * bloque de cobranza solo con alcance institucional y acceso desde el menú.
- * Los números los verifica el contrato de la API; aquí se prueba la pantalla.
+ * Tablero de Inicio (M21 ampliado + M23) en el navegador: indicadores
+ * académicos y financieros del ciclo, alertas, filtros y bloque de dinero solo
+ * con alcance institucional. Los números los verifica el contrato de la API;
+ * aquí se prueba la pantalla.
  */
 test.use({ storageState: { cookies: [], origins: [] } });
 
 const RUN = newRunId();
-const TERM = `E2E Ejecutivo ${RUN}`;
+const TERM = `E2E Inicio ${RUN}`;
 let admin: APIRequestContext;
 
 test.beforeAll(async () => {
@@ -23,33 +24,42 @@ test.afterAll(async () => {
   await admin.dispose();
 });
 
-test("SCHOOL_CONTROL abre el tablero ejecutivo desde el menú y ve indicadores académicos y de cobranza", async ({ page }) => {
+test("SCHOOL_CONTROL ve el tablero de Inicio con indicadores, alertas y filtros", async ({ page }) => {
   await signIn(page, E2E.control.username);
   await page.goto(route("/"));
-  await page.getByRole("link", { name: "Tablero ejecutivo" }).or(page.getByRole("button", { name: "Tablero ejecutivo" })).first().click();
-  await expect(page).toHaveURL(/#\/executive$/);
-  await expect(page.getByRole("navigation", { name: "Breadcrumb" })).toContainText("Tablero ejecutivo");
-
-  await page.locator('select[name="termId"]').selectOption({ label: TERM });
-  const board = page.locator("[data-role=executive-dashboard]");
-  for (const label of ["Matrícula", "Deserción", "Aprobación", "Promedio general", "Ocupación"]) {
+  const board = page.locator("[data-role=dashboard]");
+  for (const label of ["Alumnos inscritos", "Asistencia", "Promedio general", "Ocupación de grupos"]) {
     await expect(board.getByText(label, { exact: true })).toBeVisible();
   }
-  const finance = board.locator("[data-role=executive-finance]");
-  await expect(finance.getByText("Morosidad", { exact: true })).toBeVisible();
-  await expect(finance.getByText("Adeudo vencido", { exact: true })).toBeVisible();
-  await expect(board.getByRole("img", { name: "Tendencia de inscripciones" })).toBeVisible();
+  // Con alcance institucional aparece el bloque financiero y sus gráficas.
+  await expect(board.getByText("Ingresos cobrados", { exact: true })).toBeVisible();
+  await expect(board.getByText("Gastos", { exact: true })).toBeVisible();
+  await expect(board.getByText("Adeudo vencido", { exact: true })).toBeVisible();
+  await expect(board.getByRole("img", { name: "Alumnos por nivel" })).toBeVisible();
+  await expect(board.getByRole("img", { name: "Rendimiento académico por grupo" })).toBeVisible();
+  await expect(page.locator("[data-role=dashboard-alerts]")).toBeVisible();
 
-  await page.getByRole("button", { name: "Ver reportes de detalle" }).click();
-  await expect(page).toHaveURL(/#\/reports$/);
-  await expect(page.locator('select[name="report"] option', { hasText: "Deserción por grupo" })).toHaveCount(1);
+  // Los filtros del tablero viven en Inicio.
+  for (const name of ["termId", "levelId", "courseId", "groupId"]) {
+    await expect(page.locator(`select[name="${name}"]`)).toBeVisible();
+  }
+  await page.locator('select[name="termId"]').selectOption({ label: TERM });
+  await expect(board.getByText("Alumnos inscritos", { exact: true })).toBeVisible();
 });
 
-test("TEACHER ve sus indicadores académicos, sin cobranza", async ({ page }) => {
+test("TEACHER ve sus indicadores académicos y ninguna cifra de dinero", async ({ page }) => {
   await signIn(page, E2E.teacher.username);
-  await page.goto(route("/executive"));
-  const board = page.locator("[data-role=executive-dashboard]").or(page.getByText("No hay un ciclo activo"));
+  await page.goto(route("/"));
+  const board = page.locator("[data-role=dashboard]").or(page.getByText("No hay un ciclo activo"));
   await expect(board.first()).toBeVisible();
-  await expect(page.locator("[data-role=executive-finance]")).toHaveCount(0);
-  await expect(page.locator('select[name="report"]')).toHaveCount(0);
+  for (const label of ["Ingresos cobrados", "Gastos", "Adeudo vencido", "Morosidad", "Cartera del ciclo", "Pagos recientes"]) {
+    await expect(page.getByText(label, { exact: true })).toHaveCount(0);
+  }
+});
+
+test("el tablero ejecutivo ya no es una pantalla aparte del menú", async ({ page }) => {
+  await signIn(page, E2E.control.username);
+  await page.goto(route("/"));
+  await expect(page.getByRole("link", { name: "Tablero ejecutivo" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Tablero ejecutivo" })).toHaveCount(0);
 });

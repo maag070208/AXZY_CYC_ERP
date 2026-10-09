@@ -219,15 +219,15 @@ export default function DashboardView({ filters }: { filters: ExecutiveFilters }
 
   return (
     <div className="flex flex-col gap-4" data-role="dashboard">
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {kpis.map((kpi) => (
           <KpiTile key={kpi.label} label={kpi.label} value={kpi.value} icon={kpi.icon} tone={kpi.tone} hint={kpi.hint} />
         ))}
       </div>
 
-      <div className="grid grid-cols-1 gap-3 lg:grid-cols-12">
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-3" data-role="dashboard-finance">
         {finance && (
-          <div className="lg:col-span-6">
+          <div className="lg:col-span-2">
             <PanelCard title={t("home.incomeVsExpenses")} description={data.term.name}>
               {incomeExpenses.length === 0 ? (
                 <p className="text-[12px] text-slate-500">{t("home.noFinancialData")}</p>
@@ -237,7 +237,7 @@ export default function DashboardView({ filters }: { filters: ExecutiveFilters }
             </PanelCard>
           </div>
         )}
-        <div className={finance ? "lg:col-span-3" : "lg:col-span-6"}>
+        <div>
           <PanelCard title={t("home.byLevel")}>
             {data.enrollmentByLevel.length === 0 ? (
               <p className="text-[12px] text-slate-500">{t("home.noEnrollment")}</p>
@@ -257,7 +257,7 @@ export default function DashboardView({ filters }: { filters: ExecutiveFilters }
             )}
           </PanelCard>
         </div>
-        <div className={finance ? "lg:col-span-3" : "lg:col-span-6"}>
+        <div>
           <PanelCard title={t("home.byGroup")} description={t("home.byGroupHint")}>
             {performance.length === 0 ? (
               <p className="text-[12px] text-slate-500">{t("home.noGrades")}</p>
@@ -268,9 +268,9 @@ export default function DashboardView({ filters }: { filters: ExecutiveFilters }
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-3 lg:grid-cols-12">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
         {finance && data.financialPosition && (
-          <div className="lg:col-span-4">
+          <div className="xl:col-span-1">
             <PanelCard title={t("home.financialPosition")} description={t("home.financialPositionHint")}
               actions={canFinance ? <SeeAll label={t("home.seeAll")} onClick={() => navigate("/finance")} /> : undefined}>
               <ul className="flex flex-col gap-2">
@@ -291,7 +291,7 @@ export default function DashboardView({ filters }: { filters: ExecutiveFilters }
           </div>
         )}
         {finance && data.incomeByConcept && (
-          <div className="lg:col-span-4">
+          <div>
             <PanelCard title={t("home.incomeByConcept")}>
               {data.incomeByConcept.length === 0 ? (
                 <p className="text-[12px] text-slate-500">{t("home.noIncome")}</p>
@@ -309,7 +309,7 @@ export default function DashboardView({ filters }: { filters: ExecutiveFilters }
           </div>
         )}
         {finance && data.expenses && (
-          <div className="lg:col-span-4">
+          <div>
             <PanelCard
               title={t("home.expensesByType")}
               actions={canExpenses ? <SeeAll label={t("home.seeAll")} onClick={() => navigate("/expenses")} /> : undefined}
@@ -330,7 +330,7 @@ export default function DashboardView({ filters }: { filters: ExecutiveFilters }
           </div>
         )}
         {!finance && (
-          <div className="lg:col-span-8" data-role="dashboard-performance">
+          <div className="md:col-span-2 xl:col-span-3" data-role="dashboard-performance">
             <PanelCard title={t("home.performance")} description={t("home.performanceHint")}>
               <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 <li className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2 text-[12px]">
@@ -347,18 +347,20 @@ export default function DashboardView({ filters }: { filters: ExecutiveFilters }
         )}
       </div>
 
-      <div className="grid grid-cols-1 gap-3 lg:grid-cols-12">
-        <div className="lg:col-span-5">
-          <PanelCard title={t("home.recentPayments")} actions={canFinance ? <SeeAll label={t("home.seeAll")} onClick={() => navigate("/finance")} /> : undefined}>
-            {paymentRows.length === 0 ? <p className="text-[12px] text-slate-500">{t("home.noPayments")}</p> : <RowList rows={paymentRows} />}
-          </PanelCard>
-        </div>
-        <div className="lg:col-span-4">
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
+        {finance && (
+          <div>
+            <PanelCard title={t("home.recentPayments")} actions={canFinance ? <SeeAll label={t("home.seeAll")} onClick={() => navigate("/finance")} /> : undefined}>
+              {paymentRows.length === 0 ? <p className="text-[12px] text-slate-500">{t("home.noPayments")}</p> : <RowList rows={paymentRows} />}
+            </PanelCard>
+          </div>
+        )}
+        <div>
           <PanelCard title={t("home.recentMovements")} description={t("home.recentMovementsHint", data.movements)}>
             {movementRows.length === 0 ? <p className="text-[12px] text-slate-500">{t("home.noMovements")}</p> : <RowList rows={movementRows} />}
           </PanelCard>
         </div>
-        <div className="lg:col-span-3">
+        <div>
           <PanelCard title={t("home.topGroups")} actions={<SeeAll label={t("home.seeAll")} onClick={() => navigate("/groups")} />}>
             {data.groupsByOccupancy.length === 0 ? (
               <p className="text-[12px] text-slate-500">{t("home.noGroups")}</p>

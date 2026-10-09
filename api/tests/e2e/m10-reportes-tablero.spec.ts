@@ -105,7 +105,7 @@ test("catálogo: el profesor no ve reportes con montos; el alumno no entra", asy
   expect(area.map((r: { type: string }) => r.type)).not.toContain("debts");
   const { api } = await loginAs(PUPIL.username);
   expect((await api.get("reports")).status()).toBe(403);
-  expect((await api.get("dashboard")).status()).toBe(403);
+  expect((await api.get("dashboard/executive")).status()).toBe(403);
   await api.dispose();
 });
 
@@ -182,16 +182,29 @@ test("exportación xlsx y pdf con los mismos filtros, auditada; sin reports.expo
   await api.dispose();
 });
 
-test("tablero: KPIs institucionales; el profesor sin montos y con sus grupos", async () => {
-  const kpis = await (await control.get("dashboard")).json();
-  expect(kpis.activeStudents).toBeGreaterThanOrEqual(3);
-  expect(typeof kpis.monthIncome).toBe("number");
-  expect(kpis.totalDebt).toBeGreaterThanOrEqual(1700);
-  expect(kpis.incomeByMonth).toHaveLength(6);
-  expect(kpis.incomeByMonth[5].month).toBe(today().slice(0, 7));
+test("tablero: KPIs institucionales con alertas; el profesor sin montos y con sus grupos", async () => {
+  const kpis = await (await control.get("dashboard/executive")).json();
+  expect(kpis.term.id).toBe(termId);
+  // Un cargo vencido con saldo (1000 - 300): el alumno es el único con adeudo.
+  expect(kpis.alerts.overdueDebt).toMatchObject({ count: 1, amount: 700 });
+  expect(kpis.alerts.overdueDebt.students[0].name).toContain("RepA");
+  // Con alcance ALL el bloque financiero existe (puede estar en cero si el ciclo no es el activo).
+  expect(kpis.financialPosition).not.toBeNull();
+  expect(kpis.incomeVsExpenses).not.toBeNull();
+  expect(kpis.groupsByOccupancy.length).toBeGreaterThan(0);
+  expect(kpis.recentMovements).toEqual(expect.any(Array));
 
-  const area = await (await prof.get("dashboard")).json();
-  expect(area).toMatchObject({ activeStudents: 2, monthIncome: null, totalDebt: null, incomeByMonth: null });
-  // Sin ciclo activo E2E, el tablero usa el ciclo activo: sus grupos solo si son de ese ciclo.
-  expect(area.groupOccupancy.groups.every((g: { groupId: string }) => g.groupId === mine.id)).toBe(true);
+  const area = await (await prof.get("dashboard/executive")).json();
+  expect(area).toMatchObject({
+    expenses: null,
+    financialPosition: null,
+    incomeVsProjection: null,
+    incomeVsExpenses: null,
+    recentPayments: null,
+  });
+  expect(area.indicators.pendingAmount).toBeNull();
+  expect(area.indicators.collected).toBeNull();
+  expect(area.alerts.overdueDebt).toBeNull();
+  // El profesor solo ve los grupos de su alcance AREA.
+  expect(area.groupsByOccupancy.every((g: { groupId: string }) => g.groupId === mine.id)).toBe(true);
 });

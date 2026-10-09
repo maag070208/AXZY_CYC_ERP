@@ -12,11 +12,11 @@
 
 ## Implementación (F8, 2026-10-09)
 
-**Estado: terminado.** Código en `api/src/modules/reports` (`services/executive.service.ts`, reglas en `models/entity/report.ts`) y `web/src/{entities/report,widgets/executive-dashboard,pages/executive}`; pantalla `/executive` (menú «Tablero ejecutivo», `reports.view`). Ver [D-052](../../../DECISIONES.md).
+**Estado: terminado y ampliado (D-054).** Código en `api/src/modules/reports` (`services/executive.service.ts`, reglas en `models/entity/report.ts`) y `web/src/{entities/report,widgets/dashboard,pages/home}`. El tablero es **Inicio (`/`)**: absorbió la pantalla `/executive`, que ya no existe como ruta ni como entrada de menú. Ver [D-052](../../../DECISIONES.md) y [D-054](../../../DECISIONES.md).
 
 | Método | Ruta | Permiso | Nota |
 |---|---|---|---|
-| GET | `/api/v1/dashboard/executive?termId&levelId&courseId&groupId` | `reports.view` | Indicadores `{ value, previous, delta, deltaPercent }` frente al ciclo anterior, tendencia de 6 ciclos e ingresos contra proyección (montos solo con `ALL`) |
+| GET | `/api/v1/dashboard/executive?termId&levelId&courseId&groupId` | `reports.view` | Todo lo que pinta Inicio. Académico: indicadores frente al ciclo anterior, `enrollmentTrend`, `enrollmentByLevel`, `attendanceRate`, `pendingDocuments`, `movements`. Financiero (solo `ALL`): `incomeVsProjection`, `incomeVsExpenses` (cobrado contra gastos, M23), `expenses`, `financialPosition`, `incomeByConcept`, `recentPayments`. Operación: `recentMovements`, `groupsByOccupancy` y `alerts` (adeudos vencidos, expedientes incompletos y grupos con ocupación ≥ 80 %) |
 | GET | `/api/v1/reports/:type` | `reports.view` (+ `reports.export`) | Tipos nuevos: `dropout`, `performance-by-course`, `performance-by-teacher`, `enrollment-trend`, `delinquency`, `income-vs-projection` |
 
 Diferencias con el borrador:
@@ -25,8 +25,9 @@ Diferencias con el borrador:
 - La ocupación por grupo es el reporte `enrollments-by-group` de M10.
 - La proyección de ingresos es lo facturado (cargos vigentes), no una meta capturada en `settings`.
 - El tablero es `GET /dashboard/executive`; no hay `POST /reports/:type/query`.
+- **D-054:** el contrato se amplió con el detalle operativo y el bloque de **gastos** (M23) en lugar de crear un endpoint nuevo; «Ingresos vs. gastos» usa el cobrado por mes de vencimiento y el gasto por su fecha, sin inventar egresos. El bloque de dinero exige `ALL` (el profesor nunca ve montos) y las alertas se devuelven en `null` cuando no aplican.
 
-Pruebas: `api/tests/unit/executive.spec.ts`, `api/tests/e2e/m21-reportes-ejecutivos.spec.ts` y `web/tests/e2e/m21-tablero-ejecutivo.spec.ts`.
+Pruebas: `api/tests/unit/executive.spec.ts`, `api/tests/e2e/m21-reportes-ejecutivos.spec.ts`, `api/tests/e2e/m10-reportes-tablero.spec.ts` (contrato ampliado) y `web/tests/e2e/m21-tablero-ejecutivo.spec.ts` (pantalla de Inicio).
 
 > **Cómo leer este documento:** la sección «Implementación» manda sobre el diseño
 > original de las secciones siguientes.

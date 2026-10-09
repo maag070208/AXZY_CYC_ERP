@@ -398,6 +398,21 @@ Plantilla:
 - **Alternativas consideradas:** sobrescribir con CSS `!important` desde la web (frágil: los detalles eran estilos en línea del componente); un tema solo de variables (no alcanza para mover la marca ni quitar la barra de acento).
 - **Consecuencias / impacto:** La web necesita la versión del UI System que publica estas opciones. Quedan fuera, por ser contenido y no estilo: el buscador global de la barra superior, la gráfica de línea y los paneles nuevos del tablero de la referencia.
 
+### D-054 — Inicio como tablero ejecutivo: gastos (M23) y contrato ampliado del tablero
+- **Fecha:** 2026-10-09
+- **Estado:** aceptada
+- **Contexto:** el cliente pidió rehacer el tablero de Inicio enfocado en alumnos, finanzas, rendimiento académico y operación escolar, tomando como referencia una imagen con «Ingresos vs. Gastos». El esquema no tenía modelo de egresos y el tablero de Inicio (M10) solo mostraba cuatro KPIs; el tablero ejecutivo (M21 D-052) vivía en una pantalla aparte (`/executive`) con casi los mismos indicadores.
+- **Decisión:**
+  - **Modelo `Expense` (M23)** con `ExpenseType` (servicios, insumos, nómina, mantenimiento, impuestos, equipo, otros) y `ExpenseStatus` (`PENDING`/`PAID`/`CANCELLED`). Baja lógica con motivo y bitácora (`EXPENSE_CREATED`/`UPDATED`/`CANCELLED`): nunca se borra la fila. Permisos `expenses.view` y `expenses.manage` (solo `ALL`; hoy solo `ADMIN`, D-034). `termId` opcional: el tablero suma los gastos del ciclo **y los que no tienen ciclo**, para que un gasto sin asignar no desaparezca de los totales.
+  - **«Ingresos vs. gastos» se calcula con datos reales:** ingresos = cobrado por mes de vencimiento del cargo; gastos = monto del gasto por su fecha. Las dos series se unen en `incomeVsExpenses` (unión de meses, ceros donde falta). **No se inventan egresos**: sin captura, la serie de gastos va en cero.
+  - **Un solo endpoint y una sola pantalla.** El contrato de `GET /dashboard/executive` se amplía (no se crea otro) con `movements`, `enrollmentByLevel`, `incomeVsExpenses`, `expenses`, `financialPosition`, `incomeByConcept`, `recentPayments`, `recentMovements`, `groupsByOccupancy`, `alerts` e indicadores de `attendanceRate` y `pendingDocuments`. **Inicio (`/`) lo consume y `/executive` desaparece del menú y de las rutas** (M21 y M10 se funden en una pantalla).
+  - **Alertas por regla, no por umbral inventado:** cartera vencida agrupada por alumno (cargo con saldo y vencimiento anterior a hoy), **expedientes incompletos** (documentos obligatorios sin validar de alumnos inscritos) y **grupos con ocupación ≥ 80 %**. Cada bloque viene en `null` cuando no aplica; con todo en orden el panel dice que no hay pendientes.
+  - **Alcance intacto:** el bloque de dinero (incluidos gastos, cartera, pagos y alertas de adeudo) exige `reports.view = ALL`; el profesor ve académico y operación de sus grupos, y nunca montos.
+  - **Cálculo en vivo, sin materializar** (se mantiene D-052). Los filtros de ciclo, nivel, curso y grupo viven en Inicio.
+  - **La web no hace aritmética de negocio:** el backend entrega promedios, tasas y desglosos ya resueltos; los componentes solo formatean y dibujan (dona y barras en SVG propio, sin librería de gráficas).
+- **Alternativas consideradas:** posponer gastos a una fase 2 (dejaba la gráfica central de la referencia sin datos); crear un endpoint nuevo `/dashboard/home` (duplicaba contrato, tipos y pruebas frente a ampliar el existente); subir el umbral de ocupación a un `setting` (parámetro que nadie pidió y que habría que mantener).
+- **Consecuencias / impacto:** Un gasto sin ciclo cuenta en los totales de cualquier ciclo. `GET /dashboard` (M10) queda como código muerto en la API y sus pruebas se movieron al contrato nuevo; `DashboardView`/`ExecutiveDashboardView` se reemplazan por un único widget. Ver [`docs/modulos/M21-reportes-ejecutivos/README.md`](docs/modulos/M21-reportes-ejecutivos/README.md).
+
 ---
 
 ## Mapeo desde la especificación original
@@ -431,7 +446,7 @@ Plantilla:
 
 ## Cómo registrar una nueva decisión
 
-1. Elige el siguiente `D-###` libre (hoy: `D-054`).
+1. Elige el siguiente `D-###` libre (hoy: `D-055`).
 2. Copia la plantilla de arriba y llénala.
 3. Enlaza al documento/módulo afectado.
 4. Si reemplaza a otra, actualiza el estado de la anterior.

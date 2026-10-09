@@ -112,7 +112,7 @@ test("barrido 403: una cuenta STUDENT no entra a la administración y queda en b
     ["POST", "notification-templates/query"],
     ["POST", "migration/batches/query"],
     ["POST", "programs"],
-    ["GET", "dashboard"],
+    ["GET", "dashboard/executive"],
   ];
   const allowed: string[] = [];
   for (const [method, path] of adminOnly) {
