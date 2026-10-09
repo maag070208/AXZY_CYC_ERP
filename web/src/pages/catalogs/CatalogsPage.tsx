@@ -37,7 +37,7 @@ export default function CatalogsPage() {
   ];
 
   return (
-    <ITPage breadcrumbs={crumbs({ label: t("common:nav.catalogs") })} noPadding title={t("catalogs.title")} description={t("catalogs.description")} icon={<FaListUl size={20} />}>
+    <ITPage className="m-0! px-4! max-w-screen!" breadcrumbs={crumbs({ label: t("common:nav.catalogs") })} noPadding title={t("catalogs.title")} description={t("catalogs.description")} icon={<FaListUl size={20} />}>
       <ITTabs items={items} />
     </ITPage>
   );

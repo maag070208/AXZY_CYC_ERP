@@ -48,7 +48,7 @@ export default function ExecutivePage() {
     }));
 
   return (
-    <ITPage
+    <ITPage className="m-0! px-4! max-w-screen!" noPadding
       breadcrumbs={crumbs({ label: t("common:nav.executive") })}
       title={t("executive.title")}
       description={t("executive.description")}

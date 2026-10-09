@@ -3,8 +3,8 @@ import {
   type ITNavigationItem,
   type ITSidebarProps,
 } from "@axzydev/axzy_ui_system";
-import { useCallback, useEffect, type ReactNode } from "react";
-import { FaBook, FaCashRegister, FaChalkboardTeacher, FaChartBar, FaChartLine, FaClipboardCheck, FaCog, FaFileSignature, FaQuestionCircle, FaHistory, FaHouseUser, FaLayerGroup, FaListUl, FaUserGraduate, FaUserShield, FaUsers, FaUserCheck, FaBell, FaDatabase, FaUserFriends, FaGraduationCap, FaSlidersH, FaStream } from "react-icons/fa";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { LuBanknote, LuBell, LuChartColumn, LuChartLine, LuFilePen, LuGraduationCap, LuHouse, LuSettings, LuUsers } from "react-icons/lu";
 import { useDispatch, useSelector } from "react-redux";
 import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -13,32 +13,25 @@ import { authApi, logout, meThunk } from "@entities/user";
 import { APP_SCREENS, isScreenVisible, type AppScreen } from "@entities/permission";
 import cycMark from "@shared/assets/logos/logo-mark.svg";
 
-/** Icono del menú por pantalla (el catálogo vive en `@entities/permission`). */
+/**
+ * Icono del menú por pantalla de primer nivel (el catálogo vive en
+ * `@entities/permission`); los subítems van sin icono. Trazo fino, a juego
+ * con el aspecto plano.
+ */
 const NAV_ICONS: Record<string, ReactNode> = {
-  home: <FaHouseUser size={14} />,
-  people: <FaUserFriends size={14} />,
-  academic: <FaGraduationCap size={14} />,
-  admin: <FaCog size={14} />,
-  students: <FaUserGraduate size={14} />,
-  teachers: <FaChalkboardTeacher size={14} />,
-  courses: <FaBook size={14} />,
-  programs: <FaStream size={14} />,
-  groups: <FaLayerGroup size={14} />,
-  finance: <FaCashRegister size={14} />,
-  questions: <FaQuestionCircle size={14} />,
-  exams: <FaClipboardCheck size={14} />,
-  myExams: <FaFileSignature size={14} />,
-  attendance: <FaUserCheck size={14} />,
-  notifications: <FaBell size={14} />,
-  migration: <FaDatabase size={14} />,
-  reports: <FaChartBar size={14} />,
-  executive: <FaChartLine size={14} />,
-  users: <FaUsers size={14} />,
-  roles: <FaUserShield size={14} />,
-  audit: <FaHistory size={14} />,
-  catalogs: <FaListUl size={14} />,
-  settings: <FaSlidersH size={14} />,
+  home: <LuHouse size={18} />,
+  people: <LuUsers size={18} />,
+  academic: <LuGraduationCap size={18} />,
+  myExams: <LuFilePen size={18} />,
+  finance: <LuBanknote size={18} />,
+  reports: <LuChartColumn size={18} />,
+  executive: <LuChartLine size={18} />,
+  notifications: <LuBell size={18} />,
+  admin: <LuSettings size={18} />,
 };
+
+/** El menú recuerda si la persona lo dejó colapsado (solo iconos). */
+const SIDEBAR_COLLAPSED_KEY = "cyc_sidebar_collapsed";
 
 export default function PrivateRoutes() {
   const { t: tt, i18n } = useTranslation(["common"]);
@@ -46,6 +39,13 @@ export default function PrivateRoutes() {
   const location = useLocation();
   const dispatch = useDispatch<AppDispatch>();
   const { token, refreshToken, user } = useSelector((s: RootState) => s.auth);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "1");
+  const toggleSidebar = useCallback(() => {
+    setSidebarCollapsed((collapsed) => {
+      localStorage.setItem(SIDEBAR_COLLAPSED_KEY, collapsed ? "0" : "1");
+      return !collapsed;
+    });
+  }, []);
 
   // Al abrir la app (o iniciar sesión) se refresca `/auth/me`: el usuario
   // guardado puede traer permisos o idioma viejos.
@@ -137,11 +137,16 @@ export default function PrivateRoutes() {
 
   const sidebar: ITSidebarProps = {
     navigationItems,
-    isCollapsed: true,
+    // Se colapsa con el botón de la barra superior (no al pasar el cursor):
+    // colapsado quedan solo los iconos y el nombre sale como tooltip.
+    isCollapsed: sidebarCollapsed,
+    onToggleCollapse: toggleSidebar,
+    expandOnHover: true,
+    subitemConnector: "|",
   };
 
   const topBar = {
-    logo: <img src={cycMark} alt="CYC" className="h-10 w-auto object-contain" />,
+    logo: <img src={cycMark} alt="CYC" className="h-8 w-auto object-contain" />,
     logoText: "CYC",
     userMenu: user
       ? {
@@ -156,7 +161,7 @@ export default function PrivateRoutes() {
   };
 
   return (
-    <ITLayout topBar={topBar} sidebar={sidebar} contentClassName="max-w-screen! m-0! !px-0">
+    <ITLayout topBar={topBar} sidebar={sidebar} sidebarFullHeight contentClassName="max-w-screen! m-0! !px-1 lg:!px-3">
       <Outlet />
     </ITLayout>
   );

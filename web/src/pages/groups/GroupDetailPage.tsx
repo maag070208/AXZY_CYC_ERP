@@ -119,7 +119,7 @@ export default function GroupDetailPage() {
 
   const dropTitle = t("enrollments.dropTitle", { name: dropping?.studentName ?? "" });
   return (
-    <ITPage
+    <ITPage className="m-0! px-4! max-w-screen!" noPadding
       breadcrumbs={crumbs({ label: t("common:nav.groups"), to: "/groups" }, { label: g && `${g.courseName} · ${g.name}` })}
       title={g ? t("groups.detailTitle", { course: g.courseName, name: g.name }) : t("groups.title")}
       description={g ? `${g.courseCode} · ${g.termName}` : undefined}

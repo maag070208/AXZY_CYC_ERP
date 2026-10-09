@@ -22,6 +22,7 @@ export default function ExamsPage() {
 
   return (
     <ITPage
+      className="m-0! px-4! max-w-screen!"
       breadcrumbs={crumbs({ label: t("common:nav.exams") })}
       noPadding
       title={t("exams.title")}

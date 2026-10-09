@@ -385,6 +385,19 @@ Plantilla:
 - **Alternativas consideradas:** un módulo aparte con su propio formato de respuesta (duplicaba exportación y permisos); capturar una meta de ingresos en `settings` (un dato más que mantener y que nadie pidió).
 - **Consecuencias / impacto:** Los tipos nuevos aparecen solos en `/reports`. Si el cliente define otra fórmula, cambia en `ExecutiveService` sin tocar el contrato. Ver [`docs/modulos/M21-reportes-ejecutivos/README.md`](docs/modulos/M21-reportes-ejecutivos/README.md).
 
+### D-053 — Lenguaje visual plano: `appearance="flat"` del Axzy UI System
+- **Fecha:** 2026-10-09
+- **Estado:** aceptada
+- **Contexto:** La referencia visual del cliente es un tablero plano: barra lateral de alto completo con la marca arriba, barra superior blanca, tarjetas con borde fino y sin sombras, encabezados sin adornos. El UI System traía un solo aspecto («soft depth»: sombras, cristal, barra de acento) con esos detalles fijos en los componentes.
+- **Decisión:**
+  - **Se resuelve en el UI System, opt-in.** Dos opciones nuevas que no cambian el aspecto por defecto: `<ITThemeProvider appearance="flat">` (tarjetas, barra lateral, barra superior y encabezado de página planos) y `<ITLayout sidebarFullHeight>` (barra lateral de alto completo con la marca; la superior cubre solo el contenido).
+  - **La web solo configura.** `main.tsx` fija la paleta (azul `#3056B8`, barra lateral del color del fondo, tablas neutras) con `appearance="flat" radius={10} shadow={1}`; `PrivateRoutes` activa `sidebarFullHeight`.
+  - **Los componentes propios siguen el aspecto** con `useITFlatAppearance()` (`KpiTile`: sin ícono ni sombra, el tono solo tiñe la línea de contexto), así volver a `soft` es cambiar una prop.
+  - **El menú se colapsa con el botón de la barra superior**, no al pasar el cursor (`expandOnHover: false`): colapsado quedan solo los iconos con el nombre en tooltip, y la preferencia se recuerda en `localStorage` (`cyc_sidebar_collapsed`). Los iconos del menú pasan a trazo fino (`react-icons/lu`).
+  - **Un solo margen de contenido:** lo pone el layout y todas las páginas usan `ITPage noPadding` (antes dependía de que el contenido quedara centrado y se pegaba a la barra lateral).
+- **Alternativas consideradas:** sobrescribir con CSS `!important` desde la web (frágil: los detalles eran estilos en línea del componente); un tema solo de variables (no alcanza para mover la marca ni quitar la barra de acento).
+- **Consecuencias / impacto:** La web necesita la versión del UI System que publica estas opciones. Quedan fuera, por ser contenido y no estilo: el buscador global de la barra superior, la gráfica de línea y los paneles nuevos del tablero de la referencia.
+
 ---
 
 ## Mapeo desde la especificación original
@@ -418,7 +431,7 @@ Plantilla:
 
 ## Cómo registrar una nueva decisión
 
-1. Elige el siguiente `D-###` libre (hoy: `D-053`).
+1. Elige el siguiente `D-###` libre (hoy: `D-054`).
 2. Copia la plantilla de arriba y llénala.
 3. Enlaza al documento/módulo afectado.
 4. Si reemplaza a otra, actualiza el estado de la anterior.

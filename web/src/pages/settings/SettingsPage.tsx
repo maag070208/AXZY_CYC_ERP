@@ -17,7 +17,7 @@ export default function SettingsPage() {
   const canManage = useCan("config.manage");
 
   return (
-    <ITPage breadcrumbs={crumbs({ label: t("common:nav.settings") })} title={t("settings.title")} description={t("settings.description")} icon={<FaCog size={20} />}>
+    <ITPage className="m-0! px-4! max-w-screen!" noPadding breadcrumbs={crumbs({ label: t("common:nav.settings") })} title={t("settings.title")} description={t("settings.description")} icon={<FaCog size={20} />}>
       <SettingsForm
         canManage={canManage}
         onSaved={() => {

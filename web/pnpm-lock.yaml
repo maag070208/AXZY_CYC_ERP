@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@axzydev/axzy_ui_system':
-        specifier: 1.4.1
-        version: 1.4.1(@types/react@19.0.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+        specifier: 1.4.4
+        version: 1.4.4(@types/react@19.0.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       '@react-pdf/renderer':
         specifier: ^4.6.1
         version: 4.9.0(react@19.0.0)
@@ -114,8 +114,8 @@ importers:
 
 packages:
 
-  '@axzydev/axzy_ui_system@1.4.1':
-    resolution: {integrity: sha512-QjsEzhUc6Cdo+qLScnXN1UyVDi9hw8At+q+97q3dzOSWvqo5xtRV2emPPk4b5uhrX4b/Y7spyNLv2GbdFnToLQ==}
+  '@axzydev/axzy_ui_system@1.4.4':
+    resolution: {integrity: sha512-Kml/zSKckDRfjA2GLY4g/tuNMmYWaGl+BAv9teUoN1wFgUgy9HScNO+ePXVwq1YbIt/YCvzau5jjVRkfE9ezZw==}
     peerDependencies:
       react: '>=18'
       react-dom: '>=18'
@@ -2193,7 +2193,7 @@ packages:
 
 snapshots:
 
-  '@axzydev/axzy_ui_system@1.4.1(@types/react@19.0.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)':
+  '@axzydev/axzy_ui_system@1.4.4(@types/react@19.0.8)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)':
     dependencies:
       clsx: 2.1.1
       date-fns: 4.4.0

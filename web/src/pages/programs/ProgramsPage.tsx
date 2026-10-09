@@ -23,6 +23,7 @@ export default function ProgramsPage() {
 
   return (
     <ITPage
+      className="m-0! px-4! max-w-screen!"
       breadcrumbs={crumbs({ label: t("common:nav.programs") })}
       noPadding
       title={t("list.title")}

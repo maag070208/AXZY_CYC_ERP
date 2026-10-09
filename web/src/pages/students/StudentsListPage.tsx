@@ -29,6 +29,7 @@ export default function StudentsListPage() {
 
   return (
     <ITPage
+      className="m-0! px-4! max-w-screen!"
       breadcrumbs={crumbs({ label: t("common:nav.students") })}
       noPadding
       title={t("list.title")}

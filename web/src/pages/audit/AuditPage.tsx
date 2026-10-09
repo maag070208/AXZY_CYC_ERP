@@ -12,6 +12,7 @@ export default function AuditPage() {
   const [reloadKey, setReloadKey] = useState(0);
   return (
     <ITPage
+      className="m-0! px-4! max-w-screen!"
       breadcrumbs={crumbs({ label: t("common:nav.audit") })}
       noPadding
       title={t("title")}

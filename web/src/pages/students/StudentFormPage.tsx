@@ -29,7 +29,7 @@ export default function StudentFormPage() {
   }, [id, t]);
 
   return (
-    <ITPage
+    <ITPage className="m-0! px-4! max-w-screen!" noPadding
       breadcrumbs={crumbs({ label: t("common:nav.students"), to: "/students" }, { label: student?.fullName, to: `/students/${id}` }, { label: id ? t("form.titleEdit") : t("form.titleNew") })}
       title={id ? t("form.titleEdit") : t("form.titleNew")}
       description={student ? `${student.studentNumber} · ${student.fullName}` : undefined}

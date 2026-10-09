@@ -16,7 +16,7 @@ export default function MigrationPage() {
   const bump = () => setReloadKey((k) => k + 1);
 
   return (
-    <ITPage
+    <ITPage className="m-0! px-4! max-w-screen!" noPadding
       breadcrumbs={crumbs({ label: t("common:nav.migration") })}
       title={t("page.title")}
       description={t("page.description", { count: total })}

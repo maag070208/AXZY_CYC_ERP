@@ -91,7 +91,7 @@ export default function NotificationsPage() {
   ];
 
   return (
-    <ITPage
+    <ITPage className="m-0! px-4! max-w-screen!" noPadding
       breadcrumbs={crumbs({ label: t("common:nav.notifications") })}
       title={t("page.title")}
       description={t("page.description")}

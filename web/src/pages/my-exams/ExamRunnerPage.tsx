@@ -29,7 +29,7 @@ export default function ExamRunnerPage() {
   }, []);
 
   return (
-    <ITPage
+    <ITPage className="m-0! px-4! max-w-screen!" noPadding
       title={attempt?.title ?? t("my.title")}
       description={attempt ? `${attempt.student.name} · #${attempt.number}` : undefined}
       icon={<FaFileSignature size={20} />}

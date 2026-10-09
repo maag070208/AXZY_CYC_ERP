@@ -106,7 +106,7 @@ export default function StudentDetailPage() {
   );
 
   return (
-    <ITPage
+    <ITPage className="m-0! px-4! max-w-screen!" noPadding
       breadcrumbs={crumbs({ label: t("common:nav.students"), to: "/students" }, { label: s?.fullName })}
       title={s?.fullName ?? t("list.title")}
       description={s ? `${t("detail.studentNumber")} ${s.studentNumber}` : undefined}

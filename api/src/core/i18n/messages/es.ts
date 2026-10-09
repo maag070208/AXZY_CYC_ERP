@@ -188,6 +188,12 @@ export const es = {
     GENERATION_TARGET_REQUIRED: "Indica el grupo (scope=group) o el ciclo (scope=term)",
     LATE_FEES_DISABLED: "Los recargos por mora están desactivados en la configuración",
 
+    // --- Gastos (M23) ---
+    EXPENSE_NOT_FOUND: "Gasto no encontrado",
+    EXPENSE_CANCELLED: "El gasto está cancelado: no admite cambios",
+    EXPENSE_ALREADY_CANCELLED: "El gasto ya estaba cancelado",
+    DUE_DATE_BEFORE_DATE: "El vencimiento no puede ser anterior a la fecha del gasto",
+
     // --- Reportes (M10) ---
     REPORT_NOT_FOUND: "No existe el reporte \"{{type}}\"",
     REPORT_FORMAT_INVALID: "Formato inválido: usa json, xlsx o pdf",
@@ -448,6 +454,17 @@ export const es = {
     administrator: "Administrador",
     unassigned: "Sin asignar",
     unknown: "Desconocido",
+  },
+  expenses: {
+    types: {
+      SERVICES: "Servicios",
+      SUPPLIES: "Insumos y papelería",
+      PAYROLL: "Nómina",
+      MAINTENANCE: "Mantenimiento",
+      TAXES: "Impuestos y trámites",
+      EQUIPMENT: "Equipo y mobiliario",
+      OTHER: "Otros",
+    },
   },
 };
 
