@@ -35,13 +35,13 @@ test.describe.serial("ciclo de vida de una cuenta", () => {
     await dialog.getByRole("button", { name: "Guardar" }).click();
     await expect(dialog.getByText("Elige al menos un rol")).toBeVisible();
 
-    await dialog.getByText("PROFESOR", { exact: true }).click();
+    await dialog.getByText("TEACHER", { exact: true }).click();
     await dialog.getByText("CONTROL ESCOLAR", { exact: true }).click();
     await dialog.getByRole("button", { name: "Guardar" }).click();
 
     await expect(page.getByText("Usuario creado")).toBeVisible();
     await filterByUsername(page, USERNAME);
-    await expect(row(page, USERNAME)).toContainText("PROFESOR");
+    await expect(row(page, USERNAME)).toContainText("TEACHER");
     await expect(row(page, USERNAME)).toContainText("CONTROL ESCOLAR");
   });
 

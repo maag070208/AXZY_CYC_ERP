@@ -155,7 +155,7 @@ export default function AccountStatementView({ studentId }: { studentId: string 
                   <td className="px-2 py-2" colSpan={2}>{t("statement.balance")}</td>
                   <td className="px-2 py-2 text-right">{money(totals.charges - totals.discounts)}</td>
                   <td className="px-2 py-2 text-right">{money(totals.paid)}</td>
-                  <td className="px-2 py-2 text-right" data-role="total-saldo">{money(totals.balance)}</td>
+                  <td className="px-2 py-2 text-right" data-role="total-balance">{money(totals.balance)}</td>
                   <td colSpan={2} />
                 </tr>
               </tfoot>

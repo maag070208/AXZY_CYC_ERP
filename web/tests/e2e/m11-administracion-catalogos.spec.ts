@@ -4,7 +4,7 @@ import { apiAs, signIn } from "./support/api";
 
 /**
  * M11 en el navegador: edición de parámetros generales y CRUD de un catálogo
- * (motivos de baja), más la vista de solo lectura de CONTROL_ESCOLAR.
+ * (motivos de baja), más la vista de solo lectura de SCHOOL_CONTROL.
  */
 test.use({ storageState: { cookies: [], origins: [] } });
 
@@ -98,7 +98,7 @@ test("un nombre duplicado muestra el error de la API", async ({ page }) => {
   await expect(dialog.getByText(/duplicado/i)).toBeVisible();
 });
 
-test("CONTROL_ESCOLAR ve configuración y catálogos en solo lectura", async ({ page }) => {
+test("SCHOOL_CONTROL ve configuración y catálogos en solo lectura", async ({ page }) => {
   await signIn(page, E2E.control.username);
   await page.goto(route("/settings"));
   await expect(page.getByText(/solo lectura/i)).toBeVisible();
@@ -111,7 +111,7 @@ test("CONTROL_ESCOLAR ve configuración y catálogos en solo lectura", async ({ 
   await expect(page.getByRole("button", { name: "Nuevo", exact: true })).toHaveCount(0);
 });
 
-test("PROFESOR no entra a configuración ni catálogos", async ({ page }) => {
+test("TEACHER no entra a configuración ni catálogos", async ({ page }) => {
   await signIn(page, E2E.teacher.username);
   await page.goto(route("/settings"));
   await expect(page).toHaveURL(/#\/$/);

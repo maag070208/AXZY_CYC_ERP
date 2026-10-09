@@ -69,7 +69,7 @@ export default function KardexView({ studentId }: { studentId: string }) {
     { key: "finalGrade", label: t("kardex.final"), type: "string", width: 90, render: (e) => e.finalGrade ?? "—" },
     {
       key: "status", label: t("kardex.status"), type: "string", width: 130,
-      render: (e) => <ITBadget color={STATUS_COLOR[e.status]} size="sm">{tr(`kardex.estatusValues.${e.status}`)}</ITBadget>,
+      render: (e) => <ITBadget color={STATUS_COLOR[e.status]} size="sm">{tr(`kardex.statusValues.${e.status}`)}</ITBadget>,
     },
   ];
 

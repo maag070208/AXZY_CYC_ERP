@@ -7,7 +7,7 @@ import { createTeacherRouter } from "./routes/teacher.routes";
 export { TeacherService } from "./services/teacher.service";
 export { usernameBase } from "./services/teacher.service";
 
-/** M04 — profesores y su cuenta PROFESOR. */
+/** M04 — profesores y su cuenta TEACHER. */
 export const createTeachersModule = (audit?: AuditLogger) => {
   const teachers = new TeacherService(prismaClient, audit);
   return { router: createTeacherRouter(new TeacherController(teachers)), teachers };

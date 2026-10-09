@@ -23,7 +23,7 @@ export const makeTerm = async (run: string, label = "T", days?: [string, string]
 export const makeCourse = async (run: string, name = "Curso") =>
   db.course.create({ data: { code: `E2E-${run}-${next()}`.toUpperCase(), name: `E2E ${name} ${run}` } });
 
-/** Alumno ACTIVO (adulto: no exige tutor); `userId` lo vincula a una cuenta ALUMNO. */
+/** Alumno ACTIVO (adulto: no exige tutor); `userId` lo vincula a una cuenta STUDENT. */
 export const makeStudent = async (run: string, label: string, userId?: string) => {
   const birth = yearsAgo(20);
   return db.student.create({
@@ -40,7 +40,7 @@ export const makeStudent = async (run: string, label: string, userId?: string) =
   });
 };
 
-/** Profesor con cuenta PROFESOR de contraseña conocida. */
+/** Profesor con cuenta TEACHER de contraseña conocida. */
 export const makeTeacher = async (run: string, label: string) => {
   const username = `${E2E_PREFIX}${label}_${run}`;
   const user = await createAuthUser({ username, name: `E2E Prof ${label}`, roleKey: "TEACHER", password: E2E.password });

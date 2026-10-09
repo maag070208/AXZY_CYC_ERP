@@ -70,7 +70,7 @@ export const usernameBase = (email: string): string => {
 
 /**
  * Profesores (M04). El alta crea, en una sola transacción, el profesor y su
- * cuenta con rol PROFESOR y una invitación (token de un uso, 72 h) para que
+ * cuenta con rol TEACHER y una invitación (token de un uso, 72 h) para que
  * defina su contraseña; el correo sale después del commit y no bloquea.
  */
 export class TeacherService {

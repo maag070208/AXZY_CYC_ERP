@@ -56,7 +56,7 @@ test.describe.serial("profesores", () => {
     await expect(page.getByRole("button", { name: `Dar de baja ${EMAIL}` })).toHaveCount(0);
   });
 
-  test("CONTROL_ESCOLAR edita la especialidad y da de baja / reactiva", async ({ page }) => {
+  test("SCHOOL_CONTROL edita la especialidad y da de baja / reactiva", async ({ page }) => {
     await signIn(page, E2E.control.username);
     await openTeachers(page);
     await page.getByRole("button", { name: `Editar ${EMAIL}` }).click();

@@ -28,7 +28,7 @@ export const createTeacherRouter = (controller: TeacherController): Router => {
     request: { body: { required: true, content: json(TableQuerySchema) } },
     responses: { 200: { description: "Página", content: json(TeacherTableResponseSchema) } },
   });
-  doc("post", "/teachers", "Alta: crea profesor + cuenta PROFESOR + invitación (teachers.create)", {
+  doc("post", "/teachers", "Alta: crea profesor + cuenta TEACHER + invitación (teachers.create)", {
     request: { body: { required: true, content: json(TeacherCreateDto) } },
     responses: {
       201: { description: "Profesor creado", content: json(TeacherCreatedSchema) },

@@ -37,7 +37,7 @@ async function openStatement(page: Page): Promise<void> {
 }
 
 test.describe.serial("cobranza", () => {
-  test("CONTROL_ESCOLAR da de alta un concepto de cobro", async ({ page }) => {
+  test("SCHOOL_CONTROL da de alta un concepto de cobro", async ({ page }) => {
     await signIn(page, E2E.control.username);
     await page.goto(route("/finance"));
     await page.getByRole("button", { name: "Conceptos", exact: true }).click();
@@ -64,7 +64,7 @@ test.describe.serial("cobranza", () => {
     await dialog.getByRole("button", { name: "Guardar" }).click();
     await expect(page.getByText("Cargo creado")).toBeVisible();
     await expect(statementRow(page, "Colegiatura septiembre")).toContainText("$2,500.00");
-    await expect(page.locator("[data-role=total-saldo]")).toHaveText("$2,500.00");
+    await expect(page.locator("[data-role=total-balance]")).toHaveText("$2,500.00");
   });
 
   test("cobro parcial: no deja exceder el saldo, emite folio y descarga el recibo", async ({ page }) => {
@@ -72,7 +72,7 @@ test.describe.serial("cobranza", () => {
     await openStatement(page);
     await page.getByRole("button", { name: "Cobrar Colegiatura septiembre" }).click();
     const dialog = page.getByRole("dialog");
-    await expect(dialog.locator("[data-role=saldo]")).toHaveText("$2,500.00");
+    await expect(dialog.locator("[data-role=balance]")).toHaveText("$2,500.00");
     await dialog.locator('input[name="amount"]').fill("3000");
     await dialog.getByRole("button", { name: "Registrar pago" }).click();
     await expect(dialog.getByText("No puede exceder el saldo ($2,500.00)")).toBeVisible();
@@ -85,7 +85,7 @@ test.describe.serial("cobranza", () => {
     await expect(page.getByText(/Pago registrado · folio REC-\d{4}-\d{6}/)).toBeVisible();
     expect((await download).suggestedFilename()).toMatch(/^recibo-REC-\d{4}-\d{6}\.pdf$/);
     await expect(statementRow(page, "Colegiatura septiembre")).toContainText("Parcial");
-    await expect(page.locator("[data-role=total-saldo]")).toHaveText("$1,500.00");
+    await expect(page.locator("[data-role=total-balance]")).toHaveText("$1,500.00");
   });
 
   test("liquida el saldo; el pago aparece en Cobranza y se cancela con motivo", async ({ page }) => {

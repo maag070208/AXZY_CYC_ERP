@@ -92,7 +92,7 @@ export const applyStudent = async (tx: Tx, raw: Record<string, unknown>): Promis
 
 /**
  * Upsert idempotente de un profesor por email. Si no existe, crea su cuenta
- * PROFESOR en estado de contraseña temporal (sin enviar la invitación: la
+ * TEACHER en estado de contraseña temporal (sin enviar la invitación: la
  * operación pone al día y control escolar reenvía cuando corresponda).
  */
 export const applyTeacher = async (tx: Tx, raw: Record<string, unknown>): Promise<"inserted" | "updated"> => {

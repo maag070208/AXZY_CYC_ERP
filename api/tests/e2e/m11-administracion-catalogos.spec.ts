@@ -67,11 +67,11 @@ test.describe("parámetros generales", () => {
     expect(byKey.LATE_FEE).toMatchObject({ enabled: expect.any(Boolean) });
   });
 
-  test("sin config.view (PROFESOR) → 403", async () => {
+  test("sin config.view (TEACHER) → 403", async () => {
     expect((await teacher.get("settings")).status()).toBe(403);
   });
 
-  test("solo config.view (CONTROL_ESCOLAR) no escribe → 403", async () => {
+  test("solo config.view (SCHOOL_CONTROL) no escribe → 403", async () => {
     const res = await control.put("settings", { data: { MIN_PASSING_GRADE: 60 } });
     expect(res.status()).toBe(403);
     expect((await res.json()).code).toBe("INSUFFICIENT_PERMISSIONS");
@@ -162,7 +162,7 @@ test.describe("niveles educativos", () => {
     expect((await empty.json()).code).toBe("VALIDATION_ERROR");
   });
 
-  test("solo levels.view (CONTROL_ESCOLAR) no escribe → 403", async () => {
+  test("solo levels.view (SCHOOL_CONTROL) no escribe → 403", async () => {
     const res = await control.post("levels", { data: { name: NAME("Prohibido") } });
     expect(res.status()).toBe(403);
   });
@@ -208,7 +208,7 @@ test.describe("ciclos escolares", () => {
     expect((await again.json()).code).toBe("TERM_ALREADY_ACTIVE");
   });
 
-  test("terms.view (CONTROL_ESCOLAR) consulta; no activa → 403", async () => {
+  test("terms.view (SCHOOL_CONTROL) consulta; no activa → 403", async () => {
     const list = await control.post("terms/query", { data: { page: 1, limit: 5, filters: { name: RUN } } });
     expect(list.status()).toBe(200);
     const id = (await list.json()).data[0].id;

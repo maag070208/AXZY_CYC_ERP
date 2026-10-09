@@ -71,7 +71,7 @@ test.describe.serial("cursos y grupos", () => {
     await expect(page.locator("tr", { hasText: COURSE })).toContainText(CLAVE);
   });
 
-  test("CONTROL_ESCOLAR abre un grupo con horario; un empalme interno se rechaza en pantalla", async ({ page }) => {
+  test("SCHOOL_CONTROL abre un grupo con horario; un empalme interno se rechaza en pantalla", async ({ page }) => {
     await signIn(page, E2E.control.username);
     await page.goto(route("/groups"));
     await page.getByRole("button", { name: "Nuevo grupo" }).click();

@@ -13,7 +13,7 @@ let admin: APIRequestContext;
 
 test.beforeAll(async () => {
   admin = await apiAs(E2E.admin.username);
-  await createUser(admin, { username: USERNAME, name: "E2E Recupera Web", roles: ["ALUMNO"] });
+  await createUser(admin, { username: USERNAME, name: "E2E Recupera Web", roles: ["STUDENT"] });
 });
 
 test.afterAll(async () => {

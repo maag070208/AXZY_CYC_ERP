@@ -194,7 +194,7 @@ test.describe("políticas ABAC", () => {
       .poll(async () => (await lastAudit("ACCESS_DENIED", adminId))?.entityId ?? null)
       .toBe(policy.key);
 
-    // Un ALUMNO sí se puede dar de baja: la condición no casa.
+    // Un STUDENT sí se puede dar de baja: la condición no casa.
     const allowed = await admin.delete(`users/${memberId}`);
     expect(allowed.status()).toBe(200);
     await admin.post(`users/${memberId}/reactivate`);

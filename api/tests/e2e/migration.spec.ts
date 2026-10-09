@@ -123,7 +123,7 @@ test.describe.serial("migración de históricos", () => {
     expect((await res.json()).code).toBe("CHECKSUM_MISMATCH");
   });
 
-  test("importa profesores con su cuenta PROFESOR y su clave natural email", async () => {
+  test("importa profesores con su cuenta TEACHER y su clave natural email", async () => {
     await registerBackup(admin, new Date().toISOString());
     const first = await upload(admin, "migration/execute", "Teacher", TEACHER_FILE, TEACHER_CSV, {}, { "Idempotency-Key": `${KEY}_t` });
     expect(first.status(), await first.text()).toBe(201);

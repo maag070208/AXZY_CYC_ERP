@@ -7,10 +7,10 @@ import { curpCheckDigit, isValidCurp } from "../src/core/utils/curp";
  * Reejecutar no duplica; restablece las contraseñas a las de demo.
  *
  *   admin   / admin123   (ADMIN)
- *   aamaro  / 123123     (CONTROL_ESCOLAR)
- *   marco   / 123123     (PROFESOR)
- *   martin  / 123123     (PROFESOR)
- *   alumno01…alumno50 / 123123 (ALUMNO, con expediente)
+ *   aamaro  / 123123     (SCHOOL_CONTROL)
+ *   marco   / 123123     (TEACHER)
+ *   martin  / 123123     (TEACHER)
+ *   alumno01…alumno50 / 123123 (STUDENT, con expediente)
  *
  * Uso: npm run seed:demo
  */
@@ -31,9 +31,9 @@ interface StaffSeed {
 
 const STAFF: StaffSeed[] = [
   { username: "admin", password: "admin123", name: "Administrador", roleKey: "ADMIN", email: "admin@axzy.dev" },
-  { username: "aamaro", password: DEMO_PASSWORD, name: "A. Amaro", roleKey: "CONTROL_ESCOLAR", email: "aamaro@axzy.dev" },
-  { username: "marco", password: DEMO_PASSWORD, name: "Marco Demo", roleKey: "PROFESOR", email: "marco@axzy.dev", teacher: { firstNames: "Marco", surnames: "Demo" } },
-  { username: "martin", password: DEMO_PASSWORD, name: "Martín Demo", roleKey: "PROFESOR", email: "martin@axzy.dev", teacher: { firstNames: "Martín", surnames: "Demo" } },
+  { username: "aamaro", password: DEMO_PASSWORD, name: "A. Amaro", roleKey: "SCHOOL_CONTROL", email: "aamaro@axzy.dev" },
+  { username: "marco", password: DEMO_PASSWORD, name: "Marco Demo", roleKey: "TEACHER", email: "marco@axzy.dev", teacher: { firstNames: "Marco", surnames: "Demo" } },
+  { username: "martin", password: DEMO_PASSWORD, name: "Martín Demo", roleKey: "TEACHER", email: "martin@axzy.dev", teacher: { firstNames: "Martín", surnames: "Demo" } },
 ];
 
 // --- utilidades CURP (deterministas y válidas) --------------------------------
@@ -137,7 +137,7 @@ async function main(): Promise<void> {
     console.log(`staff: ${seed.username} (${seed.roleKey})`);
   }
 
-  // 2) 50 alumnos con cuenta ALUMNO.
+  // 2) 50 alumnos con cuenta STUDENT.
   let created = 0;
   for (let i = 0; i < STUDENTS; i += 1) {
     const n = i + 1;
@@ -164,7 +164,7 @@ async function main(): Promise<void> {
     const username = `alumno${pad(n)}`;
     const email = `${username}@demo.axzy.dev`;
     const fullName = `${firstNames} ${paternalSurname} ${maternalSurname}`;
-    const userId = await upsertUser({ username, password: STUDENT_PASSWORD, name: fullName, roleKey: "ALUMNO", email });
+    const userId = await upsertUser({ username, password: STUDENT_PASSWORD, name: fullName, roleKey: "STUDENT", email });
     const studentNumber = `2026-${pad(n, 4)}`;
 
     await prisma.student.upsert({

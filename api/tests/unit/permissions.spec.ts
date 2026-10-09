@@ -119,7 +119,7 @@ test.describe("resolvedor con fixtures reales", () => {
     expect(institutional.length).toBe(catalogKeys().length - 1); // attempts.take
   });
 
-  test("CONTROL_ESCOLAR opera alumnos y expediente; solo lee configuración", () => {
+  test("SCHOOL_CONTROL opera alumnos y expediente; solo lee configuración", () => {
     const perms = permissionsOf(user("SCHOOL_CONTROL"));
     for (const key of ["students.create", "students.movements", "documents.validate", "kardex.export", "teachers.edit"]) {
       expect(perms[key], key).toBe("ALL");
@@ -131,7 +131,7 @@ test.describe("resolvedor con fixtures reales", () => {
     expect(scopeOf(user("SCHOOL_CONTROL"), "users.view")).toBe("NONE");
   });
 
-  test("PROFESOR y ALUMNO solo ven lo de su ámbito, sin administración", () => {
+  test("TEACHER y STUDENT solo ven lo de su ámbito, sin administración", () => {
     expect(permissionsOf(user("TEACHER"))).toEqual({
       "students.view": "AREA",
       "teachers.view": "OWN",

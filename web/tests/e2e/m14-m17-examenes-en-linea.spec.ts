@@ -54,7 +54,7 @@ test.beforeAll(async () => {
   expect(group.status(), await group.text()).toBe(201);
   groupId = (await group.json()).id;
 
-  const user = await createUser(admin, { username: PUPIL, name: `E2E Alumna Línea ${RUN}`, roles: ["ALUMNO"] });
+  const user = await createUser(admin, { username: PUPIL, name: `E2E Alumna Línea ${RUN}`, roles: ["STUDENT"] });
   const pupil = await apiAs(PUPIL);
   const changed = await pupil.post("auth/change-password", { data: { currentPassword: E2E.password, newPassword: PUPIL_PASSWORD } });
   expect(changed.status(), await changed.text()).toBe(200);

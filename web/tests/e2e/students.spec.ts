@@ -33,7 +33,7 @@ async function addTutor(page: Page): Promise<void> {
 }
 
 test.describe.serial("expediente de un alumno", () => {
-  test("CONTROL_ESCOLAR da de alta un alumno menor con tutor y recibe su matrícula", async ({ page }) => {
+  test("SCHOOL_CONTROL da de alta un alumno menor con tutor y recibe su matrícula", async ({ page }) => {
     await signIn(page, E2E.control.username);
     await page.goto(route("/students"));
     await page.getByRole("button", { name: "Nuevo alumno" }).click();
@@ -112,7 +112,7 @@ test.describe.serial("expediente de un alumno", () => {
     await expect(history.nth(1)).toContainText("Se muda a Puebla");
   });
 
-  test("PROFESOR no da de alta alumnos (ni por URL)", async ({ page }) => {
+  test("TEACHER no da de alta alumnos (ni por URL)", async ({ page }) => {
     await signIn(page, E2E.teacher.username);
     await page.goto(route("/students"));
     await expect(page.getByRole("button", { name: "Nuevo alumno" })).toHaveCount(0);

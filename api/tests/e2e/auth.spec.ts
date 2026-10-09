@@ -320,7 +320,7 @@ test.describe("autorización por endpoint", () => {
     await raw.dispose();
   });
 
-  test("PROFESOR sin users.view → 403 INSUFFICIENT_PERMISSIONS y queda en bitácora", async () => {
+  test("TEACHER sin users.view → 403 INSUFFICIENT_PERMISSIONS y queda en bitácora", async () => {
     const { token } = await loginAs(TEACHER.username);
     const ctx = await bearer(token);
     const res = await ctx.post("users/query", { data: { page: 1, limit: 10 } });

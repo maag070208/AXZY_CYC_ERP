@@ -203,7 +203,7 @@ test.describe("consulta, edición y alcance", () => {
     expect(log?.newState).toMatchObject({ phone: "5599998888" });
   });
 
-  test("ALUMNO (OWN) solo ve su propio registro; PROFESOR (AREA, sin grupos aún) no ve nada", async () => {
+  test("STUDENT (OWN) solo ve su propio registro; TEACHER (AREA, sin grupos aún) no ve nada", async () => {
     const mine = await (await control.post("students", { data: minor("Propio", { userId: pupilUserId }) })).json();
     const other = await (await control.post("students", { data: minor("Ajeno") })).json();
 
@@ -306,7 +306,7 @@ test.describe("bajas y reingresos (M05)", () => {
     expect((await lastAudit("STUDENT_DEACTIVATED", adminId))?.entityId).toBe(student.id);
   });
 
-  test("ALUMNO no registra movimientos → 403", async () => {
+  test("STUDENT no registra movimientos → 403", async () => {
     const { api: pupil } = await loginAs(PUPIL.username);
     const own = await db.student.findFirst({ where: { userId: pupilUserId } });
     expect((await pupil.post(`students/${own!.id}/withdrawal`, { data: { reason: "Me voy" } })).status()).toBe(403);

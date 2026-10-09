@@ -98,7 +98,7 @@ test.describe("courses", () => {
     expect((await list.json()).data.map((c: { id: string }) => c.id)).toEqual([course.id]);
   });
 
-  test("validación por campo y CONTROL_ESCOLAR sin courses.manage → 403", async () => {
+  test("validación por campo y SCHOOL_CONTROL sin courses.manage → 403", async () => {
     const bad = await admin.post("courses", { data: { code: "con espacios", name: "" } });
     expect(bad.status()).toBe(400);
     expect(Object.keys((await bad.json()).details.fieldErrors).sort()).toEqual(["code", "name"]);

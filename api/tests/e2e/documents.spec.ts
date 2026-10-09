@@ -166,7 +166,7 @@ test("alumno en BAJA: expediente de solo lectura (no sube, no valida, no borra)"
   expect((await control.get(`documents/${doc.id}/download`)).status()).toBe(200);
 });
 
-test("alcance: el ALUMNO ve y descarga lo suyo, no lo ajeno; no sube; el PROFESOR sin grupos no ve nada", async () => {
+test("alcance: el STUDENT ve y descarga lo suyo, no lo ajeno; no sube; el TEACHER sin grupos no ve nada", async () => {
   const mine = await newStudent("Mio", pupilUserId);
   const other = await newStudent("Ajeno");
   const myDoc = await (await upload(mine.id, PDF, "mio.pdf", curpType.id)).json();

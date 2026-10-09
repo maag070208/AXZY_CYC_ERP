@@ -26,7 +26,7 @@
     "email": "Correo",
     "phone": "Teléfono",
     "specialty": "Especialidad",
-    "newHint": "Se creará su cuenta con rol PROFESOR y le enviaremos una invitación para definir su contraseña.",
+    "newHint": "Se creará su cuenta con rol de profesor y le enviaremos una invitación para definir su contraseña.",
     "created": "Profesor creado: invitación enviada a {{email}}",
     "saved": "Profesor actualizado"
   },

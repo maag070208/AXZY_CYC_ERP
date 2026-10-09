@@ -107,7 +107,7 @@ test.describe("alta y consulta", () => {
     expect((await none.json()).total).toBe(0);
   });
 
-  test("CONTROL_ESCOLAR sin users.create → 403", async () => {
+  test("SCHOOL_CONTROL sin users.create → 403", async () => {
     const { api } = await loginAs(CONTROL.username);
     const res = await api.post("users", { data: newUser("noperm") });
     expect(res.status()).toBe(403);

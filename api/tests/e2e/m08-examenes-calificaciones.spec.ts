@@ -114,7 +114,7 @@ test.describe("instrumentos", () => {
     expect(Object.keys((await res.json()).details.fieldErrors).sort()).toEqual(["maxScore", "name", "type", "weight"]);
   });
 
-  test("fuera de su ámbito → 403; CONTROL_ESCOLAR no administra instrumentos", async () => {
+  test("fuera de su ámbito → 403; SCHOOL_CONTROL no administra instrumentos", async () => {
     const { group } = await groupWith([], otherTeacher.teacher.id);
     const res = await assessment(prof, group.id, { name: "Ajeno", weight: 10 });
     expect(res.status()).toBe(403);

@@ -4,7 +4,7 @@ import { clearAuthE2E, clearTeachersE2E, createAuthUser, createResetToken, db, l
 import { anon, login, loginAs } from "./support/http";
 
 /**
- * Contrato de M04: alta transaccional (profesor + cuenta PROFESOR +
+ * Contrato de M04: alta transaccional (profesor + cuenta TEACHER +
  * invitación), edición sincronizada con la cuenta, baja/reactivación, reenvío
  * de invitación y alcance OWN del profesor sobre su perfil. Los correos
  * llevan el prefijo `e2e_` para que sus cuentas se limpien solas.
@@ -41,7 +41,7 @@ test.afterAll(async () => {
   await clearAuthE2E();
 });
 
-test("alta: crea profesor, su cuenta PROFESOR pendiente y la invitación, todo auditado", async () => {
+test("alta: crea profesor, su cuenta TEACHER pendiente y la invitación, todo auditado", async () => {
   const input = teacher("Alta");
   const res = await admin.post("teachers", { data: { ...input, email: input.email.toUpperCase() } });
   expect(res.status()).toBe(201);
@@ -64,7 +64,7 @@ test("alta: crea profesor, su cuenta PROFESOR pendiente y la invitación, todo a
   }
 });
 
-test("la invitación permite definir la contraseña y entrar como PROFESOR", async () => {
+test("la invitación permite definir la contraseña y entrar como TEACHER", async () => {
   const created = await (await admin.post("teachers", { data: teacher("Invita") })).json();
   // El token real viaja por correo: se emite uno conocido para la misma cuenta.
   const token = `e2e-invite-${RUN}`;
@@ -147,7 +147,7 @@ test("reenviar invitación invalida la anterior; si ya definió contraseña → 
   expect((await again.json()).code).toBe("INVITATION_NOT_PENDING");
 });
 
-test("PROFESOR (OWN) ve y edita solo su perfil; no da de alta ni de baja", async () => {
+test("TEACHER (OWN) ve y edita solo su perfil; no da de alta ni de baja", async () => {
   const mine = await (await admin.post("teachers", { data: teacher("Propio") })).json();
   const other = await (await admin.post("teachers", { data: teacher("Otro") })).json();
   const token = `e2e-own-${RUN}`;
@@ -167,7 +167,7 @@ test("PROFESOR (OWN) ve y edita solo su perfil; no da de alta ni de baja", async
   await prof.dispose();
 });
 
-test("CONTROL_ESCOLAR no da de alta profesores (sin teachers.create) → 403", async () => {
+test("SCHOOL_CONTROL no da de alta profesores (sin teachers.create) → 403", async () => {
   expect((await control.post("teachers", { data: teacher("SinPermiso") })).status()).toBe(403);
 });
 

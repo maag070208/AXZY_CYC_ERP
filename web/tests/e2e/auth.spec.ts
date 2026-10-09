@@ -129,7 +129,7 @@ test.describe("Menú y rutas por permiso", () => {
     await expect(page).toHaveURL(/#\/roles/);
   });
 
-  test("PROFESOR no entra por URL a /users ni /roles", async ({ page }) => {
+  test("TEACHER no entra por URL a /users ni /roles", async ({ page }) => {
     await goToLogin(page);
     await enter(page, E2E.teacher.username);
     await expect(page).not.toHaveURL(/#\/login/);

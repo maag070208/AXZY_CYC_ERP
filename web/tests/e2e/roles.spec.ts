@@ -40,7 +40,7 @@ test.describe.serial("consola de acceso", () => {
     await dialog.locator('input[name="roleKey"]').fill(ROLE_KEY.toLowerCase());
     await expect(dialog.locator('input[name="roleKey"]')).toHaveValue(ROLE_KEY);
     await dialog.locator('input[name="roleName"]').fill("E2E Rol Web");
-    await dialog.locator('select[name="copyFrom"]').selectOption("CONTROL_ESCOLAR");
+    await dialog.locator('select[name="copyFrom"]').selectOption("SCHOOL_CONTROL");
     await dialog.getByRole("button", { name: "Guardar" }).click();
 
     await expect(page.getByText("Rol creado")).toBeVisible();
@@ -85,7 +85,7 @@ test.describe.serial("consola de acceso", () => {
     await dialog.getByRole("button", { name: "Agregar condición" }).click();
     await dialog.locator('select[name="condition-field-0"]').selectOption("target.roles");
     await dialog.locator('select[name="condition-operator-0"]').selectOption("contains");
-    await dialog.locator('input[name="condition-value-0"]').fill("PROFESOR");
+    await dialog.locator('input[name="condition-value-0"]').fill("TEACHER");
     await dialog.getByRole("button", { name: "Guardar" }).click();
 
     await expect(page.getByText("Política creada")).toBeVisible();
