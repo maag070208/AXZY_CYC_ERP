@@ -10,7 +10,7 @@ import { MAX_DOCUMENT_BYTES, type DocumentView } from "../models/dto/document.dt
 import { detectFileType } from "../models/entity/document.entity";
 
 const include = {
-  documentType: { select: { nombre: true, obligatorio: true } },
+  documentType: { select: { name: true, required: true } },
   uploader: { select: { name: true } },
   validator: { select: { name: true } },
 };
@@ -21,8 +21,8 @@ const toView = (row: DocumentRow): DocumentView => ({
   id: row.id,
   studentId: row.studentId,
   documentTypeId: row.documentTypeId,
-  documentType: row.documentType.nombre,
-  obligatorio: row.documentType.obligatorio,
+  documentType: row.documentType.name,
+  obligatorio: row.documentType.required,
   originalName: row.originalName,
   mimeType: row.mimeType,
   size: row.size,
@@ -77,12 +77,12 @@ export class DocumentService {
         include,
         orderBy: [{ createdAt: "desc" }],
       }),
-      this.db.documentType.findMany({ where: { active: true, obligatorio: true }, orderBy: { nombre: "asc" } }),
+      this.db.documentType.findMany({ where: { active: true, required: true }, orderBy: { name: "asc" } }),
     ]);
     const validated = new Set(rows.filter((r) => r.status === "VALIDADO").map((r) => r.documentTypeId));
     return {
       documents: rows.map(toView),
-      missing: required.filter((t) => !validated.has(t.id)).map((t) => ({ id: t.id, nombre: t.nombre })),
+      missing: required.filter((t) => !validated.has(t.id)).map((t) => ({ id: t.id, name: t.name })),
       requiredCount: required.length,
     };
   }
@@ -132,7 +132,7 @@ export class DocumentService {
             entityId: row.id,
             userId: actor.id,
             userName: actor.username,
-            newState: { tipo: documentType.nombre, mimeType: type.mime, size: file.size, status: "PENDIENTE" },
+            newState: { tipo: documentType.name, mimeType: type.mime, size: file.size, status: "PENDIENTE" },
             metadata: { studentId, filePath: key },
           },
           tx

@@ -29,36 +29,36 @@ export type CatalogResource = "levels" | "cancellation-reasons" | "document-type
 /** Registro de catálogo simple: los campos extra dependen del recurso. */
 export interface CatalogItem {
   id: string;
-  nombre: string;
+  name: string;
   active: boolean;
   /** Niveles. */
-  orden?: number | null;
+  sortOrder?: number | null;
   /** Tipos de documento. */
-  obligatorio?: boolean;
+  required?: boolean;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface CatalogInput {
-  nombre?: string;
+  name?: string;
   active?: boolean;
-  orden?: number | null;
-  obligatorio?: boolean;
+  sortOrder?: number | null;
+  required?: boolean;
 }
 
 /** Ciclo escolar; fechas como día del calendario `AAAA-MM-DD`. */
 export interface Term {
   id: string;
-  nombre: string;
-  fechaInicio: string;
-  fechaFin: string;
-  activo: boolean;
+  name: string;
+  startDate: string;
+  endDate: string;
+  active: boolean;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface TermInput {
-  nombre?: string;
-  fechaInicio?: string;
-  fechaFin?: string;
+  name?: string;
+  startDate?: string;
+  endDate?: string;
 }

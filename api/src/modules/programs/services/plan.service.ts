@@ -15,7 +15,7 @@ type Tx = Prisma.TransactionClient;
 const include = {
   student: { select: { id: true, matricula: true, nombres: true, apellidoPaterno: true, apellidoMaterno: true } },
   program: { select: { id: true, code: true, name: true } },
-  term: { select: { id: true, nombre: true } },
+  term: { select: { id: true, name: true } },
   charges: { orderBy: { planChargeIndex: "asc" } },
 } satisfies Prisma.StudentPlanInclude;
 type PlanRow = Prisma.StudentPlanGetPayload<{ include: typeof include }>;
@@ -30,7 +30,7 @@ const toPlanView = (row: PlanRow): PlanView => {
     id: row.id,
     student: { id: row.student.id, matricula: row.student.matricula, name: studentName(row.student) },
     program: { id: row.program.id, code: row.program.code, name: row.program.name },
-    term: row.term ? { id: row.term.id, nombre: row.term.nombre } : null,
+    term: row.term ? { id: row.term.id, nombre: row.term.name } : null,
     startDate: row.startDate.toISOString().slice(0, 10),
     periodType: row.periodType,
     periodCount: row.periodCount,

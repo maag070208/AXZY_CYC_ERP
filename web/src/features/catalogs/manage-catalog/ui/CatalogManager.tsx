@@ -56,23 +56,23 @@ export default function CatalogManager({ resource, canManage }: Props) {
       type: "string",
       filter: true,
       sortable: false,
-      render: (row) => <ITText className="text-[12px] font-bold text-slate-700">{row.nombre}</ITText>,
+      render: (row) => <ITText className="text-[12px] font-bold text-slate-700">{row.name}</ITText>,
     },
     ...(resource === "levels"
-      ? [{ key: "orden", label: t("catalogs.orden"), type: "number" as const, width: 100, sortable: false }]
+      ? [{ key: "sortOrder", label: t("catalogs.orden"), type: "number" as const, width: 100, sortable: false }]
       : []),
     ...(resource === "document-types"
       ? [
           {
-            key: "obligatorio",
+            key: "required",
             label: t("catalogs.obligatorio"),
             type: "boolean" as const,
             width: 130,
             filter: true,
             sortable: false,
             render: (row: CatalogItem) => (
-              <ITBadget color={row.obligatorio ? "warning" : "gray"} size="sm">
-                {row.obligatorio ? t("common:labels.yes") : t("common:labels.no")}
+              <ITBadget color={row.required ? "warning" : "gray"} size="sm">
+                {row.required ? t("common:labels.yes") : t("common:labels.no")}
               </ITBadget>
             ),
           },
@@ -104,7 +104,7 @@ export default function CatalogManager({ resource, canManage }: Props) {
                   variant="text"
                   color="secondary"
                   size="sm"
-                  ariaLabel={`${t("common:actions.edit")} ${row.nombre}`}
+                  ariaLabel={`${t("common:actions.edit")} ${row.name}`}
                   onClick={() => {
                     setEditing(row);
                     setFormOpen(true);
@@ -117,7 +117,7 @@ export default function CatalogManager({ resource, canManage }: Props) {
                     variant="text"
                     color="danger"
                     size="sm"
-                    ariaLabel={`${t("common:actions.deactivate")} ${row.nombre}`}
+                    ariaLabel={`${t("common:actions.deactivate")} ${row.name}`}
                     onClick={() => setDeactivating(row)}
                   >
                     <FaToggleOff size={12} />
@@ -127,7 +127,7 @@ export default function CatalogManager({ resource, canManage }: Props) {
                     variant="text"
                     color="success"
                     size="sm"
-                    ariaLabel={`${t("common:actions.reactivate")} ${row.nombre}`}
+                    ariaLabel={`${t("common:actions.reactivate")} ${row.name}`}
                     onClick={() => void reactivate(row)}
                   >
                     <FaUndo size={12} />
@@ -189,7 +189,7 @@ export default function CatalogManager({ resource, canManage }: Props) {
         isOpen={!!deactivating}
         onClose={() => setDeactivating(null)}
         onConfirm={() => void deactivate()}
-        title={t("catalogs.deactivateTitle", { name: deactivating?.nombre ?? "" })}
+        title={t("catalogs.deactivateTitle", { name: deactivating?.name ?? "" })}
         message={t("catalogs.deactivateMessage")}
         confirmLabel={t("common:actions.deactivate")}
         cancelLabel={t("common:actions.cancel")}

@@ -101,7 +101,7 @@ export default function ReportsPage() {
               onChange={(e) => { setTipo(e.target.value as ReportType); setResult(null); }} />
             {current && TERM_REPORTS.includes(current) && canTerms && (
               <ITSelect name="termId" label={t("ciclo")} value={filters.termId ?? ""} placeholder={current === "payments-period" || current === "debts" ? t("allGroups") : t("activeTerm")}
-                options={terms.map((x) => ({ value: x.id, label: x.nombre }))} onChange={(e) => { set("termId", e.target.value); set("groupId", ""); }} />
+                options={terms.map((x) => ({ value: x.id, label: x.name }))} onChange={(e) => { set("termId", e.target.value); set("groupId", ""); }} />
             )}
             {current && GROUP_REPORTS.includes(current) && (
               <ITSelect name="groupId" label={t("grupo")} value={filters.groupId ?? ""} placeholder={t("allGroups")}

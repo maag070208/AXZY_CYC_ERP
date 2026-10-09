@@ -203,7 +203,7 @@ export class GradeService {
       where: { id: groupId },
       include: {
         course: { select: { nombre: true } },
-        term: { select: { nombre: true } },
+        term: { select: { name: true } },
         teacher: { select: { nombres: true, apellidos: true } },
         assessments: { where: { active: true }, orderBy: [{ fecha: { sort: "asc", nulls: "last" } }, { createdAt: "asc" }] },
       },
@@ -258,7 +258,7 @@ export class GradeService {
         id: group.id,
         nombre: group.nombre,
         courseNombre: group.course.nombre,
-        termNombre: group.term.nombre,
+        termNombre: group.term.name,
         teacherNombre: group.teacher ? `${group.teacher.nombres} ${group.teacher.apellidos}` : null,
         closedAt: group.closedAt?.toISOString() ?? null,
       },
@@ -391,7 +391,7 @@ export class GradeService {
         group: {
           include: {
             course: { select: { id: true, nombre: true } },
-            term: { select: { id: true, nombre: true, fechaInicio: true } },
+            term: { select: { id: true, name: true, startDate: true } },
             assessments: { where: { active: true }, orderBy: [{ fecha: { sort: "asc", nulls: "last" } }, { createdAt: "asc" }] },
           },
         },
@@ -400,7 +400,7 @@ export class GradeService {
     });
     rows.sort(
       (a, b) =>
-        a.group.term.fechaInicio.getTime() - b.group.term.fechaInicio.getTime() ||
+        a.group.term.startDate.getTime() - b.group.term.startDate.getTime() ||
         a.group.course.nombre.localeCompare(b.group.course.nombre)
     );
     return rows.map((row) => {
@@ -411,7 +411,7 @@ export class GradeService {
       });
       return {
         termId: row.group.term.id,
-        termNombre: row.group.term.nombre,
+        termNombre: row.group.term.name,
         courseId: row.group.course.id,
         courseNombre: row.group.course.nombre,
         grupo: row.group.nombre,

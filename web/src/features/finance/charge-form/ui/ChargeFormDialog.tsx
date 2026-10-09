@@ -46,7 +46,7 @@ export default function ChargeFormDialog({ isOpen, student: fixed, onClose, onSa
     feeConceptApi.options().then(setConcepts).catch(() => setConcepts([]));
     termsApi.options().then((list) => {
       setTerms(list);
-      setTermId(list.find((x) => x.activo)?.id ?? "");
+      setTermId(list.find((x) => x.active)?.id ?? "");
     }).catch(() => setTerms([]));
   }, [isOpen, fixed]);
 
@@ -106,7 +106,7 @@ export default function ChargeFormDialog({ isOpen, student: fixed, onClose, onSa
             </ITGrid>
             <ITGrid item xs={12} md={5}>
               <ITSelect name="termId" label={t("charges.ciclo")} value={termId} placeholder="—"
-                options={terms.map((x) => ({ value: x.id, label: x.nombre }))} onChange={(e) => setTermId(e.target.value)} />
+                options={terms.map((x) => ({ value: x.id, label: x.name }))} onChange={(e) => setTermId(e.target.value)} />
             </ITGrid>
             <ITGrid item xs={12}>
               <ITInput name="descripcion" label={t("charges.descripcion")} value={descripcion} onChange={(e) => setDescripcion(e.target.value)} />

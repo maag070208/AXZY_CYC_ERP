@@ -16,10 +16,10 @@ import type { AuditLogger } from "@modules/audit";
 import type { CourseCreateInput, CourseUpdateInput, CourseView } from "../models/dto/course.dto";
 import { courseScope } from "./academic-scope";
 
-type CourseRow = Course & { level: { nombre: string } | null; _count: { groups: number } };
+type CourseRow = Course & { level: { name: string } | null; _count: { groups: number } };
 
 const include = {
-  level: { select: { nombre: true } },
+  level: { select: { name: true } },
   _count: { select: { groups: { where: { active: true } } } },
 } satisfies Prisma.CourseInclude;
 
@@ -28,7 +28,7 @@ const toView = (row: CourseRow): CourseView => ({
   clave: row.clave,
   nombre: row.nombre,
   levelId: row.levelId,
-  levelNombre: row.level?.nombre ?? null,
+  levelNombre: row.level?.name ?? null,
   descripcion: row.descripcion,
   active: row.active,
   groupsCount: row._count.groups,

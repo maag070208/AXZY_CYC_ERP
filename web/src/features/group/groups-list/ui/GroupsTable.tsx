@@ -39,7 +39,7 @@ export default function GroupsTable({ fx, onAction }: Props) {
     { key: "nombre", label: t("groups.nombre"), type: "string", width: 100, filter: true, sortable: false },
     {
       key: "termId", label: t("groups.ciclo"), type: "catalog", width: 150, filter: "catalog", sortable: false,
-      catalogOptions: { data: fx.terms.map((term) => ({ id: term.id, name: term.nombre })) },
+      catalogOptions: { data: fx.terms.map((term) => ({ id: term.id, name: term.name })) },
       render: (row) => <ITText className="text-[12px] text-slate-600">{row.termNombre}</ITText>,
     },
     {

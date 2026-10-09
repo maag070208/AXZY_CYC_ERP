@@ -54,7 +54,7 @@ export default function TemplatesTable({ reloadKey, onTotal, onEdit, onChanged }
     },
     { key: "enviadas", label: t("templates.enviadas"), type: "number", width: 100 },
     {
-      key: "obligatorio", label: t("templates.obligatorio"), type: "string", width: 110,
+      key: "required", label: t("templates.obligatorio"), type: "string", width: 110,
       render: (r) => <ITText className="text-[11px] text-slate-500">{r.obligatorio ? t("common:labels.yes") : t("common:labels.no")}</ITText>,
     },
     {

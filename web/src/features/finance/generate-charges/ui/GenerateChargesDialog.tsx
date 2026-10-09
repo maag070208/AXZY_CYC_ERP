@@ -47,7 +47,7 @@ export default function GenerateChargesDialog({ isOpen, onClose, onDone }: Props
     feeConceptApi.options().then(setConcepts).catch(() => setConcepts([]));
     termsApi.options().then((list) => {
       setTerms(list);
-      setTermId(list.find((x) => x.activo)?.id ?? list[0]?.id ?? "");
+      setTermId(list.find((x) => x.active)?.id ?? list[0]?.id ?? "");
     }).catch(() => setTerms([]));
   }, [isOpen]);
 
@@ -95,7 +95,7 @@ export default function GenerateChargesDialog({ isOpen, onClose, onDone }: Props
             </ITGrid>
             <ITGrid item xs={12} md={6}>
               <ITSelect name="termId" label={t("charges.ciclo")} value={termId}
-                options={terms.map((x) => ({ value: x.id, label: x.nombre }))} onChange={(e) => { setTermId(e.target.value); setGroupId(""); }} />
+                options={terms.map((x) => ({ value: x.id, label: x.name }))} onChange={(e) => { setTermId(e.target.value); setGroupId(""); }} />
             </ITGrid>
             {scope === "group" && (
               <ITGrid item xs={12}>

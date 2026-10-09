@@ -14,26 +14,26 @@ interface Props {
 
 export default function TermDialog({ isOpen, term, onClose, onSaved }: Props) {
   const { t } = useTranslation(["config", "common"]);
-  const [nombre, setNombre] = useState("");
-  const [inicio, setInicio] = useState<Date | undefined>();
-  const [fin, setFin] = useState<Date | undefined>();
+  const [name, setName] = useState("");
+  const [start, setStart] = useState<Date | undefined>();
+  const [end, setEnd] = useState<Date | undefined>();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    setNombre(term?.nombre ?? "");
-    setInicio(term ? fromDay(term.fechaInicio) : undefined);
-    setFin(term ? fromDay(term.fechaFin) : undefined);
+    setName(term?.name ?? "");
+    setStart(term ? fromDay(term.startDate) : undefined);
+    setEnd(term ? fromDay(term.endDate) : undefined);
     setError(null);
   }, [term, isOpen]);
 
   const save = async () => {
-    if (!nombre.trim()) return setError(t("catalogs.nombreRequired"));
-    if (!inicio || !fin) return setError(t("terms.datesRequired"));
-    if (inicio > fin) return setError(t("terms.datesInvalid"));
+    if (!name.trim()) return setError(t("catalogs.nombreRequired"));
+    if (!start || !end) return setError(t("terms.datesRequired"));
+    if (start > end) return setError(t("terms.datesInvalid"));
     setSaving(true);
     setError(null);
-    const data = { nombre: nombre.trim(), fechaInicio: toDay(inicio), fechaFin: toDay(fin) };
+    const data = { name: name.trim(), startDate: toDay(start), endDate: toDay(end) };
     try {
       if (term) onSaved(await termsApi.update(term.id, data), false);
       else onSaved(await termsApi.create(data), true);
@@ -65,29 +65,29 @@ export default function TermDialog({ isOpen, term, onClose, onSaved }: Props) {
         <ITFlex direction="column" gap={4}>
           {error && <ITAlert variant="error">{error}</ITAlert>}
           <ITInput
-            name="termNombre"
+            name="name"
             label={t("terms.nombre")}
-            value={nombre}
-            onChange={(e) => setNombre(e.target.value)}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
             required
           />
           <ITGrid container columns={12} spacing={4}>
             <ITGrid item xs={12} md={6}>
               <ITDatePicker
-                name="fechaInicio"
+                name="startDate"
                 label={t("terms.fechaInicio")}
-                value={inicio}
-                onChange={(e) => setInicio(pickDate(e.target.value))}
+                value={start}
+                onChange={(e) => setStart(pickDate(e.target.value))}
                 required
               />
             </ITGrid>
             <ITGrid item xs={12} md={6}>
               <ITDatePicker
-                name="fechaFin"
+                name="endDate"
                 label={t("terms.fechaFin")}
-                value={fin}
-                minDate={inicio}
-                onChange={(e) => setFin(pickDate(e.target.value))}
+                value={end}
+                minDate={start}
+                onChange={(e) => setEnd(pickDate(e.target.value))}
                 required
               />
             </ITGrid>

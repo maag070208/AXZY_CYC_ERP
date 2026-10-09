@@ -51,7 +51,7 @@ export default function UploadCard({ onUpload, onDone }: Props) {
       <ITFlex direction="column" gap={3}>
         {error && <ITAlert variant="error">{error}</ITAlert>}
         <ITSelect name="documentTypeId" label={t("upload.type")} value={typeId} required
-          options={types.map((type) => ({ value: type.id, label: type.obligatorio ? `${type.nombre} *` : type.nombre }))}
+          options={types.map((type) => ({ value: type.id, label: type.required ? `${type.name} *` : type.name }))}
           onChange={(e) => setTypeId(e.target.value)} />
         <ITInput name="notas" label={t("upload.notas")} value={notas} onChange={(e) => setNotas(e.target.value)} />
         <ITDropfile key={resetKey} onFileSelect={() => setError(null)} onSubmit={(file) => void submit(file)}

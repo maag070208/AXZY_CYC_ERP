@@ -8,7 +8,7 @@ import { balanceOf, chargeTotal, sumOf } from "../models/entity/money";
 export const chargeInclude = {
   student: { select: { matricula: true, nombres: true, apellidoPaterno: true, apellidoMaterno: true } },
   concept: { select: { nombre: true, tipo: true } },
-  term: { select: { nombre: true } },
+  term: { select: { name: true } },
   payments: { where: { cancelledAt: null }, select: { monto: true } },
 } satisfies Prisma.ChargeInclude;
 
@@ -29,7 +29,7 @@ export const toChargeView = (row: ChargeRow, today = todayInBusinessZone()): Cha
     conceptNombre: row.concept.nombre,
     conceptTipo: row.concept.tipo,
     termId: row.termId,
-    termNombre: row.term?.nombre ?? null,
+    termNombre: row.term?.name ?? null,
     descripcion: row.descripcion,
     monto: Number(row.monto),
     descuento: Number(row.descuento),

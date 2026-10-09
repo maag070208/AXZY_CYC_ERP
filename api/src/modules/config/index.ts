@@ -57,8 +57,8 @@ export const createConfigModule = (audit?: AuditLogger) => {
       delegate: (db) => db.level,
       entityType: "Level",
       auditPrefix: "LEVEL",
-      extraSort: { orden: "orden" },
-      defaultOrder: [{ orden: { sort: "asc", nulls: "last" } }, { nombre: "asc" }],
+      extraSort: { sortOrder: "sortOrder" },
+      defaultOrder: [{ sortOrder: { sort: "asc", nulls: "last" } }, { name: "asc" }],
     },
     prismaClient,
     audit
@@ -68,7 +68,7 @@ export const createConfigModule = (audit?: AuditLogger) => {
       delegate: (db) => db.cancellationReason,
       entityType: "CancellationReason",
       auditPrefix: "CANCELLATION_REASON",
-      defaultOrder: [{ nombre: "asc" }],
+      defaultOrder: [{ name: "asc" }],
     },
     prismaClient,
     audit
@@ -78,9 +78,9 @@ export const createConfigModule = (audit?: AuditLogger) => {
       delegate: (db) => db.documentType,
       entityType: "DocumentType",
       auditPrefix: "DOCUMENT_TYPE",
-      extraFilters: (filters) => ({ obligatorio: filterBool(filters, "obligatorio") }),
-      extraSort: { obligatorio: "obligatorio" },
-      defaultOrder: [{ nombre: "asc" }],
+      extraFilters: (filters) => ({ required: filterBool(filters, "required") }),
+      extraSort: { required: "required" },
+      defaultOrder: [{ name: "asc" }],
     },
     prismaClient,
     audit

@@ -76,7 +76,7 @@ export default function CourseFormDialog({ isOpen, course, onClose, onSaved }: P
             </ITGrid>
             <ITGrid item xs={12}>
               <ITSelect name="levelId" label={t("courses.nivel")} value={levelId} placeholder={t("courses.noLevel")}
-                options={levels.map((l) => ({ value: l.id, label: l.nombre }))} onChange={(e) => setLevelId(e.target.value)} />
+                options={levels.map((l) => ({ value: l.id, label: l.name }))} onChange={(e) => setLevelId(e.target.value)} />
             </ITGrid>
             <ITGrid item xs={12}>
               <ITTextarea name="descripcion" label={t("courses.descripcion")} value={descripcion} onChange={setDescripcion} rows={3} maxLength={1000} />

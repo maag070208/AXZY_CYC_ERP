@@ -24,12 +24,12 @@ const include = {
   student: {
     select: { matricula: true, nombres: true, apellidoPaterno: true, apellidoMaterno: true, status: true },
   },
-  group: { select: { nombre: true, course: { select: { nombre: true } }, term: { select: { nombre: true } } } },
+  group: { select: { nombre: true, course: { select: { nombre: true } }, term: { select: { name: true } } } },
 } satisfies Prisma.EnrollmentInclude;
 
 type EnrollmentRow = Enrollment & {
   student: { matricula: string; nombres: string; apellidoPaterno: string; apellidoMaterno: string | null; status: "ACTIVO" | "BAJA" };
-  group: { nombre: string; course: { nombre: string }; term: { nombre: string } };
+  group: { nombre: string; course: { nombre: string }; term: { name: string } };
 };
 
 const toView = (row: EnrollmentRow): EnrollmentView => ({
@@ -41,7 +41,7 @@ const toView = (row: EnrollmentRow): EnrollmentView => ({
   groupId: row.groupId,
   groupNombre: row.group.nombre,
   courseNombre: row.group.course.nombre,
-  termNombre: row.group.term.nombre,
+  termNombre: row.group.term.name,
   fecha: fromDbDay(row.fecha),
   status: row.status,
   finalGrade: row.finalGrade === null ? null : Number(row.finalGrade),

@@ -50,7 +50,7 @@ export default function GroupFormDialog({ isOpen, group, onClose, onSaved }: Pro
     courseApi.options().then(setCourses).catch(() => setCourses([]));
     termsApi.options().then((list) => {
       setTerms(list);
-      if (!group) setTermId((current) => current || list.find((term) => term.activo)?.id || "");
+      if (!group) setTermId((current) => current || list.find((term) => term.active)?.id || "");
     }).catch(() => setTerms([]));
     teacherApi
       .table({ page: 1, limit: 200, filters: { status: "ACTIVO" }, sort: { key: "nombre", direction: "asc" } })
@@ -98,7 +98,7 @@ export default function GroupFormDialog({ isOpen, group, onClose, onSaved }: Pro
             </ITGrid>
             <ITGrid item xs={12} md={6}>
               <ITSelect name="termId" label={t("groups.ciclo")} value={termId} disabled={!!group} error={errors.termId}
-                placeholder="—" options={terms.map((term) => ({ value: term.id, label: term.nombre }))}
+                placeholder="—" options={terms.map((term) => ({ value: term.id, label: term.name }))}
                 onChange={(e) => setTermId(e.target.value)} />
             </ITGrid>
             <ITGrid item xs={12} md={4}>

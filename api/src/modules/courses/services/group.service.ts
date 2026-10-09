@@ -19,14 +19,14 @@ import { CURRENT_ENROLLMENT, groupScope } from "./academic-scope";
 
 export const groupInclude = {
   course: { select: { clave: true, nombre: true, active: true } },
-  term: { select: { nombre: true, activo: true } },
+  term: { select: { name: true, active: true } },
   teacher: { select: { nombres: true, apellidos: true } },
   _count: { select: { enrollments: { where: CURRENT_ENROLLMENT } } },
 } satisfies Prisma.GroupInclude;
 
 export type GroupRow = Group & {
   course: { clave: string; nombre: string; active: boolean };
-  term: { nombre: string; activo: boolean };
+  term: { name: string; active: boolean };
   teacher: { nombres: string; apellidos: string } | null;
   _count: { enrollments: number };
 };
@@ -38,8 +38,8 @@ export const toGroupView = (row: GroupRow): GroupView => ({
   courseClave: row.course.clave,
   courseNombre: row.course.nombre,
   termId: row.termId,
-  termNombre: row.term.nombre,
-  termActivo: row.term.activo,
+  termNombre: row.term.name,
+  termActivo: row.term.active,
   teacherId: row.teacherId,
   teacherNombre: row.teacher ? `${row.teacher.nombres} ${row.teacher.apellidos}` : null,
   cupo: row.cupo,

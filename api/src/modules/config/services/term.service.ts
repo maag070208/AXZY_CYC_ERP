@@ -19,20 +19,20 @@ const fromDay = (value: Date): string => value.toISOString().slice(0, 10);
 
 const toView = (row: Term) => ({
   id: row.id,
-  nombre: row.nombre,
-  fechaInicio: fromDay(row.fechaInicio),
-  fechaFin: fromDay(row.fechaFin),
-  activo: row.activo,
+  name: row.name,
+  startDate: fromDay(row.startDate),
+  endDate: fromDay(row.endDate),
+  active: row.active,
   createdAt: row.createdAt.toISOString(),
   updatedAt: row.updatedAt.toISOString(),
 });
 export type TermView = ReturnType<typeof toView>;
 
 const stateOf = (row: Term) => ({
-  nombre: row.nombre,
-  fechaInicio: fromDay(row.fechaInicio),
-  fechaFin: fromDay(row.fechaFin),
-  activo: row.activo,
+  name: row.name,
+  startDate: fromDay(row.startDate),
+  endDate: fromDay(row.endDate),
+  active: row.active,
 });
 
 /**
@@ -46,11 +46,11 @@ export class TermService {
     private readonly audit?: AuditLogger
   ) {}
 
-  private assertDates(inicio: string, fin: string): void {
-    if (Number.isNaN(toDay(inicio).getTime()) || Number.isNaN(toDay(fin).getTime())) {
+  private assertDates(startDate: string, endDate: string): void {
+    if (Number.isNaN(toDay(startDate).getTime()) || Number.isNaN(toDay(endDate).getTime())) {
       throw new HttpError(400, "TERM_DATES_INVALID");
     }
-    if (inicio > fin) throw new HttpError(400, "TERM_DATES_INVALID");
+    if (startDate > endDate) throw new HttpError(400, "TERM_DATES_INVALID");
   }
 
   private async load(id: string): Promise<Term> {
@@ -61,15 +61,15 @@ export class TermService {
 
   async table(params: ITDataTableFetchParams): Promise<ITDataTableResponse<TermView>> {
     const where: Record<string, unknown> = {
-      nombre: filterText(params.filters, "nombre"),
-      activo: filterBool(params.filters, "activo"),
-      fechaInicio: filterDayRange(params.filters, "fechaInicio"),
+      name: filterText(params.filters, "name"),
+      active: filterBool(params.filters, "active"),
+      startDate: filterDayRange(params.filters, "startDate"),
     };
     for (const key of Object.keys(where)) if (where[key] === undefined) delete where[key];
     const orderBy = orderByOf(
       params.sort,
-      { nombre: "nombre", fechaInicio: "fechaInicio", fechaFin: "fechaFin", activo: "activo" },
-      [{ fechaInicio: "desc" }]
+      { name: "name", startDate: "startDate", endDate: "endDate", active: "active" },
+      [{ startDate: "desc" }]
     );
     const result = await paginatedQuery<Term>({
       model: this.db.term,
@@ -82,23 +82,23 @@ export class TermService {
   }
 
   async options(): Promise<TermView[]> {
-    const rows = await this.db.term.findMany({ orderBy: { fechaInicio: "desc" } });
+    const rows = await this.db.term.findMany({ orderBy: { startDate: "desc" } });
     return rows.map(toView);
   }
 
   async active(): Promise<TermView | null> {
-    const row = await this.db.term.findFirst({ where: { activo: true } });
+    const row = await this.db.term.findFirst({ where: { active: true } });
     return row ? toView(row) : null;
   }
 
   async create(input: TermCreateInput, actor: { id: string; username: string }): Promise<TermView> {
-    this.assertDates(input.fechaInicio, input.fechaFin);
+    this.assertDates(input.startDate, input.endDate);
     const row = await this.db.$transaction(async (tx) => {
       const created = await tx.term.create({
         data: {
-          nombre: input.nombre,
-          fechaInicio: toDay(input.fechaInicio),
-          fechaFin: toDay(input.fechaFin),
+          name: input.name,
+          startDate: toDay(input.startDate),
+          endDate: toDay(input.endDate),
         },
       });
       await this.audit?.(
@@ -119,17 +119,17 @@ export class TermService {
 
   async update(id: string, input: TermUpdateInput, actor: { id: string; username: string }): Promise<TermView> {
     const previous = await this.load(id);
-    const inicio = input.fechaInicio ?? fromDay(previous.fechaInicio);
-    const fin = input.fechaFin ?? fromDay(previous.fechaFin);
-    this.assertDates(inicio, fin);
+    const startDate = input.startDate ?? fromDay(previous.startDate);
+    const endDate = input.endDate ?? fromDay(previous.endDate);
+    this.assertDates(startDate, endDate);
 
     const row = await this.db.$transaction(async (tx) => {
       const updated = await tx.term.update({
         where: { id },
         data: {
-          ...(input.nombre !== undefined && { nombre: input.nombre }),
-          ...(input.fechaInicio !== undefined && { fechaInicio: toDay(input.fechaInicio) }),
-          ...(input.fechaFin !== undefined && { fechaFin: toDay(input.fechaFin) }),
+          ...(input.name !== undefined && { name: input.name }),
+          ...(input.startDate !== undefined && { startDate: toDay(input.startDate) }),
+          ...(input.endDate !== undefined && { endDate: toDay(input.endDate) }),
         },
       });
       await this.audit?.(
@@ -152,12 +152,12 @@ export class TermService {
   /** Activa el ciclo y desactiva el anterior (atómico). */
   async activate(id: string, actor: { id: string; username: string }): Promise<TermView> {
     const target = await this.load(id);
-    if (target.activo) throw new HttpError(409, "TERM_ALREADY_ACTIVE");
+    if (target.active) throw new HttpError(409, "TERM_ALREADY_ACTIVE");
 
     const row = await this.db.$transaction(async (tx) => {
-      const previous = await tx.term.findFirst({ where: { activo: true } });
-      if (previous) await tx.term.update({ where: { id: previous.id }, data: { activo: false } });
-      const activated = await tx.term.update({ where: { id }, data: { activo: true } });
+      const previous = await tx.term.findFirst({ where: { active: true } });
+      if (previous) await tx.term.update({ where: { id: previous.id }, data: { active: false } });
+      const activated = await tx.term.update({ where: { id }, data: { active: true } });
       await this.audit?.(
         {
           action: "TERM_ACTIVATED",
@@ -165,8 +165,8 @@ export class TermService {
           entityId: id,
           userId: actor.id,
           userName: actor.username,
-          previousState: { activeTermId: previous?.id ?? null, activeTermName: previous?.nombre ?? null },
-          newState: { activeTermId: id, activeTermName: activated.nombre },
+          previousState: { activeTermId: previous?.id ?? null, activeTermName: previous?.name ?? null },
+          newState: { activeTermId: id, activeTermName: activated.name },
         },
         tx
       );

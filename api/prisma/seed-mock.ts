@@ -152,21 +152,21 @@ const ensureConcepts = async (): Promise<{ enrollment: string; monthly: string }
 
 async function main(): Promise<void> {
   // 1) Catálogos base.
-  const level = await prisma.level.upsert({ where: { nombre: "Técnico Superior" }, create: { nombre: "Técnico Superior", orden: 1 }, update: { active: true }, select: { id: true } });
+  const level = await prisma.level.upsert({ where: { name: "Técnico Superior" }, create: { name: "Técnico Superior", sortOrder: 1 }, update: { active: true }, select: { id: true } });
   const term = await prisma.term.upsert({
-    where: { nombre: `Ciclo ${RUN_YEAR}-${RUN_YEAR + 1}` },
+    where: { name: `Ciclo ${RUN_YEAR}-${RUN_YEAR + 1}` },
     create: {
-      nombre: `Ciclo ${RUN_YEAR}-${RUN_YEAR + 1}`, fechaInicio: new Date(`${RUN_YEAR}-08-01T00:00:00.000Z`), fechaFin: new Date(`${RUN_YEAR + 1}-07-31T00:00:00.000Z`), activo: true,
+      name: `Ciclo ${RUN_YEAR}-${RUN_YEAR + 1}`, startDate: new Date(`${RUN_YEAR}-08-01T00:00:00.000Z`), endDate: new Date(`${RUN_YEAR + 1}-07-31T00:00:00.000Z`), active: true,
       calendar: [
         { name: "Cuatrimestre 1", startDate: `${RUN_YEAR}-09-01`, endDate: `${RUN_YEAR}-12-20` },
         { name: "Cuatrimestre 2", startDate: `${RUN_YEAR + 1}-01-10`, endDate: `${RUN_YEAR + 1}-04-30` },
         { name: "Cuatrimestre 3", startDate: `${RUN_YEAR + 1}-05-05`, endDate: `${RUN_YEAR + 1}-07-15` },
       ],
     },
-    update: { activo: true },
+    update: { active: true },
     select: { id: true },
   });
-  await prisma.term.updateMany({ where: { id: { not: term.id }, activo: true }, data: { activo: false } });
+  await prisma.term.updateMany({ where: { id: { not: term.id }, active: true }, data: { active: false } });
 
   const admin = await prisma.user.findFirstOrThrow({ where: { username: "admin" }, select: { id: true, name: true } });
   const actor = { id: admin.id, name: admin.name };

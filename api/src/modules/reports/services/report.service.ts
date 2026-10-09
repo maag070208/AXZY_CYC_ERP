@@ -85,13 +85,13 @@ export class ReportService {
   }
 
   /** Ciclo del filtro o, por defecto, el activo (M10 §4.4). */
-  private async term(termId: string | undefined): Promise<{ id: string; nombre: string } | null> {
+  private async term(termId: string | undefined): Promise<{ id: string; name: string } | null> {
     if (termId) {
-      const term = await this.db.term.findUnique({ where: { id: termId }, select: { id: true, nombre: true } });
+      const term = await this.db.term.findUnique({ where: { id: termId }, select: { id: true, name: true } });
       if (!term) throw new HttpError(400, "TERM_NOT_FOUND");
       return term;
     }
-    return this.db.term.findFirst({ where: { activo: true }, select: { id: true, nombre: true } });
+    return this.db.term.findFirst({ where: { active: true }, select: { id: true, name: true } });
   }
 
   private studentScope(user: UserPermissions) {
@@ -199,7 +199,7 @@ export class ReportService {
     const cupo = groups.reduce((s, g) => s + g.cupo, 0);
     const inscritos = groups.reduce((s, g) => s + g._count.enrollments, 0);
     return {
-      filters: { termId: term?.id, termNombre: term?.nombre ?? null, groupId: filters.groupId },
+      filters: { termId: term?.id, termNombre: term?.name ?? null, groupId: filters.groupId },
       columns: [col("curso"), col("grupo"), col("profesor"), col("cupo", "number"), col("inscritos", "number"),
         col("disponibles", "number"), col("ocupacion", "percent")],
       rows,
@@ -225,7 +225,7 @@ export class ReportService {
     });
     const finals = rows.filter((r) => r.finalGrade !== null).map((r) => Number(r.finalGrade));
     return {
-      filters: { termId: term?.id, termNombre: term?.nombre ?? null, groupId: filters.groupId, status: filters.status },
+      filters: { termId: term?.id, termNombre: term?.name ?? null, groupId: filters.groupId, status: filters.status },
       columns: [col("curso"), col("grupo"), col("matricula"), col("nombre"), col("final", "number"), col("estatus")],
       rows: rows.map((r) => ({
         curso: r.group.course.nombre, grupo: r.group.nombre, matricula: r.student.matricula, nombre: fullName(r.student),
@@ -284,7 +284,7 @@ export class ReportService {
       };
     });
     return {
-      filters: { termId: term?.id, termNombre: term?.nombre ?? null, groupId: filters.groupId, from: filters.from, to: filters.to },
+      filters: { termId: term?.id, termNombre: term?.name ?? null, groupId: filters.groupId, from: filters.from, to: filters.to },
       columns: [col("curso"), col("grupo"), col("matricula"), col("nombre"), col("sesiones", "number"), col("faltas", "number"),
         col("retardos", "number"), col("justificadas", "number"), col("porcentaje", "percent"), col("alerta")],
       rows,
@@ -396,7 +396,7 @@ export class ReportService {
     }
     return {
       termId: term?.id ?? null,
-      termNombre: term?.nombre ?? null,
+      termNombre: term?.name ?? null,
       activeStudents,
       inactiveStudents,
       groupOccupancy: { average, groups: occupancy },

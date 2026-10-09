@@ -61,19 +61,19 @@ export default function TermsManager({ canManage }: Props) {
       type: "string",
       filter: true,
       sortable: false,
-      render: (row) => <ITText className="text-[12px] font-bold text-slate-700">{row.nombre}</ITText>,
+      render: (row) => <ITText className="text-[12px] font-bold text-slate-700">{row.name}</ITText>,
     },
-    { key: "fechaInicio", label: t("terms.fechaInicio"), type: "string", width: 150, sortable: false, render: (row) => day(row.fechaInicio) },
-    { key: "fechaFin", label: t("terms.fechaFin"), type: "string", width: 150, sortable: false, render: (row) => day(row.fechaFin) },
+    { key: "startDate", label: t("terms.fechaInicio"), type: "string", width: 150, sortable: false, render: (row) => day(row.startDate) },
+    { key: "endDate", label: t("terms.fechaFin"), type: "string", width: 150, sortable: false, render: (row) => day(row.endDate) },
     {
-      key: "activo",
+      key: "active",
       label: t("terms.activo"),
       type: "boolean",
       width: 110,
       filter: true,
       sortable: false,
       render: (row) =>
-        row.activo ? (
+        row.active ? (
           <ITBadget color="success" size="sm">
             {t("terms.activo")}
           </ITBadget>
@@ -94,7 +94,7 @@ export default function TermsManager({ canManage }: Props) {
                   variant="text"
                   color="secondary"
                   size="sm"
-                  ariaLabel={`${t("common:actions.edit")} ${row.nombre}`}
+                  ariaLabel={`${t("common:actions.edit")} ${row.name}`}
                   onClick={() => {
                     setEditing(row);
                     setFormOpen(true);
@@ -102,12 +102,12 @@ export default function TermsManager({ canManage }: Props) {
                 >
                   <FaEdit size={12} />
                 </ITButton>
-                {!row.activo && (
+                {!row.active && (
                   <ITButton
                     variant="text"
                     color="success"
                     size="sm"
-                    ariaLabel={`${t("terms.activate")} ${row.nombre}`}
+                    ariaLabel={`${t("terms.activate")} ${row.name}`}
                     onClick={() => setActivating(row)}
                   >
                     <FaCheckCircle size={12} />
@@ -122,7 +122,7 @@ export default function TermsManager({ canManage }: Props) {
 
   return (
     <PanelCard
-      description={current ? `${t("terms.current")}: ${current.nombre}` : t("terms.none")}
+      description={current ? `${t("terms.current")}: ${current.name}` : t("terms.none")}
       actions={
         canManage && (
           <ITButton
@@ -164,7 +164,7 @@ export default function TermsManager({ canManage }: Props) {
         isOpen={!!activating}
         onClose={() => setActivating(null)}
         onConfirm={() => void activate()}
-        title={t("terms.activateTitle", { name: activating?.nombre ?? "" })}
+        title={t("terms.activateTitle", { name: activating?.name ?? "" })}
         message={t("terms.activateMessage")}
         confirmLabel={t("terms.activate")}
         cancelLabel={t("common:actions.cancel")}

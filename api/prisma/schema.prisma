@@ -265,8 +265,8 @@ model Setting {
 /// Nivel educativo.
 model Level {
   id        String   @id @default(uuid())
-  nombre    String   @unique
-  orden     Int?
+  name      String   @unique
+  sortOrder Int?     @map("sort_order")
   active    Boolean  @default(true)
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -277,31 +277,31 @@ model Level {
   @@map("levels")
 }
 
-/// Ciclo escolar. Solo uno `activo` a la vez (índice único parcial en SQL).
+/// Ciclo escolar. Solo uno `active` a la vez (índice único parcial en SQL).
 /// M07 lo amplía con sus relaciones (grupos).
 model Term {
-  id          String   @id @default(uuid())
-  nombre      String   @unique
-  fechaInicio DateTime @map("fecha_inicio") @db.Date
-  fechaFin    DateTime @map("fecha_fin") @db.Date
-  activo      Boolean  @default(false)
+  id        String   @id @default(uuid())
+  name      String   @unique
+  startDate DateTime @map("start_date") @db.Date
+  endDate   DateTime @map("end_date") @db.Date
+  active    Boolean  @default(false)
   /// Calendario/periodos configurables (M22): [{ name, startDate, endDate }].
-  calendar    Json?
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  calendar  Json?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   groups  Group[]
   charges Charge[]
   plans   StudentPlan[]
 
-  @@index([activo])
+  @@index([active])
   @@map("terms")
 }
 
 /// Motivo de baja (lo consume M05).
 model CancellationReason {
   id        String   @id @default(uuid())
-  nombre    String   @unique
+  name      String   @unique
   active    Boolean  @default(true)
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -314,12 +314,12 @@ model CancellationReason {
 
 /// Tipo de documento del expediente (lo consume M06).
 model DocumentType {
-  id          String   @id @default(uuid())
-  nombre      String   @unique
-  obligatorio Boolean  @default(false)
-  active      Boolean  @default(true)
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  id        String   @id @default(uuid())
+  name      String   @unique
+  required  Boolean  @default(false)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   documents Document[]
 

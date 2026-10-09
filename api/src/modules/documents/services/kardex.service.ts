@@ -42,7 +42,7 @@ export class KardexService {
     const student = await this.students.loadScoped(studentId, actor, permission);
     const [entries, required, validated, settings] = await Promise.all([
       this.source(studentId),
-      this.db.documentType.findMany({ where: { active: true, obligatorio: true }, orderBy: { nombre: "asc" } }),
+      this.db.documentType.findMany({ where: { active: true, required: true }, orderBy: { name: "asc" } }),
       this.db.document.findMany({
         where: { studentId, status: "VALIDADO", deletedAt: null },
         select: { documentTypeId: true },
@@ -60,7 +60,7 @@ export class KardexService {
       entries,
       promedioGeneral: averageOf(entries),
       creditosAcreditados: entries.filter((e) => e.estatus === "ACREDITADO").length,
-      documentosFaltantes: required.filter((t) => !has.has(t.id)).map((t) => t.nombre),
+      documentosFaltantes: required.filter((t) => !has.has(t.id)).map((t) => t.name),
       minPassingGrade: Number(setting.get("MIN_PASSING_GRADE") ?? 70),
       escuela: String(setting.get("SCHOOL_NAME") ?? "CYC"),
       generadoEn: new Date().toISOString(),

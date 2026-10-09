@@ -28,7 +28,7 @@ import {
 import { round2 } from "../models/entity/exam-rules";
 
 export const examInclude = {
-  group: { select: { nombre: true, courseId: true, course: { select: { nombre: true } }, term: { select: { nombre: true } } } },
+  group: { select: { nombre: true, courseId: true, course: { select: { nombre: true } }, term: { select: { name: true } } } },
   assessment: { select: { nombre: true } },
   questions: {
     orderBy: { orden: "asc" },
@@ -48,7 +48,7 @@ export const toExamView = (row: ExamRow): ExamView => ({
   groupNombre: row.group.nombre,
   courseId: row.group.courseId,
   courseNombre: row.group.course.nombre,
-  termNombre: row.group.term.nombre,
+  termNombre: row.group.term.name,
   titulo: row.titulo,
   instrucciones: row.instrucciones,
   duracionMin: row.duracionMin,

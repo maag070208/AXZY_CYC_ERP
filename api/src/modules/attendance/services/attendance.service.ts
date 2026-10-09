@@ -36,7 +36,7 @@ const studentSelect = { id: true, matricula: true, nombres: true, apellidoPatern
 const byName = (a: { nombre: string }, b: { nombre: string }) => a.nombre.localeCompare(b.nombre, "es");
 
 const sessionInclude = {
-  group: { select: { id: true, nombre: true, active: true, closedAt: true, course: { select: { nombre: true } }, term: { select: { nombre: true } } } },
+  group: { select: { id: true, nombre: true, active: true, closedAt: true, course: { select: { nombre: true } }, term: { select: { name: true } } } },
   records: { select: { status: true } },
 } as const;
 type SessionRow = Prisma.AttendanceSessionGetPayload<{ include: typeof sessionInclude }>;
@@ -165,7 +165,7 @@ export class AttendanceService {
         id: session.group.id,
         nombre: session.group.nombre,
         courseNombre: session.group.course.nombre,
-        termNombre: session.group.term.nombre,
+        termNombre: session.group.term.name,
         closed: !!session.group.closedAt || !session.group.active,
       },
       rows,
@@ -321,7 +321,7 @@ export class AttendanceService {
         id: true,
         attendanceAlertAt: true,
         student: { select: studentSelect },
-        group: { select: { id: true, nombre: true, course: { select: { nombre: true } }, term: { select: { nombre: true } } } },
+        group: { select: { id: true, nombre: true, course: { select: { nombre: true } }, term: { select: { name: true } } } },
         attendance: {
           where: { session: { deletedAt: null } },
           select: { id: true, status: true, session: { select: { id: true, fecha: true, hora: true } }, justification: { select: { id: true, status: true, nota: true } } },
@@ -345,7 +345,7 @@ export class AttendanceService {
           groupId: e.group.id,
           grupo: e.group.nombre,
           curso: e.group.course.nombre,
-          ciclo: e.group.term.nombre,
+          ciclo: e.group.term.name,
           records: e.attendance.map((a) => ({
             attendanceId: a.id,
             sessionId: a.session.id,

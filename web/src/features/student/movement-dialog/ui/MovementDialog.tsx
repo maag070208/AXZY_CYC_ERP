@@ -86,11 +86,11 @@ export default function MovementDialog({ kind, student, onClose, onDone }: Props
               label={t("movements.reason")}
               placeholder={t("movements.reasonNone")}
               value={reasonId}
-              options={reasons.map((r) => ({ value: r.id, label: r.nombre }))}
+              options={reasons.map((r) => ({ value: r.id, label: r.name }))}
               onChange={(e) => {
                 setReasonId(e.target.value);
                 const reason = reasons.find((r) => r.id === e.target.value);
-                if (reason) setMotivo(reason.nombre);
+                if (reason) setMotivo(reason.name);
               }}
             />
           )}

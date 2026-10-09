@@ -23,7 +23,7 @@ interface CatalogDelegate {
 
 export interface CatalogRow {
   id: string;
-  nombre: string;
+  name: string;
   active: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -74,7 +74,7 @@ export class CatalogService {
 
   async table(params: ITDataTableFetchParams): Promise<ITDataTableResponse<ReturnType<typeof toView>>> {
     const where: Record<string, unknown> = {
-      nombre: filterText(params.filters, "nombre"),
+      name: filterText(params.filters, "name"),
       active: filterBool(params.filters, "active"),
       ...(this.spec.extraFilters?.(params.filters) ?? {}),
     };
@@ -82,7 +82,7 @@ export class CatalogService {
 
     const orderBy = orderByOf(
       params.sort,
-      { nombre: "nombre", active: "active", createdAt: "createdAt", ...(this.spec.extraSort ?? {}) },
+      { name: "name", active: "active", createdAt: "createdAt", ...(this.spec.extraSort ?? {}) },
       this.spec.defaultOrder
     );
     const result = await paginatedQuery<CatalogRow>({

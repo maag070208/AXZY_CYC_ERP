@@ -15,22 +15,22 @@ interface Props {
 /** Alta/edición de un registro de catálogo; los campos extra dependen del recurso. */
 export default function CatalogItemDialog({ resource, isOpen, item, onClose, onSaved }: Props) {
   const { t } = useTranslation(["config", "common"]);
-  const [nombre, setNombre] = useState("");
-  const [orden, setOrden] = useState("");
-  const [obligatorio, setObligatorio] = useState(false);
+  const [name, setName] = useState("");
+  const [sortOrder, setSortOrder] = useState("");
+  const [required, setRequired] = useState(false);
   const [touched, setTouched] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    setNombre(item?.nombre ?? "");
-    setOrden(item?.orden === null || item?.orden === undefined ? "" : String(item.orden));
-    setObligatorio(item?.obligatorio ?? false);
+    setName(item?.name ?? "");
+    setSortOrder(item?.sortOrder === null || item?.sortOrder === undefined ? "" : String(item.sortOrder));
+    setRequired(item?.required ?? false);
     setTouched(false);
     setError(null);
   }, [item, isOpen]);
 
-  const missing = !nombre.trim();
+  const missing = !name.trim();
 
   const save = async () => {
     setTouched(true);
@@ -38,9 +38,9 @@ export default function CatalogItemDialog({ resource, isOpen, item, onClose, onS
     setSaving(true);
     setError(null);
     const data = {
-      nombre: nombre.trim(),
-      ...(resource === "levels" ? { orden: orden === "" ? null : Number.parseInt(orden, 10) } : {}),
-      ...(resource === "document-types" ? { obligatorio } : {}),
+      name: name.trim(),
+      ...(resource === "levels" ? { sortOrder: sortOrder === "" ? null : Number.parseInt(sortOrder, 10) } : {}),
+      ...(resource === "document-types" ? { required } : {}),
     };
     try {
       if (item) onSaved(await catalogApi.update(resource, item.id, data), false);
@@ -71,10 +71,10 @@ export default function CatalogItemDialog({ resource, isOpen, item, onClose, onS
         <ITFlex direction="column" gap={4}>
           {error && <ITAlert variant="error">{error}</ITAlert>}
           <ITInput
-            name="nombre"
+            name="name"
             label={t("catalogs.nombre")}
-            value={nombre}
-            onChange={(e) => setNombre(e.target.value)}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
             onBlur={() => setTouched(true)}
             required
             autoFocus
@@ -82,19 +82,19 @@ export default function CatalogItemDialog({ resource, isOpen, item, onClose, onS
           />
           {resource === "levels" && (
             <ITInput
-              name="orden"
+              name="sortOrder"
               type="number"
               label={t("catalogs.orden")}
-              value={orden}
-              onChange={(e) => setOrden(String(e.target.value ?? ""))}
+              value={sortOrder}
+              onChange={(e) => setSortOrder(String(e.target.value ?? ""))}
             />
           )}
           {resource === "document-types" && (
             <ITCheckbox
-              name="obligatorio"
+              name="required"
               label={t("catalogs.obligatorio")}
-              checked={obligatorio}
-              onChange={setObligatorio}
+              checked={required}
+              onChange={setRequired}
             />
           )}
           <ITFlex justify="end" gap={2}>

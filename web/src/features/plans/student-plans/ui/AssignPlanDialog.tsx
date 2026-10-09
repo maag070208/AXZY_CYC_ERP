@@ -92,7 +92,7 @@ export default function AssignPlanDialog({ isOpen, studentId, studentName, onClo
             </ITGrid>
             <ITGrid item xs={12} md={5}>
               <ITSelect name="termId" label={t("assign.term")} value={termId} placeholder={t("assign.noTerm")}
-                options={[{ value: "", label: t("assign.noTerm") }, ...terms.map((term) => ({ value: term.id, label: term.nombre }))]}
+                options={[{ value: "", label: t("assign.noTerm") }, ...terms.map((term) => ({ value: term.id, label: term.name }))]}
                 onChange={(e) => setTermId(e.target.value)} />
             </ITGrid>
             <ITGrid item xs={12} md={5}>

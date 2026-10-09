@@ -1,7 +1,7 @@
 import { z, registry } from "@core/swagger/registry";
 import { paginatedTableResponseSchema } from "@core/swagger/table.dto";
 
-const nombre = z.string().trim().min(1, "NOMBRE_REQUIRED").max(120);
+const name = z.string().trim().min(1, "NOMBRE_REQUIRED").max(120);
 const isoDay = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "INVALID_DATE");
 
 // --- Niveles ------------------------------------------------------------------
@@ -9,8 +9,8 @@ const isoDay = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "INVALID_DATE");
 export const LevelSchema = z
   .object({
     id: z.string(),
-    nombre: z.string(),
-    orden: z.number().int().nullable(),
+    name: z.string(),
+    sortOrder: z.number().int().nullable(),
     active: z.boolean(),
     createdAt: z.string(),
     updatedAt: z.string(),
@@ -19,7 +19,7 @@ export const LevelSchema = z
 registry.register("Level", LevelSchema);
 
 export const LevelCreateDto = z
-  .object({ nombre, orden: z.number().int().min(0).max(999).nullable().optional() })
+  .object({ name, sortOrder: z.number().int().min(0).max(999).nullable().optional() })
   .strict()
   .openapi("LevelCreateInput");
 registry.register("LevelCreateInput", LevelCreateDto);
@@ -36,7 +36,7 @@ registry.register("LevelUpdateInput", LevelUpdateDto);
 export const CancellationReasonSchema = z
   .object({
     id: z.string(),
-    nombre: z.string(),
+    name: z.string(),
     active: z.boolean(),
     createdAt: z.string(),
     updatedAt: z.string(),
@@ -45,7 +45,7 @@ export const CancellationReasonSchema = z
 registry.register("CancellationReason", CancellationReasonSchema);
 
 export const CancellationReasonCreateDto = z
-  .object({ nombre })
+  .object({ name })
   .strict()
   .openapi("CancellationReasonCreateInput");
 registry.register("CancellationReasonCreateInput", CancellationReasonCreateDto);
@@ -62,8 +62,8 @@ registry.register("CancellationReasonUpdateInput", CancellationReasonUpdateDto);
 export const DocumentTypeSchema = z
   .object({
     id: z.string(),
-    nombre: z.string(),
-    obligatorio: z.boolean(),
+    name: z.string(),
+    required: z.boolean(),
     active: z.boolean(),
     createdAt: z.string(),
     updatedAt: z.string(),
@@ -72,7 +72,7 @@ export const DocumentTypeSchema = z
 registry.register("DocumentType", DocumentTypeSchema);
 
 export const DocumentTypeCreateDto = z
-  .object({ nombre, obligatorio: z.boolean().optional() })
+  .object({ name, required: z.boolean().optional() })
   .strict()
   .openapi("DocumentTypeCreateInput");
 registry.register("DocumentTypeCreateInput", DocumentTypeCreateDto);
@@ -89,11 +89,11 @@ registry.register("DocumentTypeUpdateInput", DocumentTypeUpdateDto);
 export const TermSchema = z
   .object({
     id: z.string(),
-    nombre: z.string(),
+    name: z.string(),
     /** Día del calendario `AAAA-MM-DD`. */
-    fechaInicio: z.string(),
-    fechaFin: z.string(),
-    activo: z.boolean(),
+    startDate: z.string(),
+    endDate: z.string(),
+    active: z.boolean(),
     createdAt: z.string(),
     updatedAt: z.string(),
   })
@@ -101,7 +101,7 @@ export const TermSchema = z
 registry.register("Term", TermSchema);
 
 export const TermCreateDto = z
-  .object({ nombre, fechaInicio: isoDay, fechaFin: isoDay })
+  .object({ name, startDate: isoDay, endDate: isoDay })
   .strict()
   .openapi("TermCreateInput");
 registry.register("TermCreateInput", TermCreateDto);
