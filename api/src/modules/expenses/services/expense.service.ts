@@ -24,6 +24,7 @@ import {
   type ExpenseUpdateInput,
   type ExpenseView,
 } from "../models/dto/expense.dto";
+import { groupExpensesByMonth, groupExpensesByType, isDueDateValid, isExpenseOverdue } from "../models/entity/expense-rules";
 
 /** Fila con lo mínimo para decidir la mora. */
 type ExpenseRow = Expense & { term: { name: string } | null };
@@ -42,7 +43,7 @@ const toView = (row: ExpenseRow, today: string): ExpenseView => {
     notes: row.notes,
     termId: row.termId,
     termName: row.term?.name ?? null,
-    overdue: status === "PENDING" && row.dueDate !== null && fromDbDay(row.dueDate) < today,
+    overdue: isExpenseOverdue(status, row.dueDate ? fromDbDay(row.dueDate) : null, today),
     cancelledAt: row.cancelledAt?.toISOString() ?? null,
     cancelReason: row.cancelReason,
     createdAt: row.createdAt.toISOString(),
@@ -119,6 +120,8 @@ export class ExpenseService {
   }
 
   async create(input: ExpenseCreateInput, actor: AuthenticatedUser): Promise<ExpenseView> {
+    // Misma regla y mismo código que en la edición (ver `update`).
+    if (!isDueDateValid(input.date, input.dueDate)) throw new HttpError(400, "DUE_DATE_BEFORE_DATE");
     return this.db.$transaction(async (tx) => {
       const row = await tx.expense.create({
         data: {
@@ -158,7 +161,7 @@ export class ExpenseService {
     // La fecha y el vencimiento se validan juntos: puede cambiar solo uno.
     const date = input.date ?? before.date;
     const dueDate = input.dueDate === undefined ? before.dueDate : input.dueDate;
-    if (dueDate && dueDate < date) throw new HttpError(400, "DUE_DATE_BEFORE_DATE");
+    if (!isDueDateValid(date, dueDate)) throw new HttpError(400, "DUE_DATE_BEFORE_DATE");
     return this.db.$transaction(async (tx) => {
       const row = await tx.expense.update({
         where: { id },
@@ -231,23 +234,18 @@ export class ExpenseService {
     });
     const paid = rows.filter((row) => row.status === "PAID");
     const pending = rows.filter((row) => row.status === "PENDING");
-    const byType = new Map<string, number[]>();
-    const byMonth = new Map<string, number[]>();
-    for (const row of rows) {
-      byType.set(row.type, [...(byType.get(row.type) ?? []), Number(row.amount)]);
-      const month = fromDbDay(row.date).slice(0, 7);
-      byMonth.set(month, [...(byMonth.get(month) ?? []), Number(row.amount)]);
-    }
+    const amounts = rows.map((row) => ({ type: row.type as string, date: fromDbDay(row.date), amount: Number(row.amount) }));
     return {
       total: sumOf(rows.map((row) => row.amount)),
       paid: sumOf(paid.map((row) => row.amount)),
       pending: sumOf(pending.map((row) => row.amount)),
       count: rows.length,
-      byType: EXPENSE_TYPES.filter((type) => byType.has(type)).map((type) => {
-        const amounts = byType.get(type) ?? [];
-        return { type, label: t(`expenses.types.${type}` as MessageKey), total: sumOf(amounts), count: amounts.length };
-      }),
-      byMonth: [...byMonth.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([month, amounts]) => ({ month, total: sumOf(amounts) })),
+      // El agrupado es una regla pura (`expense-rules`): aquí solo se etiqueta.
+      byType: groupExpensesByType(amounts).map((row) => ({
+        ...row,
+        label: t(`expenses.types.${row.type}` as MessageKey),
+      })),
+      byMonth: groupExpensesByMonth(amounts),
     };
   }
 }

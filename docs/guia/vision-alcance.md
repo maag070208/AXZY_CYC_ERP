@@ -44,7 +44,7 @@ trazabilidad (bitácora) y control de acceso por rol.
 | Finanzas y administración | M09, M10, M11 | Pagos, reportes básicos, catálogos |
 | Calidad | M12, M13 | Pruebas/seguridad/despliegue, capacitación |
 | Examen en línea | M14–M17 | Banco de reactivos, exámenes, aplicación, calificación |
-| Extras | M18–M22 | Asistencia, notificaciones, migración, tablero ejecutivo, programas y planes de pago |
+| Extras | M18–M23 | Asistencia, notificaciones, migración, tablero ejecutivo, programas y planes de pago, gastos institucionales |
 
 Detalle en [`roadmap.md`](roadmap.md) y en [`../modulos/README.md`](../modulos/README.md).
 

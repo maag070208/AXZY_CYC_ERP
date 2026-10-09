@@ -36,10 +36,11 @@ reglas complejas (M07, M08, M09, M16) ≈ 1.5–2 sprints.
 | **F8** | Analítica ejecutiva | M21 | 1–2 | 2–4 | F4, F7 |
 | **F9** | Endurecimiento, despliegue y capacitación | M12, M13 | 2 | 4 | Todas |
 | **F10** | Programas y planes de pago | M22 | 1–2 | 2–4 | F2, F3, F4 |
+| **F11** | Gastos institucionales y tablero de Inicio | M23 (+ M21 ampliado) | 1 | 2 | F4, F8 |
 
-- **Secuencial:** ≈ 44–48 semanas (incluye F10).
+- **Secuencial:** ≈ 46–50 semanas (incluye F10 y F11).
 - **Con paralelismo** (M20 solapada, QA/seguridad/docs continuas, F5 y F6
-  parcialmente en paralelo): **≈ 30–36 semanas** hasta producción.
+  parcialmente en paralelo): **≈ 32–38 semanas** hasta producción.
 - **M01 (análisis y prototipo)** ya está cubierto por `docs/` (visión, ERD, mapa
   de módulos). Solo falta la **firma de alcance** del cliente.
 
@@ -66,7 +67,8 @@ reglas complejas (M07, M08, M09, M16) ≈ 1.5–2 sprints.
 | M19 | ✅ Terminado (F6) | Plantillas por clave+canal, outbox con reintentos/backoff, opt-out, bandeja interna y avisos; correo Resend/SMTP y SMS/WA simulados (A-001) |
 | M20 | ✅ Terminado (F7) | Migración CSV de alumnos y profesores: `plan()` compartido, dry-run, checksum, `Idempotency-Key`, respaldo previo, lotes/filas trazables y conciliación de totales |
 | M12 | ✅ Terminado (F9a) | Límite de peticiones, cabeceras, barrido 401/403 de toda la API, respaldo/restauración (manual y programado), cobertura mínima y auditoría de dependencias en CI |
-| M21 | ✅ Terminado (F8) | Indicadores ejecutivos como reportes de M10 (deserción, rendimiento, tendencia, morosidad, ingresos contra proyección) y tablero `/executive` con comparación contra el ciclo anterior |
+| M21 | ✅ Terminado (F8, ampliado en F11) | Indicadores ejecutivos como reportes de M10 (deserción, rendimiento, tendencia, morosidad, ingresos contra proyección). El tablero es **Inicio (`/`)**, no una pantalla aparte: `/executive` salió del menú y de las rutas ([D-054](../../DECISIONES.md)) |
+| M23 | ⏳ Código terminado (F11) | Gastos institucionales: modelo `Expense`, CRUD con cancelación lógica, permisos `expenses.*` y pantalla `/expenses`; faltan sus pruebas (tramo E) |
 | M13 | Documentado | Sin código |
 | M22 | ✅ Terminado (F10) | Carreras (`Program`) con costos y periodos, plan de estudios (`ProgramSubject` + `Course`) y plan de pagos idempotente (`StudentPlan` + `Charge.planId`); día de vencimiento configurable y descuentos |
 | F0 — Infra | ✅ Completada | Monorepo + Docker por proyecto + `docker-compose` + CI (incluye e2e); migración `init` + seed; login por proxy de nginx verificado; e2e de auth (contrato + navegador) en verde |
@@ -80,6 +82,7 @@ reglas complejas (M07, M08, M09, M16) ≈ 1.5–2 sprints.
 | F8 — Analítica ejecutiva | ✅ Completada (pendiente H8 con el cliente) | M21; unitarias 117, contrato API 211, navegador 72 — todo en verde |
 | F9 — Endurecimiento, despliegue y capacitación | Parcial: M12 ✅ · M13 pendiente | Unitarias 112 (cobertura de reglas 81.8 %), contrato API 203 — todo en verde; faltan los manuales (M13) |
 | F10 — Programas y planes de pago | ✅ Completada | M22; unitarias 110, contrato API 198, navegador 70 — todo en verde |
+| F11 — Gastos institucionales y tablero de Inicio | ⏳ Código terminado, pruebas pendientes | M23 (`Expense`, CRUD, permisos, `/expenses`) y el tablero de Inicio refundido con filtros por ciclo/nivel/curso/grupo, gastos contra ingresos, alertas y detalle operativo ([D-054](../../DECISIONES.md), [D-055](../../DECISIONES.md)). Falta la suite del módulo y volver a correr las tres suites |
 | Refactor a inglés + i18n | ✅ Completado | [D-046](../../DECISIONES.md) y [D-049](../../DECISIONES.md): esquema, DTOs, rutas, códigos, llaves i18n y JSON guardado en inglés; migraciones `roles_english`, `lote1_catalogs_english`, `schema_english` y `english_followup`; las tres suites siguen en verde |
 
 ### 2.1 Lo que falta y en qué orden
@@ -93,8 +96,9 @@ del lanzamiento.
 |---|---|---|---|
 | **A** | F9a — Endurecimiento (M12) | A1 *rate limiting* en login y endpoints públicos · A2 pruebas de seguridad (cabeceras, CORS, envelope) y barrido 401/403 de todos los endpoints · A3 respaldo y restauración (base + archivos) · A4 auditoría de dependencias en CI · A5 checklist OWASP revisado | ✅ Terminado ([D-051](../../DECISIONES.md)) |
 | **B** | F8 — Analítica ejecutiva (M21) | Indicadores de deserción, morosidad, ingresos contra proyección, rendimiento, ocupación y tendencia; comparativo con el ciclo anterior; tablero y exportación | ✅ Terminado ([D-052](../../DECISIONES.md)) |
-| **C** | F9b — Capacitación (M13) | Manual por rol, guía rápida de operación y material de capacitación | ⏭️ En curso |
+| **C** | F9b — Capacitación (M13) | Manual por rol, guía rápida de operación y material de capacitación | ⏭️ En curso (es el único módulo sin entregable) |
 | **D** | Pendientes de módulos ya entregados | M20: adaptadores de cursos, grupos, inscripciones, calificaciones, cargos, pagos y asistencia · M19: proveedor real de SMS/WhatsApp ([A-001](../../DECISIONES.md)) · M14: imagen por reactivo · i18n de los catálogos guardados ([D-049](../../DECISIONES.md)) | Depende de decisiones del cliente |
+| **E** | Cierre de F11 | Suite de M23 (unitarias + contrato API + navegador) y volver a correr las tres suites · actualizar el plan y el roadmap (hecho) | ⏭️ En curso |
 
 **No depende de código:** la firma de alcance (H0) y las puertas de aceptación
 H1–H7 y H10 con el cliente.
@@ -251,6 +255,25 @@ probados; capacitación realizada; acta de aceptación.
 **Criterios de salida:** reejecutar no duplica cargos; el estado de cuenta refleja
 el plan; specs en verde.
 
+### F11 — Gastos institucionales y tablero de Inicio (1 iteración)
+**Módulo:** M23 (y M21 ampliado).
+
+- M23: modelo `Expense` (tipo, estatus, proveedor, vencimiento, ciclo opcional),
+  CRUD con cancelación lógica y motivo, permisos `expenses.view`/`expenses.manage`
+  (alcance `ALL`), bitácora `EXPENSE_CREATED|UPDATED|CANCELLED` y totales por tipo
+  y por mes.
+- Tablero de Inicio refundido ([D-054](../../DECISIONES.md), [D-055](../../DECISIONES.md)):
+  filtros por ciclo/nivel/curso/grupo en el encabezado, ingresos contra **gastos**
+  reales, cartera, desglose por concepto, pagos y movimientos recientes, grupos con
+  mayor ocupación y alertas compactas (adeudos vencidos, expedientes incompletos,
+  grupos al 80 %+). `/executive` deja de ser pantalla aparte.
+
+**Criterios de salida:** reejecutar no duplica ni pierde gastos; un gasto sin ciclo
+cuenta en los totales; el bloque de dinero sigue oculto sin alcance institucional;
+specs del módulo en verde.
+
+---
+
 ## 4. Hitos de aceptación (con el cliente)
 
 | Hito | Al cierre de | Se valida |
@@ -266,6 +289,7 @@ el plan; specs en verde.
 | H8 — Dirección | F8 | Tablero ejecutivo |
 | H9 — Lanzamiento | F9 | Seguridad, respaldos, capacitación |
 | H10 — Programas | F10 | Carreras, plan de estudios y plan de pagos |
+| H11 — Gastos y tablero | F11 | Captura de gastos, ingresos contra gastos y alertas del ciclo |
 
 ## 5. Flujos transversales (corren en todas las fases)
 
@@ -288,9 +312,10 @@ el plan; specs en verde.
 | Fugas de expedientes | F2 | Alto | S3 privado + descarga autorizada |
 | Rendimiento de reportes | F8 | Medio | Vistas materializadas e índices |
 | Dependencia del cliente para validar | Todas | Medio | Puertas de aceptación agendadas al cierre de cada fase |
+| Base de desarrollo remota (proxy con latencia y cortes) | F9/F11 | Medio | Reintento de errores de conexión y pool ampliado en `PrismaClient` ([D-055](../../DECISIONES.md)); las suites e2e exigen base **local** (`assertSafeDatabase`), así que el CI y las corridas locales usan su propio Postgres |
 
 ## 7. Cómo se mide el avance
 
 - **Por módulo:** checklist de [definición de terminado](roadmap.md#3-definición-de-terminado-por-módulo).
 - **Por fase:** criterios de salida cumplidos + specs en verde + hito aceptado.
-- **Global:** módulos en `Terminado` / 22, y fases cerradas / 11.
+- **Global:** módulos en `Terminado` / 23, y fases cerradas / 12.

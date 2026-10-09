@@ -98,9 +98,10 @@ test.afterAll(async () => {
 
 test("catálogo: el profesor no ve reportes con montos; el alumno no entra", async () => {
   const all = await (await control.get("reports")).json();
-  expect(all.map((r: { type: string }) => r.type)).toEqual([
+  // Los tipos de M10 están; los de M21 los verifica su propia suite (F8).
+  expect(all.map((r: { type: string }) => r.type)).toEqual(expect.arrayContaining([
     "students-active", "students-inactive", "enrollments-by-group", "grades-by-group", "attendance-by-group", "payments-period", "debts",
-  ]);
+  ]));
   const area = await (await prof.get("reports")).json();
   expect(area.map((r: { type: string }) => r.type)).not.toContain("debts");
   const { api } = await loginAs(PUPIL.username);
@@ -183,7 +184,7 @@ test("exportación xlsx y pdf con los mismos filtros, auditada; sin reports.expo
 });
 
 test("tablero: KPIs institucionales con alertas; el profesor sin montos y con sus grupos", async () => {
-  const kpis = await (await control.get("dashboard/executive")).json();
+  const kpis = await (await control.get(`dashboard/executive?termId=${termId}`)).json();
   expect(kpis.term.id).toBe(termId);
   // Un cargo vencido con saldo (1000 - 300): el alumno es el único con adeudo.
   expect(kpis.alerts.overdueDebt).toMatchObject({ count: 1, amount: 700 });
@@ -194,7 +195,7 @@ test("tablero: KPIs institucionales con alertas; el profesor sin montos y con su
   expect(kpis.groupsByOccupancy.length).toBeGreaterThan(0);
   expect(kpis.recentMovements).toEqual(expect.any(Array));
 
-  const area = await (await prof.get("dashboard/executive")).json();
+  const area = await (await prof.get(`dashboard/executive?termId=${termId}`)).json();
   expect(area).toMatchObject({
     expenses: null,
     financialPosition: null,

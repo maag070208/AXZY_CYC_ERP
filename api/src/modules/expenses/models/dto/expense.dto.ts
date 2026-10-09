@@ -36,15 +36,14 @@ const expenseFields = {
   termId: uuid.nullable().optional(),
 };
 
-/** Un compromiso no puede vencer antes de la fecha que lo origina. */
-const dueAfterDate = (v: { date: string; dueDate?: string | null }) =>
-  !v.dueDate || v.dueDate >= v.date;
-const dueMessage = { message: "DUE_DATE_BEFORE_DATE", path: ["dueDate"] };
-
+/**
+ * El vencimiento contra la fecha se valida en el servicio (`DUE_DATE_BEFORE_DATE`),
+ * no aquí: el alta y la edición deben responder el mismo código, y `ZodError`
+ * siempre sale como `VALIDATION_ERROR`.
+ */
 export const ExpenseCreateDto = z
   .object(expenseFields)
   .strict()
-  .refine(dueAfterDate, dueMessage)
   .openapi("ExpenseCreateInput");
 registry.register("ExpenseCreateInput", ExpenseCreateDto);
 export type ExpenseCreateInput = z.infer<typeof ExpenseCreateDto>;

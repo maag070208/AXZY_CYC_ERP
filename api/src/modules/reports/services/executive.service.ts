@@ -720,7 +720,11 @@ export class ExecutiveService {
     // Promedio real: lo capturado en grupos abiertos (aún sin cierre).
     const captures = await this.capturedAverages(occupancyRows.map((group) => group.groupId), user);
     for (const group of occupancyRows) group.averageGrade = captures.get(group.groupId) ?? null;
-    const currentAverage = average(occupancyRows.map((group) => group.averageGrade).filter((value): value is number => value !== null));
+    const capturedAverage = average(occupancyRows.map((group) => group.averageGrade).filter((value): value is number => value !== null));
+    // El promedio del ciclo prefiere las calificaciones **finales** (contrato de
+    // M21); solo si el ciclo aún no tiene cierres se usa lo capturado, que es lo
+    // que deja ver el tablero con grupos abiertos.
+    const currentAverage = current.averageGrade ?? capturedAverage;
     const byLevel = new Map<string, { name: string; enrolledCount: number }>();
     for (const group of occupancyRows) {
       const key = group.levelId ?? "";

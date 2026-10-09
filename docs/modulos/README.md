@@ -65,4 +65,4 @@ abiertas, siguiendo la
 | M20 | [Migración de datos históricos](M20-migracion-historica/README.md) | Importación repetible e idempotente | Terminado (F7) |
 | M21 | [Reportes y tablero ejecutivo](M21-reportes-ejecutivos/README.md) | Indicadores avanzados | Terminado (F8) |
 | M22 | [Programas, plan de estudios y plan de pagos](M22-programas-planes-pago/README.md) | Carreras, materias por periodo y plan de pagos del alumno | Terminado (F10) |
-| M23 | [Gastos institucionales](M23-gastos/README.md) | Egresos: captura, cancelación lógica y totales; alimenta «Ingresos vs. gastos» del tablero | Terminado |
+| M23 | [Gastos institucionales](M23-gastos/README.md) | Egresos: captura, cancelación lógica y totales; alimenta «Ingresos vs. gastos» del tablero | Código terminado (pruebas en curso) |
