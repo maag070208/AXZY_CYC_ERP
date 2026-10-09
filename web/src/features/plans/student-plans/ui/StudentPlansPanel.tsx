@@ -129,6 +129,9 @@ export default function StudentPlansPanel({ studentId, studentName, readOnly }: 
         reloadTrigger={reloadKey}
         defaultItemsPerPage={10}
         density="compact"
+        virtualized
+        virtualizedMaxHeight={400}
+        rowHeight={50}
       />
 
       <AssignPlanDialog

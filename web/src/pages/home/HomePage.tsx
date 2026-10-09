@@ -68,13 +68,35 @@ export default function HomePage() {
         description={t("home.welcome", { name: user?.name ?? "" })}
         icon={<FaHouseUser size={20} />}
         actions={
-          <ITFlex align="center" gap={2}>
-            <ITFlex align="center" gap={1} className="rounded-lg bg-slate-100 px-3 py-2 text-slate-600">
+          <ITFlex align="center" gap={2} wrap="wrap" className="justify-end">
+            {canTerms && (
+              <div className="w-[168px]">
+                <ITSelect size="sm" name="termId" label={t("reports:home.term")} value={filters.termId ?? ""} placeholder={t("reports:activeTerm")}
+                  options={terms.map((term) => ({ value: term.id, label: term.name }))} onChange={(e) => set("termId", e.target.value)} />
+              </div>
+            )}
+            {canLevels && (
+              <div className="w-[150px]">
+                <ITSelect size="sm" name="levelId" label={t("reports:home.level")} value={filters.levelId ?? ""} placeholder={t("reports:home.all")}
+                  options={levels.map((level) => ({ value: level.id, label: level.name }))} onChange={(e) => set("levelId", e.target.value)} />
+              </div>
+            )}
+            {canCourses && (
+              <div className="w-[168px]">
+                <ITSelect size="sm" name="courseId" label={t("reports:home.course")} value={filters.courseId ?? ""} placeholder={t("reports:home.all")}
+                  options={courses.map((course) => ({ value: course.id, label: course.name }))} onChange={(e) => set("courseId", e.target.value)} />
+              </div>
+            )}
+            <div className="w-[168px]">
+              <ITSelect size="sm" name="groupId" label={t("reports:home.group")} value={filters.groupId ?? ""} placeholder={t("reports:home.all")}
+                options={groups.map((group) => ({ value: group.id, label: `${group.courseName} · ${group.name}` }))} onChange={(e) => set("groupId", e.target.value)} />
+            </div>
+            <ITFlex align="center" gap={1} className="mb-0.5 rounded-lg bg-slate-100 px-3 py-2 text-slate-600">
               <FaCalendarAlt size={12} />
               <ITText className="font-bold text-[11px]">{period}</ITText>
             </ITFlex>
             {canCreateStudents && (
-              <ITButton variant="outlined" color="primary" onClick={() => navigate("/students")}>
+              <ITButton variant="outlined" color="primary" className="mb-0.5" onClick={() => navigate("/students")}>
                 <ITFlex align="center" gap={1}>
                   <FaUserPlus size={11} />
                   <ITText className="font-bold text-[11px]">{t("home.manageStudents")}</ITText>
@@ -85,24 +107,6 @@ export default function HomePage() {
         }
       >
         <div className="flex flex-col gap-4">
-          <PanelCard>
-            <div className="grid grid-cols-1 items-end gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              {canTerms && (
-                <ITSelect name="termId" label={t("reports:home.term")} value={filters.termId ?? ""} placeholder={t("reports:activeTerm")}
-                  options={terms.map((term) => ({ value: term.id, label: term.name }))} onChange={(e) => set("termId", e.target.value)} />
-              )}
-              {canLevels && (
-                <ITSelect name="levelId" label={t("reports:home.level")} value={filters.levelId ?? ""} placeholder={t("reports:home.all")}
-                  options={levels.map((level) => ({ value: level.id, label: level.name }))} onChange={(e) => set("levelId", e.target.value)} />
-              )}
-              {canCourses && (
-                <ITSelect name="courseId" label={t("reports:home.course")} value={filters.courseId ?? ""} placeholder={t("reports:home.all")}
-                  options={courses.map((course) => ({ value: course.id, label: course.name }))} onChange={(e) => set("courseId", e.target.value)} />
-              )}
-              <ITSelect name="groupId" label={t("reports:home.group")} value={filters.groupId ?? ""} placeholder={t("reports:home.all")}
-                options={groups.map((group) => ({ value: group.id, label: `${group.courseName} · ${group.name}` }))} onChange={(e) => set("groupId", e.target.value)} />
-            </div>
-          </PanelCard>
           <DashboardView filters={filters} />
         </div>
       </ITPage>

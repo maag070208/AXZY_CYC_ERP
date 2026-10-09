@@ -413,6 +413,23 @@ Plantilla:
 - **Alternativas consideradas:** posponer gastos a una fase 2 (dejaba la gráfica central de la referencia sin datos); crear un endpoint nuevo `/dashboard/home` (duplicaba contrato, tipos y pruebas frente a ampliar el existente); subir el umbral de ocupación a un `setting` (parámetro que nadie pidió y que habría que mantener).
 - **Consecuencias / impacto:** Un gasto sin ciclo cuenta en los totales de cualquier ciclo. `GET /dashboard` (M10) queda como código muerto en la API y sus pruebas se movieron al contrato nuevo; `DashboardView`/`ExecutiveDashboardView` se reemplazan por un único widget. Ver [`docs/modulos/M21-reportes-ejecutivos/README.md`](docs/modulos/M21-reportes-ejecutivos/README.md).
 
+### D-055 — UI System en capa propia, base remota resiliente y tablero de Inicio calcado a la referencia
+- **Fecha:** 2026-10-09
+- **Estado:** aceptada
+- **Contexto:** al revisar el tablero contra la imagen de referencia, el layout se veía mal: el grid de KPIs daba 3 columnas en pantallas anchas y el menú lateral desaparecía. El diagnóstico fue que el CSS compilado del UI System (`dist/index.css`) incluye las utilidades de Tailwind que usan sus componentes **sin capa**, y la app las importaba de dos formas (suelta en `main.tsx` y con `@source`), de modo que caían en la capa `utilities` del consumidor: un `lg:grid-cols-3` de la librería le ganaba a un `xl:grid-cols-4` de la app. Además, la base de desarrollo pasó a ser la **remota** (Railway), cuyo proxy tiene ~2 s de latencia y corta conexiones ociosas.
+- **Decisión:**
+  - **El UI System publica su CSS en capa propia.** `pnpm build:css` genera además `dist/layered.css`, que envuelve todo en `@layer axzy-ui-system`; el consumidor lo importa y sus utilidades ganan por orden de capas, sin `!important`. `dist/index.css` se mantiene **sin envolver** para no romper a quien ya lo importa dentro de una capa (el script de aislamiento lo verifica).
+  - **La app deja de duplicar el CSS.** Se quita el import suelto de `main.tsx` y el `@source` que recompilaba las utilidades de la librería en la capa de la app. Queda una regla explícita y temporal para la barra lateral del paquete publicado (1.4.4), documentada para borrarla al actualizar.
+  - **Componente nuevo, opt-in:** `ITLineBarChart` (barras + línea con área y tooltip) para la gráfica «Ingresos vs. gastos»; `KpiTile` gana `layout="statement"` (icono circular, etiqueta y valor, variación con enlace) sin cambiar su aspecto por defecto.
+  - **Base remota resiliente.** `PrismaClient` reintenta una vez las operaciones cuando el error es de conexión (`P1001`, `P1002`, `P1017`, `P2024`) y sube `pool_timeout`/`connect_timeout`/`connection_limit` por URL si no vienen definidos. Sin esto, una ráfaga del tablero devolvía 500 y el usuario quedaba sin permisos resueltos.
+  - **El promedio académico del tablero ya no depende del cierre.** Usa las calificaciones finales y, en grupos abiertos, el promedio de lo capturado normalizado a 10 (con el alcance de `reports.view`). El reporte de rendimiento mantiene la misma preferencia.
+  - **Tablas virtualizadas por defecto en la app.** Las 22 vistas con `ITDataTable` (44 usos) pasan `virtualized`, `virtualizedMaxHeight={400}` y `rowHeight={50}`: con listados de cientos de filas solo se monta la ventana visible.
+  - **Los filtros del tablero viven en el encabezado** de Inicio (ciclo, nivel, curso y grupo, junto al ciclo activo y el acceso a alumnos), no en un panel aparte: el tablero gana altura útil y se parece a la referencia.
+  - **Sin datos repetidos en el tablero.** La lista de alumnos con adeudo vive solo en «Alumnos con mayor riesgo»; «Alertas del ciclo» pasó a ser una tira de avisos compactos (título, cifra y enlace) porque repetía la misma lista. Las tarjetas de finanzas cierran con su total («Total facturado», «Total cobrado», «Total de gastos»), la cartera lleva barra apilada de cobrado/por cobrar/vencido y «Movimientos recientes» muestra los contadores de bajas y reingresos, para que ninguna tarjeta quede como un hueco vacío.
+  - **Etiquetas de grupo cortas:** `MEC-DIESEL-A · Dibujo Técnico` (grupo + curso). El nivel se omite porque ya lo dice el propio código del grupo y alargaba el eje y las listas.
+- **Alternativas consideradas:** subir el `z-index`/`!important` en la app (parche que reaparece en cada utilidad); prefijar todas las utilidades de la librería con `it:` (refactor masivo de cientos de archivos); dejar la base local del contenedor (el cliente pidió la remota).
+- **Consecuencias / impacto:** mientras el UI System no publique 1.5.0, la app lo enlaza con un `overrides` de pnpm al checkout local. Al publicar, se quita el enlace, la regla de la barra lateral y el alias de Vite del CSS. La API ahora tolera la latencia del proxy remoto.
+
 ---
 
 ## Mapeo desde la especificación original
@@ -446,7 +463,7 @@ Plantilla:
 
 ## Cómo registrar una nueva decisión
 
-1. Elige el siguiente `D-###` libre (hoy: `D-055`).
+1. Elige el siguiente `D-###` libre (hoy: `D-056`).
 2. Copia la plantilla de arriba y llénala.
 3. Enlaza al documento/módulo afectado.
 4. Si reemplaza a otra, actualiza el estado de la anterior.

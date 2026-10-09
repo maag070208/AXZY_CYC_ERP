@@ -101,3 +101,17 @@ Ver [`respaldos.md`](respaldos.md).
 - Rotar cualquier credencial que haya estado en un `.env` commiteado.
 - Documentar aquí toda variable nueva al agregarla.
 - En producción, inyectar por gestor de secretos o `env_file` protegido.
+
+## Base de datos
+
+- **Desarrollo:** la base remota de Railway (`autorack.proxy.rlwy.net`), configurada
+  en `api/.env` (`DATABASE_URL`). El proxy tiene latencia alta (~2 s) y corta
+  conexiones ociosas, por eso el cliente Prisma reintenta una vez los errores de
+  conexión (`P1001`, `P1002`, `P1017`, `P2024`) y amplía el pool
+  (`pool_timeout=20`, `connect_timeout=15`, `connection_limit=15`). Ver D-055.
+- **Migraciones:** `pnpm --dir api prisma:migrate` (usa el `DATABASE_URL` de
+  `api/.env`). En una base vacía, la migración de gastos (M23) inserta el rol
+  base `ADMIN` porque `role_permissions` tiene FK a `roles` y los roles se
+  siembran al arrancar la aplicación.
+- **El Postgres del contenedor** (`cyc-postgres`, puerto 55432) queda solo para
+  pruebas locales; no es la base de desarrollo.

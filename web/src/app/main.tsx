@@ -1,5 +1,4 @@
 import { ITThemePalette, ITThemeProvider } from "@axzydev/axzy_ui_system";
-import "@axzydev/axzy_ui_system/dist/index.css";
 import "@shared/i18n/config";
 import { store } from "@app/store";
 import ToastProvider from "@app/toast/ToastProvider";

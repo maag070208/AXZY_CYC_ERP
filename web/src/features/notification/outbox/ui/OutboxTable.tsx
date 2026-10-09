@@ -98,6 +98,9 @@ export default function OutboxTable({ reloadKey, onTotal, onChanged }: Props) {
       itemsPerPageOptions={[25, 50, 100]}
       layout="fixed"
       density="compact"
+      virtualized
+      virtualizedMaxHeight={400}
+      rowHeight={50}
     />
   );
 }

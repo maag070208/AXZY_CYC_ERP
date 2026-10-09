@@ -90,7 +90,7 @@
     "noFinancialData": "The term has no money movements",
     "byLevel": "Students by level",
     "noEnrollment": "No enrollments this term",
-    "studentsCenter": "students",
+    "studentsCenter": "enrolled students",
     "others": "Others",
     "byGroup": "Academic performance by group",
     "byGroupHint": "Average of final grades",
@@ -122,6 +122,16 @@
     "alertsDocumentsHint": "{{students}} student(s) · {{documents}} document(s)",
     "alertsGroups": "Groups at high occupancy",
     "daysOverdue": "{{count}} day(s) late",
-    "daysWaiting": "{{count}} day(s) under review"
+    "daysWaiting": "{{count}} day(s) under review",
+    "atRisk": "Students at highest risk",
+    "atRiskHint": "Largest overdue balance",
+    "occupancyHint": "{{count}} group(s) this term",
+    "attendanceHintValue": "Attendance: {{value}}",
+    "studentsCount": "{{count}} students",
+    "billedTotal": "Total billed",
+    "totalCollected": "Total collected",
+    "expensesTotal": "Total expenses",
+    "incomeByConceptHint": "Share of the term's collected income",
+    "fullGroupsHint": "{{count}} group(s) at 80% or more"
   }
 }

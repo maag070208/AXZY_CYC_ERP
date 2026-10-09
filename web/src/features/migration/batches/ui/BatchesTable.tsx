@@ -93,6 +93,9 @@ export default function BatchesTable({ reloadKey, onTotal }: Props) {
         itemsPerPageOptions={[25, 50, 100]}
         layout="fixed"
         density="compact"
+        virtualized
+        virtualizedMaxHeight={400}
+        rowHeight={50}
       />
       <ITDialog isOpen={!!detail || loading} onClose={() => setDetail(null)} title={title} className="w-full max-w-3xl">
         <div role="dialog" aria-label={title}>

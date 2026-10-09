@@ -23,13 +23,23 @@ export interface KpiTileProps {
   onClick?: () => void;
   /** Muestra un skeleton con las mismas dimensiones (evita saltos de layout). */
   loading?: boolean;
+  /**
+   * Variante visual. `"statement"` reproduce el tablero de referencia: el icono
+   * en círculo a la izquierda, la etiqueta y el valor a su lado y la variación
+   * en una línea propia debajo. Por defecto se mantiene el diseño anterior.
+   */
+  layout?: "default" | "statement";
+  /** Variación ya formateada (`+12%`, `-$1,200`); se pinta con el tono. */
+  delta?: string;
+  /** Texto del enlace a la derecha de la variación («Ver todo»). */
+  action?: { label: string; onClick: () => void };
 }
 
 const Skeleton = ({ className }: { className: string }) => (
   <div className={`animate-pulse rounded bg-slate-200 ${className}`} aria-hidden />
 );
 
-export default function KpiTile({ label, value, icon, tone = "neutral", hint, footer, onClick, loading }: KpiTileProps) {
+export default function KpiTile({ label, value, icon, tone = "neutral", hint, footer, onClick, loading, layout = "default", delta, action }: KpiTileProps) {
   const style = TONES[tone];
   const flat = useITFlatAppearance();
   const Tag = onClick ? "button" : "div";
@@ -64,6 +74,47 @@ export default function KpiTile({ label, value, icon, tone = "neutral", hint, fo
       <span className="truncate" title={hint}>{hint}</span>
     </p>
   ) : null;
+
+
+  if (layout === "statement") {
+    return (
+      <Tag
+        {...(onClick ? { type: "button" as const, onClick } : {})}
+        aria-busy={loading || undefined}
+        className={`flex w-full flex-col border border-slate-200 !bg-white text-left transition ${shape} ${interactive}`}
+      >
+        <div className="flex w-full items-start gap-3">
+          <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${style.icon}`}>{icon}</span>
+          <div className="min-w-0 flex-1">
+            <p className="truncate !text-[12px] font-semibold text-slate-500">{label}</p>
+            {loading ? <Skeleton className="mt-2 h-7 w-24" /> : (
+              <p
+                title={typeof value === "string" || typeof value === "number" ? String(value) : undefined}
+                className="mt-1 truncate leading-none tabular-nums text-slate-900 !text-[26px] font-bold"
+              >
+                {value}
+              </p>
+            )}
+          </div>
+        </div>
+        {loading ? (
+          <Skeleton className="mt-3 h-3 w-32" />
+        ) : (delta || hint || action) ? (
+          <div className="mt-3 flex w-full items-center justify-between gap-2">
+            <p className={`flex min-w-0 items-center gap-1.5 !text-[12px] ${style.text}`}>
+              {delta && <span aria-hidden className="text-[13px] leading-none">↑</span>}
+              <span className="truncate" title={delta ?? hint}>{delta ?? hint}</span>
+            </p>
+            {action && (
+              <button type="button" onClick={action.onClick} className="shrink-0 text-[11px] font-semibold text-sky-700 hover:underline">
+                {action.label}
+              </button>
+            )}
+          </div>
+        ) : null}
+      </Tag>
+    );
+  }
 
   return (
     <Tag

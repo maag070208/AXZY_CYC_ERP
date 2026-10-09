@@ -106,6 +106,9 @@ export default function PreferencesTable({ reloadKey, onTotal, onChanged }: Prop
         itemsPerPageOptions={[25, 50, 100]}
         layout="fixed"
         density="compact"
+        virtualized
+        virtualizedMaxHeight={400}
+        rowHeight={50}
       />
       <ITDialog isOpen={!!draft} onClose={() => setDraft(null)} title={title} className="w-full max-w-lg">
         <div role="dialog" aria-label={title}>

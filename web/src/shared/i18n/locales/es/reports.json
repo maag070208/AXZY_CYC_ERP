@@ -90,7 +90,7 @@
     "noFinancialData": "El ciclo no tiene movimientos de dinero",
     "byLevel": "Alumnos por nivel",
     "noEnrollment": "Sin inscripciones en el ciclo",
-    "studentsCenter": "alumnos",
+    "studentsCenter": "alumnos inscritos",
     "others": "Otros",
     "byGroup": "Rendimiento académico por grupo",
     "byGroupHint": "Promedio de calificaciones finales",
@@ -122,6 +122,16 @@
     "alertsDocumentsHint": "{{students}} alumno(s) · {{documents}} documento(s)",
     "alertsGroups": "Grupos con alta ocupación",
     "daysOverdue": "{{count}} día(s) de atraso",
-    "daysWaiting": "{{count}} día(s) en revisión"
+    "daysWaiting": "{{count}} día(s) en revisión",
+    "atRisk": "Alumnos con mayor riesgo",
+    "atRiskHint": "Mayor adeudo vencido",
+    "occupancyHint": "{{count}} grupo(s) del ciclo",
+    "attendanceHintValue": "Asistencia: {{value}}",
+    "studentsCount": "{{count}} alumnos",
+    "billedTotal": "Total facturado",
+    "totalCollected": "Total cobrado",
+    "expensesTotal": "Total de gastos",
+    "incomeByConceptHint": "Participación del cobrado del ciclo",
+    "fullGroupsHint": "{{count}} grupo(s) al 80% o más"
   }
 }

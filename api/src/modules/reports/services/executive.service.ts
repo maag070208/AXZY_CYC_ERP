@@ -246,6 +246,37 @@ export class ExecutiveService {
     });
   }
 
+
+  /**
+   * Promedio por grupo para el tablero: la calificación **final** escrita al
+   * cerrar el grupo y, si el grupo sigue abierto, el promedio de lo capturado
+   * hasta ahora (normalizado a 10, que es la escala de captura). Sin ninguna
+   * captura el grupo no aparece en la gráfica.
+   */
+  private async capturedAverages(groupIds: readonly string[], user: UserPermissions): Promise<Map<string, number>> {
+    if (groupIds.length === 0) return new Map();
+    const scoped = await groupScope(user, "reports.view");
+    const grades = await this.db.grade.findMany({
+      where: {
+        score: { not: null },
+        assessment: { active: true, groupId: { in: [...groupIds] }, ...(scoped ? { group: scoped } : {}) },
+      },
+      select: { score: true, assessment: { select: { groupId: true, maxScore: true } } },
+    });
+    const byGroup = new Map<string, number[]>();
+    for (const grade of grades) {
+      const max = Number(grade.assessment.maxScore) || 10;
+      const normalized = (Number(grade.score) / max) * 10;
+      byGroup.set(grade.assessment.groupId, [...(byGroup.get(grade.assessment.groupId) ?? []), normalized]);
+    }
+    const out = new Map<string, number>();
+    for (const [groupId, scores] of byGroup) {
+      const groupAverage = average(scores);
+      if (groupAverage !== null) out.set(groupId, groupAverage);
+    }
+    return out;
+  }
+
   /** Cargos vigentes del ciclo (o de todos) con lo cobrado: base de morosidad y proyección. */
   private async charges(termId: string | null) {
     const rows = await this.db.charge.findMany({
@@ -686,6 +717,10 @@ export class ExecutiveService {
       }))
       .sort((a, b) => b.ratio - a.ratio);
     const fullGroups = occupancyRows.filter((group) => group.ratio >= OCCUPANCY_ALERT);
+    // Promedio real: lo capturado en grupos abiertos (aún sin cierre).
+    const captures = await this.capturedAverages(occupancyRows.map((group) => group.groupId), user);
+    for (const group of occupancyRows) group.averageGrade = captures.get(group.groupId) ?? null;
+    const currentAverage = average(occupancyRows.map((group) => group.averageGrade).filter((value): value is number => value !== null));
     const byLevel = new Map<string, { name: string; enrolledCount: number }>();
     for (const group of occupancyRows) {
       const key = group.levelId ?? "";
@@ -740,7 +775,8 @@ export class ExecutiveService {
         enrolledCount: indicator(current.initialCount, previous?.initialCount ?? null),
         dropoutRate: indicator(current.dropoutRate, previous?.dropoutRate ?? null),
         passRate: indicator(current.passRate, previous?.passRate ?? null),
-        averageGrade: indicator(current.averageGrade, previous?.averageGrade ?? null),
+        // El promedio del ciclo sale de las capturas cuando aún no hay cierres.
+        averageGrade: indicator(currentAverage, previous?.averageGrade ?? null),
         occupancy: indicator(current.occupancy, previous?.occupancy ?? null),
         attendanceRate: indicator(attendance, null),
         pendingDocuments: documents.documents > 0 ? indicator(documents.documents, null) : null,

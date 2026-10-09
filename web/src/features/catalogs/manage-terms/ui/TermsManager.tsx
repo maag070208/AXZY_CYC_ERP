@@ -149,6 +149,9 @@ export default function TermsManager({ canManage }: Props) {
         itemsPerPageOptions={[25, 50]}
         layout="fixed"
         density="compact"
+        virtualized
+        virtualizedMaxHeight={400}
+        rowHeight={50}
       />
       <TermDialog
         isOpen={formOpen}

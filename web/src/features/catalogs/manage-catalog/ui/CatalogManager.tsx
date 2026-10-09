@@ -174,6 +174,9 @@ export default function CatalogManager({ resource, canManage }: Props) {
         itemsPerPageOptions={[25, 50, 100]}
         layout="fixed"
         density="compact"
+        virtualized
+        virtualizedMaxHeight={400}
+        rowHeight={50}
       />
       <CatalogItemDialog
         resource={resource}

@@ -45,6 +45,14 @@ VALUES
   ('expenses.manage', 'Gastos', 'Registrar y editar gastos',      ARRAY['NONE','ALL']::"Scope"[], false, true, 2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 ON CONFLICT ("key") DO NOTHING;
 
+-- El rol base `ADMIN` se siembra desde los fixtures al arrancar la aplicación;
+-- una base recién migrada todavía no lo tiene, y la matriz tiene FK a `roles`.
+-- Se inserta con los mismos valores del fixture (`prisma/seed-data/roles.json`)
+-- para que `migrate deploy` funcione sola; el arranque no pisa filas existentes.
+INSERT INTO "roles" ("key", "name", "module", "staff", "system", "active", "sort_order", "created_at", "updated_at")
+VALUES ('ADMIN', 'ADMIN', 'Sistema', false, true, true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+ON CONFLICT ("key") DO NOTHING;
+
 -- La institución (ADMIN) es la única que administra gastos; el resto no ve dinero.
 INSERT INTO "role_permissions" ("id", "role_key", "permission_key", "scope", "created_at", "updated_at")
 SELECT gen_random_uuid()::text, 'ADMIN', "key", 'ALL'::"Scope", CURRENT_TIMESTAMP, CURRENT_TIMESTAMP

@@ -70,6 +70,9 @@ export default function ExamsTable({ reloadKey, onTotal, onOpen }: Props) {
       itemsPerPageOptions={[25, 50, 100]}
       layout="fixed"
       density="compact"
+      virtualized
+      virtualizedMaxHeight={400}
+      rowHeight={50}
     />
   );
 }

@@ -84,6 +84,9 @@ export default function AuditTable({ reloadKey }: { reloadKey?: number }) {
         itemsPerPageOptions={[25, 50, 100]}
         layout="fixed"
         density="compact"
+        virtualized
+        virtualizedMaxHeight={400}
+        rowHeight={50}
       />
       <ITDialog isOpen={!!detail} onClose={() => setDetail(null)} title={t("detail.title")} className="w-full max-w-3xl">
         {detail && (

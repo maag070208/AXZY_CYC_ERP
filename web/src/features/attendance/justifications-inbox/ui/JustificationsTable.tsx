@@ -131,6 +131,9 @@ export default function JustificationsTable({ reloadKey, onTotal, onResolved }: 
         itemsPerPageOptions={[25, 50, 100]}
         layout="fixed"
         density="compact"
+        virtualized
+        virtualizedMaxHeight={400}
+        rowHeight={50}
       />
       <ITDialog isOpen={!!resolving} onClose={() => setResolving(null)} title={title} className="w-full max-w-lg">
         <div role="dialog" aria-label={title}>

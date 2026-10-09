@@ -1,9 +1,8 @@
 @layer theme, base, axzy-ui-system, components, utilities;
 
 @import "tailwindcss";
-@import "@axzydev/axzy_ui_system/dist/index.css" layer(axzy-ui-system);
+@import "@axzydev/axzy_ui_system/layered.css";
 
-@source "../node_modules/@axzydev/axzy_ui_system/src/**/*.{ts,tsx}";
 
 :root {
   --layout-bg: #f1f5f9;
@@ -20,6 +19,30 @@
 /* Forzar que el modal sea más ancho para que quepan 2 columnas */
 .it-dialog-panel {
   width: min(94vw, 900px) !important;
+}
+
+/* La barra lateral del UI System trae `hidden lg:flex` y su ancho por utilidad
+   (`w-[72px]` / `w-64`). Mientras el paquete publicado no sirva su CSS en una
+   capa propia, esas utilidades caen en la capa `utilities` del consumidor y
+   compiten entre sí por orden de emisión: la barra queda sin pintar o con ancho
+   0. Con `dist/layered.css` (versión siguiente) estas reglas sobran y se pueden
+   borrar al actualizar la dependencia. */
+@media (min-width: 64rem) {
+  /* Contenedor de la barra y su capa de posicionamiento (ambos traen `hidden`). */
+  div:has(> aside.relative.flex),
+  div:has(> div > aside.relative.flex) {
+    display: block !important;
+  }
+  aside.relative.flex.flex-col.hidden {
+    display: flex !important;
+  }
+  /* Colapsada: solo iconos. Expandida: ancho fijo del paquete. */
+  aside.relative.flex.flex-col.hidden.w-\[72px\] {
+    width: 72px !important;
+  }
+  aside.relative.flex.flex-col.hidden.w-64 {
+    width: 16rem !important;
+  }
 }
 
 html {

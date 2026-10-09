@@ -3,6 +3,8 @@ export interface BarDatum {
   value: number;
   /** Texto del valor sobre la barra (p. ej. dinero formateado). */
   display?: string;
+  /** Identidad estable; si falta se usa el índice (las etiquetas pueden repetirse). */
+  id?: string;
 }
 
 interface Props {
@@ -22,8 +24,8 @@ export default function BarChart({ data, max, height = 180, color = "#2563eb", a
   const top = Math.max(max ?? 0, ...data.map((d) => d.value), 1);
   return (
     <div role="img" aria-label={ariaLabel} className="flex w-full items-end gap-2" style={{ height }}>
-      {data.map((d) => (
-        <div key={d.label} className="flex h-full flex-1 flex-col items-center justify-end" title={`${d.label}: ${d.display ?? d.value}`}>
+      {data.map((d, index) => (
+        <div key={d.id ?? `${index}-${d.label}`} className="flex h-full flex-1 flex-col items-center justify-end" title={`${d.label}: ${d.display ?? d.value}`}>
           <span className="mb-1 text-[10px] font-bold tabular-nums" style={{ color: "#334155" }}>{d.display ?? d.value}</span>
           <div
             className="w-3/5 rounded-t-md"

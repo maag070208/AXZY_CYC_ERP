@@ -21,7 +21,7 @@
     "test:e2e:report": "playwright show-report"
   },
   "dependencies": {
-    "@axzydev/axzy_ui_system": "1.4.4",
+    "@axzydev/axzy_ui_system": "1.4.6",
     "@react-pdf/renderer": "^4.6.1",
     "@reduxjs/toolkit": "^2.5.1",
     "axios": "^1.7.9",
@@ -63,6 +63,9 @@
       "esbuild",
       "@swc/core",
       "@tailwindcss/oxide"
-    ]
+    ],
+    "overrides": {
+      "@axzydev/axzy_ui_system": "link:../../AXZY/AXZY_UI_SYSTEM"
+    }
   }
 }
