@@ -4,11 +4,30 @@
 |---|---|
 | **Código** | M10 |
 | **Versión** | 0.1 |
-| **Estado** | Planeado |
+| **Estado** | Terminado (F4) |
 | **Fase** | Finanzas y administración |
 | **Depende de** | M03 (alumnos), M05 (bajas), M07 (grupos e inscripciones), M08 (calificaciones), M09 (cargos y pagos), M11 (parámetros y datos de la escuela) |
 | **Habilita a** | M13 (capacitación), M21 (reportes ejecutivos) |
 | **Permisos** | `reports.view`, `reports.export` (con alcance) |
+
+## Implementación (F4, 2026-10-09)
+
+**Estado: terminado.** Código en `api/src/modules/reports` y `web/src/{entities/report,widgets/dashboard}`; página `/reports` y tablero en Inicio para quien tiene `reports.view`.
+
+| Método | Ruta | Permiso | Nota |
+|---|---|---|---|
+| GET | `/api/v1/reports` | `reports.view` | Catálogo según el alcance (sin reportes de montos para AREA) |
+| GET | `/api/v1/reports/:tipo?format=json\|xlsx\|pdf&termId&groupId&from&to&status` | `reports.view` (+ `reports.export` para archivos) | Exportación auditada `REPORT_EXPORTED` |
+| GET | `/api/v1/dashboard` | `reports.view` | KPIs en vivo; montos solo con alcance ALL |
+
+Tipos: `students-active`, `students-inactive`, `enrollments-by-group`, `grades-by-group`, `payments-period`, `debts`. **`attendance-list` no está disponible** hasta M18 (responde `404 REPORT_NOT_FOUND`).
+
+Decisiones (sección 12):
+- Los reportes por ciclo usan el **ciclo activo** por defecto; `payments-period` usa el **mes en curso** si no hay rango y `debts` todos los ciclos salvo filtro.
+- **XLSX y PDF se generan en la API** (xlsx + pdfkit) con exactamente los mismos datos del JSON, para que la exportación quede auditada y no dependa del navegador.
+- Los reportes con **montos** (`payments-period`, `debts`) exigen alcance `ALL` (`403 REPORT_REQUIRES_FULL_SCOPE`): el profesor no ve dinero; su tablero muestra alumnos y ocupación de sus grupos.
+- KPIs **en vivo** (sin caché); `REPORT_VIEWED` no se registra (solo exportaciones). Ver [D-034](../../../DECISIONES.md) y [D-035](../../../DECISIONES.md).
+- Gráficas sin librería (`shared/ui/charts`: barras y avance en HTML/CSS).
 
 ## 1. Objetivo
 
@@ -173,13 +192,13 @@ por el middleware de permisos. No se persiste el contenido del reporte.
 
 ## 11. Criterios de aceptación
 
-- [ ] Endpoints de reportes y tablero con permisos y alcance (sin migración propia).
-- [ ] Módulo API (routes/controller/service/dto/entity) con bitácora de exportación.
-- [ ] KPIs y gráficas con `KpiTile` y `shared/ui/charts`.
-- [ ] Exportación `xlsx`/`pdf` con los filtros vigentes.
-- [ ] Pantallas web con UI kit (ITPage, ITDataTable, PanelCard).
-- [ ] Specs pasando (solo los del módulo).
-- [ ] Este README completo.
+- [x] Endpoints de reportes y tablero con permisos y alcance (sin migración propia).
+- [x] Módulo API (routes/controller/service/dto/entity) con bitácora de exportación.
+- [x] KPIs y gráficas con `KpiTile` y `shared/ui/charts`.
+- [x] Exportación `xlsx`/`pdf` con los filtros vigentes.
+- [x] Pantallas web con UI kit (ITPage, ITDataTable, PanelCard).
+- [x] Specs pasando (solo los del módulo).
+- [x] Este README completo.
 
 ## 12. Decisiones abiertas
 

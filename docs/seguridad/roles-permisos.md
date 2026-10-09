@@ -94,8 +94,8 @@ Los roles `system` están protegidos de borrado/renombrado.
 > → `teachers.user_id`), registrado por M07 como resolvedor `groups`; los alumnos con
 > inscripción vigente en esos grupos forman el `AREA` de `students` (expediente y kardex).
 > Fuera de su ámbito, las lecturas responden 404 y las escrituras 403. Ver D-028.
-| fees / charges / payments | CRUD | CRUD | · | R (OWN) |
-| reports | R X | R X | R (AREA) X | · |
+| fees / charges / payments | CRUD | CRUD | · | R (OWN: estado de cuenta) |
+| reports | R X | R X | R (AREA, sin montos) X | · |
 | questions / exams | CRUD | R | CRUD (AREA) | · |
 | attempts | R | R | R (AREA) + review | take (OWN) |
 | attendance | CRUD | R | CRUD (AREA) | R (OWN) |
@@ -135,6 +135,11 @@ se dé de baja a una cuenta ADMIN. Ver [D-018](../../DECISIONES.md).
 
 Los módulos siguientes registran sus acciones (p. ej. `payments.approve` con
 `amount` y `createdById` en M09).
+
+> **Políticas ABAC de cobranza (F4):** `charges.create` expone `monto`, `descuento`,
+> `porcentajeDescuento`, `conceptTipo` y `masivo` (p. ej. «nadie descuenta más del 50 %»);
+> `payments.cancel` expone `monto`, `metodo` y `diasDesdeRegistro` (p. ej. «solo ADMIN
+> cancela pagos de más de 3 días»). `payments.cancel` es un permiso sensible.
 
 ## 7. Implementación
 

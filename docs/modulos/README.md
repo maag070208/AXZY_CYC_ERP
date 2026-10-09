@@ -42,8 +42,8 @@ abiertas, siguiendo la
 
 | Código | Módulo | Objetivo | Estado |
 |---|---|---|---|
-| M09 | [Colegiaturas y pagos](M09-colegiaturas-pagos/README.md) | Cargos, pagos y estado de cuenta | Planeado |
-| M10 | [Reportes y tablero básico](M10-reportes-tablero/README.md) | Reportes operativos y tablero | Planeado |
+| M09 | [Colegiaturas y pagos](M09-colegiaturas-pagos/README.md) | Cargos, pagos y estado de cuenta | Terminado (F4) |
+| M10 | [Reportes y tablero básico](M10-reportes-tablero/README.md) | Reportes operativos y tablero | Terminado (F4) |
 
 ## Calidad y examen en línea
 

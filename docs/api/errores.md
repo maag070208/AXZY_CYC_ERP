@@ -116,8 +116,20 @@ Envelope **plano** (estándar PTNV):
 | `EXAM_NOT_AVAILABLE` | 409 | Examen fuera de ventana / sin intentos |
 | `EXAM_PUBLISHED_LOCKED` | 409 | No editable con intentos iniciados |
 | `FILE_TYPE_NOT_ALLOWED` / `FILE_TOO_LARGE` | 400 | Validación de archivos |
-| `CHARGE_ALREADY_PAID` | 409 | Cargo pagado/cancelado |
-| `IDEMPOTENCY_KEY_REUSED` | 409 | Clave usada por otro usuario |
+| `CHARGE_ALREADY_PAID` | 409 | Cargo pagado/cancelado: no admite pagos |
+| `CHARGE_NOT_FOUND` / `PAYMENT_NOT_FOUND` / `FEE_CONCEPT_NOT_FOUND` | 404 (400 si viene en el body) | Cargo, pago o concepto inexistente o fuera de alcance |
+| `CHARGE_ALREADY_CANCELLED` / `PAYMENT_ALREADY_CANCELLED` | 409 | Cancelar dos veces |
+| `CHARGE_HAS_PAYMENTS` | 409 | Cancelar un cargo con pagos vigentes |
+| `DISCOUNT_EXCEEDS_AMOUNT` | 400 | Descuento mayor al monto |
+| `PAYMENT_EXCEEDS_BALANCE` | 400 | Pago mayor al saldo (`details.saldo`) |
+| `FEE_CONCEPT_NAME_TAKEN` / `FEE_CONCEPT_INACTIVE` / `FEE_CONCEPT_ALREADY_ACTIVE` / `FEE_CONCEPT_RESERVED` | 409 | Conflictos de conceptos (el de recargos es del sistema) |
+| `GENERATION_TARGET_REQUIRED` | 400 | Generación masiva sin grupo (`scope=group`) o ciclo (`scope=term`) |
+| `LATE_FEES_DISABLED` | 409 | `LATE_FEE.enabled = false` |
+| `INVALID_IDEMPOTENCY_KEY` | 400 | `Idempotency-Key` fuera de `^[A-Za-z0-9_-]{8,100}$` |
+| `IDEMPOTENCY_KEY_REUSED` | 409 | Clave usada por otra persona u operación |
+| `REPORT_NOT_FOUND` | 404 | Tipo de reporte desconocido (incluye `attendance-list` hasta M18) |
+| `REPORT_FORMAT_INVALID` | 400 | `format` distinto de `json`, `xlsx` o `pdf` |
+| `REPORT_REQUIRES_FULL_SCOPE` | 403 | Reporte con montos sin alcance ALL |
 | `CONCURRENT_UPDATE` | 409 | Choque en transacción serializable |
 | `STORAGE_NOT_CONFIGURED` | 503 | S3 no configurado |
 | `SETTING_UNKNOWN` / `SETTING_INVALID` / `SETTINGS_REQUIRED` | 400 | `PUT /settings` con clave desconocida, valor inválido o vacío (todo o nada) |

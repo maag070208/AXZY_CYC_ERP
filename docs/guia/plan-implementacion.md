@@ -55,12 +55,15 @@ reglas complejas (M07, M08, M09, M16) ≈ 1.5–2 sprints.
 | M06 | ✅ Terminado (F2) | Expediente privado (S3/local), validación por contenido, faltantes; kardex calculado + PDF (alimentado por M08 desde F3) |
 | M07 | ✅ Terminado (F3) | Cursos, grupos con horario, inscripciones serializables (cupo, duplicado, empalme), baja/cambio de grupo; AREA del profesor |
 | M08 | ✅ Terminado (F3) | Instrumentos con ponderación, captura en lote, libro con proyección, cierre de grupo → kardex y estatus, exportación |
-| M09, M10, M12–M21 | Documentado | Sin código |
+| M09 | ✅ Terminado (F4) | Conceptos, cargos (individual, masivo idempotente), pagos parciales con folio, cancelaciones, recargos, estado de cuenta y recibo PDF |
+| M10 | ✅ Terminado (F4) | Reportes json/xlsx/pdf con alcance, tablero en Inicio con KPIs y gráficas |
+| M12–M21 | Documentado | Sin código |
 | F0 — Infra | ✅ Completada | Monorepo + Docker por proyecto + `docker-compose` + CI (incluye e2e); migración `init` + seed; login por proxy de nginx verificado; e2e de auth (contrato + navegador) en verde |
 | F1 — Acceso y catálogos | ✅ Completada (pendiente H1 con el cliente) | Migración `f1_policies_catalogs`; unitarias 39, contrato API 64, navegador 30 — todo en verde |
 | F2 — Personas y expediente | ✅ Completada (pendiente H2 con el cliente) | Migración `f2_personas_expediente`; unitarias 51, contrato API 100, navegador 43 — todo en verde |
 | F3 — Gestión académica | ✅ Completada (pendiente H3 con el cliente) | Migración `f3_academico`; unitarias 61, contrato API 127, navegador 52 — todo en verde |
-| F4 — Finanzas y reportes base | ⏭️ Siguiente | M09 (cargos, pagos, folios, estado de cuenta) y M10 (reportes y tablero) |
+| F4 — Finanzas y reportes base | ✅ Completada (pendiente H4 con el cliente) | Migración `f4_finanzas`; unitarias 68, contrato API 145, navegador 62 — todo en verde |
+| F5 — Examen en línea | ⏭️ Siguiente | M14 (banco de reactivos), M15 (exámenes), M16 (aplicación), M17 (calificación automática) |
 
 ## 3. Detalle por fase
 

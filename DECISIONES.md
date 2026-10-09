@@ -214,6 +214,32 @@ Plantilla:
 - **Estado:** aceptada
 - **Decisión:** La fuente académica del kardex (M06) es `GradeService.kardexSource`: un renglón por inscripción (las dadas de baja por cambio de grupo, con `transferredToId`, se omiten), calificaciones normalizadas a 0–100 por instrumento y final solo tras el cierre. `INSCRITO` se muestra como `EN_CURSO`.
 
+### D-031 — Folio de recibo consecutivo por año
+- **Fecha:** 2026-10-09
+- **Estado:** aceptada
+- **Decisión:** `REC-AAAA-NNNNNN` con una fila por año en `receipt_sequences`, incrementada dentro de la transacción serializable del pago (la fila queda bloqueada hasta el commit). Reinicia cada año; un pago cancelado conserva su folio y nunca se reutiliza.
+- **Consecuencias / impacto:** Si la escuela requiere series por plantel o caja, se agrega la serie a la llave de la secuencia.
+
+### D-032 — Idempotencia: registro de respuestas + claves en pagos
+- **Fecha:** 2026-10-09
+- **Estado:** aceptada
+- **Decisión:** `Idempotency-Key` (`^[A-Za-z0-9_-]{8,100}$`) en `POST /charges/generate` se guarda en `idempotency_records` con la respuesta, dentro de la misma transacción; repetirla devuelve la misma respuesta (200, `Idempotent-Replayed: true`) y usarla otra persona u operación → `409 IDEMPOTENCY_KEY_REUSED`. En pagos la clave vive en `payments.idempotency_key` (única). Sin clave, la generación tampoco duplica: omite al alumno que ya tiene un cargo vigente del mismo concepto, ciclo y vencimiento. La web genera una clave por apertura de diálogo.
+
+### D-033 — Recargos por mora a demanda (resuelve A-003)
+- **Fecha:** 2026-10-09
+- **Estado:** aceptada
+- **Decisión:** Con `LATE_FEE.enabled`, `POST /charges/late-fees` crea un cargo RECARGO por cada cargo vencido con saldo: `saldo × dailyRate × (díasVencidos − graceDays)`, redondeado a centavos (Decimal). Uno por cargo (`parent_charge_id` único); se recalcula mientras no tenga pagos. Se ejecuta a demanda desde Cobranza; un job programado queda para M19.
+
+### D-034 — Reportes: archivos en la API; montos solo con alcance ALL
+- **Fecha:** 2026-10-09
+- **Estado:** aceptada
+- **Decisión:** XLSX (xlsx) y PDF tabular (pdfkit) se generan en la API a partir del mismo resultado JSON y se auditan (`REPORT_EXPORTED`). Los documentos con diseño de la escuela (kardex, estado de cuenta, recibo) siguen en la web con `@react-pdf` (D-024). `payments-period` y `debts` exigen `reports.view` en ALL. `attendance-list` espera a M18.
+
+### D-035 — Tablero en vivo en Inicio
+- **Fecha:** 2026-10-09
+- **Estado:** aceptada
+- **Decisión:** `GET /dashboard` calcula en cada consulta (sin caché) alumnos activos/baja, ocupación de grupos del ciclo activo y, con alcance ALL, ingresos del mes, adeudo total/vencido e ingresos de 6 meses. Inicio muestra el tablero a quien tiene `reports.view`. Gráficas en HTML/CSS sin dependencia.
+
 ---
 
 ## Mapeo desde la especificación original
@@ -236,7 +262,7 @@ Plantilla:
 |---|---|---|---|---|
 | A-001 | Proveedor SMS/WhatsApp | M19 | ¿Twilio u otro? Ably ya se usa para tiempo real. | abierta |
 | A-002 | Regla de aprobación | M08 | ¿Umbral 70 configurable por nivel/ciclo? | parcial: global en M11 ([D-029](#d-029--calificaciones-en-decimal-con-round_half_up-cierre-manual-sin-reapertura)) |
-| A-003 | Recargos por mora | M09 | ¿Se aplican? ¿Fórmula y periodicidad? | abierta |
+| A-003 | Recargos por mora | M09 | ¿Se aplican? ¿Fórmula y periodicidad? | resuelta ([D-033](#d-033--recargos-por-mora-a-demanda-resuelve-a-003)) |
 | A-004 | Almacenamiento de archivos | M06 | ¿S3 (estándar PTNV) o local? | provisional: ambos ([D-023](#d-023--almacenamiento-privado-s3-o-disco-local-resuelve-a-004-de-forma-provisional)) |
 | A-005 | Anti-fraude en examen | M16 | ¿Registrar cambios de pestaña? ¿Bloquear copiar/pegar? | abierta |
 | A-006 | Alerta de inasistencia | M18 | ¿Umbral por defecto (80%) configurable? | abierta |
@@ -247,7 +273,7 @@ Plantilla:
 
 ## Cómo registrar una nueva decisión
 
-1. Elige el siguiente `D-###` libre (hoy: `D-031`).
+1. Elige el siguiente `D-###` libre (hoy: `D-036`).
 2. Copia la plantilla de arriba y llénala.
 3. Enlaza al documento/módulo afectado.
 4. Si reemplaza a otra, actualiza el estado de la anterior.

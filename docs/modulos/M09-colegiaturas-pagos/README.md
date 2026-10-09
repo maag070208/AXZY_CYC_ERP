@@ -4,11 +4,37 @@
 |---|---|
 | **Código** | M09 |
 | **Versión** | 0.1 |
-| **Estado** | Planeado |
+| **Estado** | Terminado (F4) |
 | **Fase** | Finanzas |
 | **Depende de** | M03 (alumnos), M07 (cursos, grupos e inscripciones), M11 (parámetros: recargos, datos de la escuela), M02 (roles y bitácora) |
 | **Habilita a** | M10 (reportes de pagos y adeudos), M19 (notificaciones de cobranza) |
 | **Permisos** | `fee_concepts.manage`, `charges.view`, `charges.create`, `charges.generate`, `charges.cancel`, `payments.register`, `payments.cancel` (con alcance) |
+
+## Implementación (F4, 2026-10-09)
+
+**Estado: terminado.** Código en `api/src/modules/finance` y `web/src/{entities/finance,features/finance,widgets/account-statement}`; página `/finance` (Cargos · Pagos · Conceptos) y pestaña «Estado de cuenta» del expediente del alumno.
+
+| Método | Ruta | Permiso | Nota |
+|---|---|---|---|
+| POST · GET | `/api/v1/fee-concepts/query` · `/fee-concepts/options` | `charges.view` | Opciones sin el concepto RECARGO |
+| POST · PATCH · DELETE | `/api/v1/fee-concepts` · `/:id` (+ `/:id/reactivate`) | `fee_concepts.manage` | El concepto «Recargo por mora» es del sistema (`409 FEE_CONCEPT_RESERVED`) |
+| POST · GET | `/api/v1/charges/query` · `/charges/:id` | `charges.view` | OWN = cargos del alumno vinculado |
+| POST | `/api/v1/charges` | `charges.create` | Monto por defecto del concepto; política ABAC `charges.create` (tope de descuento) |
+| POST | `/api/v1/charges/generate` | `charges.generate` | Grupo o ciclo; `Idempotency-Key` (repite la respuesta, 200) y sin duplicar vigentes |
+| POST | `/api/v1/charges/late-fees` | `charges.generate` | Recargos según `LATE_FEE` (M11) |
+| DELETE | `/api/v1/charges/:id` | `charges.cancel` | Motivo obligatorio; con pagos vigentes → `409 CHARGE_HAS_PAYMENTS` |
+| GET | `/api/v1/students/:id/account-statement` | `charges.view` | JSON; el PDF se arma en la web |
+| POST · GET | `/api/v1/payments/query` · `/payments/:id` | `charges.view` | |
+| POST | `/api/v1/payments` | `payments.register` | Serializable; folio `REC-AAAA-NNNNNN`; `Idempotency-Key` |
+| DELETE | `/api/v1/payments/:id` | `payments.cancel` | Motivo obligatorio; política ABAC `payments.cancel` |
+
+Decisiones (sección 12) y diferencias con el borrador:
+- **Folio** consecutivo por año (`receipt_sequences`, fila bloqueada en la transacción): `REC-2026-000123`, reinicia cada año y nunca se reutiliza (un pago cancelado conserva su folio).
+- **Pago mayor al saldo** responde `400 PAYMENT_EXCEEDS_BALANCE` (con el saldo) en lugar de `VALIDATION_ERROR`; un cargo cancelado no se reactiva con pagos: se emite uno nuevo.
+- **Recargo por mora** = `saldo × dailyRate × (días vencidos − graceDays)`, redondeado a centavos; un cargo RECARGO por cargo vencido (`parentChargeId` único), recalculado mientras no tenga pagos. Se aplica a demanda (botón «Aplicar recargos»), no con un job.
+- **Descuento**: sin autorización fija; se puede topar con una política ABAC sobre `porcentajeDescuento` (acción `charges.create`).
+- La generación masiva solo carga a alumnos **ACTIVOS** con inscripción vigente; el método de pago agrega `TARJETA`. Ver [D-031](../../../DECISIONES.md) … [D-033](../../../DECISIONES.md).
+- Notas de crédito / saldo a favor: fuera de alcance de esta versión.
 
 ## 1. Objetivo
 
@@ -262,13 +288,13 @@ estado anterior y nuevo.
 
 ## 11. Criterios de aceptación
 
-- [ ] Migración y modelo Prisma (`fee_concepts`, `charges`, `payments` + enums).
-- [ ] Módulo API (routes/controller/service/dto/entity) con permisos y bitácora.
-- [ ] Generación masiva idempotente y folio consecutivo de recibo.
-- [ ] Pagos parciales, cancelación con motivo y estado de cuenta (JSON/PDF).
-- [ ] Pantallas web con UI kit (ITPage, ITDataTable, ITFormBuilder, ITDialog, ITInputNumber, ITSearchSelect).
-- [ ] Specs pasando (solo los del módulo).
-- [ ] Este README completo.
+- [x] Migración y modelo Prisma (`fee_concepts`, `charges`, `payments` + enums).
+- [x] Módulo API (routes/controller/service/dto/entity) con permisos y bitácora.
+- [x] Generación masiva idempotente y folio consecutivo de recibo.
+- [x] Pagos parciales, cancelación con motivo y estado de cuenta (JSON/PDF).
+- [x] Pantallas web con UI kit (ITPage, ITDataTable, ITFormBuilder, ITDialog, ITInputNumber, ITSearchSelect).
+- [x] Specs pasando (solo los del módulo).
+- [x] Este README completo.
 
 ## 12. Decisiones abiertas
 
