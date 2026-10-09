@@ -221,20 +221,32 @@ export default function DashboardView({ filters }: { filters: ExecutiveFilters }
       delta: versus(indicators.averageGrade, "grade"),
       hint: t("home.attendanceHintValue", { value: value(indicators.attendanceRate, "percent") }),
     },
-    {
-      label: t("home.overdue"),
-      value: value(indicators.pendingAmount, "money"),
-      icon: <FaExclamationTriangle size={18} />,
-      tone: "rose",
-      delta: alerts.overdueDebt ? t("home.overdueHint", { count: alerts.overdueDebt.count }) : t("home.noOverdue"),
-      hint: versus(indicators.delinquencyRate, "percent") ?? t("home.delinquencyHint"),
-    },
+    // Sin alcance institucional el cuarto indicador es operativo, no de dinero.
+    finance
+      ? {
+          label: t("home.overdue"),
+          value: value(indicators.pendingAmount, "money"),
+          icon: <FaExclamationTriangle size={18} />,
+          tone: "rose",
+          delta: alerts.overdueDebt ? t("home.overdueHint", { count: alerts.overdueDebt.count }) : t("home.noOverdue"),
+          hint: versus(indicators.delinquencyRate, "percent") ?? t("home.delinquencyHint"),
+        }
+      : {
+          label: t("home.fullGroupsKpi"),
+          value: alerts.fullGroups ? String(alerts.fullGroups.count) : "0",
+          icon: <FaUsers size={18} />,
+          tone: "amber",
+          delta: alerts.pendingDocuments
+            ? t("home.pendingDocumentsKpi", { count: alerts.pendingDocuments.documents })
+            : undefined,
+          hint: alerts.fullGroups ? t("home.fullGroupsHint", { count: alerts.fullGroups.count }) : t("home.noAlerts"),
+        },
   ];
 
   return (
     <div className="flex flex-col gap-4" data-role="dashboard">
       {/* 1. Indicadores superiores */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4" data-role="dashboard-kpis">
         {kpis.map((kpi) => (
           <KpiTile
             key={kpi.label}

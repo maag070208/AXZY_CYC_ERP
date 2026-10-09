@@ -132,6 +132,8 @@
     "totalCollected": "Total cobrado",
     "expensesTotal": "Total de gastos",
     "incomeByConceptHint": "Participación del cobrado del ciclo",
-    "fullGroupsHint": "{{count}} grupo(s) al 80% o más"
+    "fullGroupsHint": "{{count}} grupo(s) al 80% o más",
+    "fullGroupsKpi": "Grupos en alerta",
+    "pendingDocumentsKpi": "{{count}} documento(s) por validar"
   }
 }

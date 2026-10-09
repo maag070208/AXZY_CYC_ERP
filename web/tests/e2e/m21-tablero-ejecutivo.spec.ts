@@ -1,6 +1,6 @@
 import { expect, test, type APIRequestContext } from "@playwright/test";
 import { E2E, newRunId, route } from "./support/env";
-import { apiAs, signIn } from "./support/api";
+import { apiAs, ensureActiveTerm, signIn } from "./support/api";
 
 /**
  * Tablero de Inicio (M21 ampliado + M23) en el navegador: indicadores
@@ -16,6 +16,7 @@ let admin: APIRequestContext;
 
 test.beforeAll(async () => {
   admin = await apiAs(E2E.admin.username);
+  await ensureActiveTerm(admin);
   const term = await admin.post("terms", { data: { name: TERM, startDate: "1991-01-01", endDate: "1991-06-30" } });
   expect(term.status(), await term.text()).toBe(201);
 });
@@ -28,15 +29,18 @@ test("SCHOOL_CONTROL ve el tablero de Inicio con indicadores, alertas y filtros"
   await signIn(page, E2E.control.username);
   await page.goto(route("/"));
   const board = page.locator("[data-role=dashboard]");
-  for (const label of ["Alumnos inscritos", "Asistencia", "Promedio general", "Ocupación de grupos"]) {
-    await expect(board.getByText(label, { exact: true })).toBeVisible();
+  const kpis = page.locator("[data-role=dashboard-kpis]");
+  for (const label of ["Alumnos inscritos", "Ocupación de grupos", "Promedio general"]) {
+    await expect(kpis.getByText(label, { exact: true })).toBeVisible();
   }
-  // Con alcance institucional aparece el bloque financiero y sus gráficas.
-  await expect(board.getByText("Ingresos cobrados", { exact: true })).toBeVisible();
-  await expect(board.getByText("Gastos", { exact: true })).toBeVisible();
-  await expect(board.getByText("Adeudo vencido", { exact: true })).toBeVisible();
-  await expect(board.getByRole("img", { name: "Alumnos por nivel" })).toBeVisible();
-  await expect(board.getByRole("img", { name: "Rendimiento académico por grupo" })).toBeVisible();
+  // Con alcance institucional aparece el bloque financiero y el indicador de dinero.
+  const finance = page.locator("[data-role=dashboard-finance]");
+  await expect(finance.getByText("Ingresos vs. gastos")).toBeVisible();
+  await expect(kpis.getByText("Adeudo vencido", { exact: true })).toBeVisible();
+  // Los paneles están siempre; las gráficas pintan cuando el ciclo tiene datos.
+  await expect(finance.getByText("Alumnos por nivel")).toBeVisible();
+  await expect(board.getByText("Rendimiento académico por grupo")).toBeVisible();
+  await expect(board.getByText("Alumnos con mayor riesgo")).toBeVisible();
   await expect(page.locator("[data-role=dashboard-alerts]")).toBeVisible();
 
   // Los filtros del tablero viven en Inicio.
@@ -55,6 +59,8 @@ test("TEACHER ve sus indicadores académicos y ninguna cifra de dinero", async (
   for (const label of ["Ingresos cobrados", "Gastos", "Adeudo vencido", "Morosidad", "Cartera del ciclo", "Pagos recientes"]) {
     await expect(page.getByText(label, { exact: true })).toHaveCount(0);
   }
+  // Su cuarto indicador es operativo (grupos en alerta), no de dinero.
+  await expect(page.locator("[data-role=dashboard-kpis]").getByText("Grupos en alerta")).toBeVisible();
 });
 
 test("el tablero ejecutivo ya no es una pantalla aparte del menú", async ({ page }) => {

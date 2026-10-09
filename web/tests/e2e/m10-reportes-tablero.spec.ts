@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { E2E, route } from "./support/env";
-import { signIn } from "./support/api";
+import { apiAs, ensureActiveTerm, signIn } from "./support/api";
 import { typedDate } from "./support/people";
 
 /**
@@ -10,14 +10,23 @@ import { typedDate } from "./support/people";
  */
 test.use({ storageState: { cookies: [], origins: [] } });
 
+// El tablero de Inicio solo pinta indicadores con un ciclo activo.
+test.beforeAll(async () => {
+  const admin = await apiAs(E2E.admin.username);
+  await ensureActiveTerm(admin);
+  await admin.dispose();
+});
+
 test("Inicio muestra el tablero con KPIs y gráficas", async ({ page }) => {
   await signIn(page, E2E.control.username);
   await page.goto(route("/"));
-  const dashboard = page.locator("[data-role=dashboard]");
-  await expect(dashboard.getByText("Alumnos inscritos")).toBeVisible();
-  await expect(dashboard.getByText("Ingresos cobrados")).toBeVisible();
-  await expect(dashboard.getByText("Adeudo vencido")).toBeVisible();
-  await expect(dashboard.getByRole("img", { name: "Ingresos vs. gastos" })).toBeVisible();
+  const kpis = page.locator("[data-role=dashboard-kpis]");
+  await expect(kpis.getByText("Alumnos inscritos")).toBeVisible();
+  await expect(kpis.getByText("Adeudo vencido")).toBeVisible();
+  // El bloque financiero está; su contenido depende de que el ciclo tenga movimientos.
+  const finance = page.locator("[data-role=dashboard-finance]");
+  await expect(finance.getByText("Ingresos vs. gastos")).toBeVisible();
+  await expect(finance.getByText("Alumnos por nivel")).toBeVisible();
 });
 
 test("consulta el reporte de inscripciones y lo exporta a Excel y PDF", async ({ page }) => {
@@ -50,9 +59,11 @@ test("validación: rango invertido muestra el error de la API", async ({ page })
 test("el profesor ve el tablero sin montos y no tiene reportes de dinero", async ({ page }) => {
   await signIn(page, E2E.teacher.username);
   await page.goto(route("/"));
-  const dashboard = page.locator("[data-role=dashboard]");
-  await expect(dashboard.getByText("Alumnos inscritos")).toBeVisible();
-  await expect(dashboard.getByText("Ingresos cobrados")).toHaveCount(0);
+  const kpis = page.locator("[data-role=dashboard-kpis]");
+  await expect(kpis.getByText("Alumnos inscritos")).toBeVisible();
+  for (const label of ["Ingresos cobrados", "Gastos", "Adeudo vencido", "Morosidad"]) {
+    await expect(page.getByText(label, { exact: true })).toHaveCount(0);
+  }
   await page.goto(route("/reports"));
   const options = await page.locator('select[name="report"] option').allInnerTexts();
   expect(options.join("|")).not.toContain("Adeudos");

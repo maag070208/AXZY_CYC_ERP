@@ -1,6 +1,7 @@
 import { expect, test, type APIRequestContext } from "@playwright/test";
 import { E2E, newRunId, route } from "./support/env";
-import { apiAs, signIn } from "./support/api";
+import { apiAs, ensureActiveTerm, signIn } from "./support/api";
+import { typedDate } from "./support/people";
 
 /**
  * Gastos institucionales (M23) en el navegador: la pantalla `/expenses` con sus
@@ -17,6 +18,8 @@ let expenseId: string;
 
 test.beforeAll(async () => {
   admin = await apiAs(E2E.admin.username);
+  // El tablero de Inicio (cuarta prueba) necesita un ciclo activo.
+  await ensureActiveTerm(admin);
   const res = await admin.post("expenses", {
     data: { date: "2026-10-05", concept: CONCEPT, type: "SERVICES", vendor: "Inmobiliaria E2E", amount: 12345.5, status: "PAID" },
   });
@@ -34,10 +37,11 @@ test("ADMIN ve la pantalla de gastos con totales, tabla y filtros", async ({ pag
   await page.goto(route("/expenses"));
   await expect(page.getByRole("heading", { name: "Gastos" })).toBeVisible();
 
-  // Totales del ciclo y la tabla con el gasto de la corrida.
+  // Totales del ciclo y la tabla con el gasto de la corrida (se acota al renglón).
   await expect(page.getByText("TOTAL DEL CICLO")).toBeVisible();
-  await expect(page.getByText(CONCEPT)).toBeVisible();
-  await expect(page.getByText("Inmobiliaria E2E")).toBeVisible();
+  const row = page.locator("tr", { hasText: CONCEPT });
+  await expect(row).toHaveCount(1);
+  await expect(row.getByText("Inmobiliaria E2E")).toBeVisible();
 
   // Filtros propios de la tabla y el selector de ciclo del encabezado.
   await expect(page.locator('select[name="termId"]')).toBeVisible();
@@ -54,7 +58,9 @@ test("ADMIN registra un gasto desde el diálogo y luego lo cancela con motivo", 
   await expect(dialog).toBeVisible();
   await dialog.locator('input[name="concept"]').fill(concept);
   await dialog.locator('input[name="amount"]').fill("4500.25");
-  await dialog.locator('input[name="date"]').fill("2026-10-08");
+  // El tipo es obligatorio y la fecha se teclea en el formato del componente.
+  await dialog.locator('select[name="type"]').selectOption("SERVICES");
+  await dialog.locator('input[name="date"]').fill(typedDate("2026-10-08"));
   await dialog.getByRole("button", { name: "Guardar" }).click();
   await expect(dialog).toBeHidden();
   await expect(page.getByText(concept)).toBeVisible();
@@ -83,10 +89,11 @@ test("el tablero de Inicio muestra ingresos contra gastos con datos reales", asy
   await signIn(page, E2E.control.username);
   await page.goto(route("/"));
   const board = page.locator("[data-role=dashboard]");
-  await expect(board.getByText("Ingresos cobrados", { exact: true })).toBeVisible();
-  await expect(board.getByText("Gastos", { exact: true })).toBeVisible();
+  // La gráfica y su leyenda: ahí viven los rótulos de dinero.
+  const finance = page.locator("[data-role=dashboard-finance]");
+  await expect(finance.getByText("Ingresos cobrados", { exact: true })).toBeVisible();
+  await expect(finance.getByText("Gastos", { exact: true })).toBeVisible();
   await expect(board.getByRole("img", { name: "Ingresos vs. gastos" })).toBeVisible();
   await expect(board.getByText("Gastos por tipo")).toBeVisible();
-  // El desglose de gastos enlaza a la pantalla del módulo.
   await expect(board.getByRole("button", { name: "Ver todo" }).first()).toBeVisible();
 });

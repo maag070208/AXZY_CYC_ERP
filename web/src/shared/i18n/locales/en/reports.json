@@ -132,6 +132,8 @@
     "totalCollected": "Total collected",
     "expensesTotal": "Total expenses",
     "incomeByConceptHint": "Share of the term's collected income",
-    "fullGroupsHint": "{{count}} group(s) at 80% or more"
+    "fullGroupsHint": "{{count}} group(s) at 80% or more",
+    "fullGroupsKpi": "Groups on alert",
+    "pendingDocumentsKpi": "{{count}} document(s) to validate"
   }
 }
