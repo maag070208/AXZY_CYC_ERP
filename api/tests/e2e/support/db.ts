@@ -1,4 +1,6 @@
 import crypto from "node:crypto";
+import fs from "node:fs/promises";
+import path from "node:path";
 import bcrypt from "bcryptjs";
 import { PrismaClient } from "@prisma/client";
 import { E2E_PREFIX } from "./env";
@@ -134,6 +136,9 @@ export const clearStudentsE2E = async (): Promise<number> => {
   });
   const ids = students.map((s) => s.id);
   if (ids.length === 0) return 0;
+  // Archivos del driver local de almacenamiento (en S3 quedan a cargo del bucket de pruebas).
+  const root = path.resolve(__dirname, "../../..", process.env.STORAGE_LOCAL_DIR ?? "storage/private");
+  await Promise.all(ids.map((id) => fs.rm(path.join(root, "students", id), { recursive: true, force: true })));
   await db.document.deleteMany({ where: { studentId: { in: ids } } });
   await db.studentMovement.deleteMany({ where: { studentId: { in: ids } } });
   const result = await db.student.deleteMany({ where: { id: { in: ids } } });

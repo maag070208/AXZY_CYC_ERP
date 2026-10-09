@@ -8,6 +8,7 @@ import { createAuditModule, type AuditPort } from "./audit";
 import { createConfigModule } from "./config";
 import { createStudentsModule } from "./students";
 import { createTeachersModule } from "./teachers";
+import { createDocumentsModule } from "./documents";
 
 // Puerto de auditoría (DIP): cada módulo recibe solo `createLog`, no el servicio.
 const { router: auditRouter, service: auditService } = createAuditModule();
@@ -21,6 +22,7 @@ const permissionsRouter = createPermissionsModule(auditPort.createLog).router;
 const config = createConfigModule(auditPort.createLog);
 const students = createStudentsModule(auditPort.createLog);
 const teachers = createTeachersModule(auditPort.createLog);
+const documents = createDocumentsModule(students.students, auditPort.createLog);
 
 const apiRouter = Router();
 
@@ -78,7 +80,10 @@ apiRouter.use("/levels", config.routers.levels);
 apiRouter.use("/terms", config.routers.terms);
 apiRouter.use("/cancellation-reasons", config.routers.cancellationReasons);
 apiRouter.use("/document-types", config.routers.documentTypes);
+// Expediente y kardex antes que `/students` para no autenticar dos veces.
+apiRouter.use("/students/:studentId", documents.studentRouter);
 apiRouter.use("/students", students.router);
+apiRouter.use("/documents", documents.documentsRouter);
 apiRouter.use("/teachers", teachers.router);
 
 export { auditService };

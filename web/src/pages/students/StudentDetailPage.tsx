@@ -8,6 +8,8 @@ import { useCan } from "@entities/user";
 import { studentApi, type MovementType, type Student } from "@entities/student";
 import { MovementDialog } from "@features/student/movement-dialog";
 import { MovementsList } from "@features/student/movements-list";
+import { DocumentsPanel } from "@features/document/documents-panel";
+import { KardexView } from "@widgets/kardex-pdf";
 import { PanelCard } from "@shared/ui/panel-card";
 import { formatDay } from "@shared/lib/day";
 
@@ -26,20 +28,16 @@ function Field({ label, value }: { label: string; value: ReactNode }) {
   );
 }
 
-export interface StudentDetailExtraTab {
-  id: string;
-  label: string;
-  content: (student: Student) => ReactNode;
-}
-
-/** `/students/:id`: expediente del alumno con pestañas. */
-export default function StudentDetailPage({ extraTabs = [] }: { extraTabs?: StudentDetailExtraTab[] }) {
+/** `/students/:id`: expediente del alumno con pestañas (datos, movimientos, documentos, kardex). */
+export default function StudentDetailPage() {
   const { t, i18n } = useTranslation(["students", "common"]);
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const notify = useNotify();
   const canEdit = useCan("students.edit");
   const canMove = useCan("students.movements");
+  const canDocuments = useCan("documents.view");
+  const canKardex = useCan("kardex.view");
   const [student, setStudent] = useState<Student | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [movement, setMovement] = useState<MovementType | null>(null);
@@ -135,7 +133,12 @@ export default function StudentDetailPage({ extraTabs = [] }: { extraTabs?: Stud
             ...(canMove
               ? [{ id: "movements", label: t("detail.tabs.movements"), content: <MovementsList studentId={s.id} reloadKey={reloadKey} /> }]
               : []),
-            ...extraTabs.map((tab) => ({ id: tab.id, label: tab.label, content: tab.content(s) })),
+            ...(canDocuments
+              ? [{ id: "documents", label: t("detail.tabs.documents"), content: <DocumentsPanel studentId={s.id} readOnly={s.status === "BAJA"} /> }]
+              : []),
+            ...(canKardex
+              ? [{ id: "kardex", label: t("detail.tabs.kardex"), content: <KardexView key={reloadKey} studentId={s.id} /> }]
+              : []),
           ]}
         />
       )}
