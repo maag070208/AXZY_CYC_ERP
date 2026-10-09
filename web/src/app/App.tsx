@@ -27,6 +27,7 @@ import AttendancePage from "@pages/attendance/AttendancePage";
 import NotificationsPage from "@pages/notifications/NotificationsPage";
 import MigrationPage from "@pages/migration/MigrationPage";
 import PrivateRoutes from "./guards/PrivateRoutes";
+import RequireAuth from "./guards/RequireAuth";
 import RequiresPermission from "./guards/RequirePermission";
 
 export default function App() {
@@ -36,9 +37,13 @@ export default function App() {
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
 
+      {/* Pantalla dedicada (a pantalla completa, sin ITLayout). */}
+      <Route element={<RequireAuth />}>
+        <Route path="/change-password" element={<ChangePasswordPage />} />
+      </Route>
+
       <Route element={<PrivateRoutes />}>
         <Route path="/" element={<HomePage />} />
-        <Route path="/change-password" element={<ChangePasswordPage />} />
 
         <Route
           path="/students"

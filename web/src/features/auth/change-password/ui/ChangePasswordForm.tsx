@@ -12,7 +12,7 @@ export default function ChangePasswordForm({ onDone }: Props) {
   const fx = useChangePassword(onDone);
 
   return (
-    <form onSubmit={fx.submit} noValidate className="max-w-md">
+    <form onSubmit={fx.submit} noValidate className="w-full">
       <ITFlex direction="column" gap={4}>
         {fx.error && <ITAlert variant="error">{fx.error}</ITAlert>}
         <ITInput
@@ -39,7 +39,7 @@ export default function ChangePasswordForm({ onDone }: Props) {
           onChange={(e) => fx.setConfirm(e.target.value)}
           error={fx.errors.confirm}
         />
-        <ITButton type="submit" variant="filled" color="primary" disabled={fx.saving || !fx.canSubmit}>
+        <ITButton type="submit" variant="filled" color="primary" className="w-full" disabled={fx.saving || !fx.canSubmit}>
           <ITFlex align="center" justify="center" gap={1}>
             <FaKey size={12} />
             <ITText className="font-bold text-[11px]">{t("change.submit")}</ITText>

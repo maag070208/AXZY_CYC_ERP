@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { env as appEnv } from "@core/config/env.config";
 import { prismaClient } from "@core/config/database";
 import { registerPath } from "@core/swagger/registry";
 import { createAuthModule } from "./auth";
@@ -76,10 +77,31 @@ registerPath({
   method: "get",
   path: "/health",
   tags: ["Health"],
-  summary: "Liveness probe",
-  description: "Devuelve 200 si el proceso responde. No toca la base de datos.",
+  summary: "Liveness probe + versión desplegada",
+  description:
+    "Devuelve 200 si el proceso responde (no toca la base). Incluye el commit/rama del despliegue para saber qué versión corre.",
   responses: {
-    200: { description: "Servicio vivo", content: { "application/json": { schema: { type: "object" } } } },
+    200: {
+      description: "Servicio vivo",
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              status: { type: "string" },
+              service: { type: "string" },
+              version: { type: "string" },
+              commit: { type: "string", nullable: true },
+              branch: { type: "string", nullable: true },
+              buildTime: { type: "string", nullable: true },
+              deploymentId: { type: "string", nullable: true },
+              uptimeSeconds: { type: "number" },
+              ts: { type: "string" },
+            },
+          },
+        },
+      },
+    },
   },
 });
 
@@ -99,7 +121,12 @@ apiRouter.get("/health", (_req, res) => {
   res.json({
     status: "ok",
     service: "cyc-api",
-    version: "1.0.0",
+    version: appEnv.APP_VERSION,
+    // Commit corto del despliegue (para saber qué versión está corriendo).
+    commit: appEnv.BUILD_COMMIT ? appEnv.BUILD_COMMIT.slice(0, 7) : null,
+    branch: appEnv.BUILD_BRANCH,
+    buildTime: appEnv.BUILD_TIME,
+    deploymentId: appEnv.DEPLOYMENT_ID,
     uptimeSeconds: Math.round((Date.now() - startedAt) / 1000),
     ts: new Date().toISOString(),
   });

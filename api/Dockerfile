@@ -39,6 +39,15 @@ COPY --from=builder /app/tsconfig.json ./
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/dist ./dist
 
+# Metadatos del build (los expone `/health` para saber qué versión corre). Los
+# pasa el workflow; sin ellos quedan vacíos y Railway usa `RAILWAY_GIT_*`.
+ARG GIT_COMMIT=""
+ARG BUILD_TIME=""
+ARG BUILD_BRANCH=""
+ENV GIT_COMMIT=$GIT_COMMIT \
+    BUILD_TIME=$BUILD_TIME \
+    BUILD_BRANCH=$BUILD_BRANCH
+
 EXPOSE 4001
 
 # Boot de producción: aplica migraciones pendientes y arranca. El seed NO corre

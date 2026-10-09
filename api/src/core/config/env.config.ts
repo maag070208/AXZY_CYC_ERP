@@ -1,7 +1,18 @@
+import { readFileSync } from "node:fs";
 import dotenv from "dotenv";
 import path from "path";
 
 dotenv.config({ path: path.resolve(process.cwd(), ".env") });
+
+/** Versión de la app desde `package.json` (cwd = raíz del paquete API en dev y en Docker). */
+const packageVersion = ((): string => {
+  try {
+    const pkg = JSON.parse(readFileSync(path.resolve(process.cwd(), "package.json"), "utf8")) as { version?: string };
+    return pkg.version ?? "0.0.0";
+  } catch {
+    return "0.0.0";
+  }
+})();
 
 const required = ["DATABASE_URL", "PORT", "JWT_SECRET"] as const;
 
@@ -74,4 +85,13 @@ export const env = {
 
   // Tiempo real (opcional).
   ABLY_API_KEY: process.env.ABLY_API_KEY,
+
+  // Metadatos del build/despliegue (los expone `/health`): permiten saber qué
+  // versión está corriendo. Railway inyecta `RAILWAY_GIT_*` al desplegar desde
+  // GitHub; en la imagen Docker los hornea el workflow (`GIT_COMMIT`/`BUILD_TIME`).
+  APP_VERSION: process.env.APP_VERSION ?? packageVersion,
+  BUILD_COMMIT: process.env.GIT_COMMIT ?? process.env.RAILWAY_GIT_COMMIT_SHA ?? null,
+  BUILD_BRANCH: process.env.BUILD_BRANCH ?? process.env.RAILWAY_GIT_BRANCH ?? null,
+  BUILD_TIME: process.env.BUILD_TIME ?? null,
+  DEPLOYMENT_ID: process.env.RAILWAY_DEPLOYMENT_ID ?? null,
 };
