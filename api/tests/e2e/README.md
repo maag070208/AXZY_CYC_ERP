@@ -32,6 +32,8 @@ npm run test:e2e:report      # abrir el último reporte HTML
 | `students.spec.ts` | M03/M05 | Alta con matrícula, CURP, homónimos, tutores, búsqueda, edición, alcance OWN/AREA, exportación, baja/reingreso e historial |
 | `teachers.spec.ts` | M04 | Alta transaccional con cuenta e invitación, edición sincronizada, baja/reactivación, reenvío, alcance OWN |
 | `documents.spec.ts` | M06 | Subida multipart, firmas de archivo, 5 MB, descarga privada, validación/rechazo/reemplazo, baja lógica, faltantes, kardex, alcance |
+| `m07-cursos-grupos-inscripciones.spec.ts` | M07 | Cursos, grupos (horario, cupo), inscripción con cupo/duplicado/empalme/alumno inactivo, concurrencia al último lugar, baja, cambio de grupo, baja del alumno (M05), alcance AREA/OWN |
+| `m08-examenes-calificaciones.spec.ts` | M08 | Instrumentos (suma ≤ 100), captura en lote con bitácora anterior/nuevo, rango, libro con proyección, cierre (umbral, estatus, kardex), exportación, alcance |
 | `m11-administracion-catalogos.spec.ts` | M11 | `settings` (todo o nada, bitácora, idioma), niveles, ciclos (uno activo), motivos de baja, tipos de documento |
 
 ## Qué cubre `auth.spec.ts` (M02)
@@ -57,7 +59,7 @@ La suite de navegador (`web/tests/e2e`) usa usuarios fijos por rol. Este paquete
 es el dueño de la base, así que los crea y borra:
 
 ```bash
-npm run test:e2e:provision   # e2e_admin, e2e_control, e2e_profesor
+npm run test:e2e:provision   # e2e_admin, e2e_control, e2e_profesor (este último con perfil de profesor M04)
 npm run test:e2e:clean       # borra todo lo que lleva el prefijo e2e_/E2E
 npm run --silent test:e2e:reset-token -- e2e_usuario   # token de recuperación conocido
 ```

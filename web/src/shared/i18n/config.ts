@@ -10,6 +10,8 @@ import studentsEn from "./locales/en/students.json";
 import teachersEn from "./locales/en/teachers.json";
 import documentsEn from "./locales/en/documents.json";
 import usersEn from "./locales/en/users.json";
+import coursesEn from "./locales/en/courses.json";
+import gradesEn from "./locales/en/grades.json";
 
 import auditEs from "./locales/es/audit.json";
 import authEs from "./locales/es/auth.json";
@@ -20,13 +22,15 @@ import studentsEs from "./locales/es/students.json";
 import teachersEs from "./locales/es/teachers.json";
 import documentsEs from "./locales/es/documents.json";
 import usersEs from "./locales/es/users.json";
+import coursesEs from "./locales/es/courses.json";
+import gradesEs from "./locales/es/grades.json";
 
 export const defaultNS = "common" as const;
 
 export const APP_LANGUAGES = ["es", "en"] as const;
 export type AppLanguage = (typeof APP_LANGUAGES)[number];
 
-export const NS_LIST = ["common", "auth", "users", "roles", "audit", "config", "students", "teachers", "documents"] as const;
+export const NS_LIST = ["common", "auth", "users", "roles", "audit", "config", "students", "teachers", "documents", "courses", "grades"] as const;
 
 export const resources = {
   en: {
@@ -39,6 +43,8 @@ export const resources = {
     students: studentsEn,
     teachers: teachersEn,
     documents: documentsEn,
+    courses: coursesEn,
+    grades: gradesEn,
   },
   es: {
     common: commonEs,
@@ -50,6 +56,8 @@ export const resources = {
     students: studentsEs,
     teachers: teachersEs,
     documents: documentsEs,
+    courses: coursesEs,
+    grades: gradesEs,
   },
 } as const;
 

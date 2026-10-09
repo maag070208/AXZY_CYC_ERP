@@ -34,6 +34,8 @@ export const catalogApi = {
 export const termsApi = {
   table: (params: ITDataTableFetchParamsPost) => tableRequest<Term>("/terms/query", params),
   active: () => api.get<Term | null>("/terms/active"),
+  /** Todos los ciclos (selectores), del más reciente al más antiguo. */
+  options: () => api.get<Term[]>("/terms"),
   create: (data: Required<TermInput>) => api.post<Term>("/terms", data),
   update: (id: string, data: TermInput) => api.patch<Term>(`/terms/${id}`, data),
   /** Activa el ciclo y desactiva el anterior. */

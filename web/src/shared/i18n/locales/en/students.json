@@ -69,7 +69,8 @@
       "general": "General",
       "movements": "Movements",
       "documents": "Documents",
-      "kardex": "Transcript"
+      "kardex": "Transcript",
+      "enrollments": "Enrollments"
     },
     "matricula": "Enrollment no.",
     "age": "{{age}} years",

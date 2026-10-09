@@ -19,6 +19,14 @@ const main = async (): Promise<void> => {
   for (const user of FIXED_USERS) {
     await createAuthUser({ ...user, password: E2E.password });
   }
+  // `e2e_profesor` también es profesor (M04): las suites académicas (M07/M08)
+  // le asignan grupos y entran con él para capturar calificaciones.
+  const teacher = await db.user.findUniqueOrThrow({ where: { username: "e2e_profesor" }, select: { id: true } });
+  await db.teacher.upsert({
+    where: { userId: teacher.id },
+    create: { nombres: "E2E", apellidos: "Profesor", email: "e2e_profesor@e2e.local", userId: teacher.id },
+    update: { status: "ACTIVO" },
+  });
   console.log(`[e2e] provisionados: ${FIXED_USERS.map((u) => u.username).join(", ")}`);
 };
 

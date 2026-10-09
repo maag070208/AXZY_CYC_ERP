@@ -17,6 +17,8 @@ Cubre **M02** (acceso, usuarios, consola de roles, recuperación) y **M11**
 | `students.spec.ts` | `/students` | Alta con tutor y matrícula, CURP inválida, homónimo, búsqueda, edición, baja/reingreso con historial |
 | `teachers.spec.ts` | `/teachers` | Alta con invitación, primer acceso con la invitación, edición, baja/reactivación |
 | `documents.spec.ts` | `/students/:id` | Expediente (subida, validación, rechazo, baja, tipo inválido) y kardex en PDF |
+| `m07-cursos-grupos-inscripciones.spec.ts` | `/courses`, `/groups`, `/groups/:id` | Alta de curso y grupo con horario (empalme en pantalla), inscripción por búsqueda, cupo lleno, cambio de grupo, baja, historial del alumno, vista del profesor |
+| `m08-examenes-calificaciones.spec.ts` | `/groups/:id` (Calificaciones) | Instrumentos al 100 %, captura con validación de rango, proyección de la final, cierre y final en el kardex |
 | `m11-administracion-catalogos.spec.ts` | `/settings`, `/catalogs` | Parámetros persistentes, CRUD de motivo de baja, duplicado, solo lectura por rol |
 
 ## Cómo correrlas

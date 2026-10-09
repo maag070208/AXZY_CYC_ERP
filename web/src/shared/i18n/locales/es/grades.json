@@ -1,0 +1,52 @@
+{
+  "assessments": {
+    "title": "Instrumentos de evaluación",
+    "new": "Nuevo instrumento",
+    "nombre": "Nombre",
+    "tipo": "Tipo",
+    "ponderacion": "Ponderación (%)",
+    "maxScore": "Calificación máxima",
+    "fecha": "Fecha",
+    "titleNew": "Nuevo instrumento",
+    "titleEdit": "Editar instrumento",
+    "created": "Instrumento creado",
+    "saved": "Instrumento actualizado",
+    "deactivate": "Desactivar",
+    "deactivateTitle": "¿Desactivar {{name}}?",
+    "deactivateMessage": "Sus calificaciones se conservan, pero dejan de contar para la final.",
+    "deactivated": "Instrumento desactivado",
+    "weights": "Ponderaciones: {{total}}% de 100%",
+    "weightsOk": "Ponderaciones completas (100%)",
+    "empty": "Aún no hay instrumentos de evaluación",
+    "types": {
+      "PARCIAL": "Parcial",
+      "FINAL": "Final",
+      "TAREA": "Tarea",
+      "OTRO": "Otro"
+    }
+  },
+  "gradebook": {
+    "title": "Libro de calificaciones",
+    "threshold": "Aprobatoria: {{value}}",
+    "final": "Final",
+    "result": "Resultado",
+    "projection": "Proyección",
+    "save": "Guardar calificaciones",
+    "saved": "{{count}} calificación(es) guardada(s)",
+    "nothingToSave": "No hay cambios por guardar",
+    "export": "Exportar Excel",
+    "close": "Cerrar grupo",
+    "closeTitle": "¿Cerrar el grupo {{name}}?",
+    "closeMessage": "Se escribirán las calificaciones finales al kardex y el estatus de cada alumno. Después ya no se podrán modificar.",
+    "closed": "Grupo cerrado: finales enviadas al kardex",
+    "closedBanner": "Grupo cerrado el {{date}}: las calificaciones ya no se pueden modificar.",
+    "incomplete": "Faltan calificaciones o las ponderaciones no suman 100%",
+    "empty": "No hay alumnos inscritos",
+    "noAssessments": "Agrega instrumentos de evaluación para capturar calificaciones",
+    "outOfRange": "Entre 0 y {{max}}",
+    "results": {
+      "ACREDITADO": "Acreditado",
+      "REPROBADO": "Reprobado"
+    }
+  }
+}

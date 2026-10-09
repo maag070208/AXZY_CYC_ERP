@@ -13,6 +13,9 @@ import StudentsListPage from "@pages/students/StudentsListPage";
 import StudentFormPage from "@pages/students/StudentFormPage";
 import StudentDetailPage from "@pages/students/StudentDetailPage";
 import TeachersPage from "@pages/teachers/TeachersPage";
+import CoursesPage from "@pages/courses/CoursesPage";
+import GroupsPage from "@pages/groups/GroupsPage";
+import GroupDetailPage from "@pages/groups/GroupDetailPage";
 import PrivateRoutes from "./guards/PrivateRoutes";
 import RequiresPermission from "./guards/RequirePermission";
 
@@ -68,6 +71,30 @@ export default function App() {
           }
         />
         <Route
+          path="/courses"
+          element={
+            <RequiresPermission permission="courses.view">
+              <CoursesPage />
+            </RequiresPermission>
+          }
+        />
+        <Route
+          path="/groups"
+          element={
+            <RequiresPermission permission="groups.view">
+              <GroupsPage />
+            </RequiresPermission>
+          }
+        />
+        <Route
+          path="/groups/:id"
+          element={
+            <RequiresPermission permission="groups.view">
+              <GroupDetailPage />
+            </RequiresPermission>
+          }
+        />
+        <Route
           path="/users"
           element={
             <RequiresPermission permission="users.view">
@@ -94,7 +121,7 @@ export default function App() {
         <Route
           path="/catalogs"
           element={
-            <RequiresPermission permission={["levels.view", "terms.view", "config.view"]}>
+            <RequiresPermission permission={["levels.view", "config.view"]}>
               <CatalogsPage />
             </RequiresPermission>
           }

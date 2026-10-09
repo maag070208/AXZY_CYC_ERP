@@ -34,7 +34,9 @@
     "account": "My account",
     "changePassword": "Change password",
     "students": "Students",
-    "teachers": "Teachers"
+    "teachers": "Teachers",
+    "courses": "Courses",
+    "groups": "Groups"
   },
   "errors": {
     "network": "Network or server error",

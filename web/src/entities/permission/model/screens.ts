@@ -26,7 +26,9 @@ export type NavLabelKey =
   | "nav.audit"
   | "nav.catalogs"
   | "nav.students"
-  | "nav.teachers";
+  | "nav.teachers"
+  | "nav.courses"
+  | "nav.groups";
 
 export interface AppScreen {
   readonly id: string;
@@ -63,6 +65,18 @@ export const APP_SCREENS: readonly AppScreen[] = [
     requirement: { anyOf: ["teachers.view"] },
   },
   {
+    id: "courses",
+    labelKey: "nav.courses",
+    path: "/courses",
+    requirement: { anyOf: ["courses.view"] },
+  },
+  {
+    id: "groups",
+    labelKey: "nav.groups",
+    path: "/groups",
+    requirement: { anyOf: ["groups.view"] },
+  },
+  {
     id: "users",
     labelKey: "nav.users",
     path: "/users",
@@ -84,7 +98,9 @@ export const APP_SCREENS: readonly AppScreen[] = [
     id: "catalogs",
     labelKey: "nav.catalogs",
     path: "/catalogs",
-    requirement: { anyOf: ["levels.view", "terms.view", "config.view"] },
+    // `terms.view` solo no basta: el profesor lee ciclos para filtrar sus
+    // grupos (M07), pero no administra catálogos.
+    requirement: { anyOf: ["levels.view", "config.view"] },
   },
   {
     id: "settings",
