@@ -159,6 +159,9 @@ test.describe("resolvedor con fixtures reales", () => {
       "exams.publish": "AREA",
       "attempts.view": "AREA",
       "attempts.review": "AREA",
+      "attendance.view": "AREA",
+      "attendance.manage": "AREA",
+      "attendance.justify": "AREA",
     });
     expect(permissionsOf(user("ALUMNO"))).toEqual({
       "students.view": "OWN",
@@ -173,6 +176,8 @@ test.describe("resolvedor con fixtures reales", () => {
       "exams.view": "OWN",
       "attempts.take": "OWN",
       "attempts.view": "OWN",
+      "attendance.view": "OWN",
+      "attendance.justify": "OWN",
     });
   });
 

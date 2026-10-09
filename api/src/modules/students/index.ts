@@ -7,6 +7,7 @@ import { createStudentRouter } from "./routes/student.routes";
 
 export { StudentService } from "./services/student.service";
 export { MovementService } from "./services/movement.service";
+export { studentContacts } from "./services/contacts";
 
 /** M03 (alumnos) + M05 (bajas y reingresos, subdominio de alumnos). */
 export const createStudentsModule = (audit?: AuditLogger) => {

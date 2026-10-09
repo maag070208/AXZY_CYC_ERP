@@ -530,12 +530,13 @@ model Group {
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
 
-  course      Course       @relation(fields: [courseId], references: [id])
-  term        Term         @relation(fields: [termId], references: [id])
-  teacher     Teacher?     @relation(fields: [teacherId], references: [id])
-  enrollments Enrollment[]
-  assessments Assessment[]
-  onlineExams OnlineExam[]
+  course             Course              @relation(fields: [courseId], references: [id])
+  term               Term                @relation(fields: [termId], references: [id])
+  teacher            Teacher?            @relation(fields: [teacherId], references: [id])
+  enrollments        Enrollment[]
+  assessments        Assessment[]
+  onlineExams        OnlineExam[]
+  attendanceSessions AttendanceSession[]
 
   @@unique([courseId, termId, nombre])
   @@index([termId])
@@ -567,11 +568,14 @@ model Enrollment {
   createdAt       DateTime         @default(now()) @map("created_at")
   updatedAt       DateTime         @updatedAt @map("updated_at")
 
-  student         Student     @relation(fields: [studentId], references: [id])
-  group           Group       @relation(fields: [groupId], references: [id])
-  transferredTo   Enrollment? @relation("EnrollmentTransfer", fields: [transferredToId], references: [id])
-  transferredFrom Enrollment? @relation("EnrollmentTransfer")
-  grades          Grade[]
+  student           Student      @relation(fields: [studentId], references: [id])
+  group             Group        @relation(fields: [groupId], references: [id])
+  transferredTo     Enrollment?  @relation("EnrollmentTransfer", fields: [transferredToId], references: [id])
+  transferredFrom   Enrollment?  @relation("EnrollmentTransfer")
+  grades            Grade[]
+  attendance        Attendance[]
+  /// Cuándo se emitió la alerta de inasistencia vigente (M18); se limpia al recuperar el umbral.
+  attendanceAlertAt DateTime?    @map("attendance_alert_at")
 
   @@index([studentId, status])
   @@index([groupId, status])
@@ -943,4 +947,180 @@ model AttemptAnswer {
   @@unique([attemptId, questionId])
   @@index([attemptId])
   @@map("attempt_answers")
+}
+
+// ---------------------------------------------------------------------------
+// M18 — Asistencia y justificantes
+// ---------------------------------------------------------------------------
+
+enum AttendanceStatus {
+  PRESENTE
+  FALTA
+  RETARDO
+  JUSTIFICADA
+}
+
+enum JustificationStatus {
+  PENDIENTE
+  APROBADA
+  RECHAZADA
+}
+
+model AttendanceSession {
+  id           String    @id @default(uuid())
+  groupId      String    @map("group_id")
+  fecha        DateTime  @db.Date
+  /// `HH:mm` opcional (varias sesiones el mismo día).
+  hora         String?   @db.VarChar(5)
+  tema         String?   @db.VarChar(200)
+  createdBy    String    @map("created_by")
+  /// Anulación lógica: la sesión deja de contar para el porcentaje.
+  deletedAt    DateTime? @map("deleted_at")
+  deletedBy    String?   @map("deleted_by")
+  deleteReason String?   @map("delete_reason") @db.VarChar(300)
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  group   Group        @relation(fields: [groupId], references: [id])
+  records Attendance[]
+
+  @@index([groupId, fecha])
+  @@map("attendance_sessions")
+}
+
+model Attendance {
+  id           String           @id @default(uuid())
+  sessionId    String           @map("session_id")
+  enrollmentId String           @map("enrollment_id")
+  status       AttendanceStatus
+  recordedBy   String?          @map("recorded_by")
+  createdAt    DateTime         @default(now()) @map("created_at")
+  updatedAt    DateTime         @updatedAt @map("updated_at")
+
+  session       AttendanceSession @relation(fields: [sessionId], references: [id])
+  enrollment    Enrollment        @relation(fields: [enrollmentId], references: [id])
+  justification Justification?
+
+  @@unique([sessionId, enrollmentId])
+  @@index([enrollmentId, status])
+  @@map("attendance")
+}
+
+model Justification {
+  id            String              @id @default(uuid())
+  attendanceId  String              @unique @map("attendance_id")
+  motivo        String              @db.VarChar(1000)
+  /// Clave privada en el almacenamiento (S3 o disco); nunca una URL pública.
+  archivoKey    String?             @map("archivo_key")
+  archivoNombre String?             @map("archivo_nombre") @db.VarChar(255)
+  archivoMime   String?             @map("archivo_mime") @db.VarChar(100)
+  archivoSize   Int?                @map("archivo_size")
+  status        JustificationStatus @default(PENDIENTE)
+  solicitadoPor String              @map("solicitado_por")
+  resueltoPor   String?             @map("resuelto_por")
+  resolvedAt    DateTime?           @map("resolved_at")
+  nota          String?             @db.VarChar(500)
+  createdAt     DateTime            @default(now()) @map("created_at")
+  updatedAt     DateTime            @updatedAt @map("updated_at")
+
+  attendance Attendance @relation(fields: [attendanceId], references: [id])
+
+  @@index([status])
+  @@map("justifications")
+}
+
+// ---------------------------------------------------------------------------
+// M19 — Notificaciones (outbox)
+// ---------------------------------------------------------------------------
+
+enum NotificationChannel {
+  EMAIL
+  SMS
+  WHATSAPP
+  /// Bandeja dentro de la app (campana); se entrega al encolar.
+  INTERNO
+}
+
+enum NotificationStatus {
+  EN_COLA
+  ENVIADO
+  FALLIDO
+  /// No se envió por baja del destinatario (opt-out).
+  OMITIDO
+}
+
+model NotificationTemplate {
+  id          String              @id @default(uuid())
+  /// Evento que la dispara (p. ej. `ALERTA_INASISTENCIA`); una por canal.
+  clave       String              @db.VarChar(60)
+  nombre      String              @db.VarChar(150)
+  canal       NotificationChannel
+  asunto      String?             @db.VarChar(200)
+  cuerpo      String
+  /// Variables declaradas que el payload debe cubrir (`["nombre", "monto"]`).
+  variables   Json                @default("[]")
+  /// Transaccional obligatorio: ignora la baja (opt-out).
+  obligatorio Boolean             @default(false)
+  active      Boolean             @default(true)
+  createdAt   DateTime            @default(now()) @map("created_at")
+  updatedAt   DateTime            @updatedAt @map("updated_at")
+
+  notifications Notification[]
+
+  @@unique([clave, canal])
+  @@index([canal, active])
+  @@map("notification_templates")
+}
+
+model Notification {
+  id                String              @id @default(uuid())
+  /// Correo, teléfono o `user:<id>` para la bandeja interna.
+  destinatario      String              @db.VarChar(200)
+  canal             NotificationChannel
+  templateId        String?             @map("template_id")
+  /// Cuenta destinataria (bandeja y tiempo real), si se conoce.
+  userId            String?             @map("user_id")
+  /// Evento o módulo de origen (`ALERTA_INASISTENCIA`, `MANUAL`…).
+  origen            String              @default("MANUAL") @db.VarChar(60)
+  payload           Json                @default("{}")
+  asunto            String?             @db.VarChar(200)
+  cuerpo            String
+  status            NotificationStatus  @default(EN_COLA)
+  attempts          Int                 @default(0)
+  maxAttempts       Int                 @default(5) @map("max_attempts")
+  nextRetryAt       DateTime            @default(now()) @map("next_retry_at")
+  /// Reclamo del worker (evita que dos instancias envíen lo mismo).
+  lockedUntil       DateTime?           @map("locked_until")
+  error             String?             @db.VarChar(500)
+  providerMessageId String?             @map("provider_message_id")
+  /// Enviado en modo simulado (sin proveedor real configurado).
+  dryRun            Boolean             @default(false) @map("dry_run")
+  idempotencyKey    String?             @unique @map("idempotency_key") @db.VarChar(200)
+  readAt            DateTime?           @map("read_at")
+  sentAt            DateTime?           @map("sent_at")
+  createdBy         String?             @map("created_by")
+  createdAt         DateTime            @default(now()) @map("created_at")
+  updatedAt         DateTime            @updatedAt @map("updated_at")
+
+  template NotificationTemplate? @relation(fields: [templateId], references: [id])
+
+  @@index([status, nextRetryAt])
+  @@index([destinatario])
+  @@index([userId, canal, createdAt])
+  @@index([templateId])
+  @@map("notifications")
+}
+
+model NotificationPreference {
+  id           String              @id @default(uuid())
+  destinatario String              @db.VarChar(200)
+  canal        NotificationChannel
+  optOut       Boolean             @default(false) @map("opt_out")
+  motivo       String?             @db.VarChar(300)
+  updatedBy    String?             @map("updated_by")
+  createdAt    DateTime            @default(now()) @map("created_at")
+  updatedAt    DateTime            @updatedAt @map("updated_at")
+
+  @@unique([destinatario, canal])
+  @@map("notification_preferences")
 }

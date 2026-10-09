@@ -93,6 +93,7 @@ export const createChargeRouter = (c: FinanceController): Router => {
     request: { body: { required: false, content: json(LateFeesDto) } },
     responses: { 200: { description: "{ asOf, created, updated, skipped }" }, 409: { description: "LATE_FEES_DISABLED" } },
   });
+  doc("post", "/charges/reminders", "Encola avisos «pago por vencer» de los próximos `days` días (charges.generate; idempotente por cargo)", { responses: { 200: { description: "{ charges, queued }" } } });
   doc("get", "/charges/{id}", "Detalle (charges.view)", {
     parameters: [param("id")],
     responses: { 200: { description: "Cargo", content: json(ChargeSchema) } },
@@ -108,6 +109,7 @@ export const createChargeRouter = (c: FinanceController): Router => {
   router.post("/query", requiresPermission("charges.view"), asyncHandler(c.chargesTable));
   router.post("/generate", requiresPermission("charges.generate"), asyncHandler(c.generate));
   router.post("/late-fees", requiresPermission("charges.generate"), asyncHandler(c.lateFees));
+  router.post("/reminders", requiresPermission("charges.generate"), asyncHandler(c.reminders));
   router.post("/", requiresPermission("charges.create"), asyncHandler(c.createCharge));
   router.get("/:id", requiresPermission("charges.view"), asyncHandler(c.getCharge));
   router.delete("/:id", requiresPermission("charges.cancel"), asyncHandler(c.cancelCharge));

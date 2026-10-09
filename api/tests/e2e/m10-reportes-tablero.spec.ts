@@ -99,7 +99,7 @@ test.afterAll(async () => {
 test("catálogo: el profesor no ve reportes con montos; el alumno no entra", async () => {
   const all = await (await control.get("reports")).json();
   expect(all.map((r: { tipo: string }) => r.tipo)).toEqual([
-    "students-active", "students-inactive", "enrollments-by-group", "grades-by-group", "payments-period", "debts",
+    "students-active", "students-inactive", "enrollments-by-group", "grades-by-group", "attendance-by-group", "payments-period", "debts",
   ]);
   const area = await (await prof.get("reports")).json();
   expect(area.map((r: { tipo: string }) => r.tipo)).not.toContain("debts");

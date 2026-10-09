@@ -9,7 +9,7 @@ import { createExamRouters } from "./routes/exam.routes";
 export const createExamsModule = (audit?: AuditLogger) => {
   const exams = new ExamService(prismaClient, audit);
   const attempts = new AttemptService(exams, prismaClient, audit);
-  return { routers: createExamRouters(new ExamController(exams, attempts)), attempts };
+  return { routers: createExamRouters(new ExamController(exams, attempts)), exams, attempts };
 };
 
 export default createExamsModule;

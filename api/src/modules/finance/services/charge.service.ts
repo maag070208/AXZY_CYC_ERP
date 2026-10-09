@@ -19,7 +19,9 @@ import {
   type ITDataTableResponse,
 } from "@core/utils/table";
 import type { AuditLogger } from "@modules/audit";
-import type { StudentService } from "@modules/students";
+import { studentContacts, type StudentService } from "@modules/students";
+import type { Notifier } from "@core/ports/notification.port";
+import { formatDay, formatMoney } from "@core/utils/format";
 import { fullName } from "@modules/students/services/student.service";
 import {
   CHARGE_STATUSES,
@@ -43,11 +45,47 @@ const percentOf = (descuento: number, monto: number) => (monto > 0 ? money((desc
  * estatus (`PENDIENTE → PARCIAL → PAGADO`) lo recalculan los pagos.
  */
 export class ChargeService {
+  private notifier?: Notifier;
+
   constructor(
     private readonly students: StudentService,
     private readonly db: PrismaClient = prismaClient,
     private readonly audit?: AuditLogger
   ) {}
+
+  setNotifier(notifier: Notifier): void {
+    this.notifier = notifier;
+  }
+
+  /**
+   * Avisos «pago por vencer» (M19): cargos con saldo que vencen dentro de
+   * `days` días. La clave de idempotencia por cargo y vencimiento garantiza un
+   * solo aviso aunque el barrido corra varias veces al día.
+   */
+  async remindUpcoming(days = 3, now: Date = new Date()): Promise<{ charges: number; queued: number }> {
+    if (!this.notifier) return { charges: 0, queued: 0 };
+    const today = todayInBusinessZone(now);
+    const until = fromDbDay(new Date(toDbDay(today).getTime() + days * 86_400_000));
+    const charges = await this.db.charge.findMany({
+      where: { status: { in: ["PENDIENTE", "PARCIAL"] }, fechaVencimiento: { gte: toDbDay(today), lte: toDbDay(until) } },
+      include: { concept: { select: { nombre: true } }, payments: { where: { cancelledAt: null }, select: { monto: true } } },
+    });
+    let queued = 0;
+    for (const charge of charges) {
+      const contacts = await studentContacts(this.db, charge.studentId, "payer");
+      if (!contacts) continue;
+      const total = Number(charge.monto) - Number(charge.descuento);
+      const saldo = money(total) - money(sumOf(charge.payments.map((p) => p.monto)));
+      const fecha = fromDbDay(charge.fechaVencimiento);
+      queued += await this.notifier({
+        clave: "PAGO_POR_VENCER",
+        recipients: contacts.recipients,
+        payload: { nombre: contacts.nombre, concepto: charge.concept.nombre, saldo: formatMoney(saldo), fecha: formatDay(fecha) },
+        idempotencyKey: `PAGO_POR_VENCER:${charge.id}:${fecha}`,
+      });
+    }
+    return { charges: charges.length, queued };
+  }
 
   async load(id: string, user: UserPermissions | null, client: PrismaClient | Tx = this.db): Promise<ChargeRow> {
     const scoped = user ? await chargeScope(user) : null;

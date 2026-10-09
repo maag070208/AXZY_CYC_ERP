@@ -8,6 +8,7 @@ import { createDocumentsRouter, createStudentDocumentsRouter } from "./routes/do
 
 export { KardexService } from "./services/kardex.service";
 export type { KardexSource } from "./models/entity/document.entity";
+export { detectFileType } from "./models/entity/document.entity";
 
 /** M06 — expediente documental y kardex calculado. Recibe el servicio de alumnos (alcance). */
 export const createDocumentsModule = (students: StudentService, audit?: AuditLogger) => {

@@ -538,5 +538,50 @@
     "sensitive": false,
     "active": true,
     "sortOrder": 6
+  },
+  {
+    "key": "attendance.view",
+    "module": "Asistencia",
+    "name": "Ver asistencia y porcentajes",
+    "scopes": ["NONE", "OWN", "AREA", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 1
+  },
+  {
+    "key": "attendance.manage",
+    "module": "Asistencia",
+    "name": "Crear sesiones y pasar lista",
+    "scopes": ["NONE", "AREA", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 2
+  },
+  {
+    "key": "attendance.justify",
+    "module": "Asistencia",
+    "name": "Solicitar y resolver justificantes",
+    "scopes": ["NONE", "OWN", "AREA", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 3
+  },
+  {
+    "key": "notifications.view",
+    "module": "Notificaciones",
+    "name": "Ver plantillas, envíos y preferencias",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 1
+  },
+  {
+    "key": "notifications.manage",
+    "module": "Notificaciones",
+    "name": "Administrar plantillas, envíos y bajas",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": true,
+    "active": true,
+    "sortOrder": 2
   }
 ]

@@ -71,6 +71,11 @@ export class FinanceController {
     const { asOf } = LateFeesDto.parse(req.body ?? {});
     res.json(await this.charges.applyLateFees(asOf, actor(req)));
   };
+  reminders = async (req: Request, res: Response) => {
+    const days = Number(req.body?.days ?? 3);
+    if (!Number.isInteger(days) || days < 0 || days > 30) throw new HttpError(400, "VALIDATION_ERROR", {}, { days: ["INVALID_FORMAT"] });
+    res.json(await this.charges.remindUpcoming(days));
+  };
   cancelCharge = async (req: Request, res: Response) => {
     const { motivo } = CancelDto.parse(req.body ?? {});
     res.json(await this.charges.cancel(req.params.id, motivo, actor(req)));

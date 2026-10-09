@@ -34,6 +34,9 @@ const getResend = (): Resend | null => {
   return resendClient;
 };
 
+/** ¿El correo está en modo simulado (sin proveedor real o `EMAIL_DRY_RUN`)? */
+export const isEmailDryRun = (): boolean => isDryRun();
+
 const isDryRun = (): boolean => {
   if (env.EMAIL_DRY_RUN === true) return true;
   const hasResend = !!env.RESEND_API_KEY;

@@ -13,6 +13,9 @@ import {
   type ITDataTableResponse,
 } from "@core/utils/table";
 import type { AuditLogger } from "@modules/audit";
+import type { Notifier } from "@core/ports/notification.port";
+import { formatInstant } from "@core/utils/format";
+import { studentContacts } from "@modules/students";
 import { CURRENT_ENROLLMENT, GROUPS_RESOURCE, assertGroupInScope } from "@modules/courses";
 import {
   EXAM_STATUSES,
@@ -118,10 +121,17 @@ export const examScope = (user: UserPermissions, permission: string) =>
  * iniciados, preguntas y reglas quedan fijas (`EXAM_PUBLISHED_LOCKED`).
  */
 export class ExamService {
+  private notifier?: Notifier;
+
   constructor(
     private readonly db: PrismaClient = prismaClient,
     private readonly audit?: AuditLogger
   ) {}
+
+  /** Puerto de M19: aviso «examen publicado» a los inscritos del grupo. */
+  setNotifier(notifier: Notifier): void {
+    this.notifier = notifier;
+  }
 
   async load(id: string, user: UserPermissions | null, permission = "exams.view"): Promise<ExamRow> {
     const scoped = user ? await examScope(user, permission) : null;
@@ -302,6 +312,28 @@ export class ExamService {
           previousState: { status: "BORRADOR" }, newState: { status: "PUBLICADO", total, preguntas: row.questions.length } },
         tx
       );
+      if (this.notifier) {
+        const enrolled = await tx.enrollment.findMany({ where: { groupId: row.groupId, status: "INSCRITO" }, select: { studentId: true } });
+        for (const { studentId } of enrolled) {
+          const contacts = await studentContacts(tx, studentId);
+          if (!contacts) continue;
+          await this.notifier(
+            {
+              clave: "EXAMEN_PUBLICADO",
+              recipients: contacts.recipients,
+              payload: {
+                nombre: contacts.nombre,
+                examen: row.titulo,
+                curso: row.group.course.nombre,
+                apertura: formatInstant(row.fechaApertura),
+                cierre: formatInstant(row.fechaCierre),
+              },
+              idempotencyKey: `EXAMEN_PUBLICADO:${row.id}:${studentId}`,
+            },
+            tx
+          );
+        }
+      }
       return toDetail(row);
     });
   }

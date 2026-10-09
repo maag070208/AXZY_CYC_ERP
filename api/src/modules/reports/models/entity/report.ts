@@ -35,6 +35,7 @@ export const REPORT_TYPES = [
   "students-inactive",
   "enrollments-by-group",
   "grades-by-group",
+  "attendance-by-group",
   "payments-period",
   "debts",
 ] as const;

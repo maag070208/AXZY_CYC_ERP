@@ -67,6 +67,28 @@ export const clearAuthE2E = async (): Promise<number> => {
   return result.count;
 };
 
+/**
+ * Notificaciones de prueba (M19): las dirigidas a cuentas o correos `e2e…`,
+ * las de plantillas `E2E_…`, esas plantillas y las bajas de destinatarios `e2e…`.
+ */
+export const clearNotificationsE2E = async (): Promise<number> => {
+  const users = await db.user.findMany({ where: { username: { startsWith: E2E_PREFIX } }, select: { id: true } });
+  const ids = users.map((u) => u.id);
+  const result = await db.notification.deleteMany({
+    where: {
+      OR: [
+        { userId: { in: ids } },
+        { createdBy: { in: ids } },
+        { destinatario: { contains: "e2e", mode: "insensitive" } },
+        { template: { clave: { startsWith: E2E_ROLE_PREFIX } } },
+      ],
+    },
+  });
+  await db.notificationTemplate.deleteMany({ where: { clave: { startsWith: E2E_ROLE_PREFIX } } });
+  await db.notificationPreference.deleteMany({ where: { destinatario: { contains: "e2e", mode: "insensitive" } } });
+  return result.count;
+};
+
 /** Prefijo de roles de prueba (las claves de rol van en MAYÚSCULAS). */
 export const E2E_ROLE_PREFIX = "E2E_";
 /** Prefijo de nombres en catálogos M11. */
@@ -169,6 +191,8 @@ export const clearFinanceE2E = async (): Promise<number> => {
 
 /** Inscripciones (y sus calificaciones) que cumplan `where`. */
 const clearEnrollments = async (where: Prisma.EnrollmentWhereInput): Promise<void> => {
+  await db.justification.deleteMany({ where: { attendance: { enrollment: where } } });
+  await db.attendance.deleteMany({ where: { enrollment: where } });
   await db.grade.deleteMany({ where: { enrollment: where } });
   await db.enrollment.updateMany({ where, data: { transferredToId: null } });
   await db.enrollment.deleteMany({ where });
@@ -198,6 +222,10 @@ export const clearAcademicE2E = async (): Promise<number> => {
   await db.onlineExamQuestion.deleteMany({ where: { question: e2eCourse } });
   await db.question.deleteMany({ where: e2eCourse });
   await clearEnrollments({ groupId: { in: groupIds } });
+  // Asistencia (M18): registros y justificantes de las sesiones de esos grupos.
+  await db.justification.deleteMany({ where: { attendance: { session: { groupId: { in: groupIds } } } } });
+  await db.attendance.deleteMany({ where: { session: { groupId: { in: groupIds } } } });
+  await db.attendanceSession.deleteMany({ where: { groupId: { in: groupIds } } });
   await db.grade.deleteMany({ where: { assessment: { groupId: { in: groupIds } } } });
   await db.assessment.deleteMany({ where: { groupId: { in: groupIds } } });
   const deleted = await db.group.deleteMany({ where: { id: { in: groupIds } } });

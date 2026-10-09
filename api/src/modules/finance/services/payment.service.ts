@@ -3,6 +3,9 @@ import { prismaClient } from "@core/config/database";
 import { HttpError } from "@core/middlewares/error.middleware";
 import { paginatedQuery } from "@core/db/table";
 import { serializable } from "@core/db/serializable";
+import { formatMoney } from "@core/utils/format";
+import type { Notifier } from "@core/ports/notification.port";
+import { studentContacts } from "@modules/students";
 import { scopeWhere, type UserPermissions } from "@core/permissions";
 import { enforcePolicy } from "@core/policies";
 import { fromDbDay, toDbDay, todayInBusinessZone } from "@core/utils/day";
@@ -91,10 +94,17 @@ const refreshChargeStatus = async (tx: Tx, chargeId: string) => {
  * cargo. Un pago nunca se borra: se cancela con motivo y el folio se conserva.
  */
 export class PaymentService {
+  private notifier?: Notifier;
+
   constructor(
     private readonly db: PrismaClient = prismaClient,
     private readonly audit?: AuditLogger
   ) {}
+
+  /** Puerto de M19: recibo por correo y aviso interno al registrar un pago. */
+  setNotifier(notifier: Notifier): void {
+    this.notifier = notifier;
+  }
 
   private async load(id: string, client: PrismaClient | Tx, user?: UserPermissions): Promise<PaymentRow> {
     const scoped = user ? await paymentScope(user) : null;
@@ -201,6 +211,27 @@ export class PaymentService {
           },
         });
         const status = await refreshChargeStatus(tx, charge.id);
+        if (this.notifier) {
+          const contacts = await studentContacts(tx, charge.studentId, "payer");
+          const concept = await tx.feeConcept.findUnique({ where: { id: charge.conceptId }, select: { nombre: true } });
+          if (contacts) {
+            await this.notifier(
+              {
+                clave: "PAGO_RECIBIDO",
+                recipients: contacts.recipients,
+                payload: {
+                  nombre: contacts.nombre,
+                  monto: formatMoney(input.monto),
+                  concepto: concept?.nombre ?? "",
+                  folio: payment.reciboFolio,
+                  saldo: formatMoney(new Prisma.Decimal(saldo).minus(input.monto)),
+                },
+                idempotencyKey: `PAGO_RECIBIDO:${payment.id}`,
+              },
+              tx
+            );
+          }
+        }
         await this.audit?.(
           { action: "PAYMENT_REGISTERED", entityType: "Payment", entityId: payment.id, userId: actor.id,
             userName: actor.username,

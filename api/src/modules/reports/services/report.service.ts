@@ -120,6 +120,8 @@ export class ReportService {
         return { ...base, ...(await this.enrollmentsByGroup(user, filters)) };
       case "grades-by-group":
         return { ...base, ...(await this.gradesByGroup(user, filters)) };
+      case "attendance-by-group":
+        return { ...base, ...(await this.attendanceByGroup(user, filters)) };
       case "payments-period":
         return { ...base, ...(await this.paymentsPeriod(filters)) };
       case "debts":
@@ -235,6 +237,58 @@ export class ReportService {
         reprobados: rows.filter((r) => r.status === "REPROBADO").length,
         promedio: finals.length ? money(finals.reduce((a, b) => a + b, 0) / finals.length) : 0,
       },
+    };
+  }
+
+  /**
+   * Asistencia por alumno y grupo (M18 §4.4): sobre sesiones vigentes, en el
+   * rango `from`/`to` si se da; marca a quien está bajo el umbral.
+   */
+  private async attendanceByGroup(user: UserPermissions, filters: ReportFilters) {
+    const term = await this.term(filters.termId);
+    const scoped = await enrollmentScope(user, "reports.view");
+    const enrollments = await this.db.enrollment.findMany({
+      where: {
+        AND: [
+          { status: { not: "BAJA" } },
+          { group: { active: true, ...(term ? { termId: term.id } : {}) } },
+          ...(filters.groupId ? [{ groupId: filters.groupId }] : []),
+          ...(scoped ? [scoped] : []),
+        ],
+      },
+      include: { student: { select: studentSelect }, group: { select: { nombre: true, course: { select: { nombre: true } } } } },
+      orderBy: [{ group: { course: { nombre: "asc" } } }, { group: { nombre: "asc" } }, { student: { apellidoPaterno: "asc" } }],
+    });
+    const fecha = {
+      ...(filters.from ? { gte: new Date(`${filters.from}T00:00:00.000Z`) } : {}),
+      ...(filters.to ? { lte: new Date(`${filters.to}T00:00:00.000Z`) } : {}),
+    };
+    const counts = enrollments.length
+      ? await this.db.attendance.groupBy({
+          by: ["enrollmentId", "status"],
+          where: { enrollmentId: { in: enrollments.map((e) => e.id) }, session: { deletedAt: null, ...(filters.from || filters.to ? { fecha } : {}) } },
+          _count: { _all: true },
+        })
+      : [];
+    const thresholdRow = await this.db.setting.findUnique({ where: { key: "ATTENDANCE_THRESHOLD" } });
+    const threshold = Number(thresholdRow?.value ?? 80);
+    const rows: ReportRow[] = enrollments.map((e) => {
+      const of = (status: string) => counts.find((c) => c.enrollmentId === e.id && c.status === status)?._count._all ?? 0;
+      const faltas = of("FALTA");
+      const sesiones = faltas + of("PRESENTE") + of("RETARDO") + of("JUSTIFICADA");
+      const porcentaje = sesiones ? Math.round(((sesiones - faltas) / sesiones) * 1000) / 10 : null;
+      return {
+        curso: e.group.course.nombre, grupo: e.group.nombre, matricula: e.student.matricula, nombre: fullName(e.student),
+        sesiones, faltas, retardos: of("RETARDO"), justificadas: of("JUSTIFICADA"), porcentaje,
+        alerta: porcentaje !== null && porcentaje < threshold ? "Sí" : null,
+      };
+    });
+    return {
+      filters: { termId: term?.id, termNombre: term?.nombre ?? null, groupId: filters.groupId, from: filters.from, to: filters.to },
+      columns: [col("curso"), col("grupo"), col("matricula"), col("nombre"), col("sesiones", "number"), col("faltas", "number"),
+        col("retardos", "number"), col("justificadas", "number"), col("porcentaje", "percent"), col("alerta")],
+      rows,
+      totals: { rows: rows.length, enAlerta: rows.filter((r) => r.alerta).length, umbral: threshold },
     };
   }
 
