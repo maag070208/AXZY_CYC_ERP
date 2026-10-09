@@ -65,7 +65,8 @@ setSessionHooks(
 
 ## 4. Autenticación y guards
 
-- **HashRouter**; todas las rutas tras `PrivateRoutes` (excepto `/login`).
+- **HashRouter**; todas las rutas tras `PrivateRoutes` (excepto las públicas:
+  `/login`, `/forgot-password` y `/reset-password`).
 - `PrivateRoutes` envuelve en `ITLayout`, carga `/auth/me`, construye el menú
   desde `APP_SCREENS` y los permisos del usuario, y conecta notificaciones Ably.
 - `RequiresPermission` gate por ruta; `usePermission(permission)` devuelve el
@@ -81,7 +82,10 @@ semántica para listas completas y la reutilizan los exports PDF/CSV.
 ## 6. i18n y validación
 
 - `i18next` con namespaces por dominio (`shared/i18n/locales/{es,en}/<ns>.json`),
-  idioma por defecto `es`, persistido en `localStorage`.
+  idioma por defecto `es`, persistido en `localStorage`. **Llaves en inglés** y
+  tipadas (`i18n.d.ts`): una llave estática inexistente no compila. Para llaves
+  armadas en runtime (`status.${row.status}`) se usa `dyn()`; los valores de enum
+  y los nombres de campo son las llaves (`ENROLLED`, `studentNumber`).
 - `@shared/validation` expone validadores puros (`validateCurp`, `validateEmail`,
   `validatePhone`, …) que devuelven `string | null`; cada hook de formulario
   define `validateField`/`validate`.
@@ -97,8 +101,8 @@ utilidades del kit.
 
 - PDFs con `@react-pdf/renderer` en `widgets/*-pdf` (membrete `PdfLetterhead`,
   pie `PdfFooter`), descarga con `file-saver`.
-- Electron carga el mismo `dist/` por `app://` y resuelve la API por
-  `window.__APP_CONFIG__`; notificaciones nativas vía `window.desktop`.
+- El empaquetado de escritorio (Electron) está previsto y aún no tiene código
+  en el repo; la web ya resuelve la API por `window.__APP_CONFIG__`.
 
 ## 9. Contexto no seguro
 

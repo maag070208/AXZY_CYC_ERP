@@ -11,6 +11,8 @@ Esquema **JWT Bearer** con access token + **refresh rotado**, hash con
 | POST | `/api/v1/auth/login` | Inicia sesión | Público |
 | POST | `/api/v1/auth/refresh` | Rota el refresh y emite nuevo access | Refresh token |
 | GET | `/api/v1/auth/me` | Usuario, roles y mapa de permisos | Autenticado |
+| POST | `/api/v1/auth/logout` | Revoca el refresh enviado (o todos) | Autenticado |
+| POST | `/api/v1/auth/change-password` | Cambio propio; revoca sesiones y emite tokens nuevos | Autenticado |
 | POST | `/api/v1/auth/forgot-password` | Solicita recuperación | Público |
 | POST | `/api/v1/auth/reset-password` | Restablece con token de un uso | Público |
 
@@ -28,14 +30,14 @@ Esquema **JWT Bearer** con access token + **refresh rotado**, hash con
   "refreshToken": "…",
   "user": {
     "id": "…", "username": "…", "name": "…",
-    "role": "ADMIN", "roles": ["ADMIN", "MANAGER"],
+    "role": "ADMIN", "roles": ["ADMIN", "SCHOOL_CONTROL"],
     "permissions": { "students.view": "ALL", "grades.capture": "AREA" }
   }
 }
 ```
 
 Reglas:
-- Bloqueo temporal tras **5 intentos fallidos** (configurable).
+- Bloqueo temporal tras **5 intentos fallidos** (`MAX_LOGIN_ATTEMPTS`; dura `LOGIN_LOCK_MINUTES`) → `429 ACCOUNT_LOCKED`.
 - Un login exitoso actualiza el último acceso y se registra en bitácora.
 - Nunca se devuelve ni registra la contraseña.
 - Cuenta desactivada → `401 ACCOUNT_DEACTIVATED` (la web lo muestra y hace logout).
@@ -68,25 +70,31 @@ La web guarda este mapa y arma el menú (`APP_SCREENS`) y los gates
 1. Lee `Authorization: Bearer <jwt>` (`401 TOKEN_MISSING` / `INVALID_AUTHORIZATION_HEADER` / `INVALID_TOKEN`).
 2. Rechaza refresh tokens como access (`isRefreshToken`).
 3. **Relee la BD** y exige usuario `active` (`401 INVALID_SESSION` si no).
-4. Adjunta `roles` (rol principal + adicionales), `departmentId` y **excepciones**
-   vigentes (`user_permissions`) a `req.user`.
+4. Adjunta `roles` (multi-rol, `user_roles`) y las **excepciones** vigentes
+   (`user_permissions`) a `req.user`.
 
 > El JWT solo identifica; cada petición resuelve permisos frescos (fail-closed).
 
 ## 6. Recuperación de contraseña
 
 1. `POST /auth/forgot-password` con `{ "username" }` (responde 200 siempre, no revela existencia).
-2. Se genera token de un solo uso con expiración y se envía por correo (M19).
+2. Se genera token de un solo uso (vence en 1 hora) y se envía por correo en el
+   idioma de la petición; el enlace apunta a `${APP_URL}/#/reset-password?token=…`
+   ([D-020](../../DECISIONES.md)).
 3. `POST /auth/reset-password` con `{ token, password }`; se valida (no usado/no expirado), se actualiza el hash y se invalidan las sesiones.
 
 ## 7. Contraseñas
 
-- Mínimo configurable (default 6–10; política final en M11).
+- Longitud mínima configurable con `PASSWORD_MIN_LENGTH` (default 10).
+- Las cuentas creadas por un administrador nacen con `mustChangePassword`
+  ([D-019](../../DECISIONES.md)).
 - Hash con **bcryptjs** (10 rounds); nunca reversible.
 - Al restablecer, invalidar refresh tokens del usuario.
 
 ## 8. Seguridad adicional
 
-- Rate limiting en `/auth/login` y `/auth/forgot-password`.
+- Bloqueo temporal por intentos fallidos (`MAX_LOGIN_ATTEMPTS`, `LOGIN_LOCK_MINUTES`).
+  El *rate limiting* por IP en `/auth/login` y `/auth/forgot-password` está
+  **pendiente** (M12).
 - Cada 403 de `requiresPermission` se audita como `ACCESS_DENIED`.
 - HTTPS obligatorio; cookies `Secure`/`SameSite` si se usan.

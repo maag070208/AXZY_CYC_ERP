@@ -7,8 +7,9 @@ contra servicios reales y unitarias de lógica pura. Ver [D-011](../../DECISIONE
 
 - Después de cada ajuste se corre **únicamente el spec** que cubre ese cambio:
   `npx playwright test tests/e2e/<spec>.spec.ts` (en `api/` o `web/`).
-- **Nunca** la suite completa ni `npm test` de todo; el dueño la corre cuando lo
-  pide.
+- **Nunca** la suite completa por inercia; se corre completa cuando el cambio es
+  transversal (p. ej. el refactor a inglés) o cuando el dueño lo pide. CI siempre
+  la corre completa.
 - Si el cambio no tiene spec, se dice y se ofrece escribirlo.
 - Verificaciones largas (builds de Docker, barridos) solo si se piden.
 
@@ -16,7 +17,7 @@ contra servicios reales y unitarias de lógica pura. Ver [D-011](../../DECISIONE
 
 | Tipo | Ubicación | Qué cubre |
 |---|---|---|
-| **Unitaria** | `api/tests/unit`, `web/tests/unit` | Reglas puras (validación CURP/matrícula, ponderaciones, cupo, empalme, cálculo de kardex, folios, mora, filtros de tabla, permisos) |
+| **Unitaria** | `api/tests/unit` (la web no tiene suite unitaria todavía) | Reglas puras (validación CURP/matrícula, ponderaciones, cupo, empalme, cálculo de kardex, folios, mora, filtros de tabla, permisos) |
 | **Contrato (API E2E)** | `api/tests/e2e` | Endpoints reales contra `localhost:PORT`: validación, permisos (401/403), contrato de tabla, idempotencia, bitácora |
 | **Navegador (Web E2E)** | `web/tests/e2e` | Flujos por pantalla contra app + API reales; incluye `insecure-context` |
 
@@ -31,9 +32,9 @@ contra servicios reales y unitarias de lógica pura. Ver [D-011](../../DECISIONE
   `E2E_ALLOW_REMOTE_DB=1`) y nunca con `NODE_ENV=production`.
 - La **API es dueña de la BD**: expone `test:e2e:provision` y `test:e2e:clean`, que
   la suite web reutiliza.
-- Fixtures de API: contexts autenticados (`ctxAdmin`, `teacher`, `student`,
-  `ctxAnonymous`) por login real; **no** fijan `Content-Type` a nivel de contexto
-  (rompe `multipart/form-data`).
+- Soporte de API (`tests/e2e/support`): contextos autenticados por login real
+  para cada rol; **no** se fija `Content-Type` en los contextos que suben
+  archivos (rompe `multipart/form-data`).
 
 ## 4. Cobertura por módulo (checklist)
 
@@ -41,7 +42,7 @@ contra servicios reales y unitarias de lógica pura. Ver [D-011](../../DECISIONE
 - [ ] Camino feliz + errores de validación + permisos (401/403) por endpoint.
 - [ ] Bitácora verificada en escrituras.
 - [ ] Casos límite (duplicados, rangos, cupo lleno, empalme, expiración).
-- [ ] Cobertura ≥ 70% en la lógica de servicios/reglas.
+- [ ] Cobertura ≥ 70% en la lógica de servicios/reglas (objetivo: hoy **no se mide**; falta instrumentación, M12).
 
 ## 5. Reglas críticas con prueba obligatoria (CYC)
 
@@ -59,7 +60,7 @@ contra servicios reales y unitarias de lógica pura. Ver [D-011](../../DECISIONE
 
 ## 6. Aislamiento y datos de ejemplo
 
-- Script de semillas con datos de ejemplo (M12) para demos y capacitación.
+- Semillas con datos de ejemplo: `pnpm --dir api seed:demo` y `seed:mock` (demos y capacitación).
 - En web, `insecure-context.spec.ts` borra `crypto.randomUUID` antes de cargar
   para reproducir `http://IP:8080` y verifica que ninguna pantalla truene.
 
@@ -68,4 +69,5 @@ contra servicios reales y unitarias de lógica pura. Ver [D-011](../../DECISIONE
 - Por PR: lint + typecheck + specs afectados; merge bloqueado si fallan.
 - Job de migraciones corre `prisma migrate deploy` sobre base vacía para detectar
   migraciones rotas.
-- Cobertura monitoreada (umbral 70% en servicios/reglas).
+- CI corre ambas suites completas (unitarias + contrato en `api/`, navegador en
+  `web/`) contra un Postgres de servicio. La medición de cobertura está pendiente (M12).

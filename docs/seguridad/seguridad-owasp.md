@@ -12,15 +12,15 @@ Controles de seguridad del SGE, alineados al estándar PTNV. Complementa
 | **A03 Injection** | Prisma/consultas parametrizadas; validación Zod con whitelist; nunca concatenar SQL. |
 | **A04 Insecure Design** | Reglas de negocio explícitas y probadas (cupo, empalme, ponderaciones, intentos); límites de intentos; políticas ABAC. |
 | **A05 Security Misconfiguration** | `helmet`; CORS restringido (`WEB_ORIGIN`); sin debug en producción; `showFab=false` en el UI kit; sin seed en arranque. |
-| **A06 Vulnerable Components** | `npm audit` en CI; dependencias e imágenes fijadas. |
-| **A07 Auth Failures** | Política de contraseña; bloqueo temporal tras 5 fallos; rate limiting; refresh rotado y revocable. |
+| **A06 Vulnerable Components** | Dependencias con lockfile (`pnpm-lock.yaml`) e imágenes fijadas. Auditoría de dependencias en CI: **pendiente** (M12). |
+| **A07 Auth Failures** | Política de contraseña; bloqueo temporal tras 5 fallos; refresh rotado y revocable. *Rate limiting* por IP: **pendiente** (M12). |
 | **A08 Data Integrity Failures** | Validación de archivos (tipo/tamaño); migraciones versionadas; idempotencia; transacciones serializables en operaciones críticas. |
 | **A09 Logging Failures** | Bitácora de escrituras y accesos denegados; logs sin datos sensibles; monitoreo de auth. |
 | **A10 SSRF** | Sin peticiones a URLs provistas por el usuario; proveedores externos con endpoints fijos (S3, Resend/SMTP, Ably). |
 
 ## 2. Autenticación y sesión
 
-- JWT access + refresh **rotado**; bcryptjs; bloqueo tras 5 intentos; rate limiting.
+- JWT access + refresh **rotado**; bcryptjs; bloqueo tras 5 intentos (el *rate limiting* por IP está pendiente).
 - `authenticate` relee la BD: usuario activo, roles, excepciones.
 - Ver [`../api/autenticacion.md`](../api/autenticacion.md).
 
@@ -34,8 +34,10 @@ Controles de seguridad del SGE, alineados al estándar PTNV. Complementa
 
 - Solo PDF/JPG/PNG; máximo según `UPLOAD_MAX_BYTES` (5 MB en M06).
 - `multer` con **memoryStorage** y límite de tamaño; validar tipo por contenido.
-- Subida a **S3** con nombre aleatorio; descarga por endpoint autorizado
-  (nunca URL directa adivinable). Sin S3 configurado → 503 `STORAGE_NOT_CONFIGURED`.
+- Almacenamiento **privado** con nombre aleatorio: S3 o disco local
+  ([D-023](../../DECISIONES.md)); descarga solo por endpoint autorizado (nunca una
+  URL pública). En producción sin almacenamiento configurado → 503
+  `STORAGE_NOT_CONFIGURED`.
 
 ## 5. Cabeceras y transporte
 

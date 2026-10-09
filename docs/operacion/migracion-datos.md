@@ -48,6 +48,15 @@ calificaciones → cargos → pagos → asistencia. El `Idempotency-Key` se liga
 Conteos origen vs destino, suma de montos, muestreo con el cliente y acta de
 aceptación.
 
+### Encabezados del CSV
+
+Las columnas canónicas están en inglés (`name`, `paternal_surname`, `curp`,
+`birth_date`, `enrollment_date`, `gender`, `phone`, `address`, `student_number`,
+`tutor_name`…; para profesores `name`, `surnames`, `email`, `phone`, `specialty`).
+Los encabezados **en español se aceptan por alias** (`nombre`, `apellido_paterno`,
+`fecha_nacimiento`, `matricula`, `telefono`, `tutor_nombre`…), así que los
+archivos de origen no se tienen que traducir. `OTRO` se acepta como `OTHER` en género.
+
 ## 3. Llaves naturales (idempotencia)
 
 | Entidad | Llave natural |

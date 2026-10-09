@@ -98,10 +98,11 @@ await this.audit?.({
 ## 7. Idempotencia
 
 ```ts
-const requestId = requestIdOf(req); // ^[A-Za-z0-9_-]{8,100}$
+const key = parseIdempotencyKey(req); // ^[A-Za-z0-9_-]{8,100}$
 ```
-Se persiste como columna única; repetir devuelve el resultado previo y reusar la
-clave con otro usuario responde 409 `IDEMPOTENCY_KEY_REUSED`.
+Se persiste (columna única o `idempotency_records` con la respuesta); repetir
+devuelve el resultado previo y reusar la clave con otra persona u operación
+responde 409 `IDEMPOTENCY_KEY_REUSED`.
 
 ## 8. OpenAPI
 
@@ -112,5 +113,8 @@ en `*.routes.ts`; el documento se arma con `OpenApiGeneratorV3` y se sirve en
 ## 9. i18n
 
 `core/i18n` (mensajes `es`/`en`) con `AsyncLocalStorage`; `t(key, params)`,
-`translateValidation`. El idioma del sistema sale de `sys_config.LANGUAGE` y se
-puede sobreescribir con `Accept-Language`.
+`translateValidation`. El idioma del sistema sale de `settings.LANGUAGE` y se
+puede sobreescribir con `Accept-Language`. Las llaves de `en.ts` se tipan contra
+`es.ts`, así que no pueden desalinearse. Ningún texto visible se escribe en el
+código: errores, correos, encabezados de exportación y etiquetas de reportes
+salen del catálogo.

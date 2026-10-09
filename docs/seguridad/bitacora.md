@@ -64,11 +64,17 @@ acceso denegado se registra fire-and-forget.
 | M08 | toda modificación de calificación con `previousState`/`newState` |
 | M09 | `CHARGE_CREATED/GENERATED`, `PAYMENT_REGISTERED/CANCELLED` (nunca borrado) |
 | M15/M16 | `EXAM_PUBLISHED`, `ATTEMPT_SUBMITTED`, revisión manual |
-| M20 | `MIGRATION_BATCH_EXECUTED` (modo, lote, totales) |
+| M18 | `ATTENDANCE_SESSION_CREATED`, `ATTENDANCE_RECORDED`, `JUSTIFICATION_*`, `ATTENDANCE_ALERT_TRIGGERED` |
+| M19 | `NOTIFICATION_TEMPLATE_*`, envíos manuales y bajas (opt-out) |
+| M20 | `MIGRATION_BATCH_PREVIEWED`, `MIGRATION_BATCH_EXECUTED` (modo, lote, totales) |
+| M22 | `PROGRAM_*`, `PROGRAM_SUBJECTS_UPDATED`, `STUDENT_PLAN_CREATED`, `STUDENT_PLAN_CANCELLED` |
 
 ## 6. Consulta y retención
 
-- `GET /api/v1/audit` (permiso `audit.view`) con filtros por `action`,
+- `POST /api/v1/audit/query` (tabla server-side) y `GET /api/v1/audit/:id`
+  (permiso `audit.view`) con filtros por `action`,
   `entityType`, `entityId`, `userId`, rango de fechas; paginado server-side.
-- La bitácora es inmutable (no se edita ni borra); su retención se configura en
-  M11 y va incluida en los respaldos.
+- La bitácora es inmutable (no se edita ni borra) y va incluida en los
+  respaldos. La política de retención está por definir (M12).
+- Los registros anteriores a [D-049](../../DECISIONES.md) conservan los nombres de
+  campo en español en `previousState`/`newState` (son historial; no se reescriben).

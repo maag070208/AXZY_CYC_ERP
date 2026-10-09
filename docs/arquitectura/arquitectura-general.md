@@ -10,14 +10,14 @@ modular + web React con Feature-Sliced Design + Axzy UI System.
 │                        Cliente (navegador)                          │
 │  React 19 + Vite + Redux Toolkit + React Router (Hash) + Tailwind   │
 │  Axzy UI System (ITLayout · ITPage · ITDataTable · ITFormBuilder)   │
-│  Electron (escritorio opcional) · i18next (es)                      │
+│  i18next (es / en)                                                 │
 └───────────────┬────────────────────────────────────────────────────┘
                 │ HTTPS · JSON · JWT Bearer (access + refresh)
 ┌───────────────▼────────────────────────────────────────────────────┐
 │                    API (Express + TypeScript)                        │
 │  ┌────────────────────────────────────────────────────────────────┐ │
 │  │ src/core/  config · middlewares · permissions · policies        │ │
-│  │            services (mail, storage/S3, ably) · swagger · i18n   │ │
+│  │            services (mail, storage, ably) · ports · swagger · i18n │ │
 │  │            utils (table, security, logger) · db                 │ │
 │  └────────────────────────────────────────────────────────────────┘ │
 │  ┌────────────────────────────────────────────────────────────────┐ │
@@ -29,8 +29,9 @@ modular + web React con Feature-Sliced Design + Axzy UI System.
 └───┬───────────────┬───────────────────┬───────────────┬─────────────┘
     │               │                   │               │
 ┌───▼───────┐ ┌─────▼──────┐    ┌───────▼───────┐ ┌────▼──────────┐
-│PostgreSQL │ │ Redis      │    │ AWS S3        │ │ Resend / SMTP │
-│(Prisma)   │ │/BullMQ     │    │ (expedientes) │ │ Ably (realtime)│
+│PostgreSQL │ │ Outbox     │    │ S3 o disco    │ │ Resend / SMTP │
+│(Prisma)   │ │(tabla      │    │ local privado │ │ Ably (realtime)│
+│           │ │notifications)│  │ (expedientes) │ │               │
 └───────────┘ └────────────┘    └───────────────┘ └───────────────┘
 ```
 
@@ -51,9 +52,9 @@ numerada en un módulo debe mapear a una prueba.
 
 ### 3.1 Petición autenticada
 1. La web inyecta `Authorization: Bearer <access>` (desde el store vía `setSessionHooks`).
-2. `authenticate` valida el JWT y **relee la BD**: usuario activo, rol(es), departamento y excepciones frescas.
+2. `authenticate` valida el JWT y **relee la BD**: usuario activo, rol(es) y excepciones frescas.
 3. `requiresPermission("recurso.acción")` verifica el alcance (`NONE/OWN/AREA/ALL`); un 403 se audita como `ACCESS_DENIED`.
-4. Las **políticas ABAC** (`evaluateActionPolicies`) pueden confirmar o denegar según contexto.
+4. Las **políticas ABAC** (`enforcePolicy`, que el servicio llama con el contexto de la acción) pueden confirmar o denegar.
 5. El controller valida el body con Zod y llama al servicio.
 6. El servicio aplica reglas, persiste (a veces en transacción), registra bitácora con `previousState`/`newState`.
 7. Los errores pasan por `errorMiddleware` → envelope plano `{ error, code, message, details }`.
@@ -77,10 +78,10 @@ numerada en un módulo debe mapear a una prueba.
 5. El puntaje se escribe como `Grade` en el `Assessment` vinculado.
 
 ### 3.5 Notificaciones asíncronas (M19)
-1. Un evento encola un registro `PENDING` en `email_logs`/`notifications` (patrón outbox).
+1. Un evento encola un registro `QUEUED` en `notifications` (patrón outbox), en la misma transacción del hecho que lo dispara.
 2. Un worker drena con reintentos y backoff.
-3. El proveedor (Resend/SMTP; SMS/WhatsApp por definir) se invoca tras una interfaz común.
-4. El resultado se persiste (`SENT`/`FAILED`).
+3. El proveedor (Resend/SMTP; SMS/WhatsApp simulados hasta definir proveedor) se invoca tras una interfaz común.
+4. El resultado se persiste (`SENT` / `FAILED` / `SKIPPED` por baja del destinatario).
 5. Los eventos en vivo viajan por **Ably** (canales `user:<id>`, `dashboard`, etc.).
 
 ## 4. Decisiones de arquitectura
@@ -92,5 +93,5 @@ numerada en un módulo debe mapear a una prueba.
 - **Tablas server-side:** contrato único `POST …/query` para listados densos.
 - **UI kit propio:** consistencia visual y de comportamiento en todas las pantallas.
 
-Ver [D-001 … D-017](../../DECISIONES.md), [api-modular.md](api-modular.md) y
+Ver [D-001 … D-049](../../DECISIONES.md), [api-modular.md](api-modular.md) y
 [web-fsd.md](web-fsd.md).

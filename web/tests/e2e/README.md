@@ -4,8 +4,7 @@ Pruebas de navegador **reales**: Chromium abre la app servida por Vite, opera lo
 formularios como una persona y todo pega contra la API de verdad en
 `localhost:4001`, que escribe en Postgres de verdad. No hay mocks de red.
 
-Cubre **M02** (acceso, usuarios, consola de roles, recuperación) y **M11**
-(configuración y catálogos):
+Cubre los módulos construidos (M02–M11, M14–M20 y M22):
 
 | Archivo | Pantalla | Flujo |
 |---|---|---|
@@ -22,13 +21,16 @@ Cubre **M02** (acceso, usuarios, consola de roles, recuperación) y **M11**
 | `m09-colegiaturas-pagos.spec.ts` | `/finance`, `/students/:id` (Estado de cuenta) | Concepto, cargo con descuento, cobro parcial con validación y recibo PDF, liquidación, cancelación con motivo, estado de cuenta PDF |
 | `m10-reportes-tablero.spec.ts` | `/`, `/reports` | Tablero con KPIs y gráficas, consulta y exportación xlsx/pdf, rango inválido, vista del profesor sin montos |
 | `m14-m17-examenes-en-linea.spec.ts` | `/questions`, `/exams/:id`, `/my-exams`, `/exam/:attemptId` | Reactivo por forma y CSV con vista previa; examen configurado, armado y publicado; el alumno presenta con temporizador, autoguardado, reanudación y envío; el profesor revisa la abierta y la calificación llega al libro |
+| `m18-m19-asistencia-notificaciones.spec.ts` | `/groups/:id` (Asistencia), `/attendance`, `/notifications` | Pase de lista, justificante y su resolución, plantillas y bandeja |
+| `m20-migracion.spec.ts` | `/migration` | Asistente de importación CSV con vista previa e historial |
+| `m22-programas-planes-pago.spec.ts` | `/programs`, `/students/:id` (Plan de pagos) | Carrera, plan de estudios, asignación con descuento y plan del alumno |
 | `m11-administracion-catalogos.spec.ts` | `/settings`, `/catalogs` | Parámetros persistentes, CRUD de motivo de baja, duplicado, solo lectura por rol |
 
 ## Cómo correrlas
 
 ```bash
 cd web
-npm run test:e2e
+pnpm test:e2e
 ```
 
 Playwright levanta lo que falte —la API (`../api`) y Vite— y reutiliza lo que ya

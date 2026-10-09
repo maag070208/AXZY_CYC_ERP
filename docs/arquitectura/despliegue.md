@@ -10,7 +10,8 @@ Ver también [`stack.md`](stack.md) y [`../operacion/entornos.md`](../operacion/
 | **Producción** | Institución | docker-compose o equivalente gestionado; nginx sirve la web y hace proxy `/api` |
 
 El despliegue sigue el estándar PTNV: **dos imágenes** (`api` y `web`), publicadas
-por separado, con **nginx** delante de la web.
+por separado, con **nginx** delante de la web. La publicación en Railway +
+Hostinger está en [`../operacion/despliegue.md`](../operacion/despliegue.md).
 
 ## 2. Docker
 
@@ -38,8 +39,8 @@ docker compose up --build -d
   de Electron, `.sql` crudos).
 
 > Primera puesta en marcha: genera la migración inicial con
-> `pnpm --dir api prisma:migrate:dev` (o `npm run db:migrate`) contra Postgres, y
-> siembra con `npm run db:seed`. Luego `docker compose up` aplica `migrate deploy`.
+> `pnpm db:migrate` contra Postgres (solo en desarrollo) y siembra con
+> `pnpm db:seed`. `docker compose up` aplica `migrate deploy` al arrancar.
 
 ## 3. nginx y configuración runtime
 
@@ -52,24 +53,26 @@ docker compose up --build -d
 
 ## 4. CI/CD
 
-- Por repo (`api/`, `web/`): workflow que publica la imagen a Docker Hub
+- Por paquete (`api/`, `web/`), en `.github/workflows/`: `ci.yml` (build, lint,
+  unitarias, migraciones y e2e) y un workflow que publica cada imagen a Docker Hub
   **solo `linux/amd64`**, con caché `type=gha` y sin atestaciones
   (`provenance/sbom: false`). En Mac ARM la imagen corre emulada; para desarrollo
   nativo, `docker compose build`.
 - El job de la API corre `prisma migrate deploy` contra una base vacía para
   detectar migraciones rotas.
-- Typecheck (`npm run build`) y lint en cada paquete antes de merge.
+- Typecheck (`pnpm build`) y lint en cada paquete antes de merge.
 
 ## 5. Cabeceras, HTTPS y CORS
 
 - HTTPS obligatorio en producción; cabeceras de seguridad (`helmet`), HSTS, CSP,
   `X-Content-Type-Options`, `X-Frame-Options`.
 - CORS restringido al origen del frontend (`WEB_ORIGIN`).
-- Rate limiting en login y endpoints públicos.
+- Rate limiting en login y endpoints públicos: **pendiente** (M12); hoy solo
+  existe el bloqueo temporal por intentos fallidos.
 
-## 6. Escritorio (opcional)
+## 6. Escritorio (opcional, no implementado)
 
-La web se empaqueta como app de escritorio (Electron): carga el mismo `dist/`
+Previsto, aún sin código en el repo: la web se empaquetaría como app de escritorio (Electron): carga el mismo `dist/`
 por protocolo `app://` y resuelve la URL de la API por
 `window.__APP_CONFIG__` / `config.json` (menú Servidor). Instaladores con
 `electron-builder` (firma ad-hoc en mac).
@@ -79,7 +82,7 @@ por protocolo `app://` y resuelve la URL de la API por
 - [ ] `.env` con secretos reales (nunca en el repo).
 - [ ] HTTPS y cabeceras de seguridad activas.
 - [ ] CORS restringido al origen del frontend.
-- [ ] Rate limiting en login y endpoints públicos.
+- [ ] Rate limiting en login y endpoints públicos (pendiente de implementar, M12).
 - [ ] `prisma migrate deploy` aplicado (sin seed en arranque).
 - [ ] Backfills insert-missing (permisos/roles/políticas/sys_config) al arrancar.
 - [ ] Respaldos automáticos configurados (ver [`../operacion/respaldos.md`](../operacion/respaldos.md)).

@@ -14,12 +14,13 @@ Tecnologías del SGE, alineadas al **estándar PTNV** y al **Axzy UI System**
 | OpenAPI | `@asteasolutions/zod-to-openapi` + `swagger-ui-express` |
 | Autenticación | `jsonwebtoken` (access + refresh rotado) |
 | Hash de contraseñas | **bcryptjs** |
-| Seguridad | `helmet`, `cors`, rate limiting |
+| Seguridad | `helmet`, `cors` (lista de orígenes con comodines), bloqueo por intentos fallidos. El *rate limiting* por IP está pendiente (M12) |
 | Subida de archivos | `multer` (memoryStorage) |
-| Almacenamiento | **AWS S3** (`@aws-sdk/client-s3`) |
-| Correo | `resend` + `nodemailer` (SMTP), patrón outbox (`email_logs`) |
+| Almacenamiento | Puerto único con dos drivers: **S3** (`@aws-sdk/client-s3`, o compatible) y **disco local** privado ([D-023](../../DECISIONES.md)) |
+| Avisos | Outbox propio en PostgreSQL (`notifications`, reintentos con backoff); correo por `resend` o `nodemailer` (SMTP); SMS/WhatsApp simulados |
 | Tiempo real | **Ably** (`ably`) |
-| Excel | `xlsx` |
+| Excel / PDF | `xlsx` y `pdfkit` (reportes tabulares en la API) |
+| i18n | Catálogos propios `es`/`en` (`core/i18n`), idioma por `Accept-Language` |
 | Logging | `winston` |
 | Dev runner | `nodemon` + `ts-node`; build `tsc` + `tsc-alias` |
 | Pruebas | **Playwright** (contrato E2E + unit) |
@@ -38,8 +39,8 @@ Tecnologías del SGE, alineadas al **estándar PTNV** y al **Axzy UI System**
 | Validación | `@shared/validation` (validadores puros) |
 | PDF | `@react-pdf/renderer` + `file-saver` |
 | Gráficas/otros | `lottie-react`, `react-icons`, `qrcode` |
-| Desktop | Electron + electron-builder |
-| Pruebas | **Playwright** (navegador + insecure-context) |
+| Desktop | Previsto con Electron (solo la dependencia; el empaquetado aún no está en el repo) |
+| Pruebas | **Playwright** (navegador + insecure-context; sin suite unitaria en web) |
 | Arquitectura | **Feature-Sliced Design** (ESLint boundaries) |
 
 ## Por qué este stack

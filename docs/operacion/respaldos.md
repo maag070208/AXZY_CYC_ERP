@@ -3,12 +3,18 @@
 Estándar PTNV: respaldos de PostgreSQL y del almacenamiento, con utilidades de
 restauración y regeneración de fixtures.
 
+> **Estado:** los scripts `restore`, `seed:from-backup`, `cutover` y
+> `legacy:extract` de las secciones 3–5 son el **diseño objetivo** (patrón PTNV) y
+> **todavía no existen** en `api/package.json`; se construyen en M12. Hoy se
+> respalda y restaura con `pg_dump` / `pg_restore` (sección 6) y, con el driver
+> `local`, hay que incluir el volumen de archivos (`STORAGE_LOCAL_DIR`).
+
 ## 1. Qué se respalda
 
 | Elemento | Frecuencia | Retención sugerida |
 |---|---|---|
 | PostgreSQL (`pg_dump -Fc`, formato custom) | Diario | 30 diarios + 12 mensuales |
-| Archivos S3 (expedientes, justificantes) | Versionado del bucket | Según política |
+| Archivos (expedientes, justificantes) | S3: versionado del bucket · local: copia del volumen | Según política |
 | Configuración (`.env`, compose) | Al cambiar | Versionado seguro (no en repo) |
 | Bitácora | Incluida en el dump | Igual que la BD |
 
@@ -21,7 +27,7 @@ restauración y regeneración de fixtures.
 
 ## 3. Restauración (herramienta del proyecto)
 
-La API expone la utilidad de restauración (mismo patrón que PTNV):
+La API expondrá la utilidad de restauración (mismo patrón que PTNV):
 
 ```bash
 # Reemplaza la base con un respaldo (convierte el dump, restaura, aplica migraciones y concilia)

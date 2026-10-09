@@ -24,9 +24,9 @@ Envelope **plano** (estándar PTNV):
 | 403 | Sin permiso/alcance, política ABAC lo niega |
 | 404 | Recurso o ruta inexistente |
 | 409 | Duplicado (`DUPLICATE_RECORD`), conflicto de estado (cupo, empalme, carrera) |
-| 429 | Rate limiting / bloqueo por intentos |
+| 429 | Bloqueo por intentos fallidos (`ACCOUNT_LOCKED`). El *rate limiting* por IP está pendiente (M12) |
 | 500 | Error no controlado (`INTERNAL_ERROR`) |
-| 503 | Dependencia no disponible (S3, BD no lista) |
+| 503 | Dependencia no disponible (almacenamiento sin configurar, BD no lista) |
 
 ## Mapeo de errores Prisma (automático)
 

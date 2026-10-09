@@ -1,14 +1,14 @@
 # Suite E2E de la API (Playwright)
 
 Pruebas **reales** contra la API corriendo en local: cada test hace peticiones
-HTTP de verdad a `http://localhost:4000/api/v1`, que escribe en la base Postgres
+HTTP de verdad a `http://localhost:${PORT}/api/v1` (`4001` con el `.env` de ejemplo), que escribe en la base Postgres
 de verdad. No hay mocks ni base en memoria.
 
 ## Cómo correrlas
 
 ```bash
 cd api
-npm test
+pnpm test
 ```
 
 Si la API no está levantada, Playwright la arranca con `npm run dev` y espera al
@@ -40,6 +40,10 @@ npm run test:e2e:report      # abrir el último reporte HTML
 | `m15-examenes-configuracion.spec.ts` | M15 | Alta con evaluación vinculada, constructor (activas y del curso), publicar (aprobatorio ≤ total), edición limitada con intentos, cerrar y eliminar borrador |
 | `m16-aplicacion-alumno.spec.ts` | M16 | Inicio sin claves, tiempo del servidor, reanudación sin duplicar, autoguardado validado, envío, expiración, cambios de pestaña y alcance |
 | `m17-calificacion-kardex.spec.ts` | M17 | Calificación automática, pendientes de abiertas, revisión y recalificación, criterio MEJOR/ULTIMO, escritura normalizada al libro de M08 |
+| `m18-asistencia-justificantes.spec.ts` | M18 | Sesiones, pase de lista, porcentaje y alerta por umbral, justificantes con archivo, anulación, alcance y reporte |
+| `m19-notificaciones.spec.ts` | M19 | Plantillas (clave+canal), envío manual con variables, outbox con reintentos, opt-out, bandeja interna |
+| `migration.spec.ts` | M20 | Vista previa sin escribir, ejecución con `Idempotency-Key`, checksum, respaldo previo, alumnos y profesores |
+| `m22-programs-plans.spec.ts` | M22 | Carreras, plan de estudios, plan de pagos idempotente, descuentos, cancelación |
 | `m11-administracion-catalogos.spec.ts` | M11 | `settings` (todo o nada, bitácora, idioma), niveles, ciclos (uno activo), motivos de baja, tipos de documento |
 
 ## Qué cubre `auth.spec.ts` (M02)

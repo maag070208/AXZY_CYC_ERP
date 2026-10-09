@@ -29,10 +29,11 @@ despliegue con Docker. Ver [D-014](../../DECISIONES.md).
 │       │   ├── middlewares/      # auth, error, language
 │       │   ├── permissions/      # RBAC dinámico
 │       │   ├── policies/         # ABAC dinámico
-│       │   ├── services/         # mail, storage(S3), ably
+│       │   ├── ports/            # contratos DIP (auditoría, avisos)
+│       │   ├── services/         # mail, storage (S3/local), ably
 │       │   ├── swagger/          # registry, openapi, setup
 │       │   ├── utils/            # table, security, logger, asyncHandler
-│       │   ├── db/               # paginatedQuery
+│       │   ├── db/               # paginatedQuery, serializable
 │       │   └── i18n/             # messages/{es,en}
 │       └── modules/
 │           ├── api.router.ts     # monta módulos + wiring DIP

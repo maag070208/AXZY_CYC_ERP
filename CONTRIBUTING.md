@@ -8,7 +8,9 @@ en [`docs/guia/convenciones.md`](docs/guia/convenciones.md).
 1. **Estándar de la casa.** Se reutiliza la arquitectura y convenciones de PTNV; en web, el Axzy UI System.
 2. **Un módulo a la vez**, en el orden del [roadmap](docs/guia/roadmap.md).
 3. No avanzar sin que el módulo anterior funcione y tenga pruebas.
-4. Respetar los nombres de entidades y campos de la especificación.
+4. **Código en inglés, comentarios y documentación en español, todo lo visible por i18n**
+   ([D-046](DECISIONES.md)): identificadores, campos, enums, rutas, códigos de error y
+   llaves i18n en inglés; ningún texto visible escrito en el código.
 5. Registrar toda ambigüedad resuelta en [`DECISIONES.md`](DECISIONES.md).
 6. Nunca versionar secretos ni credenciales.
 
@@ -32,10 +34,10 @@ pnpm --dir api dev
 pnpm --dir api build
 pnpm --dir api lint
 pnpm --dir api prisma:migrate:dev
-pnpm --dir api prisma:deploy
+pnpm --dir api prisma:migrate      # migrate deploy
 pnpm --dir api seed
 pnpm --dir api test:unit
-npx --dir api playwright test tests/e2e/<spec>.spec.ts   # SOLO el spec del cambio
+pnpm --dir api exec playwright test tests/e2e/<spec>.spec.ts   # SOLO el spec del cambio
 ```
 
 **Web (`web/`)**
@@ -44,7 +46,7 @@ pnpm --dir web install
 pnpm --dir web dev
 pnpm --dir web build
 pnpm --dir web lint
-npx --dir web playwright test tests/e2e/<spec>.spec.ts   # SOLO el spec del cambio
+pnpm --dir web exec playwright test tests/e2e/<spec>.spec.ts   # SOLO el spec del cambio
 ```
 
 ## 3. Regla de pruebas (importante)
@@ -56,7 +58,7 @@ npx --dir web playwright test tests/e2e/<spec>.spec.ts   # SOLO el spec del camb
 
 ## 4. Flujo de trabajo
 
-1. Elige el módulo (M01–M21) según el roadmap.
+1. Elige el módulo (M01–M22) según el roadmap.
 2. Lee su README en `docs/modulos/` y el modelo de datos relacionado.
 3. Implementa en el orden estándar:
    - **API:** migración Prisma → módulo (`models/dto` zod → `services` →
@@ -101,4 +103,5 @@ decisión, alternativas y consecuencias.
 - [ ] Cambios acotados al módulo/repo correcto.
 - [ ] Endpoints con Zod, permiso/alcance y bitácora.
 - [ ] Sin secretos ni datos sensibles.
+- [ ] Sin identificadores en español ni texto visible fuera de los catálogos i18n (`es` y `en`).
 - [ ] Spec del cambio pasando; documentación actualizada.

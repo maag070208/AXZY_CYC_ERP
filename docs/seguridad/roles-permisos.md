@@ -40,6 +40,9 @@ Las **claves** de rol van en inglés (`ADMIN`, `SCHOOL_CONTROL`, `TEACHER`,
 `STUDENT`) y el **nombre visible se traduce por i18n** (no se guarda en español);
 ver [D-046](../../DECISIONES.md).
 
+En la web, `roleLabel` (`@entities/permission`) traduce los roles base con
+`users:roles.<KEY>`; los roles creados por el administrador muestran su `name`.
+
 Los roles son **dinámicos**: el admin puede crear más desde la consola `/roles`.
 Los roles `system` están protegidos de borrado/renombrado.
 
@@ -95,25 +98,25 @@ Los roles `system` están protegidos de borrado/renombrado.
 | groups | CRUD | CRUD | R (AREA) | R (OWN) |
 | enrollments | CRUD | CRUD | R (AREA) | R (OWN) |
 | assessments / grades | CRUD + cierre | R X | CRUD + captura + cierre (AREA) X | R (OWN) |
-
-> **AREA académico (F3):** el ámbito del profesor son **sus grupos** (`groups.teacher_id`
-> → `teachers.user_id`), registrado por M07 como resolvedor `groups`; los alumnos con
-> inscripción vigente en esos grupos forman el `AREA` de `students` (expediente y kardex).
-> Fuera de su ámbito, las lecturas responden 404 y las escrituras 403. Ver D-028.
 | fees / charges / payments | CRUD | CRUD | · | R (OWN: estado de cuenta) |
 | programs / plans | CRUD | CRUD | · | R (OWN: su plan de pagos) |
 | reports | R X | R X | R (AREA, sin montos) X | · |
 | questions / exams | CRUD + importar + publicar | R | CRUD + importar + publicar (AREA) | exams R (OWN: publicados de sus grupos) |
 | attempts | R + review | R | R + review (AREA) | take + R (OWN) |
+| attendance | CRUD | R | CRUD (AREA) | R (OWN) |
+| notifications | CRUD | R | · | · |
+| migration | execute | · | · | · |
+
+> **AREA académico (F3):** el ámbito del profesor son **sus grupos** (`groups.teacher_id`
+> → `teachers.user_id`), registrado por M07 como resolvedor `groups`; los alumnos con
+> inscripción vigente en esos grupos forman el `AREA` de `students` (expediente y kardex).
+> Fuera de su ámbito, las lecturas responden 404 y las escrituras 403. Ver D-028.
 
 > **Examen en línea (F5):** el AREA del profesor sobre reactivos son los cursos de sus
 > grupos; sobre exámenes e intentos, sus grupos. `attempts.take` existe solo con alcance
 > `OWN` (ADMIN no lo tiene: no es alumno). El alumno solo ve exámenes publicados de grupos
 > con inscripción vigente y solo sus intentos; las respuestas correctas se le muestran solo
 > al terminar y si el examen lo permite. Ver D-036…D-041.
-| attendance | CRUD | R | CRUD (AREA) | R (OWN) |
-| notifications | CRUD | R | · | · |
-| migration | execute | · | · | · |
 
 ## 6. Políticas ABAC (contexto)
 
@@ -145,9 +148,11 @@ se dé de baja a una cuenta ADMIN. Ver [D-018](../../DECISIONES.md).
 | `users.permissions.set` | `target.id`, `target.roles`, `roles`, `permission`, `scope` | Roles/excepciones por persona |
 | `roles.matrix.update` | `roleKey`, `permissionKey`, `scope` | Cada celda de la matriz |
 | `settings.update` | `key` | Cada parámetro general (M11) |
+| `charges.create` | `amount`, `discount`, `discountPercent`, `conceptType`, `bulk` | Alta de cargos (individual o masiva) |
+| `payments.cancel` | `amount`, `method`, `daysSinceRegistered` | Cancelación de un pago |
 
-Los módulos siguientes registran sus acciones (p. ej. `payments.approve` con
-`amount` y `createdById` en M09).
+Cada módulo registra sus acciones en `actions.ts`; M09 aporta `charges.create` y
+`payments.cancel`:
 
 > **Políticas ABAC de cobranza (F4):** `charges.create` expone `amount`, `discount`,
 > `discountPercent`, `conceptType` y `bulk` (p. ej. «nadie descuenta más del 50 %»);
@@ -179,4 +184,4 @@ Los módulos siguientes registran sus acciones (p. ej. `payments.approve` con
 
 Por recurso sensible: autorizado → 200/201; sin permiso → 403
 (`INSUFFICIENT_PERMISSIONS`/`POLICY_DENIED`); fuera de alcance → 403 o lista
-filtrada; sin token/expirado → 401.
+filtrada (en lecturas por id, 404; ver [D-028](../../DECISIONES.md)); sin token/expirado → 401.

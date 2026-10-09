@@ -8,6 +8,7 @@ API REST con prefijo **`/api/v1`** y respuestas **JSON**, al estilo PTNV
 - Sustantivos en plural, `kebab-case`: `/students`, `/fee-concepts`, `/online-exams`.
 - Subrecursos anidados: `/students/:id/documents`, `/groups/:id/enroll`, `/students/:id/kardex`.
 - Acciones no-CRUD como segmento: `/students/:id/withdrawal`, `/online-exams/:id/publish`.
+- Segmentos siempre en **inglés**.
 - **Listados** de tabla: `POST /<recurso>/query` (ver §3).
 
 | Método | Uso |
@@ -37,8 +38,8 @@ filtros complejos.
 {
   "page": 1,
   "limit": 20,
-  "filters": { "status": "ACTIVE", "firstNames": "juan", "enrollment_date": ["2026-01-01T00:00:00.000-06:00", "2026-06-30T23:59:59.999-06:00"] },
-  "sort": { "key": "firstNames", "direction": "asc" }
+  "filters": { "status": "ACTIVE", "name": "juan", "enrollmentDate": ["2026-01-01T00:00:00.000-06:00", "2026-06-30T23:59:59.999-06:00"] },
+  "sort": { "key": "studentNumber", "direction": "asc" }
 }
 ```
 
@@ -72,7 +73,9 @@ Reglas:
 `POST` con riesgo de duplicado (`/charges/generate`, `/payments`,
 `/questions/import`, importaciones M20) acepta la cabecera `Idempotency-Key`
 (`^[A-Za-z0-9_-]{8,100}$`). Repetir la petición devuelve el mismo resultado;
-reusar la clave con otro usuario responde 409 `IDEMPOTENCY_KEY_REUSED`.
+reusar la clave con otra persona u operación responde 409 `IDEMPOTENCY_KEY_REUSED`.
+La inscripción a grupos no la usa: su índice único parcial ya la hace
+idempotente ([D-027](../../DECISIONES.md)).
 
 ## 5. Autenticación
 
@@ -86,13 +89,22 @@ alcance se releen de la BD en cada petición.
 - Mensajes de error son **códigos** de negocio traducibles (p. ej. `INVALID_CURP`).
 - `ZodError` → 400 `VALIDATION_ERROR` con `details` por campo.
 
-## 7. Fechas, montos y enums
+## 7. Idioma
+
+- **Todo en inglés:** rutas (`/students/:id/withdrawal`, `/students/:id/reentry`),
+  campos (`studentNumber`, `dueDate`), valores de enum (`ENROLLED`, `PAID`) y
+  códigos de error (`COURSE_CODE_TAKEN`). Ver [D-046](../../DECISIONES.md) y [D-049](../../DECISIONES.md).
+- El `message` de un error y las etiquetas que arma la API (reportes,
+  exportaciones, correos) se traducen según `Accept-Language` (`es` por defecto, `en`).
+- Los CSV de importación aceptan encabezados en español por alias.
+
+## 8. Fechas, montos y enums
 
 - Fechas/hora en ISO 8601 UTC; solo-fecha `YYYY-MM-DD`; filtros como rango local.
 - Montos `Decimal` serializados como número decimal.
 - Enums en `UPPER_SNAKE` (`ACTIVE`, `PARTIAL`, …).
 
-## 8. Documentación y versionado
+## 9. Documentación y versionado
 
 - OpenAPI generado con `zod-to-openapi`; UI en `/docs`, JSON en `/docs/json`.
 - Cambios incompatibles → nuevo prefijo (`/api/v2`).
