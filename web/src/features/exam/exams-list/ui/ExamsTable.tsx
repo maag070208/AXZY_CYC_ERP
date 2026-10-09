@@ -25,7 +25,7 @@ export default function ExamsTable({ reloadKey, onTotal, onOpen }: Props) {
 
   const columns: Column<OnlineExam>[] = [
     {
-      key: "titulo", label: t("exams.titulo"), type: "string", filter: true, sortable: true,
+      key: "titulo", label: t("exams.titulo"), type: "string", filter: true, sortable: false,
       render: (row) => (
         <div>
           <ITText className="block text-[12px] font-bold text-slate-700">{row.titulo}</ITText>
@@ -34,7 +34,7 @@ export default function ExamsTable({ reloadKey, onTotal, onOpen }: Props) {
       ),
     },
     {
-      key: "fechaApertura", label: t("exams.ventana"), type: "date", width: 260, sortable: true,
+      key: "fechaApertura", label: t("exams.ventana"), type: "date", width: 260, sortable: false,
       render: (row) => (
         <ITText className="text-[11px] text-slate-600">
           {formatInstant(row.fechaApertura, i18n.language)} → {formatInstant(row.fechaCierre, i18n.language)}
@@ -47,7 +47,7 @@ export default function ExamsTable({ reloadKey, onTotal, onOpen }: Props) {
     },
     { key: "intentos", label: t("exams.intentos"), type: "number", width: 90 },
     {
-      key: "status", label: t("exams.status"), type: "catalog", width: 120, filter: "catalog", sortable: true,
+      key: "status", label: t("exams.status"), type: "catalog", width: 120, filter: "catalog", sortable: false,
       catalogOptions: { data: (["BORRADOR", "PUBLICADO", "CERRADO"] as const).map((s) => ({ id: s, name: t(`exams.statuses.${s}`) })) },
       render: (row) => <ExamStatusBadge status={row.status} />,
     },

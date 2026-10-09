@@ -30,6 +30,7 @@ M13 Gestión y capacitación (previa a lanzamiento)
 M19 Notificaciones (depende de M09 y M15)
 M20 Migración de históricos (puede iniciar en paralelo a M09)
 M21 Reportes y tablero ejecutivo (depende de M10 y M20)
+M22 Programas, plan de estudios y plan de pagos (depende de M03, M07 y M09)
 ```
 
 ## 2. Orden de ejecución sugerido
@@ -57,6 +58,7 @@ M21 Reportes y tablero ejecutivo (depende de M10 y M20)
 | 19 | M21 | Extras | Tablero ejecutivo avanzado |
 | 20 | M12 | Calidad | Pruebas, OWASP, despliegue |
 | 21 | M13 | Gestión | Manuales y capacitación |
+| 22 | M22 | Extras | Carreras con plan de estudios y plan de pagos |
 
 > M12 es transversal: sus prácticas (pruebas, validación, seguridad) se aplican
 > desde el primer módulo, aunque su revisión formal cierre el proyecto.

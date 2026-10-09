@@ -28,7 +28,7 @@ export default function GroupsTable({ fx, onAction }: Props) {
 
   const columns: Column<Group>[] = [
     {
-      key: "course", label: t("groups.curso"), type: "string", filter: true, sortable: true,
+      key: "course", label: t("groups.curso"), type: "string", filter: true, sortable: false,
       render: (row) => (
         <button type="button" className="text-left" onClick={() => onAction("view", row)}>
           <ITText className="block text-[12px] font-bold text-slate-700">{row.courseNombre}</ITText>
@@ -36,7 +36,7 @@ export default function GroupsTable({ fx, onAction }: Props) {
         </button>
       ),
     },
-    { key: "nombre", label: t("groups.nombre"), type: "string", width: 100, filter: true, sortable: true },
+    { key: "nombre", label: t("groups.nombre"), type: "string", width: 100, filter: true, sortable: false },
     {
       key: "termId", label: t("groups.ciclo"), type: "catalog", width: 150, filter: "catalog", sortable: false,
       catalogOptions: { data: fx.terms.map((term) => ({ id: term.id, name: term.nombre })) },
@@ -48,7 +48,7 @@ export default function GroupsTable({ fx, onAction }: Props) {
     },
     { key: "horario", label: t("groups.horario"), type: "string", width: 220, render: (row) => <ScheduleSummary slots={row.horario} /> },
     {
-      key: "cupo", label: t("groups.inscritos"), type: "number", width: 110, sortable: true,
+      key: "cupo", label: t("groups.inscritos"), type: "number", width: 110, sortable: false,
       render: (row) => <ITText className="text-[12px] font-bold text-slate-700">{row.inscritos} / {row.cupo}</ITText>,
     },
     { key: "status", label: t("groups.status"), type: "string", width: 110, render: (row) => <GroupStatusBadge group={row} /> },

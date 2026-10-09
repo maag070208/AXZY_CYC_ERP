@@ -35,18 +35,18 @@ export default function QuestionsTable({ reloadKey, onTotal, onAction }: Props) 
       ),
     },
     {
-      key: "tipo", label: t("questions.tipo"), type: "catalog", width: 160, filter: "catalog", sortable: true,
+      key: "tipo", label: t("questions.tipo"), type: "catalog", width: 160, filter: "catalog", sortable: false,
       catalogOptions: { data: QUESTION_TYPES.map((x) => ({ id: x, name: t(`questions.types.${x}`) })) },
       render: (row) => <ITText className="text-[12px] text-slate-600">{t(`questions.types.${row.tipo}`)}</ITText>,
     },
     {
-      key: "dificultad", label: t("questions.dificultad"), type: "catalog", width: 120, filter: "catalog", sortable: true,
+      key: "dificultad", label: t("questions.dificultad"), type: "catalog", width: 120, filter: "catalog", sortable: false,
       catalogOptions: { data: DIFFICULTIES.map((x) => ({ id: x, name: t(`questions.difficulties.${x}`) })) },
       render: (row) => <ITText className="text-[12px] text-slate-600">{row.dificultad ? t(`questions.difficulties.${row.dificultad}`) : "—"}</ITText>,
     },
-    { key: "puntos", label: t("questions.puntos"), type: "number", width: 90, sortable: true },
+    { key: "puntos", label: t("questions.puntos"), type: "number", width: 90, sortable: false },
     {
-      key: "status", label: t("questions.status"), type: "catalog", width: 150, filter: "catalog", sortable: true,
+      key: "status", label: t("questions.status"), type: "catalog", width: 150, filter: "catalog", sortable: false,
       catalogOptions: { data: [{ id: "ACTIVA", name: t("questions.activa") }, { id: "INACTIVA", name: t("questions.inactiva") }] },
       render: (row) => (
         <ITFlex gap={1} align="center">

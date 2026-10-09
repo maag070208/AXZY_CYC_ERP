@@ -7,9 +7,10 @@ import type { Permission, PermissionMap, Scope, UserRole } from "@entities/user"
  * (para armar el menú) y lo usará la vista «Qué ve cada rol» de `/roles`. Si
  * agregás una pantalla al menú, agregala aquí.
  *
- * Cada entrada requiere uno o más permisos (`requirement`) o una regla fija de
- * negocio (`fixedRole`). Un grupo (con `children`) es visible si lo es al menos
- * uno de sus hijos.
+ * La estructura es un árbol de hasta **tres niveles** (lo que soporta el
+ * sidebar): un **grupo** de primer nivel (sin ruta) → una **sección** con título
+ * (sin ruta) → una **hoja** con ruta. Los grupos y secciones son visibles si lo
+ * es al menos uno de sus hijos.
  */
 
 /** Requisito de visibilidad: cualquiera (`anyOf`) o todas (`allOf`) las claves. */
@@ -20,29 +21,37 @@ export type ScreenRequirement =
 /** Claves del menú en el namespace `common` (para tipar la i18n). */
 export type NavLabelKey =
   | "nav.home"
-  | "nav.settings"
-  | "nav.users"
-  | "nav.roles"
-  | "nav.audit"
-  | "nav.catalogs"
+  | "nav.people"
+  | "nav.academic"
+  | "nav.academicOffer"
+  | "nav.academicAssessment"
+  | "nav.myExams"
+  | "nav.finance"
+  | "nav.reports"
+  | "nav.notifications"
+  | "nav.admin"
+  | "nav.adminAccess"
+  | "nav.adminData"
+  | "nav.adminSystem"
   | "nav.students"
   | "nav.teachers"
   | "nav.courses"
   | "nav.groups"
-  | "nav.finance"
-  | "nav.reports"
   | "nav.questions"
   | "nav.exams"
-  | "nav.myExams"
   | "nav.attendance"
-  | "nav.notifications"
+  | "nav.users"
+  | "nav.roles"
+  | "nav.audit"
+  | "nav.catalogs"
+  | "nav.settings"
   | "nav.migration";
 
 export interface AppScreen {
   readonly id: string;
   /** Clave i18n en el namespace `common` (p. ej. `nav.users`). */
   readonly labelKey: NavLabelKey;
-  /** Ruta a la que navega el ítem del menú. */
+  /** Ruta a la que navega el ítem del menú (las secciones/grupos no la tienen). */
   readonly path?: string;
   /** Modo de resaltado de la ruta. Por defecto `prefix`. */
   readonly match?: "exact" | "prefix";
@@ -50,6 +59,7 @@ export interface AppScreen {
   readonly requirement?: ScreenRequirement;
   /** Regla fija: solo este rol la ve, sin importar permisos. */
   readonly fixedRole?: UserRole;
+  /** Hijos (sección con título o grupo de primer nivel). */
   readonly children?: readonly AppScreen[];
 }
 
@@ -61,28 +71,78 @@ export const APP_SCREENS: readonly AppScreen[] = [
     match: "exact",
   },
   {
-    id: "students",
-    labelKey: "nav.students",
-    path: "/students",
-    requirement: { anyOf: ["students.view"] },
+    id: "people",
+    labelKey: "nav.people",
+    children: [
+      {
+        id: "students",
+        labelKey: "nav.students",
+        path: "/students",
+        requirement: { anyOf: ["students.view"] },
+      },
+      {
+        id: "teachers",
+        labelKey: "nav.teachers",
+        path: "/teachers",
+        requirement: { anyOf: ["teachers.view"] },
+      },
+    ],
   },
   {
-    id: "teachers",
-    labelKey: "nav.teachers",
-    path: "/teachers",
-    requirement: { anyOf: ["teachers.view"] },
+    id: "academic",
+    labelKey: "nav.academic",
+    children: [
+      {
+        id: "academicOffer",
+        labelKey: "nav.academicOffer",
+        children: [
+          {
+            id: "courses",
+            labelKey: "nav.courses",
+            path: "/courses",
+            requirement: { anyOf: ["courses.view"] },
+          },
+          {
+            id: "groups",
+            labelKey: "nav.groups",
+            path: "/groups",
+            requirement: { anyOf: ["groups.view"] },
+          },
+        ],
+      },
+      {
+        id: "academicAssessment",
+        labelKey: "nav.academicAssessment",
+        children: [
+          {
+            id: "questions",
+            labelKey: "nav.questions",
+            path: "/questions",
+            requirement: { anyOf: ["questions.view"] },
+          },
+          {
+            id: "exams",
+            labelKey: "nav.exams",
+            path: "/exams",
+            // Quien administra exámenes (profesor/admin) o consulta resultados (control).
+            requirement: { anyOf: ["exams.manage", "attempts.review"] },
+          },
+        ],
+      },
+      {
+        id: "attendance",
+        labelKey: "nav.attendance",
+        path: "/attendance",
+        // Personal (profesor/control), alumno (su propio alcance) o quien justifica.
+        requirement: { anyOf: ["attendance.view", "attendance.justify"] },
+      },
+    ],
   },
   {
-    id: "courses",
-    labelKey: "nav.courses",
-    path: "/courses",
-    requirement: { anyOf: ["courses.view"] },
-  },
-  {
-    id: "groups",
-    labelKey: "nav.groups",
-    path: "/groups",
-    requirement: { anyOf: ["groups.view"] },
+    id: "myExams",
+    labelKey: "nav.myExams",
+    path: "/my-exams",
+    requirement: { anyOf: ["attempts.take"] },
   },
   {
     id: "finance",
@@ -92,30 +152,10 @@ export const APP_SCREENS: readonly AppScreen[] = [
     requirement: { anyOf: ["charges.create", "payments.register", "fee_concepts.manage"] },
   },
   {
-    id: "questions",
-    labelKey: "nav.questions",
-    path: "/questions",
-    requirement: { anyOf: ["questions.view"] },
-  },
-  {
-    id: "exams",
-    labelKey: "nav.exams",
-    path: "/exams",
-    // Quien administra exámenes (profesor/admin) o consulta resultados (control).
-    requirement: { anyOf: ["exams.manage", "attempts.review"] },
-  },
-  {
-    id: "myExams",
-    labelKey: "nav.myExams",
-    path: "/my-exams",
-    requirement: { anyOf: ["attempts.take"] },
-  },
-  {
-    id: "attendance",
-    labelKey: "nav.attendance",
-    path: "/attendance",
-    // Personal (profesor/control), alumno (su propio alcance) o quien justifica.
-    requirement: { anyOf: ["attendance.view", "attendance.justify"] },
+    id: "reports",
+    labelKey: "nav.reports",
+    path: "/reports",
+    requirement: { anyOf: ["reports.view"] },
   },
   {
     id: "notifications",
@@ -125,48 +165,66 @@ export const APP_SCREENS: readonly AppScreen[] = [
     // administración se ocultan según permisos dentro de la página.
   },
   {
-    id: "migration",
-    labelKey: "nav.migration",
-    path: "/migration",
-    requirement: { anyOf: ["migration.execute"] },
-  },
-  {
-    id: "reports",
-    labelKey: "nav.reports",
-    path: "/reports",
-    requirement: { anyOf: ["reports.view"] },
-  },
-  {
-    id: "users",
-    labelKey: "nav.users",
-    path: "/users",
-    requirement: { anyOf: ["users.view"] },
-  },
-  {
-    id: "roles",
-    labelKey: "nav.roles",
-    path: "/roles",
-    requirement: { anyOf: ["roles.manage"] },
-  },
-  {
-    id: "audit",
-    labelKey: "nav.audit",
-    path: "/audit",
-    requirement: { anyOf: ["audit.view"] },
-  },
-  {
-    id: "catalogs",
-    labelKey: "nav.catalogs",
-    path: "/catalogs",
-    // `terms.view` solo no basta: el profesor lee ciclos para filtrar sus
-    // grupos (M07), pero no administra catálogos.
-    requirement: { anyOf: ["levels.view", "config.view"] },
-  },
-  {
-    id: "settings",
-    labelKey: "nav.settings",
-    path: "/settings",
-    requirement: { anyOf: ["config.view"] },
+    id: "admin",
+    labelKey: "nav.admin",
+    children: [
+      {
+        id: "adminAccess",
+        labelKey: "nav.adminAccess",
+        children: [
+          {
+            id: "users",
+            labelKey: "nav.users",
+            path: "/users",
+            requirement: { anyOf: ["users.view"] },
+          },
+          {
+            id: "roles",
+            labelKey: "nav.roles",
+            path: "/roles",
+            requirement: { anyOf: ["roles.manage"] },
+          },
+        ],
+      },
+      {
+        id: "adminData",
+        labelKey: "nav.adminData",
+        children: [
+          {
+            id: "catalogs",
+            labelKey: "nav.catalogs",
+            path: "/catalogs",
+            // `terms.view` solo no basta: el profesor lee ciclos para filtrar sus
+            // grupos (M07), pero no administra catálogos.
+            requirement: { anyOf: ["levels.view", "config.view"] },
+          },
+          {
+            id: "settings",
+            labelKey: "nav.settings",
+            path: "/settings",
+            requirement: { anyOf: ["config.view"] },
+          },
+        ],
+      },
+      {
+        id: "adminSystem",
+        labelKey: "nav.adminSystem",
+        children: [
+          {
+            id: "audit",
+            labelKey: "nav.audit",
+            path: "/audit",
+            requirement: { anyOf: ["audit.view"] },
+          },
+          {
+            id: "migration",
+            labelKey: "nav.migration",
+            path: "/migration",
+            requirement: { anyOf: ["migration.execute"] },
+          },
+        ],
+      },
+    ],
   },
 ];
 

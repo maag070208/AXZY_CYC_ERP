@@ -35,14 +35,14 @@ export default function FeeConceptsPanel() {
   };
 
   const columns: Column<FeeConcept>[] = [
-    { key: "nombre", label: t("concepts.nombre"), type: "string", filter: true, sortable: true },
+    { key: "nombre", label: t("concepts.nombre"), type: "string", filter: true, sortable: false },
     {
-      key: "tipo", label: t("concepts.tipo"), type: "catalog", width: 150, filter: "catalog", sortable: true,
+      key: "tipo", label: t("concepts.tipo"), type: "catalog", width: 150, filter: "catalog", sortable: false,
       catalogOptions: { data: [...EDITABLE_FEE_TYPES, "RECARGO" as const].map((x) => ({ id: x, name: t(`concepts.types.${x}`) })) },
       render: (row) => <ITText className="text-[12px] text-slate-600">{t(`concepts.types.${row.tipo}`)}</ITText>,
     },
     {
-      key: "monto", label: t("concepts.monto"), type: "number", width: 140, sortable: true,
+      key: "monto", label: t("concepts.monto"), type: "number", width: 140, sortable: false,
       render: (row) => <ITText className="text-[12px] font-bold text-slate-700">{formatMoney(row.monto, i18n.language)}</ITText>,
     },
     {

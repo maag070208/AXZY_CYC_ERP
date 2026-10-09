@@ -64,7 +64,7 @@ export default function JustificationsTable({ reloadKey, onTotal, onResolved }: 
 
   const columns: Column<Justification>[] = [
     {
-      key: "nombre", label: t("justifications.alumno"), type: "string", filter: true, sortable: true,
+      key: "nombre", label: t("justifications.alumno"), type: "string", filter: true, sortable: false,
       render: (r) => (
         <div>
           <ITText className="block text-[12px] font-bold text-slate-700">{r.nombre}</ITText>
@@ -77,7 +77,7 @@ export default function JustificationsTable({ reloadKey, onTotal, onResolved }: 
       render: (r) => <ITText className="text-[12px] text-slate-600">{r.curso} · {r.grupo}</ITText>,
     },
     {
-      key: "fecha", label: t("justifications.fecha"), type: "date", width: 150, sortable: true,
+      key: "fecha", label: t("justifications.fecha"), type: "date", width: 150, sortable: false,
       render: (r) => <ITText className="text-[12px] text-slate-600">{formatDay(r.fecha, i18n.language)}{r.hora ? ` · ${r.hora}` : ""}</ITText>,
     },
     {
@@ -85,7 +85,7 @@ export default function JustificationsTable({ reloadKey, onTotal, onResolved }: 
       render: (r) => <ITText className="text-[12px] text-slate-600">{r.motivo}</ITText>,
     },
     {
-      key: "status", label: t("justifications.estado"), type: "catalog", width: 120, filter: "catalog", sortable: true,
+      key: "status", label: t("justifications.estado"), type: "catalog", width: 120, filter: "catalog", sortable: false,
       catalogOptions: { data: (["PENDIENTE", "APROBADA", "RECHAZADA"] as const).map((s) => ({ id: s, name: t(`justificationStatus.${s}`) })) },
       render: (r) => (
         <ITFlex direction="column" gap={1}>

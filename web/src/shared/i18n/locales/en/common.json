@@ -43,7 +43,15 @@
     "exams": "Online exams",
     "myExams": "My exams",
     "attendance": "Attendance",
-    "migration": "Migration"
+    "migration": "Migration",
+    "people": "People",
+    "academic": "Academic",
+    "academicOffer": "Academic offering",
+    "academicAssessment": "Assessment",
+    "admin": "Administration",
+    "adminAccess": "Access",
+    "adminData": "Catalogs & settings",
+    "adminSystem": "System"
   },
   "errors": {
     "network": "Network or server error",

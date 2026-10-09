@@ -60,11 +60,11 @@ export default function PreferencesTable({ reloadKey, onTotal, onChanged }: Prop
 
   const columns: Column<NotificationPreference>[] = [
     {
-      key: "destinatario", label: t("preferences.destinatario"), type: "string", filter: true, sortable: true,
+      key: "destinatario", label: t("preferences.destinatario"), type: "string", filter: true, sortable: false,
       render: (r) => <ITText className="text-[12px] font-bold text-slate-700">{r.destinatario}</ITText>,
     },
     {
-      key: "canal", label: t("outbox.canal"), type: "catalog", width: 120, filter: "catalog", sortable: true,
+      key: "canal", label: t("outbox.canal"), type: "catalog", width: 120, filter: "catalog", sortable: false,
       catalogOptions: { data: NOTIFICATION_CHANNELS.map((c) => ({ id: c, name: t(`channels.${c}`) })) },
       render: (r) => <ITBadget color="secondary" size="sm">{t(`channels.${r.canal}`)}</ITBadget>,
     },

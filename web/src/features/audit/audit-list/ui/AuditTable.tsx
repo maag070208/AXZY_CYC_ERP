@@ -29,7 +29,7 @@ export default function AuditTable({ reloadKey }: { reloadKey?: number }) {
       type: "date",
       width: 170,
       filter: "date-range",
-      sortable: true,
+      sortable: false,
       render: (row) => (
         <ITText className="text-[11px] text-slate-600">
           {new Date(row.createdAt).toLocaleString(i18n.language, { dateStyle: "short", timeStyle: "medium" })}

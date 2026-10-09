@@ -8,8 +8,7 @@ PTNV** (ver [D-003](../../DECISIONES.md)):
 - `active Boolean @default(true)` en catálogos/entidades desactivables; **no** hay
   `deleted_at` universal. El borrado lógico es **por dominio** (`deletedAt`,
   `cancelledAt`, `voidedAt`) y nunca se hace `DELETE` físico de datos de negocio.
-- Campos en **camelCase** (se conservan los nombres del spec, que son en español);
-  tablas con `@@map("snake_case_plural")`.
+- Campos en **camelCase** y en **inglés** (D-046); tablas con `@@map("snake_case_plural")`.
 - Enums en `UPPER_SNAKE`; dinero/medidas en `Decimal @db.Decimal(...)`; JSON en `Json`.
 
 ## Columnas estándar
@@ -265,6 +264,37 @@ mínima, datos de la escuela, logotipo, umbral de asistencia, recargos).
 ### `migration_rows`
 `batchId`, `entity`, `sourceRow`, `status` (`ACCEPTED`/`REJECTED`), `reason?`,
 `createdAt`.
+
+---
+
+## M22 — Programas, plan de estudios y plan de pagos
+
+### `programs` (carrera)
+`code` (único), `name`, `description?`, `periodType`
+(`BIMONTHLY`/`TRIMESTER`/`QUADRIMESTER`/`SEMESTER`), `periodCount`,
+`monthsPerPeriod?`, `monthlyFee`, `enrollmentFee` (reinscripción), `active`.
+
+### `program_subjects` (plan de estudios)
+`programId`, `courseId`, `periodIndex` (1..periodCount), `sortOrder`.
+Único `(programId, courseId)`; reutiliza `courses` (M07).
+
+### `student_plans` (plan de pagos)
+`studentId`, `programId`, `termId?`, `startDate`, `periodType`, `periodCount`,
+`monthlyFee`, `enrollmentFee`, `discountPercent?`/`discountAmount?`/`discountReason?`,
+`status` (`ACTIVE`/`COMPLETED`/`CANCELLED`), `createdBy?`.
+Genera `periodCount × (1 + monthsPerPeriod)` cargos (reinscripción por periodo +
+mensualidades), con snapshot y descuento aplicado.
+
+### Cambios en M07 (`terms`)
+`calendar Json?` — periodos configurables (`[{ name, startDate, endDate }]`);
+calendario natural en español por defecto (no hardcodeado).
+
+### Cambios en M11 (`settings`)
+`PAYMENT_DUE_DAY` (entero 1..28; default **5**).
+
+### Cambios en `charges` (M09)
+`planId?` y `planChargeIndex?` con único `(planId, planChargeIndex)` para no
+duplicar los cargos del plan. Conceptos genéricos `INSCRIPCION`/`COLEGIATURA`.
 
 ---
 

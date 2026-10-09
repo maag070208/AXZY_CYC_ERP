@@ -28,11 +28,11 @@ export default function TeachersTable({ fx, onAction }: Props) {
 
   const columns: Column<Teacher>[] = [
     {
-      key: "nombre", label: t("table.nombre"), type: "string", filter: true, sortable: true,
+      key: "nombre", label: t("table.nombre"), type: "string", filter: true, sortable: false,
       render: (row) => <ITText className="text-[12px] font-bold text-slate-700">{row.nombreCompleto}</ITText>,
     },
-    { key: "email", label: t("table.email"), type: "string", width: 240, filter: true, sortable: true, truncate: true },
-    { key: "especialidad", label: t("table.especialidad"), type: "string", width: 180, filter: true, sortable: true },
+    { key: "email", label: t("table.email"), type: "string", width: 240, filter: true, sortable: false, truncate: true },
+    { key: "especialidad", label: t("table.especialidad"), type: "string", width: 180, filter: true, sortable: false },
     {
       key: "account", label: t("table.account"), type: "string", width: 200,
       render: (row) =>
@@ -46,7 +46,7 @@ export default function TeachersTable({ fx, onAction }: Props) {
         ),
     },
     {
-      key: "status", label: t("table.status"), type: "catalog", width: 130, filter: "catalog", sortable: true,
+      key: "status", label: t("table.status"), type: "catalog", width: 130, filter: "catalog", sortable: false,
       catalogOptions: { data: [{ id: "ACTIVO", name: t("status.ACTIVO") }, { id: "INACTIVO", name: t("status.INACTIVO") }] },
       render: (row) => (
         <ITBadget color={row.status === "ACTIVO" ? "success" : "danger"} size="sm">{t(`status.${row.status}`)}</ITBadget>

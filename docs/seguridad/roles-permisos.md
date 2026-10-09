@@ -29,12 +29,16 @@ base de datos con cache en memoria y **fail-closed** (ver [D-009](../../DECISION
 
 ## 3. Roles base (sembrados)
 
-| Rol (`key`) | Descripción |
-|---|---|
-| `ADMIN` | Acceso total; usuarios, roles, políticas, bitácora, configuración |
-| `CONTROL_ESCOLAR` | Operación académico-administrativa: altas, expediente, inscripciones, cobranza, reportes |
-| `PROFESOR` | Sus grupos: calificaciones (OWN/AREA), asistencia, banco de reactivos y exámenes |
-| `ALUMNO` | Consulta de su información y presentación de exámenes (si se habilita) |
+| Rol (`key`) | Descripción | Nombre visible (i18n) |
+|---|---|---|
+| `ADMIN` | Acceso total; usuarios, roles, políticas, bitácora, configuración | Administrador |
+| `SCHOOL_CONTROL` | Operación académico-administrativa: altas, expediente, inscripciones, cobranza, reportes | Control escolar |
+| `TEACHER` | Sus grupos: calificaciones (OWN/AREA), asistencia, banco de reactivos y exámenes | Profesor |
+| `STUDENT` | Consulta de su información y presentación de exámenes | Alumno |
+
+Las **claves** de rol van en inglés (`ADMIN`, `SCHOOL_CONTROL`, `TEACHER`,
+`STUDENT`) y el **nombre visible se traduce por i18n** (no se guarda en español);
+ver [D-046](../../DECISIONES.md).
 
 Los roles son **dinámicos**: el admin puede crear más desde la consola `/roles`.
 Los roles `system` están protegidos de borrado/renombrado.
@@ -59,6 +63,8 @@ Los roles `system` están protegidos de borrado/renombrado.
 | `terms` | `terms.view`, `terms.manage` |
 | `groups` | `groups.view`, `groups.manage` |
 | `enrollments` | `enrollments.view`, `enrollments.create`, `enrollments.edit`, `enrollments.delete` |
+| `programs` | `programs.view`, `programs.manage` (carreras y plan de estudios, M22) |
+| `plans` | `plans.view`, `plans.manage` (plan de pagos del alumno, M22) |
 | `assessments` | `assessments.view`, `assessments.manage` |
 | `grades` | `grades.view`, `grades.capture`, `grades.export` |
 | `fees` | `fee_concepts.manage` |
@@ -76,7 +82,7 @@ Los roles `system` están protegidos de borrado/renombrado.
 
 **C** crear, **R** leer, **U** editar, **D** baja/cancelar, **X** exportar, `·` sin acceso.
 
-| Recurso | ADMIN | CONTROL_ESCOLAR | PROFESOR | ALUMNO |
+| Recurso | ADMIN | SCHOOL_CONTROL | TEACHER | STUDENT |
 |---|---|---|---|---|
 | users / roles / config | CRUD | · (config R) | · | · |
 | audit | R X | · | · | · |
@@ -95,6 +101,7 @@ Los roles `system` están protegidos de borrado/renombrado.
 > inscripción vigente en esos grupos forman el `AREA` de `students` (expediente y kardex).
 > Fuera de su ámbito, las lecturas responden 404 y las escrituras 403. Ver D-028.
 | fees / charges / payments | CRUD | CRUD | · | R (OWN: estado de cuenta) |
+| programs / plans | CRUD | CRUD | · | R (OWN: su plan de pagos) |
 | reports | R X | R X | R (AREA, sin montos) X | · |
 | questions / exams | CRUD + importar + publicar | R | CRUD + importar + publicar (AREA) | exams R (OWN: publicados de sus grupos) |
 | attempts | R + review | R | R + review (AREA) | take + R (OWN) |

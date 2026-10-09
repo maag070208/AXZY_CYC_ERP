@@ -51,7 +51,7 @@ export default function UsersTable({ fx, roles, currentUserId, onAction }: Props
       type: "string",
       width: 170,
       filter: true,
-      sortable: true,
+      sortable: false,
       render: (u) => <ITText className="text-[12px] font-black text-slate-700">@{u.username}</ITText>,
     },
     {
@@ -60,7 +60,7 @@ export default function UsersTable({ fx, roles, currentUserId, onAction }: Props
       type: "string",
       width: 220,
       filter: true,
-      sortable: true,
+      sortable: false,
       render: (u) => <ITText className="text-[12px] text-slate-800">{u.name}</ITText>,
     },
     {
@@ -69,7 +69,7 @@ export default function UsersTable({ fx, roles, currentUserId, onAction }: Props
       type: "string",
       width: 220,
       filter: true,
-      sortable: true,
+      sortable: false,
       truncate: true,
     },
     {
@@ -95,7 +95,7 @@ export default function UsersTable({ fx, roles, currentUserId, onAction }: Props
       type: "boolean",
       width: 150,
       filter: true,
-      sortable: true,
+      sortable: false,
       render: (u) => (
         <ITFlex gap={1} wrap="wrap">
           <ITBadget color={u.active ? "success" : "danger"} size="sm">
@@ -114,7 +114,7 @@ export default function UsersTable({ fx, roles, currentUserId, onAction }: Props
       label: t("table.lastLogin"),
       type: "string",
       width: 150,
-      sortable: true,
+      sortable: false,
       render: (u) => (
         <ITText className="text-[11px] text-slate-500">
           {formatDate(u.lastLoginAt, i18n.language) ?? t("table.never")}

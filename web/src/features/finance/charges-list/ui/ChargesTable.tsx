@@ -30,7 +30,7 @@ export default function ChargesTable({ reloadKey, onAction }: Props) {
   const columns: Column<Charge>[] = [
     { key: "matricula", label: t("charges.matricula"), type: "string", width: 120, filter: true },
     {
-      key: "studentNombre", label: t("charges.alumno"), type: "string", filter: true, sortable: true,
+      key: "studentNombre", label: t("charges.alumno"), type: "string", filter: true, sortable: false,
       render: (row) => <ITText className="text-[12px] font-bold text-slate-700">{row.studentNombre}</ITText>,
     },
     {
@@ -43,7 +43,7 @@ export default function ChargesTable({ reloadKey, onAction }: Props) {
       ),
     },
     {
-      key: "fechaVencimiento", label: t("charges.vencimiento"), type: "string", width: 130, sortable: true,
+      key: "fechaVencimiento", label: t("charges.vencimiento"), type: "string", width: 130, sortable: false,
       render: (row) => (
         <span className={`text-[12px] ${row.vencido ? "font-bold" : "text-slate-600"}`} style={row.vencido ? { color: "#dc2626" } : undefined}>
           {formatDay(row.fechaVencimiento, i18n.language)}
@@ -53,7 +53,7 @@ export default function ChargesTable({ reloadKey, onAction }: Props) {
     { key: "total", label: t("charges.total"), type: "number", width: 120, render: (row) => <ITText className="text-[12px] text-slate-700">{money(row.total)}</ITText> },
     { key: "saldo", label: t("charges.saldo"), type: "number", width: 120, render: (row) => <ITText className="text-[12px] font-black text-slate-800">{money(row.saldo)}</ITText> },
     {
-      key: "status", label: t("charges.status"), type: "catalog", width: 120, filter: "catalog", sortable: true,
+      key: "status", label: t("charges.status"), type: "catalog", width: 120, filter: "catalog", sortable: false,
       catalogOptions: { data: CHARGE_STATUSES.map((s) => ({ id: s, name: t(`charges.statuses.${s}`) })) },
       render: (row) => (
         <ITFlex gap={1} align="center">

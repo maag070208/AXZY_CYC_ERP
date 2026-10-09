@@ -60,18 +60,18 @@ export default function TermsManager({ canManage }: Props) {
       label: t("terms.nombre"),
       type: "string",
       filter: true,
-      sortable: true,
+      sortable: false,
       render: (row) => <ITText className="text-[12px] font-bold text-slate-700">{row.nombre}</ITText>,
     },
-    { key: "fechaInicio", label: t("terms.fechaInicio"), type: "string", width: 150, sortable: true, render: (row) => day(row.fechaInicio) },
-    { key: "fechaFin", label: t("terms.fechaFin"), type: "string", width: 150, sortable: true, render: (row) => day(row.fechaFin) },
+    { key: "fechaInicio", label: t("terms.fechaInicio"), type: "string", width: 150, sortable: false, render: (row) => day(row.fechaInicio) },
+    { key: "fechaFin", label: t("terms.fechaFin"), type: "string", width: 150, sortable: false, render: (row) => day(row.fechaFin) },
     {
       key: "activo",
       label: t("terms.activo"),
       type: "boolean",
       width: 110,
       filter: true,
-      sortable: true,
+      sortable: false,
       render: (row) =>
         row.activo ? (
           <ITBadget color="success" size="sm">

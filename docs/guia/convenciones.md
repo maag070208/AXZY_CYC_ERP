@@ -48,6 +48,8 @@ Reglas transversales del SGE. Reflejan los **estándares de la casa (PTNV)** y e
   `DELETE` físico de datos de negocio (ver [D-003](../../DECISIONES.md)).
 - Campos `camelCase`; tablas `snake_case` plural vía `@@map("...")`.
 - Enums PascalCase con valores `UPPER_SNAKE`.
+- **Idioma:** identificadores, columnas, enums y claves en **inglés**; comentarios
+  en español (ver [D-046](../../DECISIONES.md) y [`convenciones.md` §11](../guia/convenciones.md)).
 - Dinero/medidas con `Decimal @db.Decimal(...)`; nunca punto flotante.
 - JSON en `Json`/`jsonb` (snapshots de bitácora, respuestas, horarios).
 - Fechas de calendario con `@db.Date`; instantes con `timestamptz` (UTC).
@@ -123,3 +125,29 @@ criterios de aceptación y pruebas del spec correspondiente.
 - Conventional Commits: `feat:`, `fix:`, `docs:`, `test:`, `refactor:`, `chore:`.
   Ej.: `feat(students): alta con validación de CURP`.
 - Cada módulo documenta sus decisiones abiertas y enlaza a `DECISIONES.md`.
+
+## 11. Idioma, identificadores e i18n
+
+**Regla (ver [D-046](../../DECISIONES.md)):** **todo el código en inglés, los
+comentarios en español y todo lo visible vía i18n** (API y WEB).
+
+### 11.1 Identificadores en inglés
+- Nombres de **variables, funciones, clases, tipos, enums, modelos Prisma,
+  columnas, DTOs, rutas, permisos y claves** en **inglés**.
+- Valores de enum en `UPPER_SNAKE` **en inglés** (`ACTIVE`, `INACTIVE`,
+  `ENROLLED`, `PENDING`, `TUITION`, `CASH`, `MONTHLY`…).
+- Prisma: campos `camelCase` en inglés, tablas `snake_case` plural.
+- Comentarios y documentación (`docs/`) en **español**.
+- Los identificadores existentes en español se migran a inglés (refactor
+  transversal, [D-046](../../DECISIONES.md)); el código **nuevo** nace en inglés.
+
+### 11.2 i18n (todo lo visible se traduce)
+- **API**: mensajes de error, validaciones y etiquetas de catálogo salen por
+  `i18n` (`src/core/i18n/messages/{es,en}`) a partir de `Accept-Language`. Las
+  claves de error son códigos (`STUDENT_NOT_FOUND`), nunca texto.
+- **WEB**: namespaces de `i18next` por dominio (`students`, `finance`,
+  `programs`…); **cero texto hardcodeado**. Los catálogos dinámicos (roles,
+  niveles, permisos) se muestran por **clave + i18n**, no por un `name` en la BD.
+- **Roles**: claves en inglés `ADMIN`, `SCHOOL_CONTROL`, `TEACHER`, `STUDENT`;
+  el nombre visible se traduce por i18n (`roles.ADMIN`, `roles.TEACHER`…).
+- Fechas/montos se formatean por locale en la web; la API entrega ISO/Decimal.

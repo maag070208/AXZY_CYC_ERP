@@ -35,6 +35,7 @@ reglas complejas (M07, M08, M09, M16) ≈ 1.5–2 sprints.
 | **F7** | Migración de históricos | M20 | 2 | 4 | F2 (solapa F3–F5) |
 | **F8** | Analítica ejecutiva | M21 | 1–2 | 2–4 | F4, F7 |
 | **F9** | Endurecimiento, despliegue y capacitación | M12, M13 | 2 | 4 | Todas |
+| **F10** | Programas y planes de pago | M22 | 1–2 | 2–4 | F2, F3, F4 |
 
 - **Secuencial:** ≈ 42 semanas.
 - **Con paralelismo** (M20 solapada, QA/seguridad/docs continuas, F5 y F6
@@ -65,6 +66,7 @@ reglas complejas (M07, M08, M09, M16) ≈ 1.5–2 sprints.
 | M19 | ✅ Terminado (F6) | Plantillas por clave+canal, outbox con reintentos/backoff, opt-out, bandeja interna y avisos; correo Resend/SMTP y SMS/WA simulados (A-001) |
 | M20 | ✅ Terminado (F7) | Migración CSV de alumnos y profesores: `plan()` compartido, dry-run, checksum, `Idempotency-Key`, respaldo previo, lotes/filas trazables y conciliación de totales |
 | M12, M13, M21 | Documentado | Sin código |
+| M22 | 📝 Propuesto | Programas (carreras), plan de estudios (materias por periodo) y plan de pagos del alumno (D-046/D-047) |
 | F0 — Infra | ✅ Completada | Monorepo + Docker por proyecto + `docker-compose` + CI (incluye e2e); migración `init` + seed; login por proxy de nginx verificado; e2e de auth (contrato + navegador) en verde |
 | F1 — Acceso y catálogos | ✅ Completada (pendiente H1 con el cliente) | Migración `f1_policies_catalogs`; unitarias 39, contrato API 64, navegador 30 — todo en verde |
 | F2 — Personas y expediente | ✅ Completada (pendiente H2 con el cliente) | Migración `f2_personas_expediente`; unitarias 51, contrato API 100, navegador 43 — todo en verde |
@@ -74,6 +76,7 @@ reglas complejas (M07, M08, M09, M16) ≈ 1.5–2 sprints.
 | F6 — Asistencia y notificaciones | ✅ Completada (pendiente H6 con el cliente) | Migración `f6_asistencia_notificaciones`; unitarias 89, contrato API 184, navegador 68 — todo en verde |
 | F7 — Migración de históricos | ✅ Completada (pendiente H7 con el cliente) | Migración `f7_migracion_historica`; unitarias 98, contrato API 192, navegador 69 — todo en verde. CSV de alumnos/profesores con dry-run, idempotencia y respaldo previo |
 | F8 — Analítica ejecutiva | ⏭️ Siguiente | M21 (indicadores ejecutivos y vistas materializadas) |
+| F10 — Programas y planes de pago | 📝 Propuesto | M22 (carreras, materias por periodo, plan de pagos del alumno) |
 
 ## 3. Detalle por fase
 
@@ -208,6 +211,25 @@ de presupuesto de rendimiento; specs en verde.
 **Criterios de salida:** checklist de despliegue completo; respaldo/restauración
 probados; capacitación realizada; acta de aceptación.
 
+---
+
+### F10 — Programas y planes de pago (1–2 iteraciones)
+**Módulo:** M22.
+
+- Carreras (`Program`) con costo mensual, reinscripción y esquema de periodos
+  (bimestre/trimestre/cuatrimestre/semestre + cuántos).
+- Plan de estudios: materias (`Course` de M07) asignadas por periodo.
+- Asignar un alumno a una carrera → **plan de pagos** idempotente
+  (**una reinscripción por periodo** + mensualidades = periodos × meses) con
+  snapshot de montos y **descuentos**; vencimientos al día fijo
+  (`settings.PAYMENT_DUE_DAY`) y calendario del `Term`.
+- Inscripción a grupos en **M07** (paso separado; acción opcional combinada).
+- Web: catálogo de carreras, editor del plan de estudios, asistente de asignación
+  (con descuento) y «Plan de pagos» en el expediente (reusa el estado de cuenta de M09).
+
+**Criterios de salida:** reejecutar no duplica cargos; el estado de cuenta refleja
+el plan; specs en verde.
+
 ## 4. Hitos de aceptación (con el cliente)
 
 | Hito | Al cierre de | Se valida |
@@ -222,6 +244,7 @@ probados; capacitación realizada; acta de aceptación.
 | H7 — Datos | F7 | Migración conciliada |
 | H8 — Dirección | F8 | Tablero ejecutivo |
 | H9 — Lanzamiento | F9 | Seguridad, respaldos, capacitación |
+| H10 — Programas | F10 | Carreras, plan de estudios y plan de pagos |
 
 ## 5. Flujos transversales (corren en todas las fases)
 
@@ -250,4 +273,4 @@ probados; capacitación realizada; acta de aceptación.
 
 - **Por módulo:** checklist de [definición de terminado](roadmap.md#3-definición-de-terminado-por-módulo).
 - **Por fase:** criterios de salida cumplidos + specs en verde + hito aceptado.
-- **Global:** módulos en `Terminado` / 21, y fases cerradas / 10.
+- **Global:** módulos en `Terminado` / 22, y fases cerradas / 11.

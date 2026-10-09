@@ -21,7 +21,7 @@ export default function StudentsTable({ fx, onOpen }: Props) {
       type: "string",
       width: 130,
       filter: true,
-      sortable: true,
+      sortable: false,
       render: (s) => <ITText className="font-mono text-[12px] font-black text-slate-700">{s.matricula}</ITText>,
     },
     {
@@ -29,7 +29,7 @@ export default function StudentsTable({ fx, onOpen }: Props) {
       label: t("table.nombre"),
       type: "string",
       filter: true,
-      sortable: true,
+      sortable: false,
       render: (s) => <ITText className="text-[12px] text-slate-800">{s.nombreCompleto}</ITText>,
     },
     {
@@ -38,7 +38,7 @@ export default function StudentsTable({ fx, onOpen }: Props) {
       type: "string",
       width: 200,
       filter: true,
-      sortable: true,
+      sortable: false,
       render: (s) => <ITText className="font-mono text-[11px] text-slate-600">{s.curp}</ITText>,
     },
     {
@@ -47,7 +47,7 @@ export default function StudentsTable({ fx, onOpen }: Props) {
       type: "catalog",
       width: 130,
       filter: "catalog",
-      sortable: true,
+      sortable: false,
       catalogOptions: {
         data: [
           { id: "ACTIVO", name: t("status.ACTIVO") },
@@ -66,7 +66,7 @@ export default function StudentsTable({ fx, onOpen }: Props) {
       type: "date",
       width: 160,
       filter: "date-range",
-      sortable: true,
+      sortable: false,
       render: (s) => <ITText className="text-[11px] text-slate-600">{formatDay(s.fechaIngreso, i18n.language)}</ITText>,
     },
     {

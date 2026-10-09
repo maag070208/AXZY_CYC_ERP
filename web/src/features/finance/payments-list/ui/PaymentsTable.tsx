@@ -27,11 +27,11 @@ export default function PaymentsTable({ reloadKey, onAction }: Props) {
 
   const columns: Column<Payment>[] = [
     {
-      key: "reciboFolio", label: t("payments.folio"), type: "string", width: 160, filter: true, sortable: true,
+      key: "reciboFolio", label: t("payments.folio"), type: "string", width: 160, filter: true, sortable: false,
       render: (row) => <ITText className="font-mono text-[12px] font-bold text-slate-700">{row.reciboFolio}</ITText>,
     },
     {
-      key: "fecha", label: t("payments.fecha"), type: "string", width: 120, sortable: true,
+      key: "fecha", label: t("payments.fecha"), type: "string", width: 120, sortable: false,
       render: (row) => <ITText className="text-[12px] text-slate-600">{formatDay(row.fecha, i18n.language)}</ITText>,
     },
     {
@@ -49,7 +49,7 @@ export default function PaymentsTable({ reloadKey, onAction }: Props) {
       render: (row) => <ITText className="text-[12px] text-slate-600">{t(`payments.methods.${row.metodo}`)}</ITText>,
     },
     {
-      key: "monto", label: t("payments.monto"), type: "number", width: 130, sortable: true,
+      key: "monto", label: t("payments.monto"), type: "number", width: 130, sortable: false,
       render: (row) => (
         <ITText className={`text-[12px] font-black ${row.cancelledAt ? "text-slate-400 line-through" : "text-slate-800"}`}>
           {formatMoney(row.monto, i18n.language)}

@@ -4,7 +4,7 @@ import {
   type ITSidebarProps,
 } from "@axzydev/axzy_ui_system";
 import { useCallback, useEffect, type ReactNode } from "react";
-import { FaBook, FaCashRegister, FaChalkboardTeacher, FaChartBar, FaClipboardCheck, FaCog, FaFileSignature, FaQuestionCircle, FaHistory, FaHouseUser, FaLayerGroup, FaListUl, FaUserGraduate, FaUserShield, FaUsers, FaUserCheck, FaBell, FaDatabase } from "react-icons/fa";
+import { FaBook, FaCashRegister, FaChalkboardTeacher, FaChartBar, FaClipboardCheck, FaCog, FaFileSignature, FaQuestionCircle, FaHistory, FaHouseUser, FaLayerGroup, FaListUl, FaUserGraduate, FaUserShield, FaUsers, FaUserCheck, FaBell, FaDatabase, FaUserFriends, FaGraduationCap, FaSlidersH } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -16,6 +16,9 @@ import cycMark from "@shared/assets/logos/logo-mark.svg";
 /** Icono del menú por pantalla (el catálogo vive en `@entities/permission`). */
 const NAV_ICONS: Record<string, ReactNode> = {
   home: <FaHouseUser size={14} />,
+  people: <FaUserFriends size={14} />,
+  academic: <FaGraduationCap size={14} />,
+  admin: <FaCog size={14} />,
   students: <FaUserGraduate size={14} />,
   teachers: <FaChalkboardTeacher size={14} />,
   courses: <FaBook size={14} />,
@@ -32,7 +35,7 @@ const NAV_ICONS: Record<string, ReactNode> = {
   roles: <FaUserShield size={14} />,
   audit: <FaHistory size={14} />,
   catalogs: <FaListUl size={14} />,
-  settings: <FaCog size={14} />,
+  settings: <FaSlidersH size={14} />,
 };
 
 export default function PrivateRoutes() {
@@ -74,25 +77,61 @@ export default function PrivateRoutes() {
 
   // El menú se arma desde el catálogo de pantallas (`APP_SCREENS`) y los
   // permisos efectivos (`GET /auth/me`); la web no reimplementa la matriz.
+  // Soporta hasta dos niveles: ítem → [subítem | grupo con título → subítems].
   const permissions = user?.permissions;
 
   const isScreenActive = (screen: AppScreen): boolean => {
-    if (!screen.path) return false;
-    return screen.match === "exact"
-      ? location.pathname === screen.path
-      : location.pathname === screen.path || location.pathname.startsWith(`${screen.path}/`);
+    if (screen.path) {
+      const hit =
+        screen.match === "exact"
+          ? location.pathname === screen.path
+          : location.pathname === screen.path || location.pathname.startsWith(`${screen.path}/`);
+      if (hit) return true;
+    }
+    return screen.children?.some((child) => isScreenActive(child)) ?? false;
   };
 
   const canView = (screen: AppScreen): boolean =>
     isScreenVisible(permissions, screen, user?.role);
 
-  const navigationItems: ITNavigationItem[] = APP_SCREENS.filter(canView).map((screen) => ({
+  const toSubItem = (screen: AppScreen) => ({
     id: screen.id,
     label: tt(screen.labelKey),
-    icon: NAV_ICONS[screen.id],
-    ...(screen.path ? { action: () => navigate(screen.path!) } : {}),
+    action: () => {
+      if (screen.path) navigate(screen.path);
+    },
     isActive: isScreenActive(screen),
-  }));
+  });
+
+  const toNavigationItem = (screen: AppScreen): ITNavigationItem | null => {
+    if (!canView(screen)) return null;
+    const children = (screen.children ?? []).filter((child) => canView(child));
+    return {
+      id: screen.id,
+      label: tt(screen.labelKey),
+      icon: NAV_ICONS[screen.id],
+      ...(screen.path ? { action: () => navigate(screen.path!) } : {}),
+      isActive: isScreenActive(screen),
+      ...(children.length > 0
+        ? {
+            // Un hijo con hijos es una sección con título (no clickeable).
+            subitems: children.map((child) =>
+              child.children?.length
+                ? {
+                    id: child.id,
+                    label: tt(child.labelKey),
+                    items: child.children.filter((leaf) => canView(leaf)).map(toSubItem),
+                  }
+                : toSubItem(child)
+            ),
+          }
+        : {}),
+    };
+  };
+
+  const navigationItems: ITNavigationItem[] = APP_SCREENS.map(toNavigationItem).filter(
+    (item): item is ITNavigationItem => item !== null
+  );
 
   const sidebar: ITSidebarProps = {
     navigationItems,

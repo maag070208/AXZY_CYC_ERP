@@ -47,9 +47,9 @@ export default function EnrollmentsTable({ filter, reloadKey, onAction, canChang
   const columns: Column<Enrollment>[] = [
     ...(byGroup
       ? [
-          { key: "matricula", label: t("enrollments.matricula"), type: "string" as const, width: 130, filter: true, sortable: true },
+          { key: "matricula", label: t("enrollments.matricula"), type: "string" as const, width: 130, filter: true, sortable: false },
           {
-            key: "nombre", label: t("enrollments.alumno"), type: "string" as const, filter: true, sortable: true,
+            key: "nombre", label: t("enrollments.alumno"), type: "string" as const, filter: true, sortable: false,
             render: (row: Enrollment) => (
               <ITFlex align="center" gap={2}>
                 <ITText className="text-[12px] font-bold text-slate-700">{row.studentNombre}</ITText>
@@ -67,11 +67,11 @@ export default function EnrollmentsTable({ filter, reloadKey, onAction, canChang
           { key: "termNombre", label: t("enrollments.ciclo"), type: "string" as const, width: 140 },
         ]),
     {
-      key: "fecha", label: t("enrollments.fecha"), type: "string", width: 130, sortable: true,
+      key: "fecha", label: t("enrollments.fecha"), type: "string", width: 130, sortable: false,
       render: (row) => <ITText className="text-[12px] text-slate-600">{formatDay(row.fecha, i18n.language)}</ITText>,
     },
     {
-      key: "status", label: t("enrollments.status"), type: "catalog", width: 130, filter: "catalog", sortable: true,
+      key: "status", label: t("enrollments.status"), type: "catalog", width: 130, filter: "catalog", sortable: false,
       catalogOptions: {
         data: (["INSCRITO", "BAJA", "ACREDITADO", "REPROBADO"] as const).map((s) => ({ id: s, name: t(`enrollments.statuses.${s}`) })),
       },

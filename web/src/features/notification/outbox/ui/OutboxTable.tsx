@@ -45,7 +45,7 @@ export default function OutboxTable({ reloadKey, onTotal, onChanged }: Props) {
 
   const columns: Column<NotificationItem>[] = [
     {
-      key: "destinatario", label: t("outbox.destinatario"), type: "string", filter: true, sortable: true,
+      key: "destinatario", label: t("outbox.destinatario"), type: "string", filter: true, sortable: false,
       render: (r) => (
         <div>
           <ITText className="block text-[12px] font-bold text-slate-700">{r.destinatario}</ITText>
@@ -54,7 +54,7 @@ export default function OutboxTable({ reloadKey, onTotal, onChanged }: Props) {
       ),
     },
     {
-      key: "canal", label: t("outbox.canal"), type: "catalog", width: 110, filter: "catalog", sortable: true,
+      key: "canal", label: t("outbox.canal"), type: "catalog", width: 110, filter: "catalog", sortable: false,
       catalogOptions: { data: (["EMAIL", "SMS", "WHATSAPP", "INTERNO"] as const).map((c) => ({ id: c, name: t(`channels.${c}`) })) },
       render: (r) => <ITBadget color="secondary" size="sm">{t(`channels.${r.canal}`)}</ITBadget>,
     },
@@ -63,7 +63,7 @@ export default function OutboxTable({ reloadKey, onTotal, onChanged }: Props) {
       render: (r) => <ITText className="line-clamp-2 text-[12px] text-slate-600">{r.asunto ? `${r.asunto} — ` : ""}{r.cuerpo}</ITText>,
     },
     {
-      key: "status", label: t("outbox.estado"), type: "catalog", width: 120, filter: "catalog", sortable: true,
+      key: "status", label: t("outbox.estado"), type: "catalog", width: 120, filter: "catalog", sortable: false,
       catalogOptions: { data: (["EN_COLA", "ENVIADO", "FALLIDO", "OMITIDO"] as const).map((s) => ({ id: s, name: t(`status.${s}`) })) },
       render: (r) => (
         <ITFlex direction="column" gap={1}>
@@ -74,7 +74,7 @@ export default function OutboxTable({ reloadKey, onTotal, onChanged }: Props) {
       ),
     },
     {
-      key: "createdAt", label: t("outbox.fecha"), type: "date", width: 170, sortable: true,
+      key: "createdAt", label: t("outbox.fecha"), type: "date", width: 170, sortable: false,
       render: (r) => <ITText className="text-[11px] text-slate-500">{formatInstant(r.sentAt ?? r.createdAt, i18n.language)}</ITText>,
     },
     {

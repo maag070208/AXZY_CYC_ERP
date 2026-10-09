@@ -55,11 +55,11 @@ export default function CatalogManager({ resource, canManage }: Props) {
       label: t("catalogs.nombre"),
       type: "string",
       filter: true,
-      sortable: true,
+      sortable: false,
       render: (row) => <ITText className="text-[12px] font-bold text-slate-700">{row.nombre}</ITText>,
     },
     ...(resource === "levels"
-      ? [{ key: "orden", label: t("catalogs.orden"), type: "number" as const, width: 100, sortable: true }]
+      ? [{ key: "orden", label: t("catalogs.orden"), type: "number" as const, width: 100, sortable: false }]
       : []),
     ...(resource === "document-types"
       ? [
@@ -69,7 +69,7 @@ export default function CatalogManager({ resource, canManage }: Props) {
             type: "boolean" as const,
             width: 130,
             filter: true,
-            sortable: true,
+            sortable: false,
             render: (row: CatalogItem) => (
               <ITBadget color={row.obligatorio ? "warning" : "gray"} size="sm">
                 {row.obligatorio ? t("common:labels.yes") : t("common:labels.no")}
@@ -84,7 +84,7 @@ export default function CatalogManager({ resource, canManage }: Props) {
       type: "boolean",
       width: 120,
       filter: true,
-      sortable: true,
+      sortable: false,
       render: (row) => (
         <ITBadget color={row.active ? "success" : "danger"} size="sm">
           {row.active ? t("common:labels.active") : t("common:labels.inactive")}

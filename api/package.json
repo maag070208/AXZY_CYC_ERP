@@ -13,6 +13,7 @@
     "prisma:migrate": "npx prisma migrate deploy",
     "prisma:migrate:dev": "npx prisma migrate dev",
     "seed": "npx prisma db seed",
+    "seed:demo": "ts-node -r tsconfig-paths/register prisma/seed-demo.ts",
     "test": "playwright test",
     "test:unit": "playwright test -c playwright.unit.config.ts",
     "test:e2e": "playwright test",

@@ -39,7 +39,7 @@ export default function TemplatesTable({ reloadKey, onTotal, onEdit, onChanged }
 
   const columns: Column<NotificationTemplate>[] = [
     {
-      key: "nombre", label: t("templates.nombre"), type: "string", filter: true, sortable: true,
+      key: "nombre", label: t("templates.nombre"), type: "string", filter: true, sortable: false,
       render: (r) => (
         <div>
           <ITText className="block text-[12px] font-bold text-slate-700">{r.nombre}</ITText>
@@ -48,7 +48,7 @@ export default function TemplatesTable({ reloadKey, onTotal, onEdit, onChanged }
       ),
     },
     {
-      key: "canal", label: t("templates.canal"), type: "catalog", width: 120, filter: "catalog", sortable: true,
+      key: "canal", label: t("templates.canal"), type: "catalog", width: 120, filter: "catalog", sortable: false,
       catalogOptions: { data: (["EMAIL", "SMS", "WHATSAPP", "INTERNO"] as const).map((c) => ({ id: c, name: t(`channels.${c}`) })) },
       render: (r) => <ITBadget color="secondary" size="sm">{t(`channels.${r.canal}`)}</ITBadget>,
     },

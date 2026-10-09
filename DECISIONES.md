@@ -290,6 +290,27 @@ Plantilla:
 - **Estado:** aceptada
 - **Decisión:** la primera entrega de M20 migra por **CSV** (UTF-8; delimitador `,` o `;`) las entidades `Student` y `Teacher`; las demás se incorporan como adaptadores siguientes sobre el mismo motor. El `dry-run` y la ejecución comparten `plan()` (misma lectura/normalización) y la confirmación **revalida el `sha256`** del archivo; la ejecución exige `Idempotency-Key` por lote y un **respaldo reciente** (`settings.MIGRATION_LAST_BACKUP_AT` ≤ 24 h) o responde `409 BACKUP_REQUIRED`. Idempotencia por clave natural (`Student.curp`, `Teacher.email`) con *upsert*; se preserva la **matrícula histórica** si viene en el CSV. El alta de profesor crea su cuenta `PROFESOR` con contraseña temporal y **sin enviar la invitación** (control escolar la reenvía). Los rechazos (validación y duplicados por clave natural) se calculan antes de escribir, de modo que no abortan las filas aceptadas del lote.
 
+### D-046 — Idioma: código en inglés, comentarios en español e i18n en API y WEB
+- **Fecha:** 2026-10-09
+- **Estado:** aceptada
+- **Decisión:** **todo el código en inglés** (identificadores, funciones, tipos, enums, modelos y columnas Prisma, DTOs, rutas, permisos y claves de rol) y **comentarios/documentación en español**; **todo lo visible se internacionaliza**: la API por `Accept-Language` sobre `src/core/i18n/messages/{es,en}` (las claves de error son códigos, nunca texto) y la web por namespaces de `i18next` sin texto hardcodeado. Los **roles base** usan claves en inglés `ADMIN`, `SCHOOL_CONTROL`, `TEACHER`, `STUDENT` y su **nombre visible se traduce por i18n** (no se guarda como texto en la BD). Los identificadores existentes en español (`ACTIVO`, `nombres`, `COLEGIATURA`, `CONTROL_ESCOLAR`…) se migran a inglés de forma **transversal**; el código **nuevo** nace en inglés. Complementa [§11 de convenciones](docs/guia/convenciones.md).
+
+### D-047 — Programas (carreras), plan de estudios y plan de pagos
+- **Fecha:** 2026-10-09
+- **Estado:** aceptada
+- **Decisión:** se agrega el dominio **M22**. `Program` (carrera) define `code`, `name`, `periodType` ∈ `BIMONTHLY|TRIMESTER|QUADRIMESTER|SEMESTER`, `periodCount`, `monthlyFee` y `enrollmentFee` (reinscripción). El **plan de estudios** se arma con `ProgramSubject` (`programId` + `courseId` + `periodIndex`), **reutilizando `Course`** de M07 (una materia es un curso). El **plan de pagos** de un alumno es `StudentPlan` (alumno + programa + ciclo + fecha de inicio, con **snapshot** de los montos) y sus `Charge` (`Charge.planId` + `planChargeIndex` únicos). Al asignar un alumno a un programa se generan **idempotentemente**: **1 cargo de reinscripción + (periodCount × mesesDelPeriodo) mensualidades** con el costo del programa (BIMONTHLY=2, TRIMESTER=3, QUADRIMESTER=4, SEMESTER=6 meses). El plan **no recalcula**: los montos quedan fijos al generarlo (los cambios de precio aplican a planes nuevos).
+
+### D-048 — Reglas del plan de pagos (resuelve las decisiones abiertas de M22)
+- **Fecha:** 2026-10-09
+- **Estado:** aceptada
+- **Decisión:**
+  - **Reinscripción:** se cobra **una vez por periodo** (no una sola al ingreso). Total de cargos = `periodCount × (1 + monthsPerPeriod)`. Si el cliente no la cobra, `enrollmentFee = 0`.
+  - **Día de vencimiento:** fijo y configurable en `settings.PAYMENT_DUE_DAY` (default **5**); la reinscripción del periodo vence en su primer mes y las mensualidades en los meses siguientes. Los meses/periodos salen del **calendario del `Term`** (`Term.calendar`, configurable; natural en español por defecto), no hardcodeado.
+  - **Inscripción separada:** asignar el plan **solo genera cargos**; la inscripción a grupos (cupo/horario) es de **M07**. Acción opcional «Asignar plan e inscribir» que llama a **ambos servicios** sin acoplarlos.
+  - **Conceptos:** dos genéricos `INSCRIPCION` y `COLEGIATURA`; el **monto sale del plan** (`Charge.monto`).
+  - **Prorrateo:** **no automático** en la v1; el admin puede **ajustar el primer cargo** con motivo (bitácora `CHARGE_ADJUSTED`). Regla automática solo si el cliente la define.
+  - **Descuentos/becas:** campos en el plan (`discountPercent` **o** `discountAmount` + `discountReason`); los cargos se generan con el descuento aplicado para que los reportes salgan directo.
+
 ---
 
 ## Mapeo desde la especificación original
@@ -323,7 +344,7 @@ Plantilla:
 
 ## Cómo registrar una nueva decisión
 
-1. Elige el siguiente `D-###` libre (hoy: `D-046`).
+1. Elige el siguiente `D-###` libre (hoy: `D-049`).
 2. Copia la plantilla de arriba y llénala.
 3. Enlaza al documento/módulo afectado.
 4. Si reemplaza a otra, actualiza el estado de la anterior.

@@ -50,7 +50,7 @@ export default function GroupAttendanceSummary({ groupId, reloadKey }: Props) {
     { key: "faltas", label: t("summary.faltas"), type: "number", width: 90 },
     { key: "justificadas", label: t("summary.justificadas"), type: "number", width: 110 },
     {
-      key: "porcentaje", label: t("summary.porcentaje"), type: "number", width: 160, sortable: true,
+      key: "porcentaje", label: t("summary.porcentaje"), type: "number", width: 160, sortable: false,
       render: (r) => (
         <ITFlex align="center" gap={2}>
           <div className="h-1.5 w-16 overflow-hidden rounded-full bg-slate-100">

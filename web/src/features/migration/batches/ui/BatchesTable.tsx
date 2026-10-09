@@ -41,7 +41,7 @@ export default function BatchesTable({ reloadKey, onTotal }: Props) {
 
   const columns: Column<MigrationBatch>[] = [
     {
-      key: "archivo", label: t("batches.archivo"), type: "string", filter: true, sortable: true,
+      key: "archivo", label: t("batches.archivo"), type: "string", filter: true, sortable: false,
       render: (r) => (
         <div>
           <ITText className="block text-[12px] font-bold text-slate-700">{r.archivo}</ITText>
@@ -50,7 +50,7 @@ export default function BatchesTable({ reloadKey, onTotal }: Props) {
       ),
     },
     {
-      key: "mode", label: t("batches.mode"), type: "catalog", width: 120, filter: "catalog", sortable: true,
+      key: "mode", label: t("batches.mode"), type: "catalog", width: 120, filter: "catalog", sortable: false,
       catalogOptions: { data: [{ id: "DRY_RUN", name: t("wizard.dryRun") }, { id: "EXECUTE", name: t("wizard.executedBadge") }] },
       render: (r) => <ITBadget color={r.mode === "DRY_RUN" ? "warning" : "success"} size="sm">{r.mode === "DRY_RUN" ? t("wizard.dryRun") : t("wizard.executedBadge")}</ITBadget>,
     },
@@ -63,7 +63,7 @@ export default function BatchesTable({ reloadKey, onTotal }: Props) {
       render: (r) => <ITText className="text-[11px] text-slate-600">{totalsText(r.totals)}</ITText>,
     },
     {
-      key: "createdAt", label: t("batches.fecha"), type: "date", width: 170, sortable: true,
+      key: "createdAt", label: t("batches.fecha"), type: "date", width: 170, sortable: false,
       render: (r) => <ITText className="text-[11px] text-slate-500">{formatInstant(r.executedAt ?? r.createdAt, i18n.language)}</ITText>,
     },
     {
