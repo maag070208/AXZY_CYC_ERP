@@ -1,0 +1,57 @@
+{
+  "list": {
+    "title": "Teachers",
+    "description": "{{count}} teacher(s)",
+    "new": "New teacher"
+  },
+  "table": {
+    "nombre": "Name",
+    "email": "Email",
+    "especialidad": "Specialty",
+    "status": "Status",
+    "account": "Account",
+    "pending": "Invitation pending",
+    "noAccount": "No account",
+    "lastLogin": "Last sign-in"
+  },
+  "status": {
+    "ACTIVO": "Active",
+    "INACTIVO": "Inactive"
+  },
+  "form": {
+    "titleNew": "New teacher",
+    "titleEdit": "Edit teacher",
+    "nombres": "First name(s)",
+    "apellidos": "Surnames",
+    "email": "Email",
+    "telefono": "Phone",
+    "especialidad": "Specialty",
+    "newHint": "A TEACHER account will be created and an invitation will be sent to set the password.",
+    "created": "Teacher created: invitation sent to {{email}}",
+    "saved": "Teacher updated"
+  },
+  "actions": {
+    "edit": "Edit",
+    "resend": "Resend invitation",
+    "deactivate": "Deactivate",
+    "reactivate": "Reactivate"
+  },
+  "resend": {
+    "title": "Resend invitation to {{name}}",
+    "message": "The previous invitation stops working and a new one is sent to the teacher's email.",
+    "confirm": "Resend",
+    "done": "Invitation resent"
+  },
+  "deactivate": {
+    "title": "Deactivate {{name}}",
+    "message": "The teacher becomes inactive and their account can no longer sign in.",
+    "reason": "Reason (optional)",
+    "confirm": "Deactivate",
+    "done": "Teacher deactivated"
+  },
+  "reactivate": {
+    "title": "Reactivate {{name}}",
+    "message": "The teacher and their account become active again.",
+    "done": "Teacher reactivated"
+  }
+}

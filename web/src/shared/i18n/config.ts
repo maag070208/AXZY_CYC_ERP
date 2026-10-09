@@ -7,6 +7,7 @@ import commonEn from "./locales/en/common.json";
 import configEn from "./locales/en/config.json";
 import rolesEn from "./locales/en/roles.json";
 import studentsEn from "./locales/en/students.json";
+import teachersEn from "./locales/en/teachers.json";
 import usersEn from "./locales/en/users.json";
 
 import auditEs from "./locales/es/audit.json";
@@ -15,6 +16,7 @@ import commonEs from "./locales/es/common.json";
 import configEs from "./locales/es/config.json";
 import rolesEs from "./locales/es/roles.json";
 import studentsEs from "./locales/es/students.json";
+import teachersEs from "./locales/es/teachers.json";
 import usersEs from "./locales/es/users.json";
 
 export const defaultNS = "common" as const;
@@ -22,7 +24,7 @@ export const defaultNS = "common" as const;
 export const APP_LANGUAGES = ["es", "en"] as const;
 export type AppLanguage = (typeof APP_LANGUAGES)[number];
 
-export const NS_LIST = ["common", "auth", "users", "roles", "audit", "config", "students"] as const;
+export const NS_LIST = ["common", "auth", "users", "roles", "audit", "config", "students", "teachers"] as const;
 
 export const resources = {
   en: {
@@ -33,6 +35,7 @@ export const resources = {
     audit: auditEn,
     config: configEn,
     students: studentsEn,
+    teachers: teachersEn,
   },
   es: {
     common: commonEs,
@@ -42,6 +45,7 @@ export const resources = {
     audit: auditEs,
     config: configEs,
     students: studentsEs,
+    teachers: teachersEs,
   },
 } as const;
 

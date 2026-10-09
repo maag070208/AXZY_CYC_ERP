@@ -1,0 +1,57 @@
+{
+  "list": {
+    "title": "Profesores",
+    "description": "{{count}} profesor(es)",
+    "new": "Nuevo profesor"
+  },
+  "table": {
+    "nombre": "Nombre",
+    "email": "Correo",
+    "especialidad": "Especialidad",
+    "status": "Estatus",
+    "account": "Cuenta",
+    "pending": "Invitación pendiente",
+    "noAccount": "Sin cuenta",
+    "lastLogin": "Último acceso"
+  },
+  "status": {
+    "ACTIVO": "Activo",
+    "INACTIVO": "Inactivo"
+  },
+  "form": {
+    "titleNew": "Nuevo profesor",
+    "titleEdit": "Editar profesor",
+    "nombres": "Nombre(s)",
+    "apellidos": "Apellidos",
+    "email": "Correo",
+    "telefono": "Teléfono",
+    "especialidad": "Especialidad",
+    "newHint": "Se creará su cuenta con rol PROFESOR y le enviaremos una invitación para definir su contraseña.",
+    "created": "Profesor creado: invitación enviada a {{email}}",
+    "saved": "Profesor actualizado"
+  },
+  "actions": {
+    "edit": "Editar",
+    "resend": "Reenviar invitación",
+    "deactivate": "Dar de baja",
+    "reactivate": "Reactivar"
+  },
+  "resend": {
+    "title": "Reenviar invitación a {{name}}",
+    "message": "La invitación anterior deja de servir y se envía una nueva al correo del profesor.",
+    "confirm": "Reenviar",
+    "done": "Invitación reenviada"
+  },
+  "deactivate": {
+    "title": "Dar de baja a {{name}}",
+    "message": "El profesor queda inactivo y su cuenta deja de poder iniciar sesión.",
+    "reason": "Motivo (opcional)",
+    "confirm": "Dar de baja",
+    "done": "Profesor dado de baja"
+  },
+  "reactivate": {
+    "title": "Reactivar a {{name}}",
+    "message": "El profesor y su cuenta vuelven a estar activos.",
+    "done": "Profesor reactivado"
+  }
+}

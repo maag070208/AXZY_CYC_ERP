@@ -12,6 +12,7 @@ import ChangePasswordPage from "@pages/account/ChangePasswordPage";
 import StudentsListPage from "@pages/students/StudentsListPage";
 import StudentFormPage from "@pages/students/StudentFormPage";
 import StudentDetailPage from "@pages/students/StudentDetailPage";
+import TeachersPage from "@pages/teachers/TeachersPage";
 import PrivateRoutes from "./guards/PrivateRoutes";
 import RequiresPermission from "./guards/RequirePermission";
 
@@ -55,6 +56,14 @@ export default function App() {
           element={
             <RequiresPermission permission="students.edit">
               <StudentFormPage />
+            </RequiresPermission>
+          }
+        />
+        <Route
+          path="/teachers"
+          element={
+            <RequiresPermission permission="teachers.view">
+              <TeachersPage />
             </RequiresPermission>
           }
         />

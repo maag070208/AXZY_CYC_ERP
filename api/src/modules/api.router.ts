@@ -7,6 +7,7 @@ import { createPermissionsModule } from "./permissions";
 import { createAuditModule, type AuditPort } from "./audit";
 import { createConfigModule } from "./config";
 import { createStudentsModule } from "./students";
+import { createTeachersModule } from "./teachers";
 
 // Puerto de auditoría (DIP): cada módulo recibe solo `createLog`, no el servicio.
 const { router: auditRouter, service: auditService } = createAuditModule();
@@ -19,6 +20,7 @@ const userRouter = createUserModule(auditPort.createLog);
 const permissionsRouter = createPermissionsModule(auditPort.createLog).router;
 const config = createConfigModule(auditPort.createLog);
 const students = createStudentsModule(auditPort.createLog);
+const teachers = createTeachersModule(auditPort.createLog);
 
 const apiRouter = Router();
 
@@ -77,6 +79,7 @@ apiRouter.use("/terms", config.routers.terms);
 apiRouter.use("/cancellation-reasons", config.routers.cancellationReasons);
 apiRouter.use("/document-types", config.routers.documentTypes);
 apiRouter.use("/students", students.router);
+apiRouter.use("/teachers", teachers.router);
 
 export { auditService };
 export default apiRouter;
