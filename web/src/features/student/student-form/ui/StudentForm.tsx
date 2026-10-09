@@ -45,37 +45,37 @@ export default function StudentForm({ student, onSaved, onCancel }: Props) {
         <PanelCard title={t("form.personal")}>
           <ITGrid container columns={12} spacing={4}>
             <ITGrid item xs={12} md={4}>
-              <ITInput name="nombres" label={t("form.nombres")} value={f.nombres} required error={e.nombres}
-                onChange={(ev) => fx.set("nombres", ev.target.value)} />
+              <ITInput name="firstNames" label={t("form.firstNames")} value={f.firstNames} required error={e.firstNames}
+                onChange={(ev) => fx.set("firstNames", ev.target.value)} />
             </ITGrid>
             <ITGrid item xs={12} md={4}>
-              <ITInput name="apellidoPaterno" label={t("form.apellidoPaterno")} value={f.apellidoPaterno} required
-                error={e.apellidoPaterno} onChange={(ev) => fx.set("apellidoPaterno", ev.target.value)} />
+              <ITInput name="paternalSurname" label={t("form.paternalSurname")} value={f.paternalSurname} required
+                error={e.paternalSurname} onChange={(ev) => fx.set("paternalSurname", ev.target.value)} />
             </ITGrid>
             <ITGrid item xs={12} md={4}>
-              <ITInput name="apellidoMaterno" label={t("form.apellidoMaterno")} value={f.apellidoMaterno}
-                onChange={(ev) => fx.set("apellidoMaterno", ev.target.value)} />
+              <ITInput name="maternalSurname" label={t("form.maternalSurname")} value={f.maternalSurname}
+                onChange={(ev) => fx.set("maternalSurname", ev.target.value)} />
             </ITGrid>
             <ITGrid item xs={12} md={4}>
               <ITInput name="curp" label={t("form.curp")} value={f.curp} required maxLength={18} error={e.curp}
                 onChange={(ev) => fx.set("curp", ev.target.value.toUpperCase())} />
             </ITGrid>
             <ITGrid item xs={12} md={4}>
-              <ITDatePicker name="fechaNacimiento" label={t("form.fechaNacimiento")} required
-                value={f.fechaNacimiento ? fromDay(f.fechaNacimiento) : undefined}
-                maxDate={new Date()} error={e.fechaNacimiento}
-                onChange={(ev) => fx.set("fechaNacimiento", pickDay(ev.target.value))} />
+              <ITDatePicker name="birthDate" label={t("form.birthDate")} required
+                value={f.birthDate ? fromDay(f.birthDate) : undefined}
+                maxDate={new Date()} error={e.birthDate}
+                onChange={(ev) => fx.set("birthDate", pickDay(ev.target.value))} />
             </ITGrid>
             <ITGrid item xs={12} md={4}>
-              <ITSelect name="genero" label={t("form.genero")} value={f.genero}
-                options={(["M", "F", "OTRO"] as const).map((g) => ({ value: g, label: t(`genders.${g}`) }))}
-                onChange={(ev) => fx.set("genero", ev.target.value as typeof f.genero)} />
+              <ITSelect name="gender" label={t("form.gender")} value={f.gender}
+                options={(["M", "F", "OTHER"] as const).map((g) => ({ value: g, label: t(`genders.${g}`) }))}
+                onChange={(ev) => fx.set("gender", ev.target.value as typeof f.gender)} />
             </ITGrid>
             {!fx.isEdit && (
               <ITGrid item xs={12} md={4}>
-                <ITDatePicker name="fechaIngreso" label={t("form.fechaIngreso")}
-                  value={f.fechaIngreso ? fromDay(f.fechaIngreso) : undefined}
-                  onChange={(ev) => fx.set("fechaIngreso", pickDay(ev.target.value))} />
+                <ITDatePicker name="enrollmentDate" label={t("form.enrollmentDate")}
+                  value={f.enrollmentDate ? fromDay(f.enrollmentDate) : undefined}
+                  onChange={(ev) => fx.set("enrollmentDate", pickDay(ev.target.value))} />
                 <ITText className="mt-1 block text-[11px] text-slate-400">{t("form.fechaIngresoHint")}</ITText>
               </ITGrid>
             )}
@@ -89,12 +89,12 @@ export default function StudentForm({ student, onSaved, onCancel }: Props) {
                 onChange={(ev) => fx.set("email", ev.target.value)} />
             </ITGrid>
             <ITGrid item xs={12} md={4}>
-              <ITInput name="telefono" label={t("form.telefono")} value={f.telefono} error={e.telefono}
-                onChange={(ev) => fx.set("telefono", ev.target.value)} />
+              <ITInput name="phone" label={t("form.phone")} value={f.phone} error={e.phone}
+                onChange={(ev) => fx.set("phone", ev.target.value)} />
             </ITGrid>
             <ITGrid item xs={12} md={4}>
-              <ITInput name="direccion" label={t("form.direccion")} value={f.direccion}
-                onChange={(ev) => fx.set("direccion", ev.target.value)} />
+              <ITInput name="address" label={t("form.address")} value={f.address}
+                onChange={(ev) => fx.set("address", ev.target.value)} />
             </ITGrid>
           </ITGrid>
         </PanelCard>
@@ -126,19 +126,19 @@ export default function StudentForm({ student, onSaved, onCancel }: Props) {
                   <div key={index} className="rounded-xl border border-slate-200 p-3" data-guardian={index}>
                     <ITGrid container columns={12} spacing={3}>
                       <ITGrid item xs={12} md={4}>
-                        <ITInput name={`guardian-${index}-nombre`} label={t("form.guardianNombre")} value={g.nombre}
-                          required error={rowErrors.nombre}
-                          onChange={(ev) => fx.setGuardian(index, { nombre: ev.target.value })} />
+                        <ITInput name={`guardian-${index}-name`} label={t("form.guardianNombre")} value={g.name}
+                          required error={rowErrors.name}
+                          onChange={(ev) => fx.setGuardian(index, { name: ev.target.value })} />
                       </ITGrid>
                       <ITGrid item xs={12} md={2}>
-                        <ITInput name={`guardian-${index}-parentesco`} label={t("form.parentesco")} value={g.parentesco}
-                          required error={rowErrors.parentesco}
-                          onChange={(ev) => fx.setGuardian(index, { parentesco: ev.target.value })} />
+                        <ITInput name={`guardian-${index}-relationship`} label={t("form.relationship")} value={g.relationship}
+                          required error={rowErrors.relationship}
+                          onChange={(ev) => fx.setGuardian(index, { relationship: ev.target.value })} />
                       </ITGrid>
                       <ITGrid item xs={12} md={3}>
-                        <ITInput name={`guardian-${index}-telefono`} label={t("form.telefono")} value={g.telefono}
-                          required error={rowErrors.telefono}
-                          onChange={(ev) => fx.setGuardian(index, { telefono: ev.target.value })} />
+                        <ITInput name={`guardian-${index}-phone`} label={t("form.phone")} value={g.phone}
+                          required error={rowErrors.phone}
+                          onChange={(ev) => fx.setGuardian(index, { phone: ev.target.value })} />
                       </ITGrid>
                       <ITGrid item xs={12} md={3}>
                         <ITInput name={`guardian-${index}-email`} type="email" label={t("form.email")} value={g.email}
@@ -148,8 +148,8 @@ export default function StudentForm({ student, onSaved, onCancel }: Props) {
                     </ITGrid>
                     <ITFlex justify="between" align="center" className="mt-2">
                       <ITCheckbox name={`guardian-${index}-payer`} label={t("form.responsablePago")}
-                        checked={g.esResponsablePago}
-                        onChange={(checked) => fx.setGuardian(index, { esResponsablePago: checked })} />
+                        checked={g.isPaymentResponsible}
+                        onChange={(checked) => fx.setGuardian(index, { isPaymentResponsible: checked })} />
                       <ITButton variant="text" color="danger" size="sm" ariaLabel={`${t("form.removeGuardian")} ${index + 1}`}
                         onClick={() => fx.removeGuardian(index)}>
                         <FaTrash size={11} />

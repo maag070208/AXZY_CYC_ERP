@@ -1,13 +1,13 @@
-export type QuestionType = "OPCION_MULTIPLE" | "VERDADERO_FALSO" | "MULTIPLE_RESPUESTA" | "ABIERTA";
-export const QUESTION_TYPES: readonly QuestionType[] = ["OPCION_MULTIPLE", "VERDADERO_FALSO", "MULTIPLE_RESPUESTA", "ABIERTA"];
-export type Difficulty = "FACIL" | "MEDIA" | "DIFICIL";
-export const DIFFICULTIES: readonly Difficulty[] = ["FACIL", "MEDIA", "DIFICIL"];
+export type QuestionType = "MULTIPLE_CHOICE" | "TRUE_FALSE" | "MULTIPLE_ANSWER" | "OPEN";
+export const QUESTION_TYPES: readonly QuestionType[] = ["MULTIPLE_CHOICE", "TRUE_FALSE", "MULTIPLE_ANSWER", "OPEN"];
+export type Difficulty = "EASY" | "MEDIUM" | "HARD";
+export const DIFFICULTIES: readonly Difficulty[] = ["EASY", "MEDIUM", "HARD"];
 
 export interface QuestionOption {
   id?: string;
-  texto: string;
-  esCorrecta: boolean;
-  orden?: number;
+  text: string;
+  isCorrect: boolean;
+  sortOrder?: number;
 }
 
 /** Reactivo del banco (`/questions`, M14). */
@@ -16,12 +16,12 @@ export interface Question {
   courseId: string;
   courseClave: string;
   courseNombre: string;
-  tema: string | null;
-  tipo: QuestionType;
-  enunciado: string;
-  puntos: number;
-  dificultad: Difficulty | null;
-  status: "ACTIVA" | "INACTIVA";
+  topic: string | null;
+  type: QuestionType;
+  text: string;
+  points: number;
+  difficulty: Difficulty | null;
+  status: "ACTIVE" | "INACTIVE";
   options: QuestionOption[];
   usedInExams: number;
   /** Ya respondido en un intento: solo se puede desactivar. */
@@ -32,12 +32,12 @@ export interface Question {
 
 export interface QuestionInput {
   courseId?: string;
-  tema?: string | null;
-  tipo?: QuestionType;
-  enunciado?: string;
-  puntos?: number;
-  dificultad?: Difficulty | null;
-  options?: Array<{ texto: string; esCorrecta: boolean }>;
+  topic?: string | null;
+  type?: QuestionType;
+  text?: string;
+  points?: number;
+  difficulty?: Difficulty | null;
+  options?: Array<{ text: string; isCorrect: boolean }>;
 }
 
 export interface ImportResult {
@@ -46,5 +46,5 @@ export interface ImportResult {
   valid: number;
   created: number;
   rejected: Array<{ row: number; code: string; message: string }>;
-  sample: Array<{ row: number; curso: string; tipo: QuestionType; enunciado: string; puntos: number; opciones: number }>;
+  sample: Array<{ row: number; curso: string; type: QuestionType; text: string; points: number; opciones: number }>;
 }

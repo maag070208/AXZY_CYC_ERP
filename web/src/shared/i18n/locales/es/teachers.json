@@ -5,9 +5,9 @@
     "new": "Nuevo profesor"
   },
   "table": {
-    "nombre": "Nombre",
+    "name": "Nombre",
     "email": "Correo",
-    "especialidad": "Especialidad",
+    "specialty": "Especialidad",
     "status": "Estatus",
     "account": "Cuenta",
     "pending": "Invitación pendiente",
@@ -15,17 +15,17 @@
     "lastLogin": "Último acceso"
   },
   "status": {
-    "ACTIVO": "Activo",
-    "INACTIVO": "Inactivo"
+    "ACTIVE": "Activo",
+    "INACTIVE": "Inactivo"
   },
   "form": {
     "titleNew": "Nuevo profesor",
     "titleEdit": "Editar profesor",
-    "nombres": "Nombre(s)",
-    "apellidos": "Apellidos",
+    "firstNames": "Nombre(s)",
+    "surnames": "Apellidos",
     "email": "Correo",
-    "telefono": "Teléfono",
-    "especialidad": "Especialidad",
+    "phone": "Teléfono",
+    "specialty": "Especialidad",
     "newHint": "Se creará su cuenta con rol PROFESOR y le enviaremos una invitación para definir su contraseña.",
     "created": "Profesor creado: invitación enviada a {{email}}",
     "saved": "Profesor actualizado"

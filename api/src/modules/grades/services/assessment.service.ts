@@ -32,10 +32,10 @@ const include = {
 const toView = (row: AssessmentRow): AssessmentView => ({
   id: row.id,
   groupId: row.groupId,
-  nombre: row.nombre,
-  tipo: row.tipo,
-  ponderacion: Number(row.ponderacion),
-  fecha: row.fecha ? fromDbDay(row.fecha) : null,
+  name: row.name,
+  type: row.type,
+  weight: Number(row.weight),
+  date: row.date ? fromDbDay(row.date) : null,
   maxScore: Number(row.maxScore),
   active: row.active,
   capturadas: row._count.grades,
@@ -45,10 +45,10 @@ const toView = (row: AssessmentRow): AssessmentView => ({
 
 const stateOf = (v: AssessmentView): Prisma.InputJsonObject => ({
   groupId: v.groupId,
-  nombre: v.nombre,
-  tipo: v.tipo,
-  ponderacion: v.ponderacion,
-  fecha: v.fecha,
+  name: v.name,
+  type: v.type,
+  weight: v.weight,
+  date: v.date,
   maxScore: v.maxScore,
   active: v.active,
 });
@@ -91,12 +91,12 @@ export class AssessmentService {
     if (!group.active) throw new HttpError(409, "GROUP_INACTIVE");
   }
 
-  private async assertWeights(groupId: string, ponderacion: number, exceptId?: string): Promise<void> {
+  private async assertWeights(groupId: string, weight: number, exceptId?: string): Promise<void> {
     const others = await this.db.assessment.findMany({
       where: { groupId, active: true, ...(exceptId ? { NOT: { id: exceptId } } : {}) },
-      select: { ponderacion: true },
+      select: { weight: true },
     });
-    const total = weightsTotal([...others, { ponderacion }]);
+    const total = weightsTotal([...others, { weight }]);
     if (total > 100) throw new HttpError(409, "WEIGHTS_EXCEED_100", { total });
   }
 
@@ -105,16 +105,16 @@ export class AssessmentService {
     const and: Prisma.AssessmentWhereInput[] = [];
     const groupId = filterId(filters, "groupId");
     if (groupId) and.push({ groupId });
-    const tipo = filterEnum(filters, "tipo", ASSESSMENT_TYPES);
-    if (tipo) and.push({ tipo });
+    const type = filterEnum(filters, "type", ASSESSMENT_TYPES);
+    if (type) and.push({ type });
     const active = filterBool(filters, "active");
     if (active !== undefined) and.push({ active });
     const scoped = await assessmentScope(user, "assessments.view");
     if (scoped) and.push(scoped);
     const orderBy = orderByOf(
       params.sort,
-      { nombre: "nombre", tipo: "tipo", ponderacion: "ponderacion", fecha: "fecha", createdAt: "createdAt" },
-      [{ fecha: { sort: "asc", nulls: "last" } }, { createdAt: "asc" }]
+      { name: "name", type: "type", weight: "weight", date: "date", createdAt: "createdAt" },
+      [{ date: { sort: "asc", nulls: "last" } }, { createdAt: "asc" }]
     );
     const result = await paginatedQuery<AssessmentRow>({
       model: this.db.assessment,
@@ -133,15 +133,15 @@ export class AssessmentService {
 
   async create(input: AssessmentCreateInput, actor: AuthenticatedUser): Promise<AssessmentView> {
     await this.assertManageableGroup(input.groupId, actor);
-    await this.assertWeights(input.groupId, input.ponderacion);
+    await this.assertWeights(input.groupId, input.weight);
     return this.db.$transaction(async (tx) => {
       const row = await tx.assessment.create({
         data: {
           groupId: input.groupId,
-          nombre: input.nombre,
-          tipo: input.tipo,
-          ponderacion: input.ponderacion,
-          fecha: input.fecha ? toDbDay(input.fecha) : null,
+          name: input.name,
+          type: input.type,
+          weight: input.weight,
+          date: input.date ? toDbDay(input.date) : null,
           maxScore: input.maxScore ?? 100,
         },
         include,
@@ -160,7 +160,7 @@ export class AssessmentService {
     const previous = await this.load(id, null);
     await this.assertManageableGroup(previous.groupId, actor);
     if (!previous.active) throw new HttpError(409, "ASSESSMENT_INACTIVE");
-    if (input.ponderacion !== undefined) await this.assertWeights(previous.groupId, input.ponderacion, id);
+    if (input.weight !== undefined) await this.assertWeights(previous.groupId, input.weight, id);
     if (input.maxScore !== undefined) {
       const above = await this.db.grade.count({ where: { assessmentId: id, score: { gt: input.maxScore } } });
       if (above > 0) throw new HttpError(409, "MAX_SCORE_BELOW_CAPTURED", { max: input.maxScore });
@@ -170,10 +170,10 @@ export class AssessmentService {
       const row = await tx.assessment.update({
         where: { id },
         data: {
-          ...(input.nombre !== undefined && { nombre: input.nombre }),
-          ...(input.tipo !== undefined && { tipo: input.tipo }),
-          ...(input.ponderacion !== undefined && { ponderacion: input.ponderacion }),
-          ...(input.fecha !== undefined && { fecha: input.fecha ? toDbDay(input.fecha) : null }),
+          ...(input.name !== undefined && { name: input.name }),
+          ...(input.type !== undefined && { type: input.type }),
+          ...(input.weight !== undefined && { weight: input.weight }),
+          ...(input.date !== undefined && { date: input.date ? toDbDay(input.date) : null }),
           ...(input.maxScore !== undefined && { maxScore: input.maxScore }),
         },
         include,

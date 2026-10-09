@@ -7,26 +7,26 @@ import { usernameBase } from "@modules/teachers";
 type Tx = Prisma.TransactionClient;
 
 export interface StudentMigrationData {
-  nombres: string;
-  apellidoPaterno: string;
-  apellidoMaterno: string | null;
+  firstNames: string;
+  paternalSurname: string;
+  maternalSurname: string | null;
   curp: string;
-  fechaNacimiento: string;
-  fechaIngreso: string;
-  genero: string | null;
+  birthDate: string;
+  enrollmentDate: string;
+  gender: string | null;
   email: string | null;
-  telefono: string | null;
-  direccion: string | null;
-  matricula: string | null;
-  guardians: Array<{ nombre: string; parentesco: string; telefono: string; email: string | null; esResponsablePago: boolean }>;
+  phone: string | null;
+  address: string | null;
+  studentNumber: string | null;
+  guardians: Array<{ name: string; relationship: string; phone: string; email: string | null; isPaymentResponsible: boolean }>;
 }
 
 export interface TeacherMigrationData {
-  nombres: string;
-  apellidos: string;
+  firstNames: string;
+  surnames: string;
   email: string;
-  telefono: string | null;
-  especialidad: string | null;
+  phone: string | null;
+  specialty: string | null;
 }
 
 /** Busca el siguiente username libre a partir del correo (colisiones con sufijo). */
@@ -48,42 +48,42 @@ export const applyStudent = async (tx: Tx, raw: Record<string, unknown>): Promis
     await tx.student.update({
       where: { id: existing.id },
       data: {
-        nombres: data.nombres,
-        apellidoPaterno: data.apellidoPaterno,
-        apellidoMaterno: data.apellidoMaterno,
-        genero: data.genero,
+        firstNames: data.firstNames,
+        paternalSurname: data.paternalSurname,
+        maternalSurname: data.maternalSurname,
+        gender: data.gender,
         email: data.email,
-        telefono: data.telefono,
-        direccion: data.direccion,
+        phone: data.phone,
+        address: data.address,
       },
     });
     return "updated";
   }
 
-  let matricula = data.matricula;
-  if (!matricula) {
-    const year = Number(data.fechaIngreso.slice(0, 4));
-    const sequence = await tx.matriculaSequence.upsert({
+  let studentNumber = data.studentNumber;
+  if (!studentNumber) {
+    const year = Number(data.enrollmentDate.slice(0, 4));
+    const sequence = await tx.studentNumberSequence.upsert({
       where: { year },
       create: { year, last: 1 },
       update: { last: { increment: 1 } },
     });
-    matricula = formatMatricula(year, sequence.last);
+    studentNumber = formatMatricula(year, sequence.last);
   }
 
   await tx.student.create({
     data: {
-      matricula,
-      nombres: data.nombres,
-      apellidoPaterno: data.apellidoPaterno,
-      apellidoMaterno: data.apellidoMaterno,
+      studentNumber,
+      firstNames: data.firstNames,
+      paternalSurname: data.paternalSurname,
+      maternalSurname: data.maternalSurname,
       curp: data.curp,
-      fechaNacimiento: toDbDay(data.fechaNacimiento),
-      fechaIngreso: toDbDay(data.fechaIngreso),
-      genero: data.genero,
+      birthDate: toDbDay(data.birthDate),
+      enrollmentDate: toDbDay(data.enrollmentDate),
+      gender: data.gender,
       email: data.email,
-      telefono: data.telefono,
-      direccion: data.direccion,
+      phone: data.phone,
+      address: data.address,
       guardians: { create: data.guardians },
     },
   });
@@ -101,7 +101,7 @@ export const applyTeacher = async (tx: Tx, raw: Record<string, unknown>): Promis
   if (existing) {
     await tx.teacher.update({
       where: { id: existing.id },
-      data: { nombres: data.nombres, apellidos: data.apellidos, telefono: data.telefono, especialidad: data.especialidad, status: "ACTIVO" },
+      data: { firstNames: data.firstNames, surnames: data.surnames, phone: data.phone, specialty: data.specialty, status: "ACTIVE" },
     });
     return "updated";
   }
@@ -113,19 +113,19 @@ export const applyTeacher = async (tx: Tx, raw: Record<string, unknown>): Promis
       username,
       email: data.email,
       passwordHash,
-      name: `${data.nombres} ${data.apellidos}`,
-      phone: data.telefono,
+      name: `${data.firstNames} ${data.surnames}`,
+      phone: data.phone,
       mustChangePassword: true,
       roles: { create: [{ roleKey: "TEACHER" }] },
     },
   });
   await tx.teacher.create({
     data: {
-      nombres: data.nombres,
-      apellidos: data.apellidos,
+      firstNames: data.firstNames,
+      surnames: data.surnames,
       email: data.email,
-      telefono: data.telefono,
-      especialidad: data.especialidad,
+      phone: data.phone,
+      specialty: data.specialty,
       userId: user.id,
     },
   });

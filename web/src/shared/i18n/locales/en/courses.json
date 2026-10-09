@@ -115,10 +115,10 @@
     "dropped": "Enrollment dropped",
     "empty": "No students enrolled yet",
     "statuses": {
-      "INSCRITO": "Enrolled",
-      "BAJA": "Dropped",
-      "ACREDITADO": "Passed",
-      "REPROBADO": "Failed"
+      "ENROLLED": "Enrolled",
+      "WITHDRAWN": "Dropped",
+      "PASSED": "Passed",
+      "FAILED": "Failed"
     },
     "alreadyEnrolled": "Already enrolled"
   }

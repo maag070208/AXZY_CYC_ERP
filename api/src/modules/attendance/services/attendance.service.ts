@@ -30,13 +30,13 @@ import type {
 type Client = PrismaClient | Prisma.TransactionClient;
 
 const SYSTEM = { userId: null, userName: "sistema" };
-const studentName = (s: { nombres: string; apellidoPaterno: string; apellidoMaterno: string | null }) =>
-  [s.nombres, s.apellidoPaterno, s.apellidoMaterno].filter(Boolean).join(" ");
-const studentSelect = { id: true, matricula: true, nombres: true, apellidoPaterno: true, apellidoMaterno: true } as const;
-const byName = (a: { nombre: string }, b: { nombre: string }) => a.nombre.localeCompare(b.nombre, "es");
+const studentName = (s: { firstNames: string; paternalSurname: string; maternalSurname: string | null }) =>
+  [s.firstNames, s.paternalSurname, s.maternalSurname].filter(Boolean).join(" ");
+const studentSelect = { id: true, studentNumber: true, firstNames: true, paternalSurname: true, maternalSurname: true } as const;
+const byName = (a: { name: string }, b: { name: string }) => a.name.localeCompare(b.name, "es");
 
 const sessionInclude = {
-  group: { select: { id: true, nombre: true, active: true, closedAt: true, course: { select: { nombre: true } }, term: { select: { name: true } } } },
+  group: { select: { id: true, name: true, active: true, closedAt: true, course: { select: { name: true } }, term: { select: { name: true } } } },
   records: { select: { status: true } },
 } as const;
 type SessionRow = Prisma.AttendanceSessionGetPayload<{ include: typeof sessionInclude }>;
@@ -44,11 +44,11 @@ type SessionRow = Prisma.AttendanceSessionGetPayload<{ include: typeof sessionIn
 const toSessionView = (row: SessionRow): SessionView => ({
   id: row.id,
   groupId: row.groupId,
-  fecha: fromDbDay(row.fecha),
-  hora: row.hora,
-  tema: row.tema,
+  date: fromDbDay(row.date),
+  time: row.time,
+  topic: row.topic,
   registrados: row.records.length,
-  faltas: row.records.filter((r) => r.status === "FALTA").length,
+  faltas: row.records.filter((r) => r.status === "ABSENT").length,
   annulled: !!row.deletedAt,
   deleteReason: row.deleteReason,
   createdAt: row.createdAt.toISOString(),
@@ -101,7 +101,7 @@ export class AttendanceService {
     const rows = await this.db.attendanceSession.findMany({
       where: { groupId },
       include: sessionInclude,
-      orderBy: [{ fecha: "desc" }, { hora: "desc" }, { createdAt: "desc" }],
+      orderBy: [{ date: "desc" }, { time: "desc" }, { createdAt: "desc" }],
     });
     return rows.map(toSessionView);
   }
@@ -111,16 +111,16 @@ export class AttendanceService {
     const group = await this.db.group.findUnique({ where: { id: groupId }, select: { active: true, closedAt: true } });
     if (!group) throw new HttpError(404, "GROUP_NOT_FOUND");
     this.assertWritable(group);
-    if (input.fecha > todayInBusinessZone()) throw new HttpError(400, "FUTURE_DATE", { field: "fecha" });
+    if (input.date > todayInBusinessZone()) throw new HttpError(400, "FUTURE_DATE", { field: "date" });
     try {
       return await this.db.$transaction(async (tx) => {
         const row = await tx.attendanceSession.create({
-          data: { groupId, fecha: toDbDay(input.fecha), hora: input.hora ?? null, tema: input.tema ?? null, createdBy: actor.id },
+          data: { groupId, date: toDbDay(input.date), time: input.time ?? null, topic: input.topic ?? null, createdBy: actor.id },
           include: sessionInclude,
         });
         await this.audit?.(
           { action: "ATTENDANCE_SESSION_CREATED", entityType: "AttendanceSession", entityId: row.id, userId: actor.id, userName: actor.username,
-            newState: { groupId, fecha: input.fecha, hora: row.hora, tema: row.tema } },
+            newState: { groupId, date: input.date, time: row.time, topic: row.topic } },
           tx
         );
         return toSessionView(row);
@@ -136,7 +136,7 @@ export class AttendanceService {
     const session = await this.loadSession(sessionId);
     await this.assertStaffView(user, session.groupId);
     const enrollments = await this.db.enrollment.findMany({
-      where: { groupId: session.groupId, OR: [{ status: "INSCRITO" }, { attendance: { some: { sessionId } } }] },
+      where: { groupId: session.groupId, OR: [{ status: "ENROLLED" }, { attendance: { some: { sessionId } } }] },
       select: {
         id: true,
         student: { select: studentSelect },
@@ -150,12 +150,12 @@ export class AttendanceService {
         return {
           enrollmentId: e.id,
           studentId: e.student.id,
-          matricula: e.student.matricula,
-          nombre: studentName(e.student),
+          studentNumber: e.student.studentNumber,
+          name: studentName(e.student),
           attendanceId: record?.id ?? null,
           status: record?.status ?? null,
           justification,
-          locked: justification === "PENDIENTE" || justification === "APROBADA",
+          locked: justification === "PENDING" || justification === "APPROVED",
         };
       })
       .sort(byName);
@@ -163,8 +163,8 @@ export class AttendanceService {
       ...toSessionView(session),
       group: {
         id: session.group.id,
-        nombre: session.group.nombre,
-        courseNombre: session.group.course.nombre,
+        name: session.group.name,
+        courseNombre: session.group.course.name,
         termNombre: session.group.term.name,
         closed: !!session.group.closedAt || !session.group.active,
       },
@@ -185,7 +185,7 @@ export class AttendanceService {
 
     const result = await this.db.$transaction(async (tx) => {
       const enrollments = await tx.enrollment.findMany({
-        where: { groupId: session.groupId, OR: [{ status: "INSCRITO" }, { attendance: { some: { sessionId } } }] },
+        where: { groupId: session.groupId, OR: [{ status: "ENROLLED" }, { attendance: { some: { sessionId } } }] },
         select: { id: true, status: true, attendance: { where: { sessionId }, select: { id: true, status: true, justification: { select: { status: true } } } } },
       });
       const byId = new Map(enrollments.map((e) => [e.id, e]));
@@ -193,14 +193,14 @@ export class AttendanceService {
         if (!byId.has(item.enrollmentId)) throw new HttpError(400, "INVALID_REFERENCE", {}, { enrollmentId: item.enrollmentId });
       }
       const sent = new Set(input.items.map((i) => i.enrollmentId));
-      const missing = enrollments.filter((e) => e.status === "INSCRITO" && !sent.has(e.id)).length;
+      const missing = enrollments.filter((e) => e.status === "ENROLLED" && !sent.has(e.id)).length;
       if (missing > 0) throw new HttpError(400, "ATTENDANCE_INCOMPLETE", { count: missing });
 
       const changes: Array<{ enrollmentId: string; from: string | null; to: string }> = [];
       let skipped = 0;
       for (const item of input.items) {
         const current = byId.get(item.enrollmentId)!.attendance[0];
-        const locked = current?.justification && current.justification.status !== "RECHAZADA";
+        const locked = current?.justification && current.justification.status !== "REJECTED";
         if (locked) {
           skipped++;
           continue;
@@ -218,7 +218,7 @@ export class AttendanceService {
           { action: "ATTENDANCE_RECORDED", entityType: "AttendanceSession", entityId: sessionId, userId: actor.id, userName: actor.username,
             previousState: { records: changes.map((c) => ({ enrollmentId: c.enrollmentId, status: c.from })) },
             newState: { records: changes.map((c) => ({ enrollmentId: c.enrollmentId, status: c.to })) },
-            metadata: { groupId: session.groupId, fecha: fromDbDay(session.fecha) } },
+            metadata: { groupId: session.groupId, date: fromDbDay(session.date) } },
           tx
         );
       }
@@ -229,7 +229,7 @@ export class AttendanceService {
   }
 
   /** Anulación lógica (M18 §4.9): la sesión deja de contar, sus registros se conservan. */
-  async annul(sessionId: string, motivo: string, actor: AuthenticatedUser): Promise<SessionView> {
+  async annul(sessionId: string, reason: string, actor: AuthenticatedUser): Promise<SessionView> {
     const session = await this.loadSession(sessionId);
     await assertGroupInScope(this.db, actor, "attendance.manage", session.groupId);
     if (session.deletedAt) throw new HttpError(409, "SESSION_ANNULLED");
@@ -237,12 +237,12 @@ export class AttendanceService {
     return this.db.$transaction(async (tx) => {
       const row = await tx.attendanceSession.update({
         where: { id: sessionId },
-        data: { deletedAt: new Date(), deletedBy: actor.id, deleteReason: motivo },
+        data: { deletedAt: new Date(), deletedBy: actor.id, deleteReason: reason },
         include: sessionInclude,
       });
       await this.audit?.(
         { action: "ATTENDANCE_SESSION_ANNULLED", entityType: "AttendanceSession", entityId: sessionId, userId: actor.id, userName: actor.username,
-          previousState: { annulled: false }, newState: { annulled: true }, metadata: { motivo, groupId: session.groupId, fecha: fromDbDay(session.fecha) } },
+          previousState: { annulled: false }, newState: { annulled: true }, metadata: { reason, groupId: session.groupId, date: fromDbDay(session.date) } },
         tx
       );
       const enrollments = await tx.enrollment.findMany({ where: { groupId: session.groupId }, select: { id: true } });
@@ -267,7 +267,7 @@ export class AttendanceService {
   }
 
   private summaryOf(
-    e: { id: string; attendanceAlertAt: Date | null; student: { id: string; matricula: string; nombres: string; apellidoPaterno: string; apellidoMaterno: string | null } },
+    e: { id: string; attendanceAlertAt: Date | null; student: { id: string; studentNumber: string; firstNames: string; paternalSurname: string; maternalSurname: string | null } },
     counts: AttendanceCounts,
     threshold: number
   ): SummaryRow {
@@ -275,13 +275,13 @@ export class AttendanceService {
     return {
       enrollmentId: e.id,
       studentId: e.student.id,
-      matricula: e.student.matricula,
-      nombre: studentName(e.student),
+      studentNumber: e.student.studentNumber,
+      name: studentName(e.student),
       sesiones: totalOf(counts),
-      presentes: counts.PRESENTE,
-      retardos: counts.RETARDO,
-      faltas: counts.FALTA,
-      justificadas: counts.JUSTIFICADA,
+      presentes: counts.PRESENT,
+      retardos: counts.LATE,
+      faltas: counts.ABSENT,
+      justificadas: counts.JUSTIFIED,
       porcentaje,
       alerta: belowThreshold(porcentaje, threshold),
     };
@@ -292,7 +292,7 @@ export class AttendanceService {
     await assertGroupInScope(this.db, user, "attendance.view", groupId);
     const own = scopeOf(user, "attendance.view") === "OWN";
     const enrollments = await this.db.enrollment.findMany({
-      where: { groupId, status: { not: "BAJA" }, ...(own ? { student: { userId: (user as { id: string }).id } } : {}) },
+      where: { groupId, status: { not: "WITHDRAWN" }, ...(own ? { student: { userId: (user as { id: string }).id } } : {}) },
       select: { id: true, attendanceAlertAt: true, student: { select: studentSelect } },
     });
     const [threshold, counts, sesiones] = await Promise.all([
@@ -316,16 +316,16 @@ export class AttendanceService {
   async studentSummary(studentId: string, user: UserPermissions): Promise<StudentAttendanceView> {
     const scoped = await enrollmentScope(user, "attendance.view");
     const enrollments = await this.db.enrollment.findMany({
-      where: { AND: [{ studentId, status: { not: "BAJA" } }, ...(scoped ? [scoped] : [])] },
+      where: { AND: [{ studentId, status: { not: "WITHDRAWN" } }, ...(scoped ? [scoped] : [])] },
       select: {
         id: true,
         attendanceAlertAt: true,
         student: { select: studentSelect },
-        group: { select: { id: true, nombre: true, course: { select: { nombre: true } }, term: { select: { name: true } } } },
+        group: { select: { id: true, name: true, course: { select: { name: true } }, term: { select: { name: true } } } },
         attendance: {
           where: { session: { deletedAt: null } },
-          select: { id: true, status: true, session: { select: { id: true, fecha: true, hora: true } }, justification: { select: { id: true, status: true, nota: true } } },
-          orderBy: [{ session: { fecha: "desc" } }],
+          select: { id: true, status: true, session: { select: { id: true, date: true, time: true } }, justification: { select: { id: true, status: true, note: true } } },
+          orderBy: [{ session: { date: "desc" } }],
         },
       },
       orderBy: { createdAt: "desc" },
@@ -339,20 +339,20 @@ export class AttendanceService {
       studentId,
       threshold,
       groups: enrollments.map((e) => {
-        const { studentId: _s, matricula: _m, nombre: _n, ...row } = this.summaryOf(e, counts.get(e.id)!, threshold);
+        const { studentId: _s, studentNumber: _m, name: _n, ...row } = this.summaryOf(e, counts.get(e.id)!, threshold);
         return {
           ...row,
           groupId: e.group.id,
-          grupo: e.group.nombre,
-          curso: e.group.course.nombre,
+          grupo: e.group.name,
+          curso: e.group.course.name,
           ciclo: e.group.term.name,
           records: e.attendance.map((a) => ({
             attendanceId: a.id,
             sessionId: a.session.id,
-            fecha: fromDbDay(a.session.fecha),
-            hora: a.session.hora,
+            date: fromDbDay(a.session.date),
+            time: a.session.time,
             status: a.status,
-            justification: a.justification ? { id: a.justification.id, status: a.justification.status, nota: a.justification.nota } : null,
+            justification: a.justification ? { id: a.justification.id, status: a.justification.status, note: a.justification.note } : null,
           })),
         };
       }),
@@ -371,12 +371,12 @@ export class AttendanceService {
     const counts = await this.countsFor(enrollmentIds, client);
     const enrollments = await client.enrollment.findMany({
       where: { id: { in: enrollmentIds } },
-      select: { id: true, studentId: true, status: true, attendanceAlertAt: true, group: { select: { nombre: true, course: { select: { nombre: true } } } } },
+      select: { id: true, studentId: true, status: true, attendanceAlertAt: true, group: { select: { name: true, course: { select: { name: true } } } } },
     });
     let triggered = 0;
     for (const e of enrollments) {
       const pct = attendancePct(counts.get(e.id) ?? emptyCounts());
-      const transition = alertTransition(e.status === "BAJA" ? null : pct, threshold, !!e.attendanceAlertAt);
+      const transition = alertTransition(e.status === "WITHDRAWN" ? null : pct, threshold, !!e.attendanceAlertAt);
       if (transition === "NONE") continue;
       if (transition === "CLEAR") {
         await client.enrollment.update({ where: { id: e.id }, data: { attendanceAlertAt: null } });
@@ -400,9 +400,9 @@ export class AttendanceService {
         if (contacts) {
           await this.notifier(
             {
-              clave: "ALERTA_INASISTENCIA",
+              code: "ALERTA_INASISTENCIA",
               recipients: contacts.recipients,
-              payload: { nombre: contacts.nombre, curso: e.group.course.nombre, grupo: e.group.nombre, porcentaje: pct ?? 0, umbral: threshold },
+              payload: { name: contacts.name, curso: e.group.course.name, grupo: e.group.name, porcentaje: pct ?? 0, umbral: threshold },
               idempotencyKey: `ALERTA_INASISTENCIA:${e.id}:${at.getTime()}`,
             },
             client as Prisma.TransactionClient

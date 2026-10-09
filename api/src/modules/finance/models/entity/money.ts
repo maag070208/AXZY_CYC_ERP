@@ -7,13 +7,13 @@ import { Prisma } from "@prisma/client";
 type Num = Prisma.Decimal | number | string;
 const D = (value: Num) => new Prisma.Decimal(value);
 
-export type ChargeStatusValue = "PENDIENTE" | "PARCIAL" | "PAGADO" | "CANCELADO";
+export type ChargeStatusValue = "PENDING" | "PARTIAL" | "PAID" | "CANCELLED";
 
 /** Redondeo comercial a centavos. */
 export const money = (value: Num): number => D(value).toDecimalPlaces(2, Prisma.Decimal.ROUND_HALF_UP).toNumber();
 
 /** Total a pagar del cargo: `monto - descuento`. */
-export const chargeTotal = (monto: Num, descuento: Num): number => money(D(monto).minus(D(descuento)));
+export const chargeTotal = (amount: Num, discount: Num): number => money(D(amount).minus(D(discount)));
 
 /** Suma de montos (pagos vigentes, cargos…). */
 export const sumOf = (values: readonly Num[]): number => money(values.reduce<Prisma.Decimal>((a, v) => a.plus(D(v)), D(0)));
@@ -23,10 +23,10 @@ export const balanceOf = (total: Num, paid: Num): number => money(Prisma.Decimal
 
 /** Estatus del cargo según lo pagado (un cargo cancelado se queda cancelado). */
 export const chargeStatusOf = (total: Num, paid: Num, cancelled = false): ChargeStatusValue => {
-  if (cancelled) return "CANCELADO";
-  if (D(paid).greaterThanOrEqualTo(D(total))) return "PAGADO";
-  if (D(paid).greaterThan(0)) return "PARCIAL";
-  return "PENDIENTE";
+  if (cancelled) return "CANCELLED";
+  if (D(paid).greaterThanOrEqualTo(D(total))) return "PAID";
+  if (D(paid).greaterThan(0)) return "PARTIAL";
+  return "PENDING";
 };
 
 /** ¿Tiene a lo más 2 decimales? (`Decimal(12,2)`). */

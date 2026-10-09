@@ -51,7 +51,7 @@ export default function CatalogManager({ resource, canManage }: Props) {
 
   const columns: Column<CatalogItem>[] = [
     {
-      key: "nombre",
+      key: "name",
       label: t("catalogs.nombre"),
       type: "string",
       filter: true,

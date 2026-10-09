@@ -39,23 +39,23 @@ export default function TemplatesTable({ reloadKey, onTotal, onEdit, onChanged }
 
   const columns: Column<NotificationTemplate>[] = [
     {
-      key: "nombre", label: t("templates.nombre"), type: "string", filter: true, sortable: false,
+      key: "name", label: t("templates.nombre"), type: "string", filter: true, sortable: false,
       render: (r) => (
         <div>
-          <ITText className="block text-[12px] font-bold text-slate-700">{r.nombre}</ITText>
-          <ITText className="font-mono text-[10px] text-slate-400">{r.clave}</ITText>
+          <ITText className="block text-[12px] font-bold text-slate-700">{r.name}</ITText>
+          <ITText className="font-mono text-[10px] text-slate-400">{r.code}</ITText>
         </div>
       ),
     },
     {
-      key: "canal", label: t("templates.canal"), type: "catalog", width: 120, filter: "catalog", sortable: false,
-      catalogOptions: { data: (["EMAIL", "SMS", "WHATSAPP", "INTERNO"] as const).map((c) => ({ id: c, name: t(`channels.${c}`) })) },
-      render: (r) => <ITBadget color="secondary" size="sm">{t(`channels.${r.canal}`)}</ITBadget>,
+      key: "channel", label: t("templates.canal"), type: "catalog", width: 120, filter: "catalog", sortable: false,
+      catalogOptions: { data: (["EMAIL", "SMS", "WHATSAPP", "IN_APP"] as const).map((c) => ({ id: c, name: t(`channels.${c}`) })) },
+      render: (r) => <ITBadget color="secondary" size="sm">{t(`channels.${r.channel}`)}</ITBadget>,
     },
     { key: "enviadas", label: t("templates.enviadas"), type: "number", width: 100 },
     {
       key: "required", label: t("templates.obligatorio"), type: "string", width: 110,
-      render: (r) => <ITText className="text-[11px] text-slate-500">{r.obligatorio ? t("common:labels.yes") : t("common:labels.no")}</ITText>,
+      render: (r) => <ITText className="text-[11px] text-slate-500">{r.required ? t("common:labels.yes") : t("common:labels.no")}</ITText>,
     },
     {
       key: "active", label: t("templates.estado"), type: "string", width: 110,
@@ -66,12 +66,12 @@ export default function TemplatesTable({ reloadKey, onTotal, onEdit, onChanged }
       actions: (r) => (
         <ITFlex gap={1}>
           {canManage && (
-            <ITButton variant="text" color="primary" size="sm" title={t("common:actions.edit")} ariaLabel={`${t("common:actions.edit")} ${r.nombre}`} onClick={() => onEdit(r)}>
+            <ITButton variant="text" color="primary" size="sm" title={t("common:actions.edit")} ariaLabel={`${t("common:actions.edit")} ${r.name}`} onClick={() => onEdit(r)}>
               <FaEdit size={12} />
             </ITButton>
           )}
           {canManage && (
-            <ITButton variant="text" color={r.active ? "danger" : "success"} size="sm" title={r.active ? t("common:actions.deactivate") : t("common:actions.reactivate")} ariaLabel={`${r.active ? t("common:actions.deactivate") : t("common:actions.reactivate")} ${r.nombre}`} onClick={() => void toggle(r)}>
+            <ITButton variant="text" color={r.active ? "danger" : "success"} size="sm" title={r.active ? t("common:actions.deactivate") : t("common:actions.reactivate")} ariaLabel={`${r.active ? t("common:actions.deactivate") : t("common:actions.reactivate")} ${r.name}`} onClick={() => void toggle(r)}>
               {r.active ? <FaPowerOff size={12} /> : <FaRedo size={12} />}
             </ITButton>
           )}

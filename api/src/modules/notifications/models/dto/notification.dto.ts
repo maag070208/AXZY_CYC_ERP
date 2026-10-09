@@ -8,32 +8,32 @@ const optionalText = (max: number) => z.string().trim().max(max).transform((v) =
 // --- Plantillas ---------------------------------------------------------------
 
 const templateFields = {
-  clave: z.string().trim().regex(/^[A-Z][A-Z0-9_]{1,59}$/, "INVALID_FORMAT"),
-  nombre: z.string().trim().min(1, "NOMBRE_REQUIRED").max(150),
-  canal: z.enum(CHANNELS),
-  asunto: optionalText(200),
-  cuerpo: z.string().trim().min(1, "REQUIRED_FIELD").max(5000),
+  code: z.string().trim().regex(/^[A-Z][A-Z0-9_]{1,59}$/, "INVALID_FORMAT"),
+  name: z.string().trim().min(1, "NOMBRE_REQUIRED").max(150),
+  channel: z.enum(CHANNELS),
+  subject: optionalText(200),
+  body: z.string().trim().min(1, "REQUIRED_FIELD").max(5000),
   variables: z.array(variableName).max(30).default([]),
-  obligatorio: z.boolean().default(false),
+  required: z.boolean().default(false),
 };
 
-const subjectRule = (v: { canal?: string; asunto?: string | null }) => v.canal !== "EMAIL" || !!v.asunto;
+const subjectRule = (v: { channel?: string; subject?: string | null }) => v.channel !== "EMAIL" || !!v.subject;
 
 export const TemplateCreateDto = z
   .object(templateFields)
   .strict()
-  .refine(subjectRule, { message: "REQUIRED_FIELD", path: ["asunto"] })
+  .refine(subjectRule, { message: "REQUIRED_FIELD", path: ["subject"] })
   .openapi("NotificationTemplateCreateInput");
 registry.register("NotificationTemplateCreateInput", TemplateCreateDto);
 export type TemplateCreateInput = z.infer<typeof TemplateCreateDto>;
 
 export const TemplateUpdateDto = z
   .object({
-    nombre: templateFields.nombre,
-    asunto: templateFields.asunto,
-    cuerpo: templateFields.cuerpo,
+    name: templateFields.name,
+    subject: templateFields.subject,
+    body: templateFields.body,
     variables: z.array(variableName).max(30),
-    obligatorio: z.boolean(),
+    required: z.boolean(),
   })
   .partial()
   .strict()
@@ -45,13 +45,13 @@ export type TemplateUpdateInput = z.infer<typeof TemplateUpdateDto>;
 export const TemplateSchema = z
   .object({
     id: z.string(),
-    clave: z.string(),
-    nombre: z.string(),
-    canal: z.enum(CHANNELS),
-    asunto: z.string().nullable(),
-    cuerpo: z.string(),
+    code: z.string(),
+    name: z.string(),
+    channel: z.enum(CHANNELS),
+    subject: z.string().nullable(),
+    body: z.string(),
     variables: z.array(z.string()),
-    obligatorio: z.boolean(),
+    required: z.boolean(),
     active: z.boolean(),
     enviadas: z.number().int(),
     createdAt: z.string(),
@@ -68,15 +68,15 @@ const payloadSchema = z.record(z.string().max(40), z.union([z.string().max(1000)
 
 export const SendDto = z
   .object({
-    canal: z.enum(CHANNELS),
-    destinatario: z.string().trim().min(1, "REQUIRED_FIELD").max(200),
+    channel: z.enum(CHANNELS),
+    recipient: z.string().trim().min(1, "REQUIRED_FIELD").max(200),
     templateClave: z.string().trim().max(60).optional(),
-    asunto: optionalText(200),
-    cuerpo: optionalText(5000),
+    subject: optionalText(200),
+    body: optionalText(5000),
     payload: payloadSchema,
   })
   .strict()
-  .refine((v) => !!v.templateClave || !!v.cuerpo, { message: "REQUIRED_FIELD", path: ["cuerpo"] })
+  .refine((v) => !!v.templateClave || !!v.body, { message: "REQUIRED_FIELD", path: ["body"] })
   .openapi("NotificationSendInput");
 registry.register("NotificationSendInput", SendDto);
 export type SendInput = z.infer<typeof SendDto>;
@@ -84,13 +84,13 @@ export type SendInput = z.infer<typeof SendDto>;
 export const NotificationSchema = z
   .object({
     id: z.string(),
-    canal: z.enum(CHANNELS),
-    destinatario: z.string(),
+    channel: z.enum(CHANNELS),
+    recipient: z.string(),
     userId: z.string().nullable(),
-    origen: z.string(),
+    origin: z.string(),
     templateClave: z.string().nullable(),
-    asunto: z.string().nullable(),
-    cuerpo: z.string(),
+    subject: z.string().nullable(),
+    body: z.string(),
     status: z.enum(NOTIFICATION_STATUSES),
     attempts: z.number().int(),
     maxAttempts: z.number().int(),
@@ -118,10 +118,10 @@ export type MarkReadInput = z.infer<typeof MarkReadDto>;
 
 export const PreferenceDto = z
   .object({
-    canal: z.enum(CHANNELS),
-    destinatario: z.string().trim().min(1, "REQUIRED_FIELD").max(200),
+    channel: z.enum(CHANNELS),
+    recipient: z.string().trim().min(1, "REQUIRED_FIELD").max(200),
     optOut: z.boolean(),
-    motivo: optionalText(300),
+    reason: optionalText(300),
   })
   .strict()
   .openapi("NotificationPreferenceInput");
@@ -131,10 +131,10 @@ export type PreferenceInput = z.infer<typeof PreferenceDto>;
 export const PreferenceSchema = z
   .object({
     id: z.string(),
-    canal: z.enum(CHANNELS),
-    destinatario: z.string(),
+    channel: z.enum(CHANNELS),
+    recipient: z.string(),
     optOut: z.boolean(),
-    motivo: z.string().nullable(),
+    reason: z.string().nullable(),
     updatedAt: z.string(),
   })
   .openapi("NotificationPreference");

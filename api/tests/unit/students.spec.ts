@@ -20,10 +20,10 @@ test.describe("CURP", () => {
     expect(isValidCurp(wrong)).toBe(false);
   });
 
-  test("rechaza fecha, sexo o entidad imposibles y longitudes distintas a 18", () => {
+  test("rechaza date, sexo o entity imposibles y longitudes distintas a 18", () => {
     expect(CURP_PATTERN.test("PELJ101301HDFRXN01")).toBe(false); // mes 13
     expect(CURP_PATTERN.test("PELJ100101ZDFRXN01")).toBe(false); // sexo Z
-    expect(CURP_PATTERN.test("PELJ100101HXXRXN01")).toBe(false); // entidad XX
+    expect(CURP_PATTERN.test("PELJ100101HXXRXN01")).toBe(false); // entity XX
     expect(isValidCurp("PELJ100101HDFRXN")).toBe(false);
   });
 });
@@ -37,7 +37,7 @@ test.describe("matrícula", () => {
 });
 
 test.describe("tutores", () => {
-  const tutor = (esResponsablePago = false) => ({ nombre: "T", parentesco: "Madre", telefono: "5512345678", esResponsablePago });
+  const tutor = (isPaymentResponsible = false) => ({ name: "T", relationship: "Madre", phone: "5512345678", isPaymentResponsible });
 
   test("menor de edad sin tutores → GUARDIAN_REQUIRED", () => {
     expect(() => assertGuardians("2012-05-01", [], "2026-10-09")).toThrow(expect.objectContaining({ code: "GUARDIAN_REQUIRED" }));

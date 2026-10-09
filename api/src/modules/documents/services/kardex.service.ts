@@ -13,7 +13,7 @@ const noAcademicHistory: KardexSource = async () => [];
 /** Promedio de las calificaciones finales de cursos cerrados. **Pura.** */
 export const averageOf = (entries: KardexEntry[]): number | null => {
   const finals = entries
-    .filter((e) => e.estatus === "ACREDITADO" || e.estatus === "REPROBADO")
+    .filter((e) => e.estatus === "PASSED" || e.estatus === "FAILED")
     .map((e) => e.calificacionFinal)
     .filter((v): v is number => v !== null);
   if (finals.length === 0) return null;
@@ -44,7 +44,7 @@ export class KardexService {
       this.source(studentId),
       this.db.documentType.findMany({ where: { active: true, required: true }, orderBy: { name: "asc" } }),
       this.db.document.findMany({
-        where: { studentId, status: "VALIDADO", deletedAt: null },
+        where: { studentId, status: "VALIDATED", deletedAt: null },
         select: { documentTypeId: true },
       }),
       this.db.setting.findMany({ where: { key: { in: ["MIN_PASSING_GRADE", "SCHOOL_NAME"] } } }),
@@ -53,13 +53,13 @@ export class KardexService {
     const setting = new Map(settings.map((s) => [s.key, s.value]));
     return {
       studentId: student.id,
-      matricula: student.matricula,
-      nombre: fullName(student),
+      studentNumber: student.studentNumber,
+      name: fullName(student),
       status: student.status,
-      fechaIngreso: fromDbDay(student.fechaIngreso),
+      enrollmentDate: fromDbDay(student.enrollmentDate),
       entries,
       promedioGeneral: averageOf(entries),
-      creditosAcreditados: entries.filter((e) => e.estatus === "ACREDITADO").length,
+      creditosAcreditados: entries.filter((e) => e.estatus === "PASSED").length,
       documentosFaltantes: required.filter((t) => !has.has(t.id)).map((t) => t.name),
       minPassingGrade: Number(setting.get("MIN_PASSING_GRADE") ?? 70),
       escuela: String(setting.get("SCHOOL_NAME") ?? "CYC"),

@@ -27,11 +27,11 @@
     "reactivated": "Concepto reactivado",
     "reserved": "Sistema",
     "types": {
-      "INSCRIPCION": "Inscripción",
-      "COLEGIATURA": "Colegiatura",
+      "ENROLLMENT": "Inscripción",
+      "TUITION": "Colegiatura",
       "MATERIAL": "Material",
-      "RECARGO": "Recargo",
-      "OTRO": "Otro"
+      "LATE_FEE": "Recargo",
+      "OTHER": "Otro"
     }
   },
   "charges": {
@@ -62,10 +62,10 @@
     "selectStudent": "Selecciona un alumno",
     "montoHint": "Vacío = monto base del concepto",
     "statuses": {
-      "PENDIENTE": "Pendiente",
-      "PARCIAL": "Parcial",
-      "PAGADO": "Pagado",
-      "CANCELADO": "Cancelado"
+      "PENDING": "Pendiente",
+      "PARTIAL": "Parcial",
+      "PAID": "Pagado",
+      "CANCELLED": "Cancelado"
     },
     "generateTitle": "Generar cargos masivos",
     "scope": "Destinatarios",
@@ -103,11 +103,11 @@
     "receipt": "Recibo",
     "receiptPdf": "Imprimir recibo",
     "methods": {
-      "EFECTIVO": "Efectivo",
-      "TRANSFERENCIA": "Transferencia",
-      "DEPOSITO": "Depósito",
-      "TARJETA": "Tarjeta",
-      "OTRO": "Otro"
+      "CASH": "Efectivo",
+      "TRANSFER": "Transferencia",
+      "DEPOSIT": "Depósito",
+      "CARD": "Tarjeta",
+      "OTHER": "Otro"
     }
   },
   "receipt": {

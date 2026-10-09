@@ -29,7 +29,7 @@ export default function StudentFormPage() {
   return (
     <ITPage
       title={id ? t("form.titleEdit") : t("form.titleNew")}
-      description={student ? `${student.matricula} · ${student.nombreCompleto}` : undefined}
+      description={student ? `${student.studentNumber} · ${student.nombreCompleto}` : undefined}
       icon={<FaUserGraduate size={20} />}
       loading={loading}
       error={error}
@@ -40,7 +40,7 @@ export default function StudentFormPage() {
           student={student}
           onCancel={() => navigate(id ? `/students/${id}` : "/students")}
           onSaved={(saved, created) => {
-            notify.success(created ? t("form.created", { matricula: saved.matricula }) : t("form.saved"));
+            notify.success(created ? t("form.created", { studentNumber: saved.studentNumber }) : t("form.saved"));
             navigate(`/students/${saved.id}`);
           }}
         />

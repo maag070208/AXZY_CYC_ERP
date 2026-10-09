@@ -18,7 +18,7 @@ export const groupApi = {
 export const enrollmentApi = {
   table: (params: ITDataTableFetchParamsPost) => tableRequest<Enrollment>("/enrollments/query", params),
   /** Baja lógica de la inscripción. */
-  drop: (id: string, motivo?: string) => api.delete<Enrollment>(`/enrollments/${id}`, { data: motivo ? { motivo } : {} }),
+  drop: (id: string, reason?: string) => api.delete<Enrollment>(`/enrollments/${id}`, { data: reason ? { reason } : {} }),
   changeGroup: (id: string, toGroupId: string) =>
     api.post<Enrollment>(`/enrollments/${id}/change-group`, { toGroupId }),
 };

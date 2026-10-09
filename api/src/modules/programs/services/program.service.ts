@@ -7,10 +7,10 @@ import type { AuthenticatedUser } from "@core/utils/security";
 import type { AuditLogger } from "@modules/audit";
 import { PERIOD_TYPES, monthsPerPeriod } from "../models/entity/program-rules";import type { ProgramCreateInput, ProgramDetailView, ProgramSubjectsInput, ProgramUpdateInput, ProgramView } from "../models/dto/program.dto";
 
-type ProgramRow = Prisma.ProgramGetPayload<{ include: { subjects: { include: { course: { select: { clave: true; nombre: true } } } }; _count: { select: { subjects: true; plans: true } } } }>;
+type ProgramRow = Prisma.ProgramGetPayload<{ include: { subjects: { include: { course: { select: { code: true; name: true } } } }; _count: { select: { subjects: true; plans: true } } } }>;
 
 const include = {
-  subjects: { include: { course: { select: { clave: true, nombre: true } } }, orderBy: [{ periodIndex: "asc" }, { sortOrder: "asc" }] },
+  subjects: { include: { course: { select: { code: true, name: true } } }, orderBy: [{ periodIndex: "asc" }, { sortOrder: "asc" }] },
   _count: { select: { subjects: true, plans: true } },
 } satisfies Prisma.ProgramInclude;
 
@@ -36,8 +36,8 @@ const toDetail = (row: ProgramRow): ProgramDetailView => ({
   subjectsList: row.subjects.map((s) => ({
     id: s.id,
     courseId: s.courseId,
-    courseCode: s.course.clave,
-    courseName: s.course.nombre,
+    courseCode: s.course.code,
+    courseName: s.course.name,
     periodIndex: s.periodIndex,
     sortOrder: s.sortOrder,
   })),

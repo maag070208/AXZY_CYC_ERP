@@ -19,12 +19,12 @@ let profUserId: string;
 
 const exam = (overrides: Record<string, unknown> = {}) => ({
   groupId: world.group.id,
-  titulo: "E2E Parcial en línea",
-  instrucciones: "Lee con atención",
-  duracionMin: 30,
-  intentosMax: 2,
+  title: "E2E Parcial en línea",
+  instructions: "Lee con atención",
+  durationMin: 30,
+  maxAttempts: 2,
   ...openWindow(),
-  puntajeAprobatorio: 6,
+  passingScore: 6,
   ...overrides,
 });
 
@@ -32,7 +32,7 @@ const draftWithQuestions = async (overrides: Record<string, unknown> = {}) => {
   const created = await (await prof.post("online-exams", { data: exam(overrides) })).json();
   const { om, vf, mr, ab } = world.questions;
   const res = await prof.post(`online-exams/${created.id}/questions`, {
-    data: { questions: [{ questionId: om.id }, { questionId: vf.id }, { questionId: mr.id }, { questionId: ab.id, puntos: 4 }] },
+    data: { questions: [{ questionId: om.id }, { questionId: vf.id }, { questionId: mr.id }, { questionId: ab.id, points: 4 }] },
   });
   expect(res.status(), await res.text()).toBe(200);
   return res.json();
@@ -57,11 +57,11 @@ test("alta en borrador con bitácora; ventana invertida → 400; grupo ajeno →
   const res = await prof.post("online-exams", { data: exam() });
   expect(res.status(), await res.text()).toBe(201);
   const body = await res.json();
-  expect(body).toMatchObject({ status: "BORRADOR", totalPuntos: 0, preguntas: 0, criterioIntentos: "MEJOR", intentosMax: 2 });
+  expect(body).toMatchObject({ status: "DRAFT", totalPuntos: 0, preguntas: 0, attemptCriterion: "BEST", maxAttempts: 2 });
   expect((await lastAudit("EXAM_CREATED", profUserId))?.entityId).toBe(body.id);
 
   const inverted = await prof.post("online-exams", {
-    data: exam({ fechaApertura: new Date(Date.now() + 7200_000).toISOString(), fechaCierre: new Date().toISOString() }),
+    data: exam({ opensAt: new Date(Date.now() + 7200_000).toISOString(), closesAt: new Date().toISOString() }),
   });
   expect(inverted.status()).toBe(400);
 
@@ -72,14 +72,14 @@ test("alta en borrador con bitácora; ventana invertida → 400; grupo ajeno →
   await api.dispose();
 });
 
-test("preguntas: puntos por omisión del reactivo, total; inactivas o de otro curso → 400", async () => {
+test("preguntas: points por omisión del reactivo, total; inactivas o de otro curso → 400", async () => {
   const detail = await draftWithQuestions();
   expect(detail.totalPuntos).toBe(10);
-  expect(detail.questions.map((q: { puntos: number }) => q.puntos)).toEqual([2, 1, 3, 4]);
+  expect(detail.questions.map((q: { points: number }) => q.points)).toEqual([2, 1, 3, 4]);
   expect((await lastAudit("EXAM_QUESTIONS_SET", profUserId))?.newState).toMatchObject({ total: 10 });
 
-  const inactive = await makeQuestion(world.course.id, "ABIERTA", 1);
-  await db.question.update({ where: { id: inactive.id }, data: { status: "INACTIVA" } });
+  const inactive = await makeQuestion(world.course.id, "OPEN", 1);
+  await db.question.update({ where: { id: inactive.id }, data: { status: "INACTIVE" } });
   const bad = await prof.post(`online-exams/${detail.id}/questions`, { data: { questions: [{ questionId: inactive.id }] } });
   expect((await bad.json()).code).toBe("EXAM_QUESTION_INVALID");
 
@@ -91,7 +91,7 @@ test("publicar: sin preguntas → 409; aprobatorio > total → 400; publicado co
   const empty = await (await prof.post("online-exams", { data: exam() })).json();
   expect((await (await prof.post(`online-exams/${empty.id}/publish`)).json()).code).toBe("EXAM_NO_QUESTIONS");
 
-  const tooHigh = await draftWithQuestions({ puntajeAprobatorio: 11 });
+  const tooHigh = await draftWithQuestions({ passingScore: 11 });
   const res = await prof.post(`online-exams/${tooHigh.id}/publish`);
   expect(res.status()).toBe(400);
   expect((await res.json()).code).toBe("EXAM_SCORE_INVALID");
@@ -99,7 +99,7 @@ test("publicar: sin preguntas → 409; aprobatorio > total → 400; publicado co
   const ok = await draftWithQuestions();
   const published = await prof.post(`online-exams/${ok.id}/publish`);
   expect(published.status()).toBe(200);
-  expect((await published.json()).status).toBe("PUBLICADO");
+  expect((await published.json()).status).toBe("PUBLISHED");
   expect((await lastAudit("EXAM_PUBLISHED", profUserId))?.entityId).toBe(ok.id);
   expect((await (await prof.post(`online-exams/${ok.id}/publish`)).json()).code).toBe("EXAM_ALREADY_PUBLISHED");
   expect((await (await prof.delete(`online-exams/${ok.id}`)).json()).code).toBe("EXAM_DRAFT_ONLY");
@@ -108,13 +108,13 @@ test("publicar: sin preguntas → 409; aprobatorio > total → 400; publicado co
 
 test("evaluación vinculada: debe ser del mismo grupo y una sola por examen", async () => {
   const assessment = await db.assessment.create({
-    data: { groupId: world.group.id, nombre: "E2E Parcial online", tipo: "PARCIAL", ponderacion: 30, maxScore: 100 },
+    data: { groupId: world.group.id, name: "E2E Parcial online", type: "PARTIAL", weight: 30, maxScore: 100 },
   });
   const foreignGroup = await db.group.create({
-    data: { courseId: world.course.id, termId: world.term.id, nombre: "Ajeno", cupo: 5, horario: [{ dia: "LUNES", horaInicio: "07:00", horaFin: "08:00" }] },
+    data: { courseId: world.course.id, termId: world.term.id, name: "Ajeno", capacity: 5, schedule: [{ dia: "LUNES", horaInicio: "07:00", horaFin: "08:00" }] },
   });
   const foreignAssessment = await db.assessment.create({
-    data: { groupId: foreignGroup.id, nombre: "E2E Ajena", tipo: "PARCIAL", ponderacion: 10, maxScore: 100 },
+    data: { groupId: foreignGroup.id, name: "E2E Ajena", type: "PARTIAL", weight: 10, maxScore: 100 },
   });
   const bad = await prof.post("online-exams", { data: exam({ assessmentId: foreignAssessment.id }) });
   expect((await bad.json()).code).toBe("EXAM_ASSESSMENT_INVALID");
@@ -132,22 +132,22 @@ test("con intentos: preguntas y reglas bloqueadas; se puede ampliar el cierre; c
   expect((await api.post(`online-exams/${detail.id}/start`)).status()).toBe(201);
   // El alumno ve el publicado, nunca los borradores.
   const visible = await (await api.post("online-exams/query", { data: { page: 1, limit: 50 } })).json();
-  expect(visible.data.every((e: { status: string }) => e.status !== "BORRADOR")).toBe(true);
+  expect(visible.data.every((e: { status: string }) => e.status !== "DRAFT")).toBe(true);
   expect(visible.data.map((e: { id: string }) => e.id)).toContain(detail.id);
   await api.dispose();
 
   const locked = await prof.post(`online-exams/${detail.id}/questions`, { data: { questions: [{ questionId: world.questions.om.id }] } });
   expect(locked.status()).toBe(409);
   expect((await locked.json()).code).toBe("EXAM_PUBLISHED_LOCKED");
-  expect((await (await prof.patch(`online-exams/${detail.id}`, { data: { duracionMin: 90 } })).json()).code).toBe("EXAM_PUBLISHED_LOCKED");
-  const extended = await prof.patch(`online-exams/${detail.id}`, { data: { fechaCierre: new Date(Date.now() + 5 * 3600_000).toISOString() } });
+  expect((await (await prof.patch(`online-exams/${detail.id}`, { data: { durationMin: 90 } })).json()).code).toBe("EXAM_PUBLISHED_LOCKED");
+  const extended = await prof.patch(`online-exams/${detail.id}`, { data: { closesAt: new Date(Date.now() + 5 * 3600_000).toISOString() } });
   expect(extended.status(), await extended.text()).toBe(200);
 
   const closed = await prof.post(`online-exams/${detail.id}/close`);
   expect(closed.status()).toBe(200);
-  expect((await closed.json()).status).toBe("CERRADO");
+  expect((await closed.json()).status).toBe("CLOSED");
   const attempt = await db.examAttempt.findFirstOrThrow({ where: { examId: detail.id } });
-  expect(attempt.status).toBe("EXPIRADO");
+  expect(attempt.status).toBe("EXPIRED");
   expect((await lastAudit("EXAM_CLOSED", profUserId))?.metadata).toMatchObject({ closedOpenAttempts: 1 });
-  expect((await (await prof.patch(`online-exams/${detail.id}`, { data: { titulo: "x" } })).json()).code).toBe("EXAM_NOT_EDITABLE");
+  expect((await (await prof.patch(`online-exams/${detail.id}`, { data: { title: "x" } })).json()).code).toBe("EXAM_NOT_EDITABLE");
 });

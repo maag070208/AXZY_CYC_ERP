@@ -77,8 +77,8 @@ export class FinanceController {
     res.json(await this.charges.remindUpcoming(days));
   };
   cancelCharge = async (req: Request, res: Response) => {
-    const { motivo } = CancelDto.parse(req.body ?? {});
-    res.json(await this.charges.cancel(req.params.id, motivo, actor(req)));
+    const { reason } = CancelDto.parse(req.body ?? {});
+    res.json(await this.charges.cancel(req.params.id, reason, actor(req)));
   };
   statement = async (req: Request, res: Response) => {
     res.json(await this.charges.statement(req.params.studentId, actor(req)));
@@ -100,7 +100,7 @@ export class FinanceController {
     res.status(replayed ? 200 : 201).json(payment);
   };
   cancelPayment = async (req: Request, res: Response) => {
-    const { motivo } = CancelDto.parse(req.body ?? {});
-    res.json(await this.payments.cancel(req.params.id, motivo, actor(req)));
+    const { reason } = CancelDto.parse(req.body ?? {});
+    res.json(await this.payments.cancel(req.params.id, reason, actor(req)));
   };
 }

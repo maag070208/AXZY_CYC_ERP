@@ -28,7 +28,7 @@ export default function ChargesTable({ reloadKey, onAction }: Props) {
   }, []);
 
   const columns: Column<Charge>[] = [
-    { key: "matricula", label: t("charges.matricula"), type: "string", width: 120, filter: true },
+    { key: "studentNumber", label: t("charges.matricula"), type: "string", width: 120, filter: true },
     {
       key: "studentNombre", label: t("charges.alumno"), type: "string", filter: true, sortable: false,
       render: (row) => <ITText className="text-[12px] font-bold text-slate-700">{row.studentNombre}</ITText>,
@@ -37,16 +37,16 @@ export default function ChargesTable({ reloadKey, onAction }: Props) {
       key: "conceptNombre", label: t("charges.concepto"), type: "string", width: 220,
       render: (row) => (
         <div>
-          <ITText className="block text-[12px] text-slate-700">{row.descripcion ?? row.conceptNombre}</ITText>
+          <ITText className="block text-[12px] text-slate-700">{row.description ?? row.conceptNombre}</ITText>
           {row.termNombre && <ITText className="text-[10px] text-slate-400">{row.termNombre}</ITText>}
         </div>
       ),
     },
     {
-      key: "fechaVencimiento", label: t("charges.vencimiento"), type: "string", width: 130, sortable: false,
+      key: "dueDate", label: t("charges.vencimiento"), type: "string", width: 130, sortable: false,
       render: (row) => (
         <span className={`text-[12px] ${row.vencido ? "font-bold" : "text-slate-600"}`} style={row.vencido ? { color: "#dc2626" } : undefined}>
-          {formatDay(row.fechaVencimiento, i18n.language)}
+          {formatDay(row.dueDate, i18n.language)}
         </span>
       ),
     },
@@ -67,15 +67,15 @@ export default function ChargesTable({ reloadKey, onAction }: Props) {
           key: "actions", label: t("common:labels.actions"), type: "actions" as const, width: 100,
           actions: (row: Charge) => (
             <ITFlex gap={1}>
-              {canPay && (row.status === "PENDIENTE" || row.status === "PARCIAL") && (
+              {canPay && (row.status === "PENDING" || row.status === "PARTIAL") && (
                 <ITButton variant="text" color="success" size="sm" title={t("charges.pay")}
-                  ariaLabel={`${t("charges.pay")} ${row.studentNombre} ${row.descripcion ?? row.conceptNombre}`} onClick={() => onAction("pay", row)}>
+                  ariaLabel={`${t("charges.pay")} ${row.studentNombre} ${row.description ?? row.conceptNombre}`} onClick={() => onAction("pay", row)}>
                   <FaCashRegister size={12} />
                 </ITButton>
               )}
-              {canCancel && row.status === "PENDIENTE" && (
+              {canCancel && row.status === "PENDING" && (
                 <ITButton variant="text" color="danger" size="sm" title={t("charges.cancel")}
-                  ariaLabel={`${t("charges.cancel")} ${row.studentNombre} ${row.descripcion ?? row.conceptNombre}`} onClick={() => onAction("cancel", row)}>
+                  ariaLabel={`${t("charges.cancel")} ${row.studentNombre} ${row.description ?? row.conceptNombre}`} onClick={() => onAction("cancel", row)}>
                   <FaBan size={12} />
                 </ITButton>
               )}

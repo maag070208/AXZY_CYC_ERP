@@ -6,38 +6,38 @@ import type { ChargeView } from "../models/dto/finance.dto";
 import { balanceOf, chargeTotal, sumOf } from "../models/entity/money";
 
 export const chargeInclude = {
-  student: { select: { matricula: true, nombres: true, apellidoPaterno: true, apellidoMaterno: true } },
-  concept: { select: { nombre: true, tipo: true } },
+  student: { select: { studentNumber: true, firstNames: true, paternalSurname: true, maternalSurname: true } },
+  concept: { select: { name: true, type: true } },
   term: { select: { name: true } },
-  payments: { where: { cancelledAt: null }, select: { monto: true } },
+  payments: { where: { cancelledAt: null }, select: { amount: true } },
 } satisfies Prisma.ChargeInclude;
 
 export type ChargeRow = Prisma.ChargeGetPayload<{ include: typeof chargeInclude }>;
 
 /** Vista del cargo con total, pagado, saldo y vencimiento calculados. */
 export const toChargeView = (row: ChargeRow, today = todayInBusinessZone()): ChargeView => {
-  const total = chargeTotal(row.monto, row.descuento);
-  const pagado = sumOf(row.payments.map((p) => p.monto));
-  const saldo = row.status === "CANCELADO" ? 0 : balanceOf(total, pagado);
-  const fechaVencimiento = fromDbDay(row.fechaVencimiento);
+  const total = chargeTotal(row.amount, row.discount);
+  const pagado = sumOf(row.payments.map((p) => p.amount));
+  const saldo = row.status === "CANCELLED" ? 0 : balanceOf(total, pagado);
+  const dueDate = fromDbDay(row.dueDate);
   return {
     id: row.id,
     studentId: row.studentId,
-    matricula: row.student.matricula,
+    studentNumber: row.student.studentNumber,
     studentNombre: fullName(row.student),
     conceptId: row.conceptId,
-    conceptNombre: row.concept.nombre,
-    conceptTipo: row.concept.tipo,
+    conceptNombre: row.concept.name,
+    conceptTipo: row.concept.type,
     termId: row.termId,
     termNombre: row.term?.name ?? null,
-    descripcion: row.descripcion,
-    monto: Number(row.monto),
-    descuento: Number(row.descuento),
+    description: row.description,
+    amount: Number(row.amount),
+    discount: Number(row.discount),
     total,
     pagado,
     saldo,
-    fechaVencimiento,
-    vencido: saldo > 0 && fechaVencimiento < today,
+    dueDate,
+    vencido: saldo > 0 && dueDate < today,
     status: row.status,
     parentChargeId: row.parentChargeId,
     cancelledAt: row.cancelledAt?.toISOString() ?? null,

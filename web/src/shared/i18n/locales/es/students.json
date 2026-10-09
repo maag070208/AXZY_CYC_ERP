@@ -12,21 +12,21 @@
     "bajas": "En baja"
   },
   "table": {
-    "matricula": "Matrícula",
-    "nombre": "Nombre",
+    "studentNumber": "Matrícula",
+    "name": "Nombre",
     "curp": "CURP",
     "status": "Estatus",
-    "fechaIngreso": "Ingreso",
+    "enrollmentDate": "Ingreso",
     "view": "Ver expediente"
   },
   "status": {
-    "ACTIVO": "Activo",
-    "BAJA": "Baja"
+    "ACTIVE": "Activo",
+    "WITHDRAWN": "Baja"
   },
   "genders": {
     "M": "Masculino",
     "F": "Femenino",
-    "OTRO": "Otro"
+    "OTHER": "Otro"
   },
   "form": {
     "titleNew": "Nuevo alumno",
@@ -35,21 +35,21 @@
     "contact": "Contacto",
     "guardians": "Tutores",
     "guardiansHint": "Obligatorio al menos uno si el alumno es menor de edad. Solo uno puede ser responsable de pago.",
-    "nombres": "Nombre(s)",
-    "apellidoPaterno": "Apellido paterno",
-    "apellidoMaterno": "Apellido materno",
+    "firstNames": "Nombre(s)",
+    "paternalSurname": "Apellido paterno",
+    "maternalSurname": "Apellido materno",
     "curp": "CURP",
-    "fechaNacimiento": "Fecha de nacimiento",
-    "genero": "Género",
+    "birthDate": "Fecha de nacimiento",
+    "gender": "Género",
     "email": "Correo",
-    "telefono": "Teléfono",
-    "direccion": "Domicilio",
-    "fechaIngreso": "Fecha de ingreso",
+    "phone": "Teléfono",
+    "address": "Domicilio",
+    "enrollmentDate": "Fecha de ingreso",
     "fechaIngresoHint": "Define el año de la matrícula; por defecto, hoy.",
     "addGuardian": "Agregar tutor",
     "removeGuardian": "Quitar tutor",
     "guardianNombre": "Nombre del tutor",
-    "parentesco": "Parentesco",
+    "relationship": "Parentesco",
     "responsablePago": "Responsable de pago",
     "noGuardians": "Sin tutores registrados.",
     "save": "Guardar",
@@ -75,7 +75,7 @@
       "attendance": "Asistencia",
       "plans": "Plan de pagos"
     },
-    "matricula": "Matrícula",
+    "studentNumber": "Matrícula",
     "age": "{{age}} años",
     "edit": "Editar",
     "baja": "Dar de baja",
@@ -91,8 +91,8 @@
     "motivo": "Motivo",
     "observaciones": "Observaciones",
     "autor": "Registró",
-    "BAJA": "Baja",
-    "REINGRESO": "Reingreso",
+    "WITHDRAWAL": "Baja",
+    "REENTRY": "Reingreso",
     "bajaTitle": "Dar de baja a {{name}}",
     "bajaMessage": "El alumno pasa a BAJA y se cancelan sus inscripciones activas. Se conserva todo su historial.",
     "reingresoTitle": "Reingresar a {{name}}",

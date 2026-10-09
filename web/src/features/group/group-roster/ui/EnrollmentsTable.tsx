@@ -9,10 +9,10 @@ import { formatDay } from "@shared/lib/day";
 export type EnrollmentAction = "change" | "drop";
 
 const STATUS_COLOR: Record<EnrollmentStatus, "success" | "danger" | "primary" | "secondary"> = {
-  INSCRITO: "primary",
-  ACREDITADO: "success",
-  REPROBADO: "danger",
-  BAJA: "secondary",
+  ENROLLED: "primary",
+  PASSED: "success",
+  FAILED: "danger",
+  WITHDRAWN: "secondary",
 };
 
 interface Props {
@@ -47,13 +47,13 @@ export default function EnrollmentsTable({ filter, reloadKey, onAction, canChang
   const columns: Column<Enrollment>[] = [
     ...(byGroup
       ? [
-          { key: "matricula", label: t("enrollments.matricula"), type: "string" as const, width: 130, filter: true, sortable: false },
+          { key: "studentNumber", label: t("enrollments.matricula"), type: "string" as const, width: 130, filter: true, sortable: false },
           {
-            key: "nombre", label: t("enrollments.alumno"), type: "string" as const, filter: true, sortable: false,
+            key: "name", label: t("enrollments.alumno"), type: "string" as const, filter: true, sortable: false,
             render: (row: Enrollment) => (
               <ITFlex align="center" gap={2}>
                 <ITText className="text-[12px] font-bold text-slate-700">{row.studentNombre}</ITText>
-                {row.studentStatus === "BAJA" && <ITBadget color="danger" size="sm">{t("enrollments.inactiveStudent")}</ITBadget>}
+                {row.studentStatus === "WITHDRAWN" && <ITBadget color="danger" size="sm">{t("enrollments.inactiveStudent")}</ITBadget>}
               </ITFlex>
             ),
           },
@@ -67,16 +67,16 @@ export default function EnrollmentsTable({ filter, reloadKey, onAction, canChang
           { key: "termNombre", label: t("enrollments.ciclo"), type: "string" as const, width: 140 },
         ]),
     {
-      key: "fecha", label: t("enrollments.fecha"), type: "string", width: 130, sortable: false,
-      render: (row) => <ITText className="text-[12px] text-slate-600">{formatDay(row.fecha, i18n.language)}</ITText>,
+      key: "date", label: t("enrollments.fecha"), type: "string", width: 130, sortable: false,
+      render: (row) => <ITText className="text-[12px] text-slate-600">{formatDay(row.date, i18n.language)}</ITText>,
     },
     {
       key: "status", label: t("enrollments.status"), type: "catalog", width: 130, filter: "catalog", sortable: false,
       catalogOptions: {
-        data: (["INSCRITO", "BAJA", "ACREDITADO", "REPROBADO"] as const).map((s) => ({ id: s, name: t(`enrollments.statuses.${s}`) })),
+        data: (["ENROLLED", "WITHDRAWN", "PASSED", "FAILED"] as const).map((s) => ({ id: s, name: t(`enrollments.statuses.${s}`) })),
       },
       render: (row) => (
-        <span title={row.bajaMotivo ?? undefined}>
+        <span title={row.withdrawalReason ?? undefined}>
           <ITBadget color={STATUS_COLOR[row.status]} size="sm">{t(`enrollments.statuses.${row.status}`)}</ITBadget>
         </span>
       ),
@@ -89,7 +89,7 @@ export default function EnrollmentsTable({ filter, reloadKey, onAction, canChang
       ? [{
           key: "actions", label: t("common:labels.actions"), type: "actions" as const, width: 110,
           actions: (row: Enrollment) =>
-            row.status === "INSCRITO" ? (
+            row.status === "ENROLLED" ? (
               <ITFlex gap={1}>
                 {canChange && (
                   <ITButton variant="text" color="primary" size="sm" title={t("enrollments.changeGroup")}

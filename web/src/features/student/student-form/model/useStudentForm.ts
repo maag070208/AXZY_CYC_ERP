@@ -7,49 +7,49 @@ import { toDay } from "@shared/lib/day";
 import { validateCurp, validateEmail, validatePhone, validateRequired } from "@shared/validation";
 
 export interface GuardianDraft {
-  nombre: string;
-  parentesco: string;
-  telefono: string;
+  name: string;
+  relationship: string;
+  phone: string;
   email: string;
-  esResponsablePago: boolean;
+  isPaymentResponsible: boolean;
 }
 
 export interface StudentFormValues {
-  nombres: string;
-  apellidoPaterno: string;
-  apellidoMaterno: string;
+  firstNames: string;
+  paternalSurname: string;
+  maternalSurname: string;
   curp: string;
-  fechaNacimiento: string;
-  genero: Gender | "";
+  birthDate: string;
+  gender: Gender | "";
   email: string;
-  telefono: string;
-  direccion: string;
-  fechaIngreso: string;
+  phone: string;
+  address: string;
+  enrollmentDate: string;
   guardians: GuardianDraft[];
 }
 
 type Field = Exclude<keyof StudentFormValues, "guardians">;
 export type FormErrors = Partial<Record<Field | "guardians", string>> & { guardianRows?: Record<number, Partial<Record<keyof GuardianDraft, string>>> };
 
-const emptyGuardian = (): GuardianDraft => ({ nombre: "", parentesco: "", telefono: "", email: "", esResponsablePago: false });
+const emptyGuardian = (): GuardianDraft => ({ name: "", relationship: "", phone: "", email: "", isPaymentResponsible: false });
 
 const fromStudent = (s: Student | null): StudentFormValues => ({
-  nombres: s?.nombres ?? "",
-  apellidoPaterno: s?.apellidoPaterno ?? "",
-  apellidoMaterno: s?.apellidoMaterno ?? "",
+  firstNames: s?.firstNames ?? "",
+  paternalSurname: s?.paternalSurname ?? "",
+  maternalSurname: s?.maternalSurname ?? "",
   curp: s?.curp ?? "",
-  fechaNacimiento: s?.fechaNacimiento ?? "",
-  genero: s?.genero ?? "",
+  birthDate: s?.birthDate ?? "",
+  gender: s?.gender ?? "",
   email: s?.email ?? "",
-  telefono: s?.telefono ?? "",
-  direccion: s?.direccion ?? "",
-  fechaIngreso: s?.fechaIngreso ?? "",
+  phone: s?.phone ?? "",
+  address: s?.address ?? "",
+  enrollmentDate: s?.enrollmentDate ?? "",
   guardians: (s?.guardians ?? []).map((g: Guardian) => ({
-    nombre: g.nombre,
-    parentesco: g.parentesco,
-    telefono: g.telefono,
+    name: g.name,
+    relationship: g.relationship,
+    phone: g.phone,
     email: g.email ?? "",
-    esResponsablePago: g.esResponsablePago,
+    isPaymentResponsible: g.isPaymentResponsible,
   })),
 });
 
@@ -59,7 +59,7 @@ const ageOn = (birth: string, today: string): number => {
   return ty - by - (tm < bm || (tm === bm && td < bd) ? 1 : 0);
 };
 
-const label = (key: string) => i18n.t(`students:form.${key}` as "students:form.nombres");
+const label = (key: string) => i18n.t(`students:form.${key}` as "students:form.firstNames");
 
 /**
  * Alta/edición de alumno con tutores. Valida lo mismo que la API (CURP con
@@ -88,14 +88,14 @@ export const useStudentForm = (student: Student | null, onSaved: (student: Stude
       guardians: prev.guardians.map((g, i) => {
         if (i === index) return { ...g, ...patch };
         // Marcar a uno como responsable de pago desmarca a los demás.
-        return patch.esResponsablePago ? { ...g, esResponsablePago: false } : g;
+        return patch.isPaymentResponsible ? { ...g, isPaymentResponsible: false } : g;
       }),
     }));
 
   const addGuardian = () =>
     setForm((prev) => ({
       ...prev,
-      guardians: [...prev.guardians, { ...emptyGuardian(), esResponsablePago: prev.guardians.length === 0 }],
+      guardians: [...prev.guardians, { ...emptyGuardian(), isPaymentResponsible: prev.guardians.length === 0 }],
     }));
 
   const removeGuardian = (index: number) =>
@@ -108,30 +108,30 @@ export const useStudentForm = (student: Student | null, onSaved: (student: Stude
       const message = validateRequired(form[field], label(field));
       if (message) next[field] = message;
     };
-    required("nombres");
-    required("apellidoPaterno");
+    required("firstNames");
+    required("paternalSurname");
     required("curp");
-    required("fechaNacimiento");
+    required("birthDate");
     if (!next.curp) next.curp = validateCurp(form.curp) ?? undefined;
-    if (form.fechaNacimiento && form.fechaNacimiento > today) next.fechaNacimiento = i18n.t("students:form.futureDate");
+    if (form.birthDate && form.birthDate > today) next.birthDate = i18n.t("students:form.futureDate");
     next.email = validateEmail(form.email) ?? undefined;
-    next.telefono = validatePhone(form.telefono) ?? undefined;
+    next.phone = validatePhone(form.phone) ?? undefined;
 
     const rows: FormErrors["guardianRows"] = {};
     form.guardians.forEach((g, index) => {
       const row: Partial<Record<keyof GuardianDraft, string>> = {};
-      if (!g.nombre.trim()) row.nombre = i18n.t("students:form.required", { label: label("guardianNombre") });
-      if (!g.parentesco.trim()) row.parentesco = i18n.t("students:form.required", { label: label("parentesco") });
-      row.telefono =
-        validateRequired(g.telefono, label("telefono")) ?? validatePhone(g.telefono) ?? undefined;
+      if (!g.name.trim()) row.name = i18n.t("students:form.required", { label: label("guardianNombre") });
+      if (!g.relationship.trim()) row.relationship = i18n.t("students:form.required", { label: label("relationship") });
+      row.phone =
+        validateRequired(g.phone, label("phone")) ?? validatePhone(g.phone) ?? undefined;
       row.email = validateEmail(g.email) ?? undefined;
       if (Object.values(row).some(Boolean)) rows[index] = row;
     });
     if (Object.keys(rows).length > 0) next.guardianRows = rows;
-    if (form.fechaNacimiento && ageOn(form.fechaNacimiento, today) < 18 && form.guardians.length === 0) {
+    if (form.birthDate && ageOn(form.birthDate, today) < 18 && form.guardians.length === 0) {
       next.guardians = i18n.t("students:form.minorNeedsGuardian");
     }
-    if (form.guardians.filter((g) => g.esResponsablePago).length > 1) next.guardians = i18n.t("students:form.onePayer");
+    if (form.guardians.filter((g) => g.isPaymentResponsible).length > 1) next.guardians = i18n.t("students:form.onePayer");
 
     for (const key of Object.keys(next) as Array<keyof FormErrors>) if (!next[key]) delete next[key];
     setErrors(next);
@@ -139,22 +139,22 @@ export const useStudentForm = (student: Student | null, onSaved: (student: Stude
   };
 
   const payload = (confirmDuplicate: boolean) => ({
-    nombres: form.nombres.trim(),
-    apellidoPaterno: form.apellidoPaterno.trim(),
-    apellidoMaterno: form.apellidoMaterno.trim() || null,
+    firstNames: form.firstNames.trim(),
+    paternalSurname: form.paternalSurname.trim(),
+    maternalSurname: form.maternalSurname.trim() || null,
     curp: form.curp.trim().toUpperCase(),
-    fechaNacimiento: form.fechaNacimiento,
-    genero: form.genero || null,
+    birthDate: form.birthDate,
+    gender: form.gender || null,
     email: form.email.trim() || null,
-    telefono: form.telefono.trim() || null,
-    direccion: form.direccion.trim() || null,
-    ...(!isEdit && form.fechaIngreso ? { fechaIngreso: form.fechaIngreso } : {}),
+    phone: form.phone.trim() || null,
+    address: form.address.trim() || null,
+    ...(!isEdit && form.enrollmentDate ? { enrollmentDate: form.enrollmentDate } : {}),
     guardians: form.guardians.map((g) => ({
-      nombre: g.nombre.trim(),
-      parentesco: g.parentesco.trim(),
-      telefono: g.telefono.trim(),
+      name: g.name.trim(),
+      relationship: g.relationship.trim(),
+      phone: g.phone.trim(),
       email: g.email.trim() || null,
-      esResponsablePago: g.esResponsablePago,
+      isPaymentResponsible: g.isPaymentResponsible,
     })),
     ...(confirmDuplicate ? { confirmDuplicate: true } : {}),
   });
@@ -171,8 +171,8 @@ export const useStudentForm = (student: Student | null, onSaved: (student: Stude
       onSaved(saved, !isEdit);
     } catch (err) {
       if (err instanceof ApiError && err.code === "DUPLICATE_STUDENT") {
-        const matches = (err.details as { details?: { matches?: Array<{ matricula: string }> } } | undefined)?.details?.matches ?? [];
-        setDuplicates(matches.map((m) => m.matricula));
+        const matches = (err.details as { details?: { matches?: Array<{ studentNumber: string }> } } | undefined)?.details?.matches ?? [];
+        setDuplicates(matches.map((m) => m.studentNumber));
       } else if (err instanceof ApiError && err.code === "VALIDATION_ERROR") {
         const fieldErrors =
           (err.details as { details?: { fieldErrors?: Record<string, string[]> } } | undefined)?.details?.fieldErrors ?? {};

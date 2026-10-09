@@ -5,14 +5,14 @@ export const MAX_DOCUMENT_BYTES = 5 * 1024 * 1024;
 export const DocumentUploadFieldsDto = z
   .object({
     documentTypeId: z.string().uuid("REQUIRED_FIELD"),
-    notas: z.string().trim().max(1000).optional(),
+    notes: z.string().trim().max(1000).optional(),
   })
   .strict();
 
 export const DocumentValidateDto = z
   .object({
-    status: z.enum(["VALIDADO", "RECHAZADO"]),
-    notas: z.string().trim().max(1000).optional(),
+    status: z.enum(["VALIDATED", "REJECTED"]),
+    notes: z.string().trim().max(1000).optional(),
   })
   .strict()
   .openapi("DocumentValidateInput");
@@ -24,12 +24,12 @@ export const DocumentSchema = z
     studentId: z.string(),
     documentTypeId: z.string(),
     documentType: z.string(),
-    obligatorio: z.boolean(),
+    required: z.boolean(),
     originalName: z.string(),
     mimeType: z.string(),
     size: z.number().int(),
-    status: z.enum(["PENDIENTE", "VALIDADO", "RECHAZADO"]),
-    notas: z.string().nullable(),
+    status: z.enum(["PENDING", "VALIDATED", "REJECTED"]),
+    notes: z.string().nullable(),
     uploadedByName: z.string().nullable(),
     validatedByName: z.string().nullable(),
     validatedAt: z.string().nullable(),
@@ -43,7 +43,7 @@ export const StudentDocumentsSchema = z
   .object({
     documents: z.array(DocumentSchema),
     /** Tipos obligatorios activos (M11) sin un documento VALIDADO. */
-    missing: z.array(z.object({ id: z.string(), nombre: z.string() })),
+    missing: z.array(z.object({ id: z.string(), name: z.string() })),
     requiredCount: z.number().int(),
   })
   .openapi("StudentDocuments");
@@ -58,16 +58,16 @@ export const KardexEntrySchema = z.object({
   calificaciones: z.array(z.number()),
   ponderaciones: z.array(z.number()),
   calificacionFinal: z.number().nullable(),
-  estatus: z.enum(["ACREDITADO", "REPROBADO", "EN_CURSO", "BAJA"]),
+  estatus: z.enum(["PASSED", "FAILED", "IN_PROGRESS", "WITHDRAWN"]),
 });
 
 export const KardexSchema = z
   .object({
     studentId: z.string(),
-    matricula: z.string(),
-    nombre: z.string(),
-    status: z.enum(["ACTIVO", "BAJA"]),
-    fechaIngreso: z.string(),
+    studentNumber: z.string(),
+    name: z.string(),
+    status: z.enum(["ACTIVE", "WITHDRAWN"]),
+    enrollmentDate: z.string(),
     entries: z.array(KardexEntrySchema),
     promedioGeneral: z.number().nullable(),
     creditosAcreditados: z.number().int(),

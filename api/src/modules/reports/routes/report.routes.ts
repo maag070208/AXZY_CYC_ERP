@@ -14,13 +14,13 @@ export const createReportRouters = (controller: ReportController) => {
   registerPath({
     method: "get", path: "/reports", tags: ["Reports"], security: bearer,
     summary: "Catálogo de reportes disponibles para la persona (reports.view)",
-    responses: { 200: { description: "Lista de { tipo, title, financial }" } },
+    responses: { 200: { description: "Lista de { type, title, financial }" } },
   });
   registerPath({
-    method: "get", path: "/reports/{tipo}", tags: ["Reports"], security: bearer,
+    method: "get", path: "/reports/{type}", tags: ["Reports"], security: bearer,
     summary: `Ejecuta un reporte (${REPORT_TYPES.join(" · ")}); exportar requiere reports.export`,
     parameters: [
-      { in: "path", name: "tipo", required: true, schema: { type: "string", enum: [...REPORT_TYPES] } },
+      { in: "path", name: "type", required: true, schema: { type: "string", enum: [...REPORT_TYPES] } },
       query("format", "json | xlsx | pdf (por defecto json)"),
       query("termId", "Ciclo (por defecto el activo)"),
       query("groupId", "Grupo"),
@@ -29,7 +29,7 @@ export const createReportRouters = (controller: ReportController) => {
       query("status", "Estatus (según el reporte)"),
     ],
     responses: {
-      200: { description: "{ report, title, generatedAt, filters, columns, rows, totals } o archivo" },
+      200: { description: "{ report, title, generatedAt, filters, columns, rows, totals } o file" },
       403: { description: "REPORT_REQUIRES_FULL_SCOPE (reportes con montos) · INSUFFICIENT_PERMISSIONS" },
       404: { description: "REPORT_NOT_FOUND" },
     },
@@ -43,7 +43,7 @@ export const createReportRouters = (controller: ReportController) => {
   const reports = Router();
   reports.use(authenticate, requiresPermission("reports.view"));
   reports.get("/", asyncHandler(controller.catalog));
-  reports.get("/:tipo", asyncHandler(controller.run));
+  reports.get("/:type", asyncHandler(controller.run));
 
   const dashboard = Router();
   dashboard.get("/", authenticate, requiresPermission("reports.view"), asyncHandler(controller.dashboard));

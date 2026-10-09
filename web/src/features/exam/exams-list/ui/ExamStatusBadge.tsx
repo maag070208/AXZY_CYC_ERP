@@ -3,9 +3,9 @@ import { useTranslation } from "react-i18next";
 import type { ExamStatus } from "@entities/online-exam";
 
 const COLORS: Record<ExamStatus, "secondary" | "success" | "danger"> = {
-  BORRADOR: "secondary",
-  PUBLICADO: "success",
-  CERRADO: "danger",
+  DRAFT: "secondary",
+  PUBLISHED: "success",
+  CLOSED: "danger",
 };
 
 export default function ExamStatusBadge({ status }: { status: ExamStatus }) {

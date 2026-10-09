@@ -26,13 +26,13 @@ export const useDocuments = (studentId: string) => {
     void load();
   }, [load]);
 
-  const upload = async (file: File, documentTypeId: string, notas?: string) => {
-    await documentApi.upload(studentId, file, documentTypeId, notas);
+  const upload = async (file: File, documentTypeId: string, notes?: string) => {
+    await documentApi.upload(studentId, file, documentTypeId, notes);
     await load();
   };
 
-  const review = async (doc: StudentDocument, status: "VALIDADO" | "RECHAZADO", notas?: string) => {
-    await documentApi.validate(doc.id, status, notas);
+  const review = async (doc: StudentDocument, status: "VALIDATED" | "REJECTED", notes?: string) => {
+    await documentApi.validate(doc.id, status, notes);
     await load();
   };
 

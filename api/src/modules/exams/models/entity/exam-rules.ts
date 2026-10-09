@@ -5,7 +5,7 @@ import { Prisma } from "@prisma/client";
  * intento, forma de las respuestas, calificación automática, criterio de
  * intentos y normalización a la evaluación de M08.
  */
-export type QuestionKind = "OPCION_MULTIPLE" | "VERDADERO_FALSO" | "MULTIPLE_RESPUESTA" | "ABIERTA";
+export type QuestionKind = "MULTIPLE_CHOICE" | "TRUE_FALSE" | "MULTIPLE_ANSWER" | "OPEN";
 export type Answer = string | string[] | null | undefined;
 
 const D = (v: Prisma.Decimal | number | string) => new Prisma.Decimal(v);
@@ -13,30 +13,30 @@ export const round2 = (v: Prisma.Decimal | number | string): number =>
   D(v).toDecimalPlaces(2, Prisma.Decimal.ROUND_HALF_UP).toNumber();
 
 /** Fin del intento según el servidor: el menor entre inicio + duración y el cierre del examen. */
-export const endsAtOf = (startedAt: Date, duracionMin: number, fechaCierre: Date): Date =>
-  new Date(Math.min(startedAt.getTime() + duracionMin * 60_000, fechaCierre.getTime()));
+export const endsAtOf = (startedAt: Date, durationMin: number, closesAt: Date): Date =>
+  new Date(Math.min(startedAt.getTime() + durationMin * 60_000, closesAt.getTime()));
 
 export type WindowState = "NOT_PUBLISHED" | "NOT_OPEN" | "CLOSED" | "OPEN";
 
 /** ¿Se puede iniciar ahora? (publicado y `apertura ≤ ahora ≤ cierre`). */
 export const windowState = (status: string, apertura: Date, cierre: Date, now: Date = new Date()): WindowState => {
-  if (status !== "PUBLICADO") return status === "CERRADO" ? "CLOSED" : "NOT_PUBLISHED";
+  if (status !== "PUBLISHED") return status === "CLOSED" ? "CLOSED" : "NOT_PUBLISHED";
   if (now < apertura) return "NOT_OPEN";
   if (now > cierre) return "CLOSED";
   return "OPEN";
 };
 
 /** ¿La respuesta tiene la forma del tipo? (opción del reactivo, arreglo de opciones o texto). */
-export const isValidAnswer = (tipo: QuestionKind, answer: Answer, optionIds: readonly string[]): boolean => {
+export const isValidAnswer = (type: QuestionKind, answer: Answer, optionIds: readonly string[]): boolean => {
   if (answer === null || answer === undefined) return true;
-  switch (tipo) {
-    case "OPCION_MULTIPLE":
-    case "VERDADERO_FALSO":
+  switch (type) {
+    case "MULTIPLE_CHOICE":
+    case "TRUE_FALSE":
       return typeof answer === "string" && optionIds.includes(answer);
-    case "MULTIPLE_RESPUESTA":
+    case "MULTIPLE_ANSWER":
       return Array.isArray(answer) && answer.length <= optionIds.length && new Set(answer).size === answer.length &&
         answer.every((id) => typeof id === "string" && optionIds.includes(id));
-    case "ABIERTA":
+    case "OPEN":
       return typeof answer === "string" && answer.length <= 5000;
   }
 };
@@ -45,8 +45,8 @@ const isBlank = (answer: Answer): boolean =>
   answer === null || answer === undefined || (typeof answer === "string" && answer.trim() === "") || (Array.isArray(answer) && answer.length === 0);
 
 export interface AutoGrade {
-  esCorrecta: boolean | null;
-  puntosObtenidos: number | null;
+  isCorrect: boolean | null;
+  pointsEarned: number | null;
 }
 
 /**
@@ -54,18 +54,18 @@ export interface AutoGrade {
  * opciones correctas; una abierta contestada queda pendiente (`null`); lo no
  * contestado vale 0.
  */
-export const autoGrade = (tipo: QuestionKind, answer: Answer, correctIds: readonly string[], puntos: number): AutoGrade => {
-  if (isBlank(answer)) return { esCorrecta: false, puntosObtenidos: 0 };
-  if (tipo === "ABIERTA") return { esCorrecta: null, puntosObtenidos: null };
+export const autoGrade = (type: QuestionKind, answer: Answer, correctIds: readonly string[], points: number): AutoGrade => {
+  if (isBlank(answer)) return { isCorrect: false, pointsEarned: 0 };
+  if (type === "OPEN") return { isCorrect: null, pointsEarned: null };
   const chosen = Array.isArray(answer) ? answer : [answer as string];
   const ok = chosen.length === correctIds.length && chosen.every((id) => correctIds.includes(id));
-  return { esCorrecta: ok, puntosObtenidos: ok ? round2(puntos) : 0 };
+  return { isCorrect: ok, pointsEarned: ok ? round2(points) : 0 };
 };
 
 /** Puntaje del intento = Σ puntos obtenidos (pendientes cuentan 0) y cuántos faltan por revisar. */
-export const attemptScore = (answers: ReadonlyArray<{ puntosObtenidos: number | null; esCorrecta: boolean | null }>) => ({
-  score: round2(answers.reduce((sum, a) => sum.plus(D(a.puntosObtenidos ?? 0)), D(0))),
-  pending: answers.filter((a) => a.esCorrecta === null).length,
+export const attemptScore = (answers: ReadonlyArray<{ pointsEarned: number | null; isCorrect: boolean | null }>) => ({
+  score: round2(answers.reduce((sum, a) => sum.plus(D(a.pointsEarned ?? 0)), D(0))),
+  pending: answers.filter((a) => a.isCorrect === null).length,
 });
 
 export interface FinishedAttempt {
@@ -80,9 +80,9 @@ export interface FinishedAttempt {
  * calificados por completo; ULTIMO = el más reciente, y si aún tiene
  * pendientes no se decide (`null`) hasta revisarlo.
  */
-export const pickAttempt = (attempts: readonly FinishedAttempt[], criterion: "MEJOR" | "ULTIMO"): FinishedAttempt | null => {
+export const pickAttempt = (attempts: readonly FinishedAttempt[], criterion: "BEST" | "LAST"): FinishedAttempt | null => {
   if (attempts.length === 0) return null;
-  if (criterion === "ULTIMO") {
+  if (criterion === "LAST") {
     const last = [...attempts].sort((a, b) => b.finishedAt.getTime() - a.finishedAt.getTime())[0];
     return last.pendingCount === 0 ? last : null;
   }

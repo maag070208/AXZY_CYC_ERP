@@ -41,7 +41,7 @@ export const createFeeConceptRouter = (c: FinanceController): Router => {
     request: { body: { required: true, content: json(TableQuerySchema) } },
     responses: { 200: { description: "Página", content: json(FeeConceptTableResponseSchema) } },
   });
-  doc("get", "/fee-concepts/options", "Conceptos activos capturables (sin RECARGO)", { responses: { 200: { description: "Lista" } } });
+  doc("get", "/fee-concepts/options", "Conceptos activos capturables (sin LATE_FEE)", { responses: { 200: { description: "Lista" } } });
   doc("post", "/fee-concepts", "Alta de concepto (fee_concepts.manage)", {
     request: { body: { required: true, content: json(FeeConceptCreateDto) } },
     responses: { 201: { description: "Concepto", content: json(FeeConceptSchema) } },
@@ -98,7 +98,7 @@ export const createChargeRouter = (c: FinanceController): Router => {
     parameters: [param("id")],
     responses: { 200: { description: "Cargo", content: json(ChargeSchema) } },
   });
-  doc("delete", "/charges/{id}", "Cancela el cargo con motivo (charges.cancel)", {
+  doc("delete", "/charges/{id}", "Cancela el cargo con reason (charges.cancel)", {
     parameters: [param("id")],
     request: { body: { required: true, content: json(CancelDto) } },
     responses: { 200: { description: "Cargo cancelado", content: json(ChargeSchema) }, 409: { description: "CHARGE_HAS_PAYMENTS" } },
@@ -134,7 +134,7 @@ export const createPaymentRouter = (c: FinanceController): Router => {
     parameters: [param("id")],
     responses: { 200: { description: "Pago", content: json(PaymentSchema) } },
   });
-  doc("delete", "/payments/{id}", "Cancela el pago con motivo (payments.cancel)", {
+  doc("delete", "/payments/{id}", "Cancela el pago con reason (payments.cancel)", {
     parameters: [param("id")],
     request: { body: { required: true, content: json(CancelDto) } },
     responses: { 200: { description: "Pago cancelado", content: json(PaymentSchema) } },

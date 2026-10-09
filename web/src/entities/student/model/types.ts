@@ -1,31 +1,31 @@
-export type StudentStatus = "ACTIVO" | "BAJA";
-export type Gender = "M" | "F" | "OTRO";
+export type StudentStatus = "ACTIVE" | "WITHDRAWN";
+export type Gender = "M" | "F" | "OTHER";
 
 export interface Guardian {
   id?: string;
-  nombre: string;
-  parentesco: string;
-  telefono: string;
+  name: string;
+  relationship: string;
+  phone: string;
   email: string | null;
-  esResponsablePago: boolean;
+  isPaymentResponsible: boolean;
 }
 
 /** Alumno (`/students`); fechas como día del calendario `AAAA-MM-DD`. */
 export interface Student {
   id: string;
-  matricula: string;
-  nombres: string;
-  apellidoPaterno: string;
-  apellidoMaterno: string | null;
+  studentNumber: string;
+  firstNames: string;
+  paternalSurname: string;
+  maternalSurname: string | null;
   nombreCompleto: string;
   curp: string;
-  fechaNacimiento: string;
-  genero: Gender | null;
+  birthDate: string;
+  gender: Gender | null;
   email: string | null;
-  telefono: string | null;
-  direccion: string | null;
+  phone: string | null;
+  address: string | null;
   status: StudentStatus;
-  fechaIngreso: string;
+  enrollmentDate: string;
   userId: string | null;
   guardians: Guardian[];
   createdAt: string;
@@ -33,16 +33,16 @@ export interface Student {
 }
 
 export interface StudentInput {
-  nombres?: string;
-  apellidoPaterno?: string;
-  apellidoMaterno?: string | null;
+  firstNames?: string;
+  paternalSurname?: string;
+  maternalSurname?: string | null;
   curp?: string;
-  fechaNacimiento?: string;
-  genero?: Gender | null;
+  birthDate?: string;
+  gender?: Gender | null;
   email?: string | null;
-  telefono?: string | null;
-  direccion?: string | null;
-  fechaIngreso?: string;
+  phone?: string | null;
+  address?: string | null;
+  enrollmentDate?: string;
   guardians?: Omit<Guardian, "id">[];
   /** Confirma el alta aunque exista alguien con el mismo nombre y nacimiento. */
   confirmDuplicate?: boolean;
@@ -54,26 +54,26 @@ export interface StudentSummary {
   bajas: number;
 }
 
-export type MovementType = "BAJA" | "REINGRESO";
+export type MovementType = "WITHDRAWAL" | "REENTRY";
 
 export interface StudentMovement {
   id: string;
   studentId: string;
-  tipo: MovementType;
-  motivo: string;
+  type: MovementType;
+  reason: string;
   reasonId: string | null;
-  fecha: string;
-  observaciones: string | null;
+  date: string;
+  notes: string | null;
   createdBy: string;
   authorName: string | null;
   createdAt: string;
 }
 
 export interface MovementInput {
-  motivo: string;
+  reason: string;
   reasonId?: string | null;
-  fecha?: string;
-  observaciones?: string | null;
+  date?: string;
+  notes?: string | null;
 }
 
 export interface MovementResult {

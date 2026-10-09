@@ -1,14 +1,14 @@
 {
   "status": {
-    "PRESENTE": "Presente",
-    "RETARDO": "Retardo",
-    "FALTA": "Falta",
-    "JUSTIFICADA": "Justificada"
+    "PRESENT": "Presente",
+    "LATE": "Retardo",
+    "ABSENT": "Falta",
+    "JUSTIFIED": "Justificada"
   },
   "justificationStatus": {
-    "PENDIENTE": "Pendiente",
-    "APROBADA": "Aprobada",
-    "RECHAZADA": "Rechazada"
+    "PENDING": "Pendiente",
+    "APPROVED": "Aprobada",
+    "REJECTED": "Rechazada"
   },
   "form": {
     "title": "Nueva sesión",

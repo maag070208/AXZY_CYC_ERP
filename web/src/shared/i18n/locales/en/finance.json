@@ -27,11 +27,11 @@
     "reactivated": "Concept reactivated",
     "reserved": "System",
     "types": {
-      "INSCRIPCION": "Enrollment",
-      "COLEGIATURA": "Tuition",
+      "ENROLLMENT": "Enrollment",
+      "TUITION": "Tuition",
       "MATERIAL": "Materials",
-      "RECARGO": "Late fee",
-      "OTRO": "Other"
+      "LATE_FEE": "Late fee",
+      "OTHER": "Other"
     }
   },
   "charges": {
@@ -62,10 +62,10 @@
     "selectStudent": "Select a student",
     "montoHint": "Empty = concept base amount",
     "statuses": {
-      "PENDIENTE": "Pending",
-      "PARCIAL": "Partial",
-      "PAGADO": "Paid",
-      "CANCELADO": "Cancelled"
+      "PENDING": "Pending",
+      "PARTIAL": "Partial",
+      "PAID": "Paid",
+      "CANCELLED": "Cancelled"
     },
     "generateTitle": "Generate bulk charges",
     "scope": "Recipients",
@@ -103,11 +103,11 @@
     "receipt": "Receipt",
     "receiptPdf": "Print receipt",
     "methods": {
-      "EFECTIVO": "Cash",
-      "TRANSFERENCIA": "Transfer",
-      "DEPOSITO": "Deposit",
-      "TARJETA": "Card",
-      "OTRO": "Other"
+      "CASH": "Cash",
+      "TRANSFER": "Transfer",
+      "DEPOSIT": "Deposit",
+      "CARD": "Card",
+      "OTHER": "Other"
     }
   },
   "receipt": {

@@ -30,10 +30,10 @@ type Tx = Prisma.TransactionClient;
 const include = {
   charge: {
     select: {
-      id: true, studentId: true, descripcion: true, status: true, monto: true, descuento: true,
-      student: { select: { matricula: true, nombres: true, apellidoPaterno: true, apellidoMaterno: true } },
-      concept: { select: { nombre: true } },
-      payments: { where: { cancelledAt: null }, select: { monto: true } },
+      id: true, studentId: true, description: true, status: true, amount: true, discount: true,
+      student: { select: { studentNumber: true, firstNames: true, paternalSurname: true, maternalSurname: true } },
+      concept: { select: { name: true } },
+      payments: { where: { cancelledAt: null }, select: { amount: true } },
     },
   },
 } satisfies Prisma.PaymentInclude;
@@ -41,28 +41,28 @@ const include = {
 type PaymentRow = Prisma.PaymentGetPayload<{ include: typeof include }>;
 
 const toView = (row: PaymentRow): PaymentView => {
-  const total = chargeTotal(row.charge.monto, row.charge.descuento);
-  const paid = sumOf(row.charge.payments.map((p) => p.monto));
+  const total = chargeTotal(row.charge.amount, row.charge.discount);
+  const paid = sumOf(row.charge.payments.map((p) => p.amount));
   return {
     id: row.id,
     chargeId: row.chargeId,
     studentId: row.charge.studentId,
-    matricula: row.charge.student.matricula,
+    studentNumber: row.charge.student.studentNumber,
     studentNombre: fullName(row.charge.student),
-    conceptNombre: row.charge.concept.nombre,
-    chargeDescripcion: row.charge.descripcion,
-    monto: Number(row.monto),
-    fecha: fromDbDay(row.fecha),
-    metodo: row.metodo,
-    referencia: row.referencia,
-    reciboFolio: row.reciboFolio,
+    conceptNombre: row.charge.concept.name,
+    chargeDescripcion: row.charge.description,
+    amount: Number(row.amount),
+    date: fromDbDay(row.date),
+    method: row.method,
+    reference: row.reference,
+    receiptNumber: row.receiptNumber,
     registeredBy: row.registeredBy,
     registeredByName: row.registeredByName,
     cancelledAt: row.cancelledAt?.toISOString() ?? null,
     cancelReason: row.cancelReason,
     createdAt: row.createdAt.toISOString(),
     chargeStatus: row.charge.status,
-    chargeSaldo: row.charge.status === "CANCELADO" ? 0 : balanceOf(total, paid),
+    chargeSaldo: row.charge.status === "CANCELLED" ? 0 : balanceOf(total, paid),
   };
 };
 
@@ -80,10 +80,10 @@ const paymentScope = (user: UserPermissions) =>
 const refreshChargeStatus = async (tx: Tx, chargeId: string) => {
   const charge = await tx.charge.findUniqueOrThrow({
     where: { id: chargeId },
-    include: { payments: { where: { cancelledAt: null }, select: { monto: true } } },
+    include: { payments: { where: { cancelledAt: null }, select: { amount: true } } },
   });
-  if (charge.status === "CANCELADO") return charge.status;
-  const status = chargeStatusOf(chargeTotal(charge.monto, charge.descuento), sumOf(charge.payments.map((p) => p.monto)));
+  if (charge.status === "CANCELLED") return charge.status;
+  const status = chargeStatusOf(chargeTotal(charge.amount, charge.discount), sumOf(charge.payments.map((p) => p.amount)));
   if (status !== charge.status) await tx.charge.update({ where: { id: chargeId }, data: { status } });
   return status;
 };
@@ -120,19 +120,19 @@ export class PaymentService {
     if (chargeId) and.push({ chargeId });
     const studentId = filterId(filters, "studentId");
     if (studentId) and.push({ charge: { studentId } });
-    const folio = filterText(filters, "reciboFolio");
-    if (folio) and.push({ reciboFolio: folio });
-    const metodo = filterEnum(filters, "metodo", PAYMENT_METHODS);
-    if (metodo) and.push({ metodo });
-    const fecha = filterDayRange(filters, "fecha");
-    if (fecha) and.push({ fecha });
+    const folio = filterText(filters, "receiptNumber");
+    if (folio) and.push({ receiptNumber: folio });
+    const method = filterEnum(filters, "method", PAYMENT_METHODS);
+    if (method) and.push({ method });
+    const date = filterDayRange(filters, "date");
+    if (date) and.push({ date });
     const cancelled = filterBool(filters, "cancelled");
     if (cancelled !== undefined) and.push({ cancelledAt: cancelled ? { not: null } : null });
-    const nombre = filterText(filters, "studentNombre");
-    if (nombre) {
-      for (const word of nombre.contains.split(/\s+/).filter(Boolean)) {
+    const name = filterText(filters, "studentNombre");
+    if (name) {
+      for (const word of name.contains.split(/\s+/).filter(Boolean)) {
         const contains = { contains: word, mode: "insensitive" as const };
-        and.push({ charge: { student: { OR: [{ nombres: contains }, { apellidoPaterno: contains }, { apellidoMaterno: contains }] } } });
+        and.push({ charge: { student: { OR: [{ firstNames: contains }, { paternalSurname: contains }, { maternalSurname: contains }] } } });
       }
     }
     const scoped = await paymentScope(user);
@@ -142,7 +142,7 @@ export class PaymentService {
       where: (and.length ? { AND: and } : {}) as Record<string, unknown>,
       orderBy: orderByOf(
         params.sort,
-        { fecha: "fecha", monto: "monto", reciboFolio: "reciboFolio", createdAt: "createdAt" },
+        { date: "date", amount: "amount", receiptNumber: "receiptNumber", createdAt: "createdAt" },
         [{ createdAt: "desc" }]
       ),
       include,
@@ -174,8 +174,8 @@ export class PaymentService {
       if (prior) return { payment: prior, replayed: true };
     }
     const today = todayInBusinessZone();
-    const fecha = input.fecha ?? today;
-    if (fecha > today) throw new HttpError(400, "FUTURE_DATE", { field: "fecha" });
+    const date = input.date ?? today;
+    if (date > today) throw new HttpError(400, "FUTURE_DATE", { field: "date" });
     const year = Number(today.slice(0, 4));
     const registrar = await this.db.user.findUnique({ where: { id: actor.id }, select: { name: true } });
 
@@ -183,12 +183,12 @@ export class PaymentService {
       const id = await serializable(async (tx) => {
         const charge = await tx.charge.findUnique({
           where: { id: input.chargeId },
-          include: { payments: { where: { cancelledAt: null }, select: { monto: true } } },
+          include: { payments: { where: { cancelledAt: null }, select: { amount: true } } },
         });
         if (!charge) throw new HttpError(404, "CHARGE_NOT_FOUND");
-        if (charge.status === "PAGADO" || charge.status === "CANCELADO") throw new HttpError(409, "CHARGE_ALREADY_PAID");
-        const saldo = balanceOf(chargeTotal(charge.monto, charge.descuento), sumOf(charge.payments.map((p) => p.monto)));
-        if (new Prisma.Decimal(input.monto).greaterThan(saldo)) {
+        if (charge.status === "PAID" || charge.status === "CANCELLED") throw new HttpError(409, "CHARGE_ALREADY_PAID");
+        const saldo = balanceOf(chargeTotal(charge.amount, charge.discount), sumOf(charge.payments.map((p) => p.amount)));
+        if (new Prisma.Decimal(input.amount).greaterThan(saldo)) {
           throw new HttpError(400, "PAYMENT_EXCEEDS_BALANCE", { saldo: saldo.toFixed(2) }, { saldo });
         }
         // Consecutivo por año: el UPDATE … +1 bloquea la fila hasta el commit.
@@ -200,11 +200,11 @@ export class PaymentService {
         const payment = await tx.payment.create({
           data: {
             chargeId: charge.id,
-            monto: input.monto,
-            fecha: toDbDay(fecha),
-            metodo: input.metodo,
-            referencia: input.referencia ?? null,
-            reciboFolio: formatFolio(year, sequence.last),
+            amount: input.amount,
+            date: toDbDay(date),
+            method: input.method,
+            reference: input.reference ?? null,
+            receiptNumber: formatFolio(year, sequence.last),
             registeredBy: actor.id,
             registeredByName: registrar?.name ?? actor.username,
             idempotencyKey: idempotencyKey ?? null,
@@ -213,18 +213,18 @@ export class PaymentService {
         const status = await refreshChargeStatus(tx, charge.id);
         if (this.notifier) {
           const contacts = await studentContacts(tx, charge.studentId, "payer");
-          const concept = await tx.feeConcept.findUnique({ where: { id: charge.conceptId }, select: { nombre: true } });
+          const concept = await tx.feeConcept.findUnique({ where: { id: charge.conceptId }, select: { name: true } });
           if (contacts) {
             await this.notifier(
               {
-                clave: "PAGO_RECIBIDO",
+                code: "PAGO_RECIBIDO",
                 recipients: contacts.recipients,
                 payload: {
-                  nombre: contacts.nombre,
-                  monto: formatMoney(input.monto),
-                  concepto: concept?.nombre ?? "",
-                  folio: payment.reciboFolio,
-                  saldo: formatMoney(new Prisma.Decimal(saldo).minus(input.monto)),
+                  name: contacts.name,
+                  amount: formatMoney(input.amount),
+                  concepto: concept?.name ?? "",
+                  folio: payment.receiptNumber,
+                  saldo: formatMoney(new Prisma.Decimal(saldo).minus(input.amount)),
                 },
                 idempotencyKey: `PAGO_RECIBIDO:${payment.id}`,
               },
@@ -235,7 +235,7 @@ export class PaymentService {
         await this.audit?.(
           { action: "PAYMENT_REGISTERED", entityType: "Payment", entityId: payment.id, userId: actor.id,
             userName: actor.username,
-            newState: { reciboFolio: payment.reciboFolio, monto: input.monto, metodo: input.metodo, fecha, chargeStatus: status },
+            newState: { receiptNumber: payment.receiptNumber, amount: input.amount, method: input.method, date, chargeStatus: status },
             metadata: { chargeId: charge.id, studentId: charge.studentId } },
           tx
         );
@@ -253,18 +253,18 @@ export class PaymentService {
   }
 
   /** Cancelación lógica con motivo: el folio se conserva y el cargo se recalcula. */
-  async cancel(id: string, motivo: string, actor: AuthenticatedUser): Promise<PaymentView> {
+  async cancel(id: string, reason: string, actor: AuthenticatedUser): Promise<PaymentView> {
     const previous = await this.load(id, this.db);
     if (previous.cancelledAt) throw new HttpError(409, "PAYMENT_ALREADY_CANCELLED");
     enforcePolicy("payments.cancel", actor, {
-      monto: Number(previous.monto),
-      metodo: previous.metodo,
+      amount: Number(previous.amount),
+      method: previous.method,
       diasDesdeRegistro: daysBetween(previous.createdAt.toISOString().slice(0, 10), todayInBusinessZone()),
     });
     await this.db.$transaction(async (tx) => {
       const changed = await tx.payment.updateMany({
         where: { id, cancelledAt: null },
-        data: { cancelledAt: new Date(), cancelReason: motivo, cancelledBy: actor.id },
+        data: { cancelledAt: new Date(), cancelReason: reason, cancelledBy: actor.id },
       });
       if (changed.count === 0) throw new HttpError(409, "PAYMENT_ALREADY_CANCELLED");
       const status = await refreshChargeStatus(tx, previous.chargeId);
@@ -272,7 +272,7 @@ export class PaymentService {
         { action: "PAYMENT_CANCELLED", entityType: "Payment", entityId: id, userId: actor.id, userName: actor.username,
           previousState: { cancelledAt: null, chargeStatus: previous.charge.status },
           newState: { cancelledAt: new Date().toISOString(), chargeStatus: status },
-          metadata: { motivo, reciboFolio: previous.reciboFolio, monto: Number(previous.monto) } },
+          metadata: { reason, receiptNumber: previous.receiptNumber, amount: Number(previous.amount) } },
         tx
       );
     });

@@ -94,8 +94,8 @@ export class EnrollmentController {
     res.json(paginatedTable(params, data, total));
   };
   drop = async (req: Request, res: Response) => {
-    const { motivo } = EnrollmentDropDto.parse(req.body ?? {});
-    res.json(await this.enrollments.drop(req.params.id, actor(req), motivo));
+    const { reason } = EnrollmentDropDto.parse(req.body ?? {});
+    res.json(await this.enrollments.drop(req.params.id, actor(req), reason));
   };
   changeGroup = async (req: Request, res: Response) => {
     const { toGroupId } = ChangeGroupDto.parse(req.body);

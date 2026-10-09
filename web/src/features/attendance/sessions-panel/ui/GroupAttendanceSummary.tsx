@@ -38,11 +38,11 @@ export default function GroupAttendanceSummary({ groupId, reloadKey }: Props) {
 
   const columns: Column<AttendanceSummaryRow>[] = [
     {
-      key: "nombre", label: t("summary.alumno"), type: "string",
+      key: "name", label: t("summary.alumno"), type: "string",
       render: (r) => (
         <div>
-          <ITText className="block text-[12px] font-bold text-slate-700">{r.nombre}</ITText>
-          <ITText className="text-[10px] text-slate-400">{r.matricula}</ITText>
+          <ITText className="block text-[12px] font-bold text-slate-700">{r.name}</ITText>
+          <ITText className="text-[10px] text-slate-400">{r.studentNumber}</ITText>
         </div>
       ),
     },

@@ -30,7 +30,7 @@ export default function GenerateChargesDialog({ isOpen, onClose, onDone }: Props
   const [scope, setScope] = useState<"group" | "term">("group");
   const [termId, setTermId] = useState("");
   const [groupId, setGroupId] = useState("");
-  const [descripcion, setDescripcion] = useState("");
+  const [description, setDescripcion] = useState("");
   const [vence, setVence] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -65,7 +65,7 @@ export default function GenerateChargesDialog({ isOpen, onClose, onDone }: Props
     setError(null);
     try {
       onDone(await chargeApi.generate({
-        conceptId, scope, fechaVencimiento: vence, descripcion: descripcion.trim() || null,
+        conceptId, scope, dueDate: vence, description: description.trim() || null,
         ...(scope === "group" ? { groupId } : { termId }),
       }, idempotencyKey));
     } catch (err) {
@@ -85,7 +85,7 @@ export default function GenerateChargesDialog({ isOpen, onClose, onDone }: Props
           <ITGrid container columns={12} spacing={4}>
             <ITGrid item xs={12}>
               <ITSelect name="conceptId" label={t("charges.concepto")} value={conceptId} placeholder="—"
-                options={concepts.map((c) => ({ value: c.id, label: `${c.nombre} · ${formatMoney(c.monto, i18n.language)}` }))}
+                options={concepts.map((c) => ({ value: c.id, label: `${c.name} · ${formatMoney(c.amount, i18n.language)}` }))}
                 onChange={(e) => setConceptId(e.target.value)} />
             </ITGrid>
             <ITGrid item xs={12} md={6}>
@@ -100,15 +100,15 @@ export default function GenerateChargesDialog({ isOpen, onClose, onDone }: Props
             {scope === "group" && (
               <ITGrid item xs={12}>
                 <ITSelect name="groupId" label={t("charges.grupo")} value={groupId} placeholder="—"
-                  options={groups.map((g) => ({ value: g.id, label: `${g.courseNombre} · ${g.nombre} (${g.inscritos})` }))}
+                  options={groups.map((g) => ({ value: g.id, label: `${g.courseNombre} · ${g.name} (${g.inscritos})` }))}
                   onChange={(e) => setGroupId(e.target.value)} />
               </ITGrid>
             )}
             <ITGrid item xs={12} md={7}>
-              <ITInput name="descripcion" label={t("charges.descripcion")} value={descripcion} onChange={(e) => setDescripcion(e.target.value)} />
+              <ITInput name="description" label={t("charges.descripcion")} value={description} onChange={(e) => setDescripcion(e.target.value)} />
             </ITGrid>
             <ITGrid item xs={12} md={5}>
-              <ITDatePicker name="fechaVencimiento" label={t("charges.vencimiento")} required value={vence ? fromDay(vence) : undefined}
+              <ITDatePicker name="dueDate" label={t("charges.vencimiento")} required value={vence ? fromDay(vence) : undefined}
                 onChange={(e) => setVence(pickDay(e.target.value))} />
             </ITGrid>
           </ITGrid>

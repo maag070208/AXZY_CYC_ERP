@@ -1,4 +1,4 @@
-export type TeacherStatus = "ACTIVO" | "INACTIVO";
+export type TeacherStatus = "ACTIVE" | "INACTIVE";
 
 export interface TeacherAccount {
   userId: string;
@@ -11,12 +11,12 @@ export interface TeacherAccount {
 
 export interface Teacher {
   id: string;
-  nombres: string;
-  apellidos: string;
+  firstNames: string;
+  surnames: string;
   nombreCompleto: string;
   email: string;
-  telefono: string | null;
-  especialidad: string | null;
+  phone: string | null;
+  specialty: string | null;
   status: TeacherStatus;
   account: TeacherAccount | null;
   createdAt: string;
@@ -24,9 +24,9 @@ export interface Teacher {
 }
 
 export interface TeacherInput {
-  nombres?: string;
-  apellidos?: string;
+  firstNames?: string;
+  surnames?: string;
   email?: string;
-  telefono?: string | null;
-  especialidad?: string | null;
+  phone?: string | null;
+  specialty?: string | null;
 }

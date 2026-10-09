@@ -12,21 +12,21 @@
     "bajas": "Withdrawn"
   },
   "table": {
-    "matricula": "Enrollment no.",
-    "nombre": "Name",
+    "studentNumber": "Enrollment no.",
+    "name": "Name",
     "curp": "CURP",
     "status": "Status",
-    "fechaIngreso": "Admission",
+    "enrollmentDate": "Admission",
     "view": "Open record"
   },
   "status": {
-    "ACTIVO": "Active",
-    "BAJA": "Withdrawn"
+    "ACTIVE": "Active",
+    "WITHDRAWN": "Withdrawn"
   },
   "genders": {
     "M": "Male",
     "F": "Female",
-    "OTRO": "Other"
+    "OTHER": "Other"
   },
   "form": {
     "titleNew": "New student",
@@ -35,21 +35,21 @@
     "contact": "Contact",
     "guardians": "Guardians",
     "guardiansHint": "At least one is required for minors. Only one can be responsible for payments.",
-    "nombres": "First name(s)",
-    "apellidoPaterno": "Paternal surname",
-    "apellidoMaterno": "Maternal surname",
+    "firstNames": "First name(s)",
+    "paternalSurname": "Paternal surname",
+    "maternalSurname": "Maternal surname",
     "curp": "CURP",
-    "fechaNacimiento": "Birth date",
-    "genero": "Gender",
+    "birthDate": "Birth date",
+    "gender": "Gender",
     "email": "Email",
-    "telefono": "Phone",
-    "direccion": "Address",
-    "fechaIngreso": "Admission date",
+    "phone": "Phone",
+    "address": "Address",
+    "enrollmentDate": "Admission date",
     "fechaIngresoHint": "Sets the enrollment-number year; defaults to today.",
     "addGuardian": "Add guardian",
     "removeGuardian": "Remove guardian",
     "guardianNombre": "Guardian name",
-    "parentesco": "Relationship",
+    "relationship": "Relationship",
     "responsablePago": "Responsible for payments",
     "noGuardians": "No guardians registered.",
     "save": "Save",
@@ -75,7 +75,7 @@
       "attendance": "Attendance",
       "plans": "Payment plan"
     },
-    "matricula": "Enrollment no.",
+    "studentNumber": "Enrollment no.",
     "age": "{{age}} years",
     "edit": "Edit",
     "baja": "Withdraw",
@@ -91,8 +91,8 @@
     "motivo": "Reason",
     "observaciones": "Notes",
     "autor": "Recorded by",
-    "BAJA": "Withdrawal",
-    "REINGRESO": "Re-admission",
+    "WITHDRAWAL": "Withdrawal",
+    "REENTRY": "Re-admission",
     "bajaTitle": "Withdraw {{name}}",
     "bajaMessage": "The student becomes WITHDRAWN and active enrollments are cancelled. All history is kept.",
     "reingresoTitle": "Re-admit {{name}}",

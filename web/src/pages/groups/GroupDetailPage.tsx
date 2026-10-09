@@ -44,7 +44,7 @@ export default function GroupDetailPage() {
   const [enrollOpen, setEnrollOpen] = useState(false);
   const [changing, setChanging] = useState<Enrollment | null>(null);
   const [dropping, setDropping] = useState<Enrollment | null>(null);
-  const [motivo, setMotivo] = useState("");
+  const [reason, setMotivo] = useState("");
 
   const load = useCallback(() => {
     if (!id) return;
@@ -73,7 +73,7 @@ export default function GroupDetailPage() {
   const drop = async () => {
     if (!dropping) return;
     try {
-      await enrollmentApi.drop(dropping.id, motivo.trim() || undefined);
+      await enrollmentApi.drop(dropping.id, reason.trim() || undefined);
       notify.success(t("enrollments.dropped"));
       setDropping(null);
       refresh();
@@ -118,7 +118,7 @@ export default function GroupDetailPage() {
   const dropTitle = t("enrollments.dropTitle", { name: dropping?.studentNombre ?? "" });
   return (
     <ITPage
-      title={g ? t("groups.detailTitle", { course: g.courseNombre, name: g.nombre }) : t("groups.title")}
+      title={g ? t("groups.detailTitle", { course: g.courseNombre, name: g.name }) : t("groups.title")}
       description={g ? `${g.courseClave} · ${g.termNombre}` : undefined}
       icon={<FaLayerGroup size={20} />}
       loading={!g && !error}
@@ -140,15 +140,15 @@ export default function GroupDetailPage() {
       {g && (
         <ITFlex direction="column" gap={4}>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            <ITStatCard label={t("groups.kpis.cupo")} value={g.cupo} icon={<FaChair size={16} />} />
+            <ITStatCard label={t("groups.kpis.cupo")} value={g.capacity} icon={<FaChair size={16} />} />
             <ITStatCard label={t("groups.kpis.inscritos")} value={g.inscritos} icon={<FaUsers size={16} />} />
             <ITStatCard label={t("groups.kpis.disponibles")} value={g.disponibles} icon={<FaUserPlus size={16} />} />
           </div>
           <PanelCard>
             <ITGrid container columns={12} spacing={4}>
               <ITGrid item xs={12} md={4}><Field label={t("groups.profesor")} value={g.teacherNombre ?? t("groups.noTeacher")} /></ITGrid>
-              <ITGrid item xs={12} md={5}><Field label={t("groups.horario")} value={<ScheduleSummary slots={g.horario} />} /></ITGrid>
-              <ITGrid item xs={12} md={3}><Field label={t("groups.aula")} value={g.aula} /></ITGrid>
+              <ITGrid item xs={12} md={5}><Field label={t("groups.horario")} value={<ScheduleSummary slots={g.schedule} />} /></ITGrid>
+              <ITGrid item xs={12} md={3}><Field label={t("groups.aula")} value={g.classroom} /></ITGrid>
             </ITGrid>
           </PanelCard>
           <ITTabs
@@ -194,7 +194,7 @@ export default function GroupDetailPage() {
           <ITDialog isOpen={!!dropping} onClose={() => setDropping(null)} title={dropTitle} className="w-full max-w-lg">
             <div role="dialog" aria-label={dropTitle}>
               <ITFlex direction="column" gap={4}>
-                <ITTextarea name="motivo" label={t("enrollments.dropMotivo")} value={motivo} onChange={setMotivo} rows={3} maxLength={500} />
+                <ITTextarea name="reason" label={t("enrollments.dropMotivo")} value={reason} onChange={setMotivo} rows={3} maxLength={500} />
                 <ITFlex justify="end" gap={2}>
                   <ITButton variant="outlined" color="secondary" onClick={() => setDropping(null)}>{t("common:actions.cancel")}</ITButton>
                   <ITButton variant="filled" color="danger" onClick={() => void drop()}>{t("enrollments.drop")}</ITButton>

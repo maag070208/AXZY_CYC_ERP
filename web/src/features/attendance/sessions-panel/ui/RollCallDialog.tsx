@@ -12,14 +12,14 @@ interface Props {
 }
 
 const STATUS_COLOR: Record<AttendanceMark, "success" | "warning" | "danger"> = {
-  PRESENTE: "success",
-  RETARDO: "warning",
-  FALTA: "danger",
+  PRESENT: "success",
+  LATE: "warning",
+  ABSENT: "danger",
 };
 
 /** Estatus de un renglón ya registrado; la justificada queda bloqueada. */
 const markOf = (status: AttendanceRoll["rows"][number]["status"]): AttendanceMark =>
-  status === "RETARDO" || status === "FALTA" ? status : "PRESENTE";
+  status === "LATE" || status === "ABSENT" ? status : "PRESENT";
 
 /**
  * Pase de lista de una sesión (M18 §4.2): todos los inscritos deben tener
@@ -75,7 +75,7 @@ export default function RollCallDialog({ sessionId, onClose, onSaved }: Props) {
     }
   };
 
-  const title = roll ? t("roll.title", { date: formatDay(roll.fecha, i18n.language) }) : t("roll.titleEmpty");
+  const title = roll ? t("roll.title", { date: formatDay(roll.date, i18n.language) }) : t("roll.titleEmpty");
   return (
     <ITDialog isOpen={!!sessionId} onClose={onClose} title={title} className="w-full max-w-3xl">
       <div role="dialog" aria-label={title}>
@@ -84,12 +84,12 @@ export default function RollCallDialog({ sessionId, onClose, onSaved }: Props) {
         {roll && (
           <ITFlex direction="column" gap={4}>
             <ITFlex justify="between" align="center" wrap="wrap" gap={2}>
-              <ITText className="text-[12px] text-slate-500">{roll.group.courseNombre} · {roll.group.nombre} · {roll.group.termNombre}</ITText>
+              <ITText className="text-[12px] text-slate-500">{roll.group.courseNombre} · {roll.group.name} · {roll.group.termNombre}</ITText>
               <ITFlex gap={2}>
-                <ITButton variant="outlined" color="success" size="sm" disabled={roll.group.closed} onClick={() => setAll("PRESENTE")}>
+                <ITButton variant="outlined" color="success" size="sm" disabled={roll.group.closed} onClick={() => setAll("PRESENT")}>
                   {t("roll.allPresent")}
                 </ITButton>
-                <ITButton variant="outlined" color="danger" size="sm" disabled={roll.group.closed} onClick={() => setAll("FALTA")}>
+                <ITButton variant="outlined" color="danger" size="sm" disabled={roll.group.closed} onClick={() => setAll("ABSENT")}>
                   {t("roll.allAbsent")}
                 </ITButton>
               </ITFlex>
@@ -101,34 +101,34 @@ export default function RollCallDialog({ sessionId, onClose, onSaved }: Props) {
                 <ITText className="block p-4 text-[12px] text-slate-500">{t("roll.empty")}</ITText>
               ) : (
                 roll.rows.map((row) => {
-                  const value = marks[row.enrollmentId] ?? "PRESENTE";
+                  const value = marks[row.enrollmentId] ?? "PRESENT";
                   const locked = row.locked || roll.group.closed;
                   return (
                     <ITFlex key={row.enrollmentId} justify="between" align="center" gap={3}
                       className="border-b border-slate-100 px-3 py-2 last:border-b-0">
                       <div className="min-w-0">
-                        <ITText className="block truncate text-[12px] font-bold text-slate-700">{row.nombre}</ITText>
+                        <ITText className="block truncate text-[12px] font-bold text-slate-700">{row.name}</ITText>
                         <ITText className="text-[10px] text-slate-400">
-                          {row.matricula}
-                          {row.justification === "PENDIENTE" && ` · ${t("justificationStatus.PENDIENTE")}`}
-                          {row.justification === "APROBADA" && ` · ${t("justificationStatus.APROBADA")}`}
+                          {row.studentNumber}
+                          {row.justification === "PENDING" && ` · ${t("justificationStatus.PENDING")}`}
+                          {row.justification === "APPROVED" && ` · ${t("justificationStatus.APPROVED")}`}
                         </ITText>
                       </div>
                       <ITFlex gap={1}>
-                        {(["PRESENTE", "RETARDO", "FALTA"] as const).map((status) => (
+                        {(["PRESENT", "LATE", "ABSENT"] as const).map((status) => (
                           <ITButton
                             key={status}
                             size="sm"
                             variant={value === status ? "filled" : "outlined"}
                             color={STATUS_COLOR[status]}
                             disabled={locked}
-                            ariaLabel={`${row.nombre} ${t(`status.${status}`)}`}
+                            ariaLabel={`${row.name} ${t(`status.${status}`)}`}
                             onClick={() => setMarks((prev) => ({ ...prev, [row.enrollmentId]: status }))}
                           >
                             {t(`status.${status}`)}
                           </ITButton>
                         ))}
-                        {locked && row.justification && <ITBadget color={row.justification === "APROBADA" ? "success" : "warning"} size="sm">{t("roll.locked")}</ITBadget>}
+                        {locked && row.justification && <ITBadget color={row.justification === "APPROVED" ? "success" : "warning"} size="sm">{t("roll.locked")}</ITBadget>}
                       </ITFlex>
                     </ITFlex>
                   );

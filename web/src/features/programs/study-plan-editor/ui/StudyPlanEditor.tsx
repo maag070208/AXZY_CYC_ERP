@@ -34,7 +34,7 @@ export default function StudyPlanEditor({ program, readOnly, onSaved }: Props) {
 
   const nameOf = (courseId: string) => {
     const option = options.find((o) => o.id === courseId);
-    return option ? `${option.clave} · ${option.nombre}` : courseId;
+    return option ? `${option.code} · ${option.name}` : courseId;
   };
 
   const add = (periodIndex: number) => {
@@ -108,7 +108,7 @@ export default function StudyPlanEditor({ program, readOnly, onSaved }: Props) {
                         label={t("plan.addCourse")}
                         value={pick[periodIndex] ?? ""}
                         placeholder="—"
-                        options={available.map((o) => ({ value: o.id, label: `${o.clave} · ${o.nombre}` }))}
+                        options={available.map((o) => ({ value: o.id, label: `${o.code} · ${o.name}` }))}
                         onChange={(e) => setPick((prev) => ({ ...prev, [periodIndex]: e.target.value }))}
                       />
                     </div>

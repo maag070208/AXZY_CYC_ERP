@@ -1,54 +1,54 @@
-export type FeeConceptType = "INSCRIPCION" | "COLEGIATURA" | "MATERIAL" | "RECARGO" | "OTRO";
-export const EDITABLE_FEE_TYPES: readonly FeeConceptType[] = ["INSCRIPCION", "COLEGIATURA", "MATERIAL", "OTRO"];
-export type ChargeStatus = "PENDIENTE" | "PARCIAL" | "PAGADO" | "CANCELADO";
-export const CHARGE_STATUSES: readonly ChargeStatus[] = ["PENDIENTE", "PARCIAL", "PAGADO", "CANCELADO"];
+export type FeeConceptType = "ENROLLMENT" | "TUITION" | "MATERIAL" | "LATE_FEE" | "OTHER";
+export const EDITABLE_FEE_TYPES: readonly FeeConceptType[] = ["ENROLLMENT", "TUITION", "MATERIAL", "OTHER"];
+export type ChargeStatus = "PENDING" | "PARTIAL" | "PAID" | "CANCELLED";
+export const CHARGE_STATUSES: readonly ChargeStatus[] = ["PENDING", "PARTIAL", "PAID", "CANCELLED"];
 /** Color del badge por estatus. */
 export const CHARGE_STATUS_COLOR: Record<ChargeStatus, "warning" | "primary" | "success" | "secondary"> = {
-  PENDIENTE: "warning",
-  PARCIAL: "primary",
-  PAGADO: "success",
-  CANCELADO: "secondary",
+  PENDING: "warning",
+  PARTIAL: "primary",
+  PAID: "success",
+  CANCELLED: "secondary",
 };
-export type PaymentMethod = "EFECTIVO" | "TRANSFERENCIA" | "DEPOSITO" | "TARJETA" | "OTRO";
-export const PAYMENT_METHODS: readonly PaymentMethod[] = ["EFECTIVO", "TRANSFERENCIA", "DEPOSITO", "TARJETA", "OTRO"];
+export type PaymentMethod = "CASH" | "TRANSFER" | "DEPOSIT" | "CARD" | "OTHER";
+export const PAYMENT_METHODS: readonly PaymentMethod[] = ["CASH", "TRANSFER", "DEPOSIT", "CARD", "OTHER"];
 
 /** Concepto de cobro (`/fee-concepts`, M09). */
 export interface FeeConcept {
   id: string;
-  nombre: string;
-  descripcion: string | null;
-  monto: number;
-  tipo: FeeConceptType;
+  name: string;
+  description: string | null;
+  amount: number;
+  type: FeeConceptType;
   active: boolean;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface FeeConceptInput {
-  nombre?: string;
-  descripcion?: string | null;
-  monto?: number;
-  tipo?: FeeConceptType;
+  name?: string;
+  description?: string | null;
+  amount?: number;
+  type?: FeeConceptType;
 }
 
 /** Cargo con total, pagado y saldo calculados por la API. */
 export interface Charge {
   id: string;
   studentId: string;
-  matricula: string;
+  studentNumber: string;
   studentNombre: string;
   conceptId: string;
   conceptNombre: string;
   conceptTipo: FeeConceptType;
   termId: string | null;
   termNombre: string | null;
-  descripcion: string | null;
-  monto: number;
-  descuento: number;
+  description: string | null;
+  amount: number;
+  discount: number;
   total: number;
   pagado: number;
   saldo: number;
-  fechaVencimiento: string;
+  dueDate: string;
   vencido: boolean;
   status: ChargeStatus;
   parentChargeId: string | null;
@@ -61,10 +61,10 @@ export interface ChargeInput {
   studentId: string;
   conceptId: string;
   termId?: string | null;
-  descripcion?: string | null;
-  monto?: number;
-  descuento?: number;
-  fechaVencimiento: string;
+  description?: string | null;
+  amount?: number;
+  discount?: number;
+  dueDate: string;
 }
 
 export interface ChargeGenerateInput {
@@ -72,25 +72,25 @@ export interface ChargeGenerateInput {
   scope: "group" | "term";
   groupId?: string;
   termId?: string;
-  descripcion?: string | null;
-  monto?: number;
-  descuento?: number;
-  fechaVencimiento: string;
+  description?: string | null;
+  amount?: number;
+  discount?: number;
+  dueDate: string;
 }
 
 export interface Payment {
   id: string;
   chargeId: string;
   studentId: string;
-  matricula: string;
+  studentNumber: string;
   studentNombre: string;
   conceptNombre: string;
   chargeDescripcion: string | null;
-  monto: number;
-  fecha: string;
-  metodo: PaymentMethod;
-  referencia: string | null;
-  reciboFolio: string;
+  amount: number;
+  date: string;
+  method: PaymentMethod;
+  reference: string | null;
+  receiptNumber: string;
   registeredBy: string;
   registeredByName: string;
   cancelledAt: string | null;
@@ -102,16 +102,16 @@ export interface Payment {
 
 export interface PaymentInput {
   chargeId: string;
-  monto: number;
-  fecha?: string;
-  metodo: PaymentMethod;
-  referencia?: string | null;
+  amount: number;
+  date?: string;
+  method: PaymentMethod;
+  reference?: string | null;
 }
 
 export interface AccountStatement {
-  student: { id: string; matricula: string; nombre: string; status: "ACTIVO" | "BAJA" };
-  escuela: { nombre: string; direccion: string; telefono: string; email: string };
-  charges: Array<Charge & { payments: Array<{ id: string; reciboFolio: string; fecha: string; monto: number; metodo: PaymentMethod }> }>;
+  student: { id: string; studentNumber: string; name: string; status: "ACTIVE" | "WITHDRAWN" };
+  escuela: { name: string; address: string; phone: string; email: string };
+  charges: Array<Charge & { payments: Array<{ id: string; receiptNumber: string; date: string; amount: number; method: PaymentMethod }> }>;
   totals: { cargos: number; descuentos: number; pagado: number; saldo: number; vencido: number };
   generadoEn: string;
 }

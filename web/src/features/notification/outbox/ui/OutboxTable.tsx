@@ -15,10 +15,10 @@ interface Props {
 }
 
 const STATUS_COLOR: Record<NotificationStatus, "warning" | "success" | "danger" | "secondary"> = {
-  EN_COLA: "warning",
-  ENVIADO: "success",
-  FALLIDO: "danger",
-  OMITIDO: "secondary",
+  QUEUED: "warning",
+  SENT: "success",
+  FAILED: "danger",
+  SKIPPED: "secondary",
 };
 
 /** Historial del outbox con reintento de fallidos (M19 §4.2–4.3). */
@@ -45,26 +45,26 @@ export default function OutboxTable({ reloadKey, onTotal, onChanged }: Props) {
 
   const columns: Column<NotificationItem>[] = [
     {
-      key: "destinatario", label: t("outbox.destinatario"), type: "string", filter: true, sortable: false,
+      key: "recipient", label: t("outbox.destinatario"), type: "string", filter: true, sortable: false,
       render: (r) => (
         <div>
-          <ITText className="block text-[12px] font-bold text-slate-700">{r.destinatario}</ITText>
-          <ITText className="text-[10px] text-slate-400">{r.origen}{r.templateClave ? ` · ${r.templateClave}` : ""}</ITText>
+          <ITText className="block text-[12px] font-bold text-slate-700">{r.recipient}</ITText>
+          <ITText className="text-[10px] text-slate-400">{r.origin}{r.templateClave ? ` · ${r.templateClave}` : ""}</ITText>
         </div>
       ),
     },
     {
-      key: "canal", label: t("outbox.canal"), type: "catalog", width: 110, filter: "catalog", sortable: false,
-      catalogOptions: { data: (["EMAIL", "SMS", "WHATSAPP", "INTERNO"] as const).map((c) => ({ id: c, name: t(`channels.${c}`) })) },
-      render: (r) => <ITBadget color="secondary" size="sm">{t(`channels.${r.canal}`)}</ITBadget>,
+      key: "channel", label: t("outbox.canal"), type: "catalog", width: 110, filter: "catalog", sortable: false,
+      catalogOptions: { data: (["EMAIL", "SMS", "WHATSAPP", "IN_APP"] as const).map((c) => ({ id: c, name: t(`channels.${c}`) })) },
+      render: (r) => <ITBadget color="secondary" size="sm">{t(`channels.${r.channel}`)}</ITBadget>,
     },
     {
-      key: "asunto", label: t("outbox.asunto"), type: "string",
-      render: (r) => <ITText className="line-clamp-2 text-[12px] text-slate-600">{r.asunto ? `${r.asunto} — ` : ""}{r.cuerpo}</ITText>,
+      key: "subject", label: t("outbox.asunto"), type: "string",
+      render: (r) => <ITText className="line-clamp-2 text-[12px] text-slate-600">{r.subject ? `${r.subject} — ` : ""}{r.body}</ITText>,
     },
     {
       key: "status", label: t("outbox.estado"), type: "catalog", width: 120, filter: "catalog", sortable: false,
-      catalogOptions: { data: (["EN_COLA", "ENVIADO", "FALLIDO", "OMITIDO"] as const).map((s) => ({ id: s, name: t(`status.${s}`) })) },
+      catalogOptions: { data: (["QUEUED", "SENT", "FAILED", "SKIPPED"] as const).map((s) => ({ id: s, name: t(`status.${s}`) })) },
       render: (r) => (
         <ITFlex direction="column" gap={1}>
           <ITBadget color={STATUS_COLOR[r.status]} size="sm">{t(`status.${r.status}`)}</ITBadget>
@@ -80,8 +80,8 @@ export default function OutboxTable({ reloadKey, onTotal, onChanged }: Props) {
     {
       key: "actions", label: t("common:labels.actions"), type: "actions", width: 80,
       actions: (r) => (
-        canManage && (r.status === "FALLIDO" || r.status === "OMITIDO") ? (
-          <ITButton variant="text" color="primary" size="sm" title={t("outbox.retry")} ariaLabel={`${t("outbox.retry")} ${r.destinatario}`} onClick={() => void retry(r)}>
+        canManage && (r.status === "FAILED" || r.status === "SKIPPED") ? (
+          <ITButton variant="text" color="primary" size="sm" title={t("outbox.retry")} ariaLabel={`${t("outbox.retry")} ${r.recipient}`} onClick={() => void retry(r)}>
             <FaRedo size={12} />
           </ITButton>
         ) : null

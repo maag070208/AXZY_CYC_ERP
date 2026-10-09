@@ -46,7 +46,7 @@ export default function AccountStatementView({ studentId }: { studentId: string 
     try {
       const blob = await renderStatementPdf(statement, {
         title: t("statement.title"),
-        matricula: t("receipt.matricula"),
+        studentNumber: t("receipt.matricula"),
         alumno: t("receipt.alumno"),
         concepto: t("charges.concepto"),
         vencimiento: t("charges.vencimiento"),
@@ -61,7 +61,7 @@ export default function AccountStatementView({ studentId }: { studentId: string 
         money,
         date: (d) => formatDay(d, i18n.language),
       });
-      saveAs(blob, `estado-de-cuenta-${statement.student.matricula}.pdf`);
+      saveAs(blob, `estado-de-cuenta-${statement.student.studentNumber}.pdf`);
     } catch (err) {
       notify.error(errorMessage(err, t("common:errors.load")));
     }
@@ -119,18 +119,18 @@ export default function AccountStatementView({ studentId }: { studentId: string 
                 {statement.charges.map((c) => (
                   <tr key={c.id} className="border-b border-slate-100 align-top" data-charge={c.id}>
                     <td className="px-2 py-2">
-                      <span className="block font-bold text-slate-700">{c.descripcion ?? c.conceptNombre}</span>
-                      {c.descuento > 0 && <span className="text-[10px] text-slate-400">{t("charges.descuento")}: {money(c.descuento)}</span>}
+                      <span className="block font-bold text-slate-700">{c.description ?? c.conceptNombre}</span>
+                      {c.discount > 0 && <span className="text-[10px] text-slate-400">{t("charges.descuento")}: {money(c.discount)}</span>}
                       {c.payments.map((p) => (
                         <button key={p.id} type="button" onClick={() => void receipt(p.id)}
-                          className="mt-1 flex items-center gap-1 text-[10px] text-blue-600 hover:underline" aria-label={`${t("payments.receiptPdf")} ${p.reciboFolio}`}>
-                          <FaReceipt size={9} /> {p.reciboFolio} · {formatDay(p.fecha, i18n.language)} · {money(p.monto)}
+                          className="mt-1 flex items-center gap-1 text-[10px] text-blue-600 hover:underline" aria-label={`${t("payments.receiptPdf")} ${p.receiptNumber}`}>
+                          <FaReceipt size={9} /> {p.receiptNumber} · {formatDay(p.date, i18n.language)} · {money(p.amount)}
                         </button>
                       ))}
                     </td>
                     <td className="px-2 py-2">
                       <span className={c.vencido ? "font-bold" : "text-slate-600"} style={c.vencido ? { color: "#dc2626" } : undefined} data-overdue={c.vencido || undefined}>
-                        {formatDay(c.fechaVencimiento, i18n.language)}
+                        {formatDay(c.dueDate, i18n.language)}
                       </span>
                     </td>
                     <td className="px-2 py-2 text-right">{money(c.total)}</td>
@@ -141,7 +141,7 @@ export default function AccountStatementView({ studentId }: { studentId: string 
                     </td>
                     <td className="px-2 py-2 text-right">
                       {canPay && c.saldo > 0 && (
-                        <ITButton variant="filled" color="success" size="sm" ariaLabel={`${t("charges.pay")} ${c.descripcion ?? c.conceptNombre}`}
+                        <ITButton variant="filled" color="success" size="sm" ariaLabel={`${t("charges.pay")} ${c.description ?? c.conceptNombre}`}
                           onClick={() => setPaying(c)}>
                           <ITFlex align="center" gap={1}><FaCashRegister size={10} /><ITText className="text-[11px] font-bold">{t("charges.pay")}</ITText></ITFlex>
                         </ITButton>
@@ -168,14 +168,14 @@ export default function AccountStatementView({ studentId }: { studentId: string 
         onClose={() => setPaying(null)}
         onRegistered={(payment: Payment) => {
           setPaying(null);
-          notify.success(t("payments.registered", { folio: payment.reciboFolio }));
+          notify.success(t("payments.registered", { folio: payment.receiptNumber }));
           load();
           void printReceipt(payment);
         }}
       />
       <ChargeFormDialog
         isOpen={charging}
-        student={{ id: statement.student.id, nombreCompleto: statement.student.nombre, matricula: statement.student.matricula }}
+        student={{ id: statement.student.id, nombreCompleto: statement.student.name, studentNumber: statement.student.studentNumber }}
         onClose={() => setCharging(false)}
         onSaved={() => {
           setCharging(false);

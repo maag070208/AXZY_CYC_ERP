@@ -100,7 +100,7 @@ export default function GradebookGrid({ groupId, reloadKey, onClosed }: Props) {
   const exportExcel = async () => {
     try {
       const blob = await gradeApi.export(groupId);
-      saveAs(blob, `calificaciones-${book?.group.courseNombre ?? "grupo"}-${book?.group.nombre ?? ""}.xlsx`);
+      saveAs(blob, `calificaciones-${book?.group.courseNombre ?? "grupo"}-${book?.group.name ?? ""}.xlsx`);
     } catch (err) {
       notify.error(errorMessage(err, t("common:errors.load")));
     }
@@ -154,8 +154,8 @@ export default function GradebookGrid({ groupId, reloadKey, onClosed }: Props) {
                 <th className="px-2 py-2">{t("gradebook.student")}</th>
                 {book.assessments.map((a) => (
                   <th key={a.id} className="px-2 py-2 text-center">
-                    <span className="block text-slate-600">{a.nombre}</span>
-                    <span className="font-normal normal-case">{a.ponderacion}% · /{a.maxScore}</span>
+                    <span className="block text-slate-600">{a.name}</span>
+                    <span className="font-normal normal-case">{a.weight}% · /{a.maxScore}</span>
                   </th>
                 ))}
                 <th className="px-2 py-2 text-center">{closed ? t("gradebook.final") : t("gradebook.projection")}</th>
@@ -166,14 +166,14 @@ export default function GradebookGrid({ groupId, reloadKey, onClosed }: Props) {
               {book.students.map((row) => (
                 <tr key={row.enrollmentId} className="border-b border-slate-100" data-enrollment={row.enrollmentId}>
                   <td className="px-2 py-2">
-                    <span className="block font-bold text-slate-700">{row.nombre}</span>
-                    <span className="font-mono text-[10px] text-slate-400">{row.matricula}</span>
+                    <span className="block font-bold text-slate-700">{row.name}</span>
+                    <span className="font-mono text-[10px] text-slate-400">{row.studentNumber}</span>
                   </td>
                   {book.assessments.map((a) => {
                     const key = cellKey(row.enrollmentId, a.id);
                     const saved = row.scores[a.id];
                     const value = draft[key] ?? (saved === null || saved === undefined ? "" : String(saved));
-                    const canEditRow = editable && row.enrollmentStatus === "INSCRITO";
+                    const canEditRow = editable && row.enrollmentStatus === "ENROLLED";
                     return (
                       <td key={a.id} className="px-2 py-1 text-center">
                         {canEditRow ? (
@@ -183,7 +183,7 @@ export default function GradebookGrid({ groupId, reloadKey, onClosed }: Props) {
                             step="0.01"
                             min={0}
                             max={a.maxScore}
-                            aria-label={`${row.nombre} · ${a.nombre}`}
+                            aria-label={`${row.name} · ${a.name}`}
                             title={invalid(key) ? t("gradebook.outOfRange", { max: a.maxScore }) : undefined}
                             aria-invalid={invalid(key) || undefined}
                             className="w-20 rounded-lg border border-slate-200 px-2 py-1 text-center text-[12px] outline-none focus:border-blue-500"
@@ -210,7 +210,7 @@ export default function GradebookGrid({ groupId, reloadKey, onClosed }: Props) {
                   <td className="px-2 py-2 text-center font-black text-slate-800" data-role="final">{row.final ?? "—"}</td>
                   <td className="px-2 py-2 text-center">
                     {row.result ? (
-                      <ITBadget color={row.result === "ACREDITADO" ? "success" : "danger"} size="sm">
+                      <ITBadget color={row.result === "PASSED" ? "success" : "danger"} size="sm">
                         {t(`gradebook.results.${row.result}`)}
                       </ITBadget>
                     ) : (
@@ -227,7 +227,7 @@ export default function GradebookGrid({ groupId, reloadKey, onClosed }: Props) {
         isOpen={confirmClose}
         onClose={() => setConfirmClose(false)}
         onConfirm={() => void close()}
-        title={t("gradebook.closeTitle", { name: `${book.group.courseNombre} ${book.group.nombre}` })}
+        title={t("gradebook.closeTitle", { name: `${book.group.courseNombre} ${book.group.name}` })}
         message={t("gradebook.closeMessage")}
         confirmLabel={t("gradebook.close")}
         cancelLabel={t("common:actions.cancel")}

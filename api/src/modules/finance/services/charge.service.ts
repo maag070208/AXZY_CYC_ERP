@@ -37,12 +37,12 @@ import { chargeInclude, chargeScope, toChargeView, type ChargeRow } from "./char
 
 type Tx = Prisma.TransactionClient;
 
-const percentOf = (descuento: number, monto: number) => (monto > 0 ? money((descuento / monto) * 100) : 0);
+const percentOf = (discount: number, amount: number) => (amount > 0 ? money((discount / amount) * 100) : 0);
 
 /**
  * Cargos (M09): alta individual, generación masiva idempotente por grupo o
  * ciclo, cancelación con motivo, recargos por mora y estado de cuenta. El
- * estatus (`PENDIENTE → PARCIAL → PAGADO`) lo recalculan los pagos.
+ * estatus (`PENDIENTE → PARTIAL → PAGADO`) lo recalculan los pagos.
  */
 export class ChargeService {
   private notifier?: Notifier;
@@ -67,21 +67,21 @@ export class ChargeService {
     const today = todayInBusinessZone(now);
     const until = fromDbDay(new Date(toDbDay(today).getTime() + days * 86_400_000));
     const charges = await this.db.charge.findMany({
-      where: { status: { in: ["PENDIENTE", "PARCIAL"] }, fechaVencimiento: { gte: toDbDay(today), lte: toDbDay(until) } },
-      include: { concept: { select: { nombre: true } }, payments: { where: { cancelledAt: null }, select: { monto: true } } },
+      where: { status: { in: ["PENDING", "PARTIAL"] }, dueDate: { gte: toDbDay(today), lte: toDbDay(until) } },
+      include: { concept: { select: { name: true } }, payments: { where: { cancelledAt: null }, select: { amount: true } } },
     });
     let queued = 0;
     for (const charge of charges) {
       const contacts = await studentContacts(this.db, charge.studentId, "payer");
       if (!contacts) continue;
-      const total = Number(charge.monto) - Number(charge.descuento);
-      const saldo = money(total) - money(sumOf(charge.payments.map((p) => p.monto)));
-      const fecha = fromDbDay(charge.fechaVencimiento);
+      const total = Number(charge.amount) - Number(charge.discount);
+      const saldo = money(total) - money(sumOf(charge.payments.map((p) => p.amount)));
+      const date = fromDbDay(charge.dueDate);
       queued += await this.notifier({
-        clave: "PAGO_POR_VENCER",
+        code: "PAGO_POR_VENCER",
         recipients: contacts.recipients,
-        payload: { nombre: contacts.nombre, concepto: charge.concept.nombre, saldo: formatMoney(saldo), fecha: formatDay(fecha) },
-        idempotencyKey: `PAGO_POR_VENCER:${charge.id}:${fecha}`,
+        payload: { name: contacts.name, concepto: charge.concept.name, saldo: formatMoney(saldo), date: formatDay(date) },
+        idempotencyKey: `PAGO_POR_VENCER:${charge.id}:${date}`,
       });
     }
     return { charges: charges.length, queued };
@@ -103,26 +103,26 @@ export class ChargeService {
     }
     const status = filterEnum(filters, "status", CHARGE_STATUSES);
     if (status) and.push({ status });
-    const tipo = filterEnum(filters, "conceptTipo", FEE_CONCEPT_TYPES);
-    if (tipo) and.push({ concept: { tipo } });
-    const matricula = filterText(filters, "matricula");
-    if (matricula) and.push({ student: { matricula } });
-    const nombre = filterText(filters, "studentNombre");
-    if (nombre) {
-      for (const word of nombre.contains.split(/\s+/).filter(Boolean)) {
+    const type = filterEnum(filters, "conceptTipo", FEE_CONCEPT_TYPES);
+    if (type) and.push({ concept: { type } });
+    const studentNumber = filterText(filters, "studentNumber");
+    if (studentNumber) and.push({ student: { studentNumber } });
+    const name = filterText(filters, "studentNombre");
+    if (name) {
+      for (const word of name.contains.split(/\s+/).filter(Boolean)) {
         const contains = { contains: word, mode: "insensitive" as const };
-        and.push({ student: { OR: [{ nombres: contains }, { apellidoPaterno: contains }, { apellidoMaterno: contains }] } });
+        and.push({ student: { OR: [{ firstNames: contains }, { paternalSurname: contains }, { maternalSurname: contains }] } });
       }
     }
-    const vence = filterDayRange(filters, "fechaVencimiento");
-    if (vence) and.push({ fechaVencimiento: vence });
+    const vence = filterDayRange(filters, "dueDate");
+    if (vence) and.push({ dueDate: vence });
     const vencido = filterBool(filters, "vencido");
     if (vencido !== undefined) {
       const today = toDbDay(todayInBusinessZone());
       and.push(
         vencido
-          ? { status: { in: ["PENDIENTE", "PARCIAL"] }, fechaVencimiento: { lt: today } }
-          : { NOT: { status: { in: ["PENDIENTE", "PARCIAL"] }, fechaVencimiento: { lt: today } } }
+          ? { status: { in: ["PENDING", "PARTIAL"] }, dueDate: { lt: today } }
+          : { NOT: { status: { in: ["PENDING", "PARTIAL"] }, dueDate: { lt: today } } }
       );
     }
     const scoped = await chargeScope(user);
@@ -130,13 +130,13 @@ export class ChargeService {
     const orderBy = orderByOf(
       params.sort,
       {
-        fechaVencimiento: "fechaVencimiento",
-        monto: "monto",
+        dueDate: "dueDate",
+        amount: "amount",
         status: "status",
         createdAt: "createdAt",
-        studentNombre: (direction) => ({ student: { apellidoPaterno: direction } }),
+        studentNombre: (direction) => ({ student: { paternalSurname: direction } }),
       },
-      [{ fechaVencimiento: "desc" }, { createdAt: "desc" }]
+      [{ dueDate: "desc" }, { createdAt: "desc" }]
     );
     const result = await paginatedQuery<ChargeRow>({
       model: this.db.charge,
@@ -158,23 +158,23 @@ export class ChargeService {
     const concept = await this.db.feeConcept.findUnique({ where: { id } });
     if (!concept) throw new HttpError(400, "FEE_CONCEPT_NOT_FOUND");
     if (!concept.active) throw new HttpError(409, "FEE_CONCEPT_INACTIVE");
-    if (concept.tipo === "RECARGO") throw new HttpError(409, "FEE_CONCEPT_RESERVED");
+    if (concept.type === "LATE_FEE") throw new HttpError(409, "FEE_CONCEPT_RESERVED");
     return concept;
   }
 
-  private amounts(input: { monto?: number; descuento?: number }, base: Prisma.Decimal) {
-    const monto = input.monto ?? Number(base);
-    const descuento = input.descuento ?? 0;
-    if (monto <= 0) throw new HttpError(400, "VALIDATION_ERROR", {}, { fieldErrors: { monto: ["> 0"] } });
-    if (descuento > monto) throw new HttpError(400, "DISCOUNT_EXCEEDS_AMOUNT");
-    return { monto, descuento };
+  private amounts(input: { amount?: number; discount?: number }, base: Prisma.Decimal) {
+    const amount = input.amount ?? Number(base);
+    const discount = input.discount ?? 0;
+    if (amount <= 0) throw new HttpError(400, "VALIDATION_ERROR", {}, { fieldErrors: { amount: ["> 0"] } });
+    if (discount > amount) throw new HttpError(400, "DISCOUNT_EXCEEDS_AMOUNT");
+    return { amount, discount };
   }
 
   async create(input: ChargeCreateInput, actor: AuthenticatedUser): Promise<ChargeView> {
     const concept = await this.concept(input.conceptId);
-    const { monto, descuento } = this.amounts(input, concept.monto);
+    const { amount, discount } = this.amounts(input, concept.amount);
     enforcePolicy("charges.create", actor, {
-      monto, descuento, porcentajeDescuento: percentOf(descuento, monto), conceptTipo: concept.tipo, masivo: false,
+      amount, discount, porcentajeDescuento: percentOf(discount, amount), conceptTipo: concept.type, masivo: false,
     });
     const student = await this.db.student.findUnique({ where: { id: input.studentId }, select: { id: true } });
     if (!student) throw new HttpError(400, "STUDENT_NOT_FOUND");
@@ -187,10 +187,10 @@ export class ChargeService {
           studentId: input.studentId,
           conceptId: concept.id,
           termId: input.termId ?? null,
-          descripcion: input.descripcion ?? null,
-          monto,
-          descuento,
-          fechaVencimiento: toDbDay(input.fechaVencimiento),
+          description: input.description ?? null,
+          amount,
+          discount,
+          dueDate: toDbDay(input.dueDate),
           createdBy: actor.id,
         },
         include: chargeInclude,
@@ -198,7 +198,7 @@ export class ChargeService {
       const view = toChargeView(row);
       await this.audit?.(
         { action: "CHARGE_CREATED", entityType: "Charge", entityId: row.id, userId: actor.id, userName: actor.username,
-          newState: { studentId: view.studentId, concepto: view.conceptNombre, monto, descuento, fechaVencimiento: view.fechaVencimiento } },
+          newState: { studentId: view.studentId, concepto: view.conceptNombre, amount, discount, dueDate: view.dueDate } },
         tx
       );
       return view;
@@ -213,9 +213,9 @@ export class ChargeService {
    */
   async generate(input: ChargeGenerateInput, actor: AuthenticatedUser, idempotencyKey?: string): Promise<GenerationResult & { replayed: boolean }> {
     const concept = await this.concept(input.conceptId);
-    const { monto, descuento } = this.amounts(input, concept.monto);
+    const { amount, discount } = this.amounts(input, concept.amount);
     enforcePolicy("charges.create", actor, {
-      monto, descuento, porcentajeDescuento: percentOf(descuento, monto), conceptTipo: concept.tipo, masivo: true,
+      amount, discount, porcentajeDescuento: percentOf(discount, amount), conceptTipo: concept.type, masivo: true,
     });
     let termId = input.termId;
     let enrollmentWhere: Prisma.EnrollmentWhereInput;
@@ -232,12 +232,12 @@ export class ChargeService {
       }
       enrollmentWhere = { group: { termId: input.termId } };
     }
-    const dueDay = toDbDay(input.fechaVencimiento);
+    const dueDay = toDbDay(input.dueDate);
 
     const { result, replayed } = await serializable((tx) =>
       once(tx, idempotencyKey, { userId: actor.id, scope: "charges.generate" }, async () => {
         const students = await tx.student.findMany({
-          where: { status: "ACTIVO", enrollments: { some: { ...enrollmentWhere, status: "INSCRITO" } } },
+          where: { status: "ACTIVE", enrollments: { some: { ...enrollmentWhere, status: "ENROLLED" } } },
           select: { id: true },
         });
         const existing = await tx.charge.findMany({
@@ -245,8 +245,8 @@ export class ChargeService {
             studentId: { in: students.map((s) => s.id) },
             conceptId: concept.id,
             termId: termId ?? null,
-            fechaVencimiento: dueDay,
-            status: { not: "CANCELADO" },
+            dueDate: dueDay,
+            status: { not: "CANCELLED" },
           },
           select: { studentId: true },
         });
@@ -257,8 +257,8 @@ export class ChargeService {
           created.push(
             await tx.charge.create({
               data: {
-                studentId: s.id, conceptId: concept.id, termId: termId ?? null, descripcion: input.descripcion ?? null,
-                monto, descuento, fechaVencimiento: dueDay, createdBy: actor.id,
+                studentId: s.id, conceptId: concept.id, termId: termId ?? null, description: input.description ?? null,
+                amount, discount, dueDate: dueDay, createdBy: actor.id,
               },
               select: { id: true },
             })
@@ -266,8 +266,8 @@ export class ChargeService {
         }
         await this.audit?.(
           { action: "CHARGE_GENERATED", entityType: "Charge", userId: actor.id, userName: actor.username,
-            metadata: { conceptId: concept.id, concepto: concept.nombre, scope: input.scope, groupId: input.groupId ?? null,
-              termId: termId ?? null, fechaVencimiento: input.fechaVencimiento, monto, descuento,
+            metadata: { conceptId: concept.id, concepto: concept.name, scope: input.scope, groupId: input.groupId ?? null,
+              termId: termId ?? null, dueDate: input.dueDate, amount, discount,
               created: created.length, skipped: already.size, idempotencyKey: idempotencyKey ?? null } },
           tx
         );
@@ -278,19 +278,19 @@ export class ChargeService {
   }
 
   /** Cancelación con motivo; con pagos vigentes hay que cancelarlos antes. */
-  async cancel(id: string, motivo: string, actor: AuthenticatedUser): Promise<ChargeView> {
+  async cancel(id: string, reason: string, actor: AuthenticatedUser): Promise<ChargeView> {
     const previous = await this.load(id, null);
-    if (previous.status === "CANCELADO") throw new HttpError(409, "CHARGE_ALREADY_CANCELLED");
+    if (previous.status === "CANCELLED") throw new HttpError(409, "CHARGE_ALREADY_CANCELLED");
     if (previous.payments.length > 0) throw new HttpError(409, "CHARGE_HAS_PAYMENTS", { count: previous.payments.length });
     return this.db.$transaction(async (tx) => {
       const changed = await tx.charge.updateMany({
-        where: { id, status: { not: "CANCELADO" }, payments: { none: { cancelledAt: null } } },
-        data: { status: "CANCELADO", cancelledAt: new Date(), cancelReason: motivo, cancelledBy: actor.id },
+        where: { id, status: { not: "CANCELLED" }, payments: { none: { cancelledAt: null } } },
+        data: { status: "CANCELLED", cancelledAt: new Date(), cancelReason: reason, cancelledBy: actor.id },
       });
       if (changed.count === 0) throw new HttpError(409, "CHARGE_HAS_PAYMENTS", { count: 1 });
       await this.audit?.(
         { action: "CHARGE_CANCELLED", entityType: "Charge", entityId: id, userId: actor.id, userName: actor.username,
-          previousState: { status: previous.status }, newState: { status: "CANCELADO" }, metadata: { motivo } },
+          previousState: { status: previous.status }, newState: { status: "CANCELLED" }, metadata: { reason } },
         tx
       );
       return toChargeView(await this.load(id, null, tx));
@@ -312,13 +312,13 @@ export class ChargeService {
     const rule = await this.lateFeeRule();
     if (!rule.enabled) throw new HttpError(409, "LATE_FEES_DISABLED");
     const today = asOf ?? todayInBusinessZone();
-    const concept = await this.db.feeConcept.findFirst({ where: { tipo: "RECARGO" } });
+    const concept = await this.db.feeConcept.findFirst({ where: { type: "LATE_FEE" } });
     if (!concept) throw new HttpError(409, "FEE_CONCEPT_NOT_FOUND");
     const overdue = await this.db.charge.findMany({
       where: {
-        status: { in: ["PENDIENTE", "PARCIAL"] },
-        fechaVencimiento: { lt: toDbDay(today) },
-        concept: { tipo: { not: "RECARGO" } },
+        status: { in: ["PENDING", "PARTIAL"] },
+        dueDate: { lt: toDbDay(today) },
+        concept: { type: { not: "LATE_FEE" } },
       },
       include: { ...chargeInclude, lateFee: { include: { payments: { where: { cancelledAt: null }, select: { id: true } } } } },
     });
@@ -328,7 +328,7 @@ export class ChargeService {
     await this.db.$transaction(async (tx) => {
       for (const charge of overdue) {
         const view = toChargeView(charge, today);
-        const fee = lateFeeOf(view.saldo, view.fechaVencimiento, today, rule);
+        const fee = lateFeeOf(view.saldo, view.dueDate, today, rule);
         if (fee <= 0) {
           skipped += 1;
           continue;
@@ -338,13 +338,13 @@ export class ChargeService {
           await tx.charge.create({
             data: {
               studentId: charge.studentId, conceptId: concept.id, termId: charge.termId, parentChargeId: charge.id,
-              descripcion: `Recargo: ${charge.descripcion ?? charge.concept.nombre}`, monto: fee,
-              fechaVencimiento: toDbDay(today), createdBy: actor.id,
+              description: `Recargo: ${charge.description ?? charge.concept.name}`, amount: fee,
+              dueDate: toDbDay(today), createdBy: actor.id,
             },
           });
           created += 1;
-        } else if (existing.status !== "CANCELADO" && existing.payments.length === 0 && Number(existing.monto) !== fee) {
-          await tx.charge.update({ where: { id: existing.id }, data: { monto: fee } });
+        } else if (existing.status !== "CANCELLED" && existing.payments.length === 0 && Number(existing.amount) !== fee) {
+          await tx.charge.update({ where: { id: existing.id }, data: { amount: fee } });
           updated += 1;
         } else {
           skipped += 1;
@@ -364,16 +364,16 @@ export class ChargeService {
     const student = await this.students.loadScoped(studentId, actor, "charges.view");
     const [rows, settings] = await Promise.all([
       this.db.charge.findMany({
-        where: { studentId, status: { not: "CANCELADO" } },
+        where: { studentId, status: { not: "CANCELLED" } },
         include: {
           ...chargeInclude,
           payments: {
             where: { cancelledAt: null },
-            select: { id: true, reciboFolio: true, fecha: true, monto: true, metodo: true },
+            select: { id: true, receiptNumber: true, date: true, amount: true, method: true },
             orderBy: { createdAt: "asc" },
           },
         },
-        orderBy: [{ fechaVencimiento: "asc" }, { createdAt: "asc" }],
+        orderBy: [{ dueDate: "asc" }, { createdAt: "asc" }],
       }),
       this.db.setting.findMany({ where: { key: { in: ["SCHOOL_NAME", "SCHOOL_ADDRESS", "SCHOOL_PHONE", "SCHOOL_EMAIL"] } } }),
     ]);
@@ -382,21 +382,21 @@ export class ChargeService {
     const charges = rows.map((row) => ({
       ...toChargeView(row, today),
       payments: row.payments.map((p) => ({
-        id: p.id, reciboFolio: p.reciboFolio, fecha: fromDbDay(p.fecha), monto: Number(p.monto), metodo: p.metodo,
+        id: p.id, receiptNumber: p.receiptNumber, date: fromDbDay(p.date), amount: Number(p.amount), method: p.method,
       })),
     }));
     return {
-      student: { id: student.id, matricula: student.matricula, nombre: fullName(student), status: student.status },
+      student: { id: student.id, studentNumber: student.studentNumber, name: fullName(student), status: student.status },
       escuela: {
-        nombre: setting.get("SCHOOL_NAME") || "CYC",
-        direccion: setting.get("SCHOOL_ADDRESS") ?? "",
-        telefono: setting.get("SCHOOL_PHONE") ?? "",
+        name: setting.get("SCHOOL_NAME") || "CYC",
+        address: setting.get("SCHOOL_ADDRESS") ?? "",
+        phone: setting.get("SCHOOL_PHONE") ?? "",
         email: setting.get("SCHOOL_EMAIL") ?? "",
       },
       charges,
       totals: {
-        cargos: sumOf(charges.map((c) => c.monto)),
-        descuentos: sumOf(charges.map((c) => c.descuento)),
+        cargos: sumOf(charges.map((c) => c.amount)),
+        descuentos: sumOf(charges.map((c) => c.discount)),
         pagado: sumOf(charges.map((c) => c.pagado)),
         saldo: sumOf(charges.map((c) => c.saldo)),
         vencido: sumOf(charges.filter((c) => c.vencido).map((c) => c.saldo)),

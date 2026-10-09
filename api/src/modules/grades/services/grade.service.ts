@@ -13,10 +13,10 @@ import { fullName } from "@modules/students/services/student.service";
 import type { Gradebook, GradeCaptureInput, GradeView } from "../models/dto/grade.dto";
 import { finalGradeOf, resultOf, round2, scoreInRange, weightsComplete, weightsTotal } from "../models/entity/grading";
 
-const studentSelect = { matricula: true, nombres: true, apellidoPaterno: true, apellidoMaterno: true } as const;
+const studentSelect = { studentNumber: true, firstNames: true, paternalSurname: true, maternalSurname: true } as const;
 
 const gradeInclude = {
-  assessment: { select: { nombre: true } },
+  assessment: { select: { name: true } },
   enrollment: { select: { studentId: true, student: { select: studentSelect } } },
 } satisfies Prisma.GradeInclude;
 
@@ -25,13 +25,13 @@ type GradeRow = Prisma.GradeGetPayload<{ include: typeof gradeInclude }>;
 const toGradeView = (row: GradeRow): GradeView => ({
   id: row.id,
   assessmentId: row.assessmentId,
-  assessmentNombre: row.assessment.nombre,
+  assessmentNombre: row.assessment.name,
   enrollmentId: row.enrollmentId,
   studentId: row.enrollment.studentId,
-  matricula: row.enrollment.student.matricula,
+  studentNumber: row.enrollment.student.studentNumber,
   studentNombre: fullName(row.enrollment.student),
   score: row.score === null ? null : Number(row.score),
-  observaciones: row.observaciones,
+  notes: row.notes,
   capturedBy: row.capturedBy,
   capturedAt: row.capturedAt?.toISOString() ?? null,
 });
@@ -96,7 +96,7 @@ export class GradeService {
       if (!enrollment || enrollment.groupId !== assessment.groupId) {
         throw new HttpError(400, "ENROLLMENT_NOT_IN_GROUP", {}, { enrollmentId: id });
       }
-      if (enrollment.status !== "INSCRITO") throw new HttpError(409, "NOT_ENROLLED", {}, { enrollmentId: id });
+      if (enrollment.status !== "ENROLLED") throw new HttpError(409, "NOT_ENROLLED", {}, { enrollmentId: id });
     }
 
     const now = new Date();
@@ -106,31 +106,31 @@ export class GradeService {
       const previous = new Map(existing.map((g) => [g.enrollmentId, g]));
       for (const row of input.grades) {
         const before = previous.get(row.enrollmentId);
-        const observaciones = row.observaciones === undefined ? (before?.observaciones ?? null) : row.observaciones;
+        const notes = row.notes === undefined ? (before?.notes ?? null) : row.notes;
         if (!before) {
-          if (row.score === null && !observaciones) continue;
+          if (row.score === null && !notes) continue;
           const created = await tx.grade.create({
             data: {
               assessmentId,
               enrollmentId: row.enrollmentId,
               score: row.score,
-              observaciones,
+              notes,
               capturedBy: actor.id,
               capturedAt: now,
             },
           });
           await this.audit?.(
             { action: "GRADE_CAPTURED", entityType: "Grade", entityId: created.id, ...actorFields,
-              newState: { score: row.score, observaciones },
+              newState: { score: row.score, notes },
               metadata: { assessmentId, enrollmentId: row.enrollmentId } },
             tx
           );
           continue;
         }
-        if (sameScore(before.score, row.score) && before.observaciones === observaciones) continue;
+        if (sameScore(before.score, row.score) && before.notes === notes) continue;
         await tx.grade.update({
           where: { id: before.id },
-          data: { score: row.score, observaciones, capturedBy: actor.id, capturedAt: now },
+          data: { score: row.score, notes, capturedBy: actor.id, capturedAt: now },
         });
         const cleared = before.score !== null && row.score === null;
         await this.audit?.(
@@ -141,9 +141,9 @@ export class GradeService {
             ...actorFields,
             previousState: {
               score: before.score === null ? null : Number(before.score),
-              observaciones: before.observaciones,
+              notes: before.notes,
             },
-            newState: { score: row.score, observaciones },
+            newState: { score: row.score, notes },
             metadata: { assessmentId, enrollmentId: row.enrollmentId },
           },
           tx
@@ -177,9 +177,9 @@ export class GradeService {
       {
         score: "score",
         capturedAt: "capturedAt",
-        nombre: (direction) => ({ enrollment: { student: { apellidoPaterno: direction } } }),
+        name: (direction) => ({ enrollment: { student: { paternalSurname: direction } } }),
       },
-      [{ enrollment: { student: { apellidoPaterno: "asc" } } }, { assessment: { createdAt: "asc" } }]
+      [{ enrollment: { student: { paternalSurname: "asc" } } }, { assessment: { createdAt: "asc" } }]
     );
     const result = await paginatedQuery<GradeRow>({
       model: this.db.grade,
@@ -202,10 +202,10 @@ export class GradeService {
     const group = await client.group.findUnique({
       where: { id: groupId },
       include: {
-        course: { select: { nombre: true } },
+        course: { select: { name: true } },
         term: { select: { name: true } },
-        teacher: { select: { nombres: true, apellidos: true } },
-        assessments: { where: { active: true }, orderBy: [{ fecha: { sort: "asc", nulls: "last" } }, { createdAt: "asc" }] },
+        teacher: { select: { firstNames: true, surnames: true } },
+        assessments: { where: { active: true }, orderBy: [{ date: { sort: "asc", nulls: "last" } }, { createdAt: "asc" }] },
       },
     });
     if (!group) throw new HttpError(404, "GROUP_NOT_FOUND");
@@ -215,40 +215,40 @@ export class GradeService {
         student: { select: studentSelect },
         grades: { where: { assessment: { active: true } } },
       },
-      orderBy: [{ student: { apellidoPaterno: "asc" } }, { student: { apellidoMaterno: "asc" } }, { student: { nombres: "asc" } }],
+      orderBy: [{ student: { paternalSurname: "asc" } }, { student: { maternalSurname: "asc" } }, { student: { firstNames: "asc" } }],
     });
     const threshold = await this.threshold();
-    const items = group.assessments.map((a) => ({ id: a.id, ponderacion: a.ponderacion, maxScore: a.maxScore }));
+    const items = group.assessments.map((a) => ({ id: a.id, weight: a.weight, maxScore: a.maxScore }));
     const complete100 = weightsComplete(items);
 
     const students = enrollments.map((enrollment) => {
       const scores: Record<string, number | null> = {};
-      const observaciones: Record<string, string | null> = {};
+      const notes: Record<string, string | null> = {};
       for (const a of group.assessments) {
         scores[a.id] = null;
-        observaciones[a.id] = null;
+        notes[a.id] = null;
       }
       for (const grade of enrollment.grades) {
         scores[grade.assessmentId] = grade.score === null ? null : Number(grade.score);
-        observaciones[grade.assessmentId] = grade.observaciones;
+        notes[grade.assessmentId] = grade.notes;
       }
       const projection = finalGradeOf(items, scores);
-      const closed = enrollment.status === "ACREDITADO" || enrollment.status === "REPROBADO";
+      const closed = enrollment.status === "PASSED" || enrollment.status === "FAILED";
       const final = closed && enrollment.finalGrade !== null
         ? Number(enrollment.finalGrade)
         : complete100 ? projection.final : null;
       return {
         enrollmentId: enrollment.id,
         studentId: enrollment.studentId,
-        matricula: enrollment.student.matricula,
-        nombre: fullName(enrollment.student),
+        studentNumber: enrollment.student.studentNumber,
+        name: fullName(enrollment.student),
         enrollmentStatus: enrollment.status,
         scores,
-        observaciones,
+        notes,
         final,
         missing: projection.missing,
         result: closed
-          ? (enrollment.status as "ACREDITADO" | "REPROBADO")
+          ? (enrollment.status as "PASSED" | "FAILED")
           : final !== null && projection.missing === 0 ? resultOf(final, threshold) : null,
       };
     });
@@ -256,17 +256,17 @@ export class GradeService {
     return {
       group: {
         id: group.id,
-        nombre: group.nombre,
-        courseNombre: group.course.nombre,
+        name: group.name,
+        courseNombre: group.course.name,
         termNombre: group.term.name,
-        teacherNombre: group.teacher ? `${group.teacher.nombres} ${group.teacher.apellidos}` : null,
+        teacherNombre: group.teacher ? `${group.teacher.firstNames} ${group.teacher.surnames}` : null,
         closedAt: group.closedAt?.toISOString() ?? null,
       },
       assessments: group.assessments.map((a) => ({
         id: a.id,
-        nombre: a.nombre,
-        tipo: a.tipo,
-        ponderacion: Number(a.ponderacion),
+        name: a.name,
+        type: a.type,
+        weight: Number(a.weight),
         maxScore: Number(a.maxScore),
       })),
       weightsTotal: weightsTotal(items),
@@ -305,7 +305,7 @@ export class GradeService {
       const book = await this.buildGradebook(tx, groupId, null);
       if (book.assessments.length === 0) throw new HttpError(409, "ASSESSMENTS_REQUIRED");
       if (book.weightsTotal !== 100) throw new HttpError(409, "WEIGHTS_NOT_100", { total: book.weightsTotal });
-      const pending = book.students.filter((s) => s.enrollmentStatus === "INSCRITO");
+      const pending = book.students.filter((s) => s.enrollmentStatus === "ENROLLED");
       const missing = pending.reduce((sum, s) => sum + s.missing, 0);
       if (missing > 0) throw new HttpError(409, "GRADES_INCOMPLETE", { missing });
 
@@ -322,7 +322,7 @@ export class GradeService {
         data: { closedAt: new Date(), closedBy: actor.id },
       });
       if (closed.count === 0) throw new HttpError(409, "GROUP_CLOSED");
-      const acreditados = results.filter((r) => r.status === "ACREDITADO").length;
+      const acreditados = results.filter((r) => r.status === "PASSED").length;
       await this.audit?.(
         {
           action: "GROUP_CLOSED",
@@ -353,8 +353,8 @@ export class GradeService {
     const book = await this.buildGradebook(this.db, groupId, null);
     const sheet = XLSX.utils.json_to_sheet(
       book.students.map((s) => {
-        const row: Record<string, string | number | null> = { Matrícula: s.matricula, Nombre: s.nombre };
-        for (const a of book.assessments) row[`${a.nombre} (${a.ponderacion}%)`] = s.scores[a.id];
+        const row: Record<string, string | number | null> = { Matrícula: s.studentNumber, Nombre: s.name };
+        for (const a of book.assessments) row[`${a.name} (${a.weight}%)`] = s.scores[a.id];
         row.Final = s.final;
         row.Resultado = s.result ?? "EN CURSO";
         return row;
@@ -370,7 +370,7 @@ export class GradeService {
       userName: user.username,
       metadata: { rows: book.students.length },
     });
-    const slug = `${book.group.courseNombre}-${book.group.nombre}`.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    const slug = `${book.group.courseNombre}-${book.group.name}`.toLowerCase().replace(/[^a-z0-9]+/g, "-");
     return {
       buffer: XLSX.write(workbook, { type: "buffer", bookType: "xlsx" }) as Buffer,
       filename: `calificaciones-${slug}.xlsx`,
@@ -390,9 +390,9 @@ export class GradeService {
       include: {
         group: {
           include: {
-            course: { select: { id: true, nombre: true } },
+            course: { select: { id: true, name: true } },
             term: { select: { id: true, name: true, startDate: true } },
-            assessments: { where: { active: true }, orderBy: [{ fecha: { sort: "asc", nulls: "last" } }, { createdAt: "asc" }] },
+            assessments: { where: { active: true }, orderBy: [{ date: { sort: "asc", nulls: "last" } }, { createdAt: "asc" }] },
           },
         },
         grades: true,
@@ -401,7 +401,7 @@ export class GradeService {
     rows.sort(
       (a, b) =>
         a.group.term.startDate.getTime() - b.group.term.startDate.getTime() ||
-        a.group.course.nombre.localeCompare(b.group.course.nombre)
+        a.group.course.name.localeCompare(b.group.course.name)
     );
     return rows.map((row) => {
       const byAssessment = new Map(row.grades.map((g) => [g.assessmentId, g.score]));
@@ -413,15 +413,15 @@ export class GradeService {
         termId: row.group.term.id,
         termNombre: row.group.term.name,
         courseId: row.group.course.id,
-        courseNombre: row.group.course.nombre,
-        grupo: row.group.nombre,
+        courseNombre: row.group.course.name,
+        grupo: row.group.name,
         // En escala 0–100 para que instrumentos con distinto máximo sean comparables.
         calificaciones: captured.map((a) =>
           round2(new Prisma.Decimal(byAssessment.get(a.id) as Prisma.Decimal).div(a.maxScore).times(100))
         ),
-        ponderaciones: captured.map((a) => Number(a.ponderacion)),
+        ponderaciones: captured.map((a) => Number(a.weight)),
         calificacionFinal: row.finalGrade === null ? null : Number(row.finalGrade),
-        estatus: row.status === "INSCRITO" ? "EN_CURSO" : row.status,
+        estatus: row.status === "ENROLLED" ? "IN_PROGRESS" : row.status,
       };
     });
   };

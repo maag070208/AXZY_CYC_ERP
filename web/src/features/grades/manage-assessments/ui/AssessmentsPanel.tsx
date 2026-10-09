@@ -35,8 +35,8 @@ export default function AssessmentsPanel({ groupId, readOnly, reloadKey, onChang
   }, [groupId]);
   useEffect(load, [load, reloadKey]);
 
-  const total = round2(items.reduce((sum, a) => sum + a.ponderacion, 0));
-  const editingWeight = editing?.ponderacion ?? 0;
+  const total = round2(items.reduce((sum, a) => sum + a.weight, 0));
+  const editingWeight = editing?.weight ?? 0;
 
   const deactivate = async () => {
     if (!removing) return;
@@ -73,19 +73,19 @@ export default function AssessmentsPanel({ groupId, readOnly, reloadKey, onChang
           {items.map((a) => (
             <li key={a.id} className="flex items-center justify-between gap-3 py-2">
               <div>
-                <ITText className="block text-[12px] font-bold text-slate-700">{a.nombre}</ITText>
+                <ITText className="block text-[12px] font-bold text-slate-700">{a.name}</ITText>
                 <ITText className="text-[11px] text-slate-500">
-                  {t(`assessments.types.${a.tipo}`)} · {a.ponderacion}% · {t("assessments.maxScore")}: {a.maxScore}
-                  {a.fecha ? ` · ${formatDay(a.fecha, i18n.language)}` : ""}
+                  {t(`assessments.types.${a.type}`)} · {a.weight}% · {t("assessments.maxScore")}: {a.maxScore}
+                  {a.date ? ` · ${formatDay(a.date, i18n.language)}` : ""}
                 </ITText>
               </div>
               {!readOnly && (
                 <ITFlex gap={1}>
-                  <ITButton variant="text" color="secondary" size="sm" ariaLabel={`${t("common:actions.edit")} ${a.nombre}`}
+                  <ITButton variant="text" color="secondary" size="sm" ariaLabel={`${t("common:actions.edit")} ${a.name}`}
                     onClick={() => { setEditing(a); setFormOpen(true); }}>
                     <FaEdit size={12} />
                   </ITButton>
-                  <ITButton variant="text" color="danger" size="sm" ariaLabel={`${t("assessments.deactivate")} ${a.nombre}`}
+                  <ITButton variant="text" color="danger" size="sm" ariaLabel={`${t("assessments.deactivate")} ${a.name}`}
                     onClick={() => setRemoving(a)}>
                     <FaBan size={12} />
                   </ITButton>
@@ -111,7 +111,7 @@ export default function AssessmentsPanel({ groupId, readOnly, reloadKey, onChang
         isOpen={!!removing}
         onClose={() => setRemoving(null)}
         onConfirm={() => void deactivate()}
-        title={t("assessments.deactivateTitle", { name: removing?.nombre ?? "" })}
+        title={t("assessments.deactivateTitle", { name: removing?.name ?? "" })}
         message={t("assessments.deactivateMessage")}
         confirmLabel={t("assessments.deactivate")}
         cancelLabel={t("common:actions.cancel")}

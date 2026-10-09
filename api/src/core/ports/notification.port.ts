@@ -15,7 +15,7 @@ export interface NotificationRecipient {
 
 export interface NotifyInput {
   /** Evento/plantilla, p. ej. `ALERTA_INASISTENCIA`. */
-  clave: string;
+  code: string;
   recipients: NotificationRecipient[];
   /** Variables de la plantilla (texto ya formateado para mostrar). */
   payload: Record<string, string | number>;

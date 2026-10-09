@@ -55,15 +55,15 @@ export default function SessionsPanel({ groupId, readOnly, reloadKey, onChanged 
 
   const columns: Column<AttendanceSession>[] = [
     {
-      key: "fecha", label: t("sessions.fecha"), type: "string", width: 170,
+      key: "date", label: t("sessions.fecha"), type: "string", width: 170,
       render: (s) => (
         <div>
-          <ITText className="block text-[12px] font-bold text-slate-700">{formatDay(s.fecha, i18n.language)}</ITText>
-          {s.hora && <ITText className="text-[10px] text-slate-400">{s.hora}</ITText>}
+          <ITText className="block text-[12px] font-bold text-slate-700">{formatDay(s.date, i18n.language)}</ITText>
+          {s.time && <ITText className="text-[10px] text-slate-400">{s.time}</ITText>}
         </div>
       ),
     },
-    { key: "tema", label: t("sessions.tema"), type: "string", render: (s) => <ITText className="text-[12px] text-slate-600">{s.tema ?? "—"}</ITText> },
+    { key: "topic", label: t("sessions.tema"), type: "string", render: (s) => <ITText className="text-[12px] text-slate-600">{s.topic ?? "—"}</ITText> },
     {
       key: "registrados", label: t("sessions.registrados"), type: "number", width: 130,
       render: (s) => <ITText className="text-[12px] text-slate-600">{s.registrados} · {t("sessions.faltasCount", { count: s.faltas })}</ITText>,
@@ -77,12 +77,12 @@ export default function SessionsPanel({ groupId, readOnly, reloadKey, onChanged 
       actions: (s) => (
         <ITFlex gap={1}>
           {canView && !s.annulled && (
-            <ITButton variant="text" color="primary" size="sm" ariaLabel={`${t("sessions.passList")} ${s.fecha}`} onClick={() => setRollId(s.id)}>
+            <ITButton variant="text" color="primary" size="sm" ariaLabel={`${t("sessions.passList")} ${s.date}`} onClick={() => setRollId(s.id)}>
               <FaClipboardList size={13} />
             </ITButton>
           )}
           {writable && !s.annulled && (
-            <ITButton variant="text" color="danger" size="sm" ariaLabel={`${t("sessions.annul")} ${s.fecha}`} onClick={() => setAnnulling(s)}>
+            <ITButton variant="text" color="danger" size="sm" ariaLabel={`${t("sessions.annul")} ${s.date}`} onClick={() => setAnnulling(s)}>
               <FaBan size={12} />
             </ITButton>
           )}

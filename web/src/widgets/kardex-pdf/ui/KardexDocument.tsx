@@ -18,7 +18,7 @@ const styles = StyleSheet.create({
 
 export interface KardexLabels {
   title: string;
-  matricula: string;
+  studentNumber: string;
   status: string;
   ingreso: string;
   ciclo: string;
@@ -37,16 +37,16 @@ export interface KardexLabels {
 /** Kardex en PDF (`@react-pdf/renderer`): se arma en el navegador con los datos de la API. */
 export default function KardexDocument({ kardex, labels }: { kardex: Kardex; labels: KardexLabels }) {
   return (
-    <Document title={`Kardex ${kardex.matricula}`} author={kardex.escuela}>
+    <Document title={`Kardex ${kardex.studentNumber}`} author={kardex.escuela}>
       <Page size="LETTER" style={styles.page}>
         <View style={styles.header}>
           <Text style={styles.school}>{kardex.escuela}</Text>
           <Text style={styles.title}>{labels.title}</Text>
         </View>
-        <View style={styles.row}><Text style={styles.label}>{labels.matricula}</Text><Text>{kardex.matricula}</Text></View>
-        <View style={styles.row}><Text style={styles.label}>Nombre</Text><Text>{kardex.nombre}</Text></View>
+        <View style={styles.row}><Text style={styles.label}>{labels.studentNumber}</Text><Text>{kardex.studentNumber}</Text></View>
+        <View style={styles.row}><Text style={styles.label}>Nombre</Text><Text>{kardex.name}</Text></View>
         <View style={styles.row}><Text style={styles.label}>{labels.status}</Text><Text>{kardex.status}</Text></View>
-        <View style={styles.row}><Text style={styles.label}>{labels.ingreso}</Text><Text>{kardex.fechaIngreso}</Text></View>
+        <View style={styles.row}><Text style={styles.label}>{labels.ingreso}</Text><Text>{kardex.enrollmentDate}</Text></View>
         <View style={styles.table}>
           <View style={styles.th}>
             <Text style={styles.cell}>{labels.ciclo}</Text>

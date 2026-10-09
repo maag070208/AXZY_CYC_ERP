@@ -25,35 +25,35 @@ import type {
 import type { StudentRow } from "../models/entity/student.entity";
 
 const ADULT_AGE = 18;
-const STATUSES = ["ACTIVO", "BAJA"] as const;
+const STATUSES = ["ACTIVE", "WITHDRAWN"] as const;
 const include = { guardians: { orderBy: { createdAt: "asc" as const } } };
 
-export const fullName = (s: { nombres: string; apellidoPaterno: string; apellidoMaterno: string | null }) =>
-  [s.nombres, s.apellidoPaterno, s.apellidoMaterno].filter(Boolean).join(" ");
+export const fullName = (s: { firstNames: string; paternalSurname: string; maternalSurname: string | null }) =>
+  [s.firstNames, s.paternalSurname, s.maternalSurname].filter(Boolean).join(" ");
 
 export const toStudentView = (row: StudentRow): StudentView => ({
   id: row.id,
-  matricula: row.matricula,
-  nombres: row.nombres,
-  apellidoPaterno: row.apellidoPaterno,
-  apellidoMaterno: row.apellidoMaterno,
+  studentNumber: row.studentNumber,
+  firstNames: row.firstNames,
+  paternalSurname: row.paternalSurname,
+  maternalSurname: row.maternalSurname,
   nombreCompleto: fullName(row),
   curp: row.curp,
-  fechaNacimiento: fromDbDay(row.fechaNacimiento),
-  genero: row.genero,
+  birthDate: fromDbDay(row.birthDate),
+  gender: row.gender,
   email: row.email,
-  telefono: row.telefono,
-  direccion: row.direccion,
+  phone: row.phone,
+  address: row.address,
   status: row.status,
-  fechaIngreso: fromDbDay(row.fechaIngreso),
+  enrollmentDate: fromDbDay(row.enrollmentDate),
   userId: row.userId,
   guardians: row.guardians.map((g) => ({
     id: g.id,
-    nombre: g.nombre,
-    parentesco: g.parentesco,
-    telefono: g.telefono,
+    name: g.name,
+    relationship: g.relationship,
+    phone: g.phone,
     email: g.email,
-    esResponsablePago: g.esResponsablePago,
+    isPaymentResponsible: g.isPaymentResponsible,
   })),
   createdAt: row.createdAt.toISOString(),
   updatedAt: row.updatedAt.toISOString(),
@@ -76,26 +76,26 @@ export const formatMatricula = (year: number, consecutive: number): string =>
  * Reglas de tutores (M03 reglas 5 y 6). **Pura**: menor de edad exige al menos
  * un tutor y a lo sumo uno es responsable de pago.
  */
-export const assertGuardians = (fechaNacimiento: string, guardians: GuardianInput[], today: string): void => {
-  if (ageOn(fechaNacimiento, today) < ADULT_AGE && guardians.length === 0) {
+export const assertGuardians = (birthDate: string, guardians: GuardianInput[], today: string): void => {
+  if (ageOn(birthDate, today) < ADULT_AGE && guardians.length === 0) {
     throw new HttpError(400, "GUARDIAN_REQUIRED");
   }
-  if (guardians.filter((g) => g.esResponsablePago).length > 1) {
+  if (guardians.filter((g) => g.isPaymentResponsible).length > 1) {
     throw new HttpError(400, "MULTIPLE_PAYMENT_RESPONSIBLES");
   }
 };
 
 /** Filtro de nombre: cada palabra debe aparecer en nombres o apellidos. */
 const nameFilter = (filters: TableFilters): Prisma.StudentWhereInput | undefined => {
-  const text = filterText(filters, "nombre");
+  const text = filterText(filters, "name");
   if (!text) return undefined;
   const words = text.contains.split(/\s+/).filter(Boolean);
   return {
     AND: words.map((word) => ({
       OR: [
-        { nombres: { contains: word, mode: "insensitive" as const } },
-        { apellidoPaterno: { contains: word, mode: "insensitive" as const } },
-        { apellidoMaterno: { contains: word, mode: "insensitive" as const } },
+        { firstNames: { contains: word, mode: "insensitive" as const } },
+        { paternalSurname: { contains: word, mode: "insensitive" as const } },
+        { maternalSurname: { contains: word, mode: "insensitive" as const } },
       ],
     })),
   };
@@ -127,14 +127,14 @@ export class StudentService {
     const and: Prisma.StudentWhereInput[] = [];
     const name = nameFilter(filters);
     if (name) and.push(name);
-    const matricula = filterText(filters, "matricula");
-    if (matricula) and.push({ matricula });
+    const studentNumber = filterText(filters, "studentNumber");
+    if (studentNumber) and.push({ studentNumber });
     const curp = filterText(filters, "curp");
     if (curp) and.push({ curp });
     const status = filterEnum(filters, "status", STATUSES);
     if (status) and.push({ status });
-    const ingreso = filterDayRange(filters, "fechaIngreso");
-    if (ingreso) and.push({ fechaIngreso: ingreso });
+    const ingreso = filterDayRange(filters, "enrollmentDate");
+    if (ingreso) and.push({ enrollmentDate: ingreso });
     const scoped = await this.scope(user);
     if (scoped) and.push(scoped);
     return and.length > 0 ? { AND: and } : {};
@@ -144,14 +144,14 @@ export class StudentService {
     return orderByOf(
       sort,
       {
-        matricula: "matricula",
-        nombre: (direction) => [{ apellidoPaterno: direction }, { apellidoMaterno: direction }, { nombres: direction }],
+        studentNumber: "studentNumber",
+        name: (direction) => [{ paternalSurname: direction }, { maternalSurname: direction }, { firstNames: direction }],
         curp: "curp",
         status: "status",
-        fechaIngreso: "fechaIngreso",
+        enrollmentDate: "enrollmentDate",
         createdAt: "createdAt",
       },
-      [{ apellidoPaterno: "asc" }, { apellidoMaterno: "asc" }, { nombres: "asc" }]
+      [{ paternalSurname: "asc" }, { maternalSurname: "asc" }, { firstNames: "asc" }]
     ).flat();
   }
 
@@ -171,8 +171,8 @@ export class StudentService {
   async summary(user: UserPermissions): Promise<{ total: number; activos: number; bajas: number }> {
     const scoped = (await this.scope(user)) ?? {};
     const [activos, bajas] = await Promise.all([
-      this.db.student.count({ where: { AND: [scoped, { status: "ACTIVO" }] } }),
-      this.db.student.count({ where: { AND: [scoped, { status: "BAJA" }] } }),
+      this.db.student.count({ where: { AND: [scoped, { status: "ACTIVE" }] } }),
+      this.db.student.count({ where: { AND: [scoped, { status: "WITHDRAWN" }] } }),
     ]);
     return { total: activos + bajas, activos, bajas };
   }
@@ -195,29 +195,29 @@ export class StudentService {
   private async assertUniqueCurp(curp: string, exceptId?: string): Promise<void> {
     const taken = await this.db.student.findFirst({
       where: { curp, ...(exceptId ? { NOT: { id: exceptId } } : {}) },
-      select: { id: true, matricula: true },
+      select: { id: true, studentNumber: true },
     });
-    if (taken) throw new HttpError(409, "DUPLICATE_CURP", {}, { matricula: taken.matricula });
+    if (taken) throw new HttpError(409, "DUPLICATE_CURP", {}, { studentNumber: taken.studentNumber });
   }
 
   /** Duplicado probable: mismo nombre completo y nacimiento (requiere confirmar). */
   private async assertNotDuplicatePerson(
-    input: { nombres: string; apellidoPaterno: string; apellidoMaterno?: string | null; fechaNacimiento: string },
+    input: { firstNames: string; paternalSurname: string; maternalSurname?: string | null; birthDate: string },
     confirmed: boolean | undefined,
     exceptId?: string
   ): Promise<void> {
     if (confirmed) return;
     const matches = await this.db.student.findMany({
       where: {
-        nombres: { equals: input.nombres, mode: "insensitive" },
-        apellidoPaterno: { equals: input.apellidoPaterno, mode: "insensitive" },
-        apellidoMaterno: input.apellidoMaterno
-          ? { equals: input.apellidoMaterno, mode: "insensitive" }
+        firstNames: { equals: input.firstNames, mode: "insensitive" },
+        paternalSurname: { equals: input.paternalSurname, mode: "insensitive" },
+        maternalSurname: input.maternalSurname
+          ? { equals: input.maternalSurname, mode: "insensitive" }
           : null,
-        fechaNacimiento: toDbDay(input.fechaNacimiento),
+        birthDate: toDbDay(input.birthDate),
         ...(exceptId ? { NOT: { id: exceptId } } : {}),
       },
-      select: { id: true, matricula: true, curp: true },
+      select: { id: true, studentNumber: true, curp: true },
       take: 5,
     });
     if (matches.length > 0) throw new HttpError(409, "DUPLICATE_STUDENT", {}, { matches });
@@ -235,49 +235,49 @@ export class StudentService {
 
   async create(input: StudentCreateInput, actor: AuthenticatedUser): Promise<StudentView> {
     const today = todayInBusinessZone();
-    if (input.fechaNacimiento > today) throw new HttpError(400, "FUTURE_DATE", { field: "fechaNacimiento" });
+    if (input.birthDate > today) throw new HttpError(400, "FUTURE_DATE", { field: "birthDate" });
     const guardians = input.guardians ?? [];
-    assertGuardians(input.fechaNacimiento, guardians, today);
+    assertGuardians(input.birthDate, guardians, today);
     await this.assertUniqueCurp(input.curp);
     await this.assertNotDuplicatePerson(input, input.confirmDuplicate);
     if (input.userId) await this.assertLinkableUser(input.userId);
 
-    const fechaIngreso = input.fechaIngreso ?? today;
-    const year = Number(fechaIngreso.slice(0, 4));
+    const enrollmentDate = input.enrollmentDate ?? today;
+    const year = Number(enrollmentDate.slice(0, 4));
 
     const created = await this.db.$transaction(async (tx) => {
       // Consecutivo por año: el UPDATE ... +1 bloquea la fila hasta el commit,
       // así dos altas simultáneas nunca obtienen el mismo número.
-      const sequence = await tx.matriculaSequence.upsert({
+      const sequence = await tx.studentNumberSequence.upsert({
         where: { year },
         create: { year, last: 1 },
         update: { last: { increment: 1 } },
       });
-      const matricula = formatMatricula(year, sequence.last);
-      const taken = await tx.student.findUnique({ where: { matricula }, select: { id: true } });
-      if (taken) throw new HttpError(409, "DUPLICATE_MATRICULA", { matricula });
+      const studentNumber = formatMatricula(year, sequence.last);
+      const taken = await tx.student.findUnique({ where: { studentNumber }, select: { id: true } });
+      if (taken) throw new HttpError(409, "DUPLICATE_MATRICULA", { studentNumber });
 
       const row = await tx.student.create({
         data: {
-          matricula,
-          nombres: input.nombres,
-          apellidoPaterno: input.apellidoPaterno,
-          apellidoMaterno: input.apellidoMaterno ?? null,
+          studentNumber,
+          firstNames: input.firstNames,
+          paternalSurname: input.paternalSurname,
+          maternalSurname: input.maternalSurname ?? null,
           curp: input.curp,
-          fechaNacimiento: toDbDay(input.fechaNacimiento),
-          genero: input.genero ?? null,
+          birthDate: toDbDay(input.birthDate),
+          gender: input.gender ?? null,
           email: input.email ?? null,
-          telefono: input.telefono ?? null,
-          direccion: input.direccion ?? null,
-          fechaIngreso: toDbDay(fechaIngreso),
+          phone: input.phone ?? null,
+          address: input.address ?? null,
+          enrollmentDate: toDbDay(enrollmentDate),
           userId: input.userId ?? null,
           guardians: {
             create: guardians.map((g) => ({
-              nombre: g.nombre,
-              parentesco: g.parentesco,
-              telefono: g.telefono,
+              name: g.name,
+              relationship: g.relationship,
+              phone: g.phone,
               email: g.email ?? null,
-              esResponsablePago: g.esResponsablePago ?? false,
+              isPaymentResponsible: g.isPaymentResponsible ?? false,
             })),
           },
         },
@@ -304,34 +304,34 @@ export class StudentService {
     const previous = toStudentView(await this.loadScoped(id, actor, "students.edit"));
     const today = todayInBusinessZone();
     const next = {
-      nombres: input.nombres ?? previous.nombres,
-      apellidoPaterno: input.apellidoPaterno ?? previous.apellidoPaterno,
-      apellidoMaterno: input.apellidoMaterno !== undefined ? input.apellidoMaterno : previous.apellidoMaterno,
-      fechaNacimiento: input.fechaNacimiento ?? previous.fechaNacimiento,
+      firstNames: input.firstNames ?? previous.firstNames,
+      paternalSurname: input.paternalSurname ?? previous.paternalSurname,
+      maternalSurname: input.maternalSurname !== undefined ? input.maternalSurname : previous.maternalSurname,
+      birthDate: input.birthDate ?? previous.birthDate,
     };
-    if (next.fechaNacimiento > today) throw new HttpError(400, "FUTURE_DATE", { field: "fechaNacimiento" });
+    if (next.birthDate > today) throw new HttpError(400, "FUTURE_DATE", { field: "birthDate" });
     const guardians: GuardianInput[] = input.guardians ?? previous.guardians;
-    assertGuardians(next.fechaNacimiento, guardians, today);
+    assertGuardians(next.birthDate, guardians, today);
     if (input.curp && input.curp !== previous.curp) await this.assertUniqueCurp(input.curp, id);
 
     const identityChanged =
-      next.nombres !== previous.nombres ||
-      next.apellidoPaterno !== previous.apellidoPaterno ||
-      next.apellidoMaterno !== previous.apellidoMaterno ||
-      next.fechaNacimiento !== previous.fechaNacimiento;
+      next.firstNames !== previous.firstNames ||
+      next.paternalSurname !== previous.paternalSurname ||
+      next.maternalSurname !== previous.maternalSurname ||
+      next.birthDate !== previous.birthDate;
     if (identityChanged) await this.assertNotDuplicatePerson(next, input.confirmDuplicate, id);
     if (input.userId && input.userId !== previous.userId) await this.assertLinkableUser(input.userId, id);
 
     const data: Prisma.StudentUpdateInput = {
-      ...(input.nombres !== undefined && { nombres: input.nombres }),
-      ...(input.apellidoPaterno !== undefined && { apellidoPaterno: input.apellidoPaterno }),
-      ...(input.apellidoMaterno !== undefined && { apellidoMaterno: input.apellidoMaterno }),
+      ...(input.firstNames !== undefined && { firstNames: input.firstNames }),
+      ...(input.paternalSurname !== undefined && { paternalSurname: input.paternalSurname }),
+      ...(input.maternalSurname !== undefined && { maternalSurname: input.maternalSurname }),
       ...(input.curp !== undefined && { curp: input.curp }),
-      ...(input.fechaNacimiento !== undefined && { fechaNacimiento: toDbDay(input.fechaNacimiento) }),
-      ...(input.genero !== undefined && { genero: input.genero }),
+      ...(input.birthDate !== undefined && { birthDate: toDbDay(input.birthDate) }),
+      ...(input.gender !== undefined && { gender: input.gender }),
       ...(input.email !== undefined && { email: input.email }),
-      ...(input.telefono !== undefined && { telefono: input.telefono }),
-      ...(input.direccion !== undefined && { direccion: input.direccion }),
+      ...(input.phone !== undefined && { phone: input.phone }),
+      ...(input.address !== undefined && { address: input.address }),
       ...(input.userId !== undefined && {
         user: input.userId ? { connect: { id: input.userId } } : { disconnect: true },
       }),
@@ -343,11 +343,11 @@ export class StudentService {
         await tx.guardian.createMany({
           data: input.guardians.map((g) => ({
             studentId: id,
-            nombre: g.nombre,
-            parentesco: g.parentesco,
-            telefono: g.telefono,
+            name: g.name,
+            relationship: g.relationship,
+            phone: g.phone,
             email: g.email ?? null,
-            esResponsablePago: g.esResponsablePago ?? false,
+            isPaymentResponsible: g.isPaymentResponsible ?? false,
           })),
         });
       }
@@ -379,19 +379,19 @@ export class StudentService {
     })) as StudentRow[];
     const sheet = XLSX.utils.json_to_sheet(
       rows.map((row) => {
-        const payer = row.guardians.find((g) => g.esResponsablePago) ?? row.guardians[0];
+        const payer = row.guardians.find((g) => g.isPaymentResponsible) ?? row.guardians[0];
         return {
-          Matrícula: row.matricula,
+          Matrícula: row.studentNumber,
           Nombre: fullName(row),
           CURP: row.curp,
-          "Fecha de nacimiento": fromDbDay(row.fechaNacimiento),
-          Género: row.genero ?? "",
+          "Fecha de nacimiento": fromDbDay(row.birthDate),
+          Género: row.gender ?? "",
           Correo: row.email ?? "",
-          Teléfono: row.telefono ?? "",
+          Teléfono: row.phone ?? "",
           Estatus: row.status,
-          "Fecha de ingreso": fromDbDay(row.fechaIngreso),
-          Tutor: payer?.nombre ?? "",
-          "Teléfono del tutor": payer?.telefono ?? "",
+          "Fecha de ingreso": fromDbDay(row.enrollmentDate),
+          Tutor: payer?.name ?? "",
+          "Teléfono del tutor": payer?.phone ?? "",
         };
       })
     );

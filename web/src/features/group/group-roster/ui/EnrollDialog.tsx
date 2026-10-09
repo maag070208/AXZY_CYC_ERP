@@ -28,7 +28,7 @@ export default function EnrollDialog({ group, onClose, onEnrolled }: Props) {
     // Quien ya está en el grupo (no en baja) aparece marcado en la búsqueda.
     enrollmentApi
       .table({ page: 1, limit: 200, filters: { groupId: group.id } })
-      .then((res) => setEnrolled(new Set(res.data.filter((e) => e.status !== "BAJA").map((e) => e.studentId))))
+      .then((res) => setEnrolled(new Set(res.data.filter((e) => e.status !== "WITHDRAWN").map((e) => e.studentId))))
       .catch(() => setEnrolled(new Set()));
   }, [group]);
 
@@ -41,7 +41,7 @@ export default function EnrollDialog({ group, onClose, onEnrolled }: Props) {
     const handle = setTimeout(() => {
       const byMatricula = /^\d/.test(term);
       studentApi
-        .table({ page: 1, limit: 10, filters: { status: "ACTIVO", ...(byMatricula ? { matricula: term } : { nombre: term }) } })
+        .table({ page: 1, limit: 10, filters: { status: "ACTIVE", ...(byMatricula ? { studentNumber: term } : { name: term }) } })
         .then((res) => setResults(res.data))
         .catch(() => setResults([]));
     }, 250);
@@ -61,7 +61,7 @@ export default function EnrollDialog({ group, onClose, onEnrolled }: Props) {
     }
   };
 
-  const title = t("enrollments.enrollTitle", { group: group ? `${group.courseNombre} ${group.nombre}` : "" });
+  const title = t("enrollments.enrollTitle", { group: group ? `${group.courseNombre} ${group.name}` : "" });
   return (
     <ITDialog isOpen={!!group} onClose={onClose} title={title} className="w-full max-w-xl">
       <div role="dialog" aria-label={title}>
@@ -78,7 +78,7 @@ export default function EnrollDialog({ group, onClose, onEnrolled }: Props) {
                 <li key={s.id} className="flex items-center justify-between gap-3 px-3 py-2">
                   <div>
                     <ITText className="block text-[12px] font-bold text-slate-700">{s.nombreCompleto}</ITText>
-                    <ITText className="font-mono text-[11px] text-slate-400">{s.matricula}</ITText>
+                    <ITText className="font-mono text-[11px] text-slate-400">{s.studentNumber}</ITText>
                   </div>
                   {enrolled.has(s.id) ? (
                     <ITText className="text-[11px] font-bold text-slate-400">{t("enrollments.alreadyEnrolled")}</ITText>

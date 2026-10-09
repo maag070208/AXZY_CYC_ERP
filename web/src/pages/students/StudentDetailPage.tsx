@@ -71,14 +71,14 @@ export default function StudentDetailPage() {
         <ITGrid container columns={12} spacing={4}>
           <ITGrid item xs={12} md={4}><Field label={t("form.curp")} value={<span className="font-mono">{s.curp}</span>} /></ITGrid>
           <ITGrid item xs={12} md={4}>
-            <Field label={t("form.fechaNacimiento")}
-              value={`${formatDay(s.fechaNacimiento, i18n.language)} · ${t("detail.age", { age: ageOf(s.fechaNacimiento) })}`} />
+            <Field label={t("form.birthDate")}
+              value={`${formatDay(s.birthDate, i18n.language)} · ${t("detail.age", { age: ageOf(s.birthDate) })}`} />
           </ITGrid>
-          <ITGrid item xs={12} md={4}><Field label={t("form.genero")} value={s.genero ? t(`genders.${s.genero}`) : null} /></ITGrid>
-          <ITGrid item xs={12} md={4}><Field label={t("form.fechaIngreso")} value={formatDay(s.fechaIngreso, i18n.language)} /></ITGrid>
+          <ITGrid item xs={12} md={4}><Field label={t("form.gender")} value={s.gender ? t(`genders.${s.gender}`) : null} /></ITGrid>
+          <ITGrid item xs={12} md={4}><Field label={t("form.enrollmentDate")} value={formatDay(s.enrollmentDate, i18n.language)} /></ITGrid>
           <ITGrid item xs={12} md={4}><Field label={t("form.email")} value={s.email} /></ITGrid>
-          <ITGrid item xs={12} md={4}><Field label={t("form.telefono")} value={s.telefono} /></ITGrid>
-          <ITGrid item xs={12}><Field label={t("form.direccion")} value={s.direccion} /></ITGrid>
+          <ITGrid item xs={12} md={4}><Field label={t("form.phone")} value={s.phone} /></ITGrid>
+          <ITGrid item xs={12}><Field label={t("form.address")} value={s.address} /></ITGrid>
         </ITGrid>
       </PanelCard>
       <PanelCard title={t("form.guardians")}>
@@ -89,12 +89,12 @@ export default function StudentDetailPage() {
             {s.guardians.map((g) => (
               <ITFlex key={g.id} justify="between" align="center" className="rounded-xl border border-slate-200 px-3 py-2">
                 <div>
-                  <ITText className="block text-[12px] font-black text-slate-700">{g.nombre}</ITText>
+                  <ITText className="block text-[12px] font-black text-slate-700">{g.name}</ITText>
                   <ITText className="text-[11px] text-slate-500">
-                    {g.parentesco} · {g.telefono}{g.email ? ` · ${g.email}` : ""}
+                    {g.relationship} · {g.phone}{g.email ? ` · ${g.email}` : ""}
                   </ITText>
                 </div>
-                {g.esResponsablePago && <ITBadget color="warning" size="sm">{t("form.responsablePago")}</ITBadget>}
+                {g.isPaymentResponsible && <ITBadget color="warning" size="sm">{t("form.responsablePago")}</ITBadget>}
               </ITFlex>
             ))}
           </ITFlex>
@@ -106,7 +106,7 @@ export default function StudentDetailPage() {
   return (
     <ITPage
       title={s?.nombreCompleto ?? t("list.title")}
-      description={s ? `${t("detail.matricula")} ${s.matricula}` : undefined}
+      description={s ? `${t("detail.studentNumber")} ${s.studentNumber}` : undefined}
       icon={<FaUserGraduate size={20} />}
       loading={!s && !error}
       error={error}
@@ -114,19 +114,19 @@ export default function StudentDetailPage() {
       actions={
         s && (
           <ITFlex gap={2} align="center">
-            <ITBadget color={s.status === "ACTIVO" ? "success" : "danger"} size="lg">{t(`status.${s.status}`)}</ITBadget>
+            <ITBadget color={s.status === "ACTIVE" ? "success" : "danger"} size="lg">{t(`status.${s.status}`)}</ITBadget>
             {canEdit && (
               <ITButton variant="outlined" color="primary" onClick={() => navigate(`/students/${s.id}/edit`)}>
                 <ITFlex align="center" gap={1}><FaEdit size={11} /><ITText className="text-[11px] font-bold">{t("detail.edit")}</ITText></ITFlex>
               </ITButton>
             )}
-            {canMove && s.status === "ACTIVO" && (
-              <ITButton variant="outlined" color="danger" onClick={() => setMovement("BAJA")}>
+            {canMove && s.status === "ACTIVE" && (
+              <ITButton variant="outlined" color="danger" onClick={() => setMovement("WITHDRAWAL")}>
                 <ITFlex align="center" gap={1}><FaUserSlash size={11} /><ITText className="text-[11px] font-bold">{t("detail.baja")}</ITText></ITFlex>
               </ITButton>
             )}
-            {canMove && s.status === "BAJA" && (
-              <ITButton variant="outlined" color="success" onClick={() => setMovement("REINGRESO")}>
+            {canMove && s.status === "WITHDRAWN" && (
+              <ITButton variant="outlined" color="success" onClick={() => setMovement("REENTRY")}>
                 <ITFlex align="center" gap={1}><FaUndo size={11} /><ITText className="text-[11px] font-bold">{t("detail.reingreso")}</ITText></ITFlex>
               </ITButton>
             )}
@@ -142,16 +142,16 @@ export default function StudentDetailPage() {
               ? [{ id: "movements", label: t("detail.tabs.movements"), content: <MovementsList studentId={s.id} reloadKey={reloadKey} /> }]
               : []),
             ...(canDocuments
-              ? [{ id: "documents", label: t("detail.tabs.documents"), content: <DocumentsPanel studentId={s.id} readOnly={s.status === "BAJA"} /> }]
+              ? [{ id: "documents", label: t("detail.tabs.documents"), content: <DocumentsPanel studentId={s.id} readOnly={s.status === "WITHDRAWN"} /> }]
               : []),
             ...(canEnrollments
               ? [{ id: "enrollments", label: t("detail.tabs.enrollments"), content: <EnrollmentsTable filter={{ studentId: s.id }} reloadKey={reloadKey} /> }]
               : []),
             ...(canAttendance
-              ? [{ id: "attendance", label: t("detail.tabs.attendance"), content: <StudentAttendancePanel studentId={s.id} studentName={s.nombreCompleto} readOnly={s.status === "BAJA"} /> }]
+              ? [{ id: "attendance", label: t("detail.tabs.attendance"), content: <StudentAttendancePanel studentId={s.id} studentName={s.nombreCompleto} readOnly={s.status === "WITHDRAWN"} /> }]
               : []),
             ...(canPlans
-              ? [{ id: "plans", label: t("detail.tabs.plans"), content: <StudentPlansPanel studentId={s.id} studentName={s.nombreCompleto} readOnly={s.status === "BAJA"} /> }]
+              ? [{ id: "plans", label: t("detail.tabs.plans"), content: <StudentPlansPanel studentId={s.id} studentName={s.nombreCompleto} readOnly={s.status === "WITHDRAWN"} /> }]
               : []),
             ...(canAccount
               ? [{ id: "account", label: t("detail.tabs.account"), content: <AccountStatementView key={reloadKey} studentId={s.id} /> }]
@@ -169,7 +169,7 @@ export default function StudentDetailPage() {
           onClose={() => setMovement(null)}
           onDone={(result) => {
             setMovement(null);
-            notify.success(result.status === "BAJA" ? t("movements.bajaDone") : t("movements.reingresoDone"));
+            notify.success(result.status === "WITHDRAWN" ? t("movements.bajaDone") : t("movements.reingresoDone"));
             setReloadKey((k) => k + 1);
           }}
         />

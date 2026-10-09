@@ -67,8 +67,8 @@ export default function DashboardView() {
             <ProgressList
               items={data.groupOccupancy.groups.map((g) => ({
                 id: g.groupId,
-                label: `${g.curso} · ${g.nombre}`,
-                hint: `${g.inscritos}/${g.cupo}`,
+                label: `${g.curso} · ${g.name}`,
+                hint: `${g.inscritos}/${g.capacity}`,
                 ratio: g.ratio,
               }))}
             />

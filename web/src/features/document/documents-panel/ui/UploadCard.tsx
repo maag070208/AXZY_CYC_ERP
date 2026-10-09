@@ -7,7 +7,7 @@ import { errorMessage } from "@app/toast/useNotify";
 import { PanelCard } from "@shared/ui/panel-card";
 
 interface Props {
-  onUpload: (file: File, documentTypeId: string, notas?: string) => Promise<void>;
+  onUpload: (file: File, documentTypeId: string, notes?: string) => Promise<void>;
   onDone: () => void;
 }
 
@@ -19,7 +19,7 @@ export default function UploadCard({ onUpload, onDone }: Props) {
   const { t } = useTranslation(["documents", "common"]);
   const [types, setTypes] = useState<CatalogItem[]>([]);
   const [typeId, setTypeId] = useState("");
-  const [notas, setNotas] = useState("");
+  const [notes, setNotas] = useState("");
   const [status, setStatus] = useState<UploadStatus>(UploadStatus.PENDING);
   const [error, setError] = useState<string | null>(null);
   const [resetKey, setResetKey] = useState(0);
@@ -35,7 +35,7 @@ export default function UploadCard({ onUpload, onDone }: Props) {
     setStatus(UploadStatus.UPLOADING);
     setError(null);
     try {
-      await onUpload(file, typeId, notas.trim() || undefined);
+      await onUpload(file, typeId, notes.trim() || undefined);
       setStatus(UploadStatus.PENDING);
       setNotas("");
       setResetKey((k) => k + 1);
@@ -53,7 +53,7 @@ export default function UploadCard({ onUpload, onDone }: Props) {
         <ITSelect name="documentTypeId" label={t("upload.type")} value={typeId} required
           options={types.map((type) => ({ value: type.id, label: type.required ? `${type.name} *` : type.name }))}
           onChange={(e) => setTypeId(e.target.value)} />
-        <ITInput name="notas" label={t("upload.notas")} value={notas} onChange={(e) => setNotas(e.target.value)} />
+        <ITInput name="notes" label={t("upload.notas")} value={notes} onChange={(e) => setNotas(e.target.value)} />
         <ITDropfile key={resetKey} onFileSelect={() => setError(null)} onSubmit={(file) => void submit(file)}
           uploadStatus={status} showStatusBadge
           acceptedFileTypes={[FileTypeEnum.PDF, FileTypeEnum.JPEG, FileTypeEnum.JPG, FileTypeEnum.PNG]} />

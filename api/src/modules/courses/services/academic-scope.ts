@@ -13,7 +13,7 @@ import { HttpError } from "@core/middlewares/error.middleware";
 export const GROUPS_RESOURCE = "groups";
 
 /** Inscripción que cuenta para cupo y alcance. */
-export const CURRENT_ENROLLMENT: Prisma.EnrollmentWhereInput = { status: { not: "BAJA" } };
+export const CURRENT_ENROLLMENT: Prisma.EnrollmentWhereInput = { status: { not: "WITHDRAWN" } };
 
 export const registerAcademicScopes = (db: PrismaClient): void => {
   registerAreaResolver(GROUPS_RESOURCE, async (user) => {

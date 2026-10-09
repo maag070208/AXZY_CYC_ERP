@@ -104,9 +104,9 @@ export default function StudentPlansPanel({ studentId, studentName, readOnly }: 
   ];
 
   const chargeColumns: Column<PlanCharge>[] = [
-    { key: "descripcion", label: t("plans.detail.charge"), type: "string", render: (c) => <ITText className="text-[12px] text-slate-700">{c.descripcion ?? "—"}</ITText> },
-    { key: "fechaVencimiento", label: t("plans.detail.due"), type: "string", width: 140, render: (c) => <ITText className="text-[12px] text-slate-600">{formatDay(c.fechaVencimiento, i18n.language)}</ITText> },
-    { key: "monto", label: t("plans.detail.amount"), type: "string", width: 120, render: (c) => <ITText className="text-[12px] tabular-nums text-slate-700">{money(c.monto)}</ITText> },
+    { key: "description", label: t("plans.detail.charge"), type: "string", render: (c) => <ITText className="text-[12px] text-slate-700">{c.description ?? "—"}</ITText> },
+    { key: "dueDate", label: t("plans.detail.due"), type: "string", width: 140, render: (c) => <ITText className="text-[12px] text-slate-600">{formatDay(c.dueDate, i18n.language)}</ITText> },
+    { key: "amount", label: t("plans.detail.amount"), type: "string", width: 120, render: (c) => <ITText className="text-[12px] tabular-nums text-slate-700">{money(c.amount)}</ITText> },
     { key: "status", label: t("common:labels.status"), type: "string", width: 120, render: (c) => <ITBadget color="secondary" size="sm">{t(`chargeStatus.${c.status}`, { defaultValue: c.status })}</ITBadget> },
   ];
 

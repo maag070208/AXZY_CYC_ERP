@@ -22,20 +22,20 @@ const TEACHER_FILE = `e2e_teachers_${RUN}.csv`;
 const KEY = `e2e_mig_${RUN}`;
 
 const STUDENT_CSV = [
-  "nombre,apellido_paterno,curp,fecha_nacimiento",
+  "name,apellido_paterno,curp,fecha_nacimiento",
   `E2E Migrada ${RUN},Historico,${STUDENT_CURP},2000-01-01`,
   `E2E Inválida ${RUN},Historico,${BAD_CURP},2000-01-01`,
 ].join("\n");
 
-const TEACHER_CSV = ["nombre,apellidos,email", `E2E Profe ${RUN},Migrado,${TEACHER_EMAIL}`].join("\n");
+const TEACHER_CSV = ["name,surnames,email", `E2E Profe ${RUN},Migrado,${TEACHER_EMAIL}`].join("\n");
 
 type Api = Awaited<ReturnType<typeof loginAs>>["api"];
 
-const upload = (api: Api, path: string, entidad: string, filename: string, csv: string, extra: Record<string, string> = {}, headers: Record<string, string> = {}) =>
+const upload = (api: Api, path: string, entity: string, filename: string, csv: string, extra: Record<string, string> = {}, headers: Record<string, string> = {}) =>
   api.post(path, {
     headers,
     multipart: {
-      entidad,
+      entity,
       ...extra,
       file: { name: filename, mimeType: "text/csv", buffer: Buffer.from(csv, "utf-8") },
     },
@@ -64,7 +64,7 @@ test.describe.serial("migración de históricos", () => {
     const res = await upload(admin, "migration/preview", "Student", STUDENT_FILE, STUDENT_CSV);
     expect(res.status(), await res.text()).toBe(200);
     const body = await res.json();
-    expect(body).toMatchObject({ mode: "DRY_RUN", status: "COMPLETADO" });
+    expect(body).toMatchObject({ mode: "DRY_RUN", status: "COMPLETED" });
     expect(body.totals).toEqual({ read: 2, valid: 1, rejected: 1 });
     expect(body.rejected[0]).toMatchObject({ row: 3, reason: "INVALID_CURP" });
 
@@ -73,7 +73,7 @@ test.describe.serial("migración de históricos", () => {
     // …pero sí dejó rastro del lote y de la fila rechazada.
     const batch = await db.migrationBatch.findUnique({ where: { id: body.batchId } });
     expect(batch?.mode).toBe("DRY_RUN");
-    expect(await db.migrationRow.count({ where: { batchId: body.batchId, status: "RECHAZADA" } })).toBe(1);
+    expect(await db.migrationRow.count({ where: { batchId: body.batchId, status: "REJECTED" } })).toBe(1);
   });
 
   test("la ejecución exige Idempotency-Key", async () => {
@@ -90,7 +90,7 @@ test.describe.serial("migración de históricos", () => {
     expect((await res.json()).code).toBe("BACKUP_REQUIRED");
   });
 
-  test("ejecuta e inserta; reejecutar con la misma clave no duplica y con otra actualiza", async () => {
+  test("ejecuta e inserta; reejecutar con la misma code no duplica y con otra actualiza", async () => {
     await registerBackup(admin, new Date().toISOString());
     const first = await upload(admin, "migration/execute", "Student", STUDENT_FILE, STUDENT_CSV, {}, { "Idempotency-Key": KEY });
     expect(first.status(), await first.text()).toBe(201);
@@ -99,7 +99,7 @@ test.describe.serial("migración de históricos", () => {
 
     const created = await db.student.findUnique({ where: { curp: STUDENT_CURP } });
     expect(created).not.toBeNull();
-    expect(created?.matricula).toMatch(/^\d{4}-\d{4}$/);
+    expect(created?.studentNumber).toMatch(/^\d{4}-\d{4}$/);
 
     // Misma clave → mismo lote, sin volver a aplicar.
     const replay = await upload(admin, "migration/execute", "Student", STUDENT_FILE, STUDENT_CSV, {}, { "Idempotency-Key": KEY });
@@ -116,14 +116,14 @@ test.describe.serial("migración de históricos", () => {
     expect(audit).not.toBeNull();
   });
 
-  test("revalida el checksum del archivo en la confirmación", async () => {
+  test("revalida el checksum del file en la confirmación", async () => {
     await registerBackup(admin, new Date().toISOString());
     const res = await upload(admin, "migration/execute", "Student", STUDENT_FILE, STUDENT_CSV, { checksum: "0".repeat(64) }, { "Idempotency-Key": `${KEY}_3` });
     expect(res.status()).toBe(409);
     expect((await res.json()).code).toBe("CHECKSUM_MISMATCH");
   });
 
-  test("importa profesores con su cuenta PROFESOR y su clave natural email", async () => {
+  test("importa profesores con su cuenta PROFESOR y su code natural email", async () => {
     await registerBackup(admin, new Date().toISOString());
     const first = await upload(admin, "migration/execute", "Teacher", TEACHER_FILE, TEACHER_CSV, {}, { "Idempotency-Key": `${KEY}_t` });
     expect(first.status(), await first.text()).toBe(201);
@@ -139,11 +139,11 @@ test.describe.serial("migración de históricos", () => {
   });
 
   test("el catálogo de lotes filtra y el detalle incluye las filas rechazadas", async () => {
-    const res = await admin.post("migration/batches/query", { data: { page: 1, limit: 200, filters: { entidad: "Student" } } });
+    const res = await admin.post("migration/batches/query", { data: { page: 1, limit: 200, filters: { entity: "Student" } } });
     expect(res.status()).toBe(200);
     const body = await res.json();
     expect(body.total).toBeGreaterThanOrEqual(1);
-    const batch = body.data.find((b: { archivo: string }) => b.archivo === STUDENT_FILE);
+    const batch = body.data.find((b: { file: string }) => b.file === STUDENT_FILE);
     expect(batch).toBeTruthy();
 
     const detail = await admin.get(`migration/batches/${batch.id}`);

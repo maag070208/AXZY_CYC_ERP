@@ -5,10 +5,10 @@ import { toHtml, type Channel } from "../models/entity/notification-rules";
 
 export interface OutgoingMessage {
   id: string;
-  canal: Channel;
-  destinatario: string;
-  asunto: string | null;
-  cuerpo: string;
+  channel: Channel;
+  recipient: string;
+  subject: string | null;
+  body: string;
 }
 
 export interface ProviderResult {
@@ -28,7 +28,7 @@ export const emailProvider: NotificationProvider = {
   name: "email",
   async send(message) {
     const dryRun = isEmailDryRun();
-    const ok = await sendEmail({ to: message.destinatario, subject: message.asunto ?? "CYC", html: toHtml(message.cuerpo) });
+    const ok = await sendEmail({ to: message.recipient, subject: message.subject ?? "CYC", html: toHtml(message.body) });
     if (!ok) throw new Error("EMAIL_SEND_FAILED");
     return { messageId: `${dryRun ? "dry-run" : "email"}:${randomUUID()}`, dryRun };
   },
@@ -38,10 +38,10 @@ export const emailProvider: NotificationProvider = {
  * SMS y WhatsApp: el proveedor está por definir (A-001), así que se simula y
  * se deja constancia en el registro; al contratar uno se agrega aquí.
  */
-export const simulatedProvider = (canal: Channel): NotificationProvider => ({
-  name: `${canal.toLowerCase()}-dry-run`,
+export const simulatedProvider = (channel: Channel): NotificationProvider => ({
+  name: `${channel.toLowerCase()}-dry-run`,
   async send(message) {
-    logger.info(`[notifications:dry-run] ${canal} to=${message.destinatario} id=${message.id}`);
+    logger.info(`[notifications:dry-run] ${channel} to=${message.recipient} id=${message.id}`);
     return { messageId: `dry-run:${randomUUID()}`, dryRun: true };
   },
 });
@@ -52,9 +52,9 @@ const providers = new Map<Channel, NotificationProvider>([
   ["WHATSAPP", simulatedProvider("WHATSAPP")],
 ]);
 
-export const providerFor = (canal: Channel): NotificationProvider | undefined => providers.get(canal);
+export const providerFor = (channel: Channel): NotificationProvider | undefined => providers.get(channel);
 
 /** Reemplaza el proveedor de un canal (pruebas o un proveedor nuevo). */
-export const setProvider = (canal: Channel, provider: NotificationProvider): void => {
-  providers.set(canal, provider);
+export const setProvider = (channel: Channel, provider: NotificationProvider): void => {
+  providers.set(channel, provider);
 };

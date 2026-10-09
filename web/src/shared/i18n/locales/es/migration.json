@@ -62,9 +62,9 @@
     "noRows": "Sin filas rechazadas."
   },
   "status": {
-    "EN_PROCESO": "En proceso",
-    "COMPLETADO": "Completado",
-    "FALLIDO": "Fallido",
-    "CANCELADO": "Cancelado"
+    "IN_PROGRESS": "En proceso",
+    "COMPLETED": "Completado",
+    "FAILED": "Fallido",
+    "CANCELLED": "Cancelado"
   }
 }

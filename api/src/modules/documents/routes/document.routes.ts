@@ -43,7 +43,7 @@ export const createStudentDocumentsRouter = (controller: DocumentController): Ro
   });
   registerPath({
     method: "post", path: "/students/{studentId}/documents", tags: ["Documents"], security: bearer,
-    summary: "Sube un documento (multipart: file, documentTypeId, notas?) — PDF/JPG/PNG ≤ 5 MB (documents.upload)",
+    summary: "Sube un documento (multipart: file, documentTypeId, notes?) — PDF/JPG/PNG ≤ 5 MB (documents.upload)",
     parameters: [studentParam],
     request: {
       body: {
@@ -56,7 +56,7 @@ export const createStudentDocumentsRouter = (controller: DocumentController): Ro
               properties: {
                 file: { type: "string", format: "binary" },
                 documentTypeId: { type: "string" },
-                notas: { type: "string" },
+                notes: { type: "string" },
               },
             },
           },
@@ -64,7 +64,7 @@ export const createStudentDocumentsRouter = (controller: DocumentController): Ro
       },
     },
     responses: {
-      201: { description: "Documento PENDIENTE", content: json(DocumentSchema) },
+      201: { description: "Documento PENDING", content: json(DocumentSchema) },
       400: { description: "FILE_REQUIRED / FILE_TYPE_NOT_ALLOWED / FILE_TOO_LARGE" },
       409: { description: "STUDENT_INACTIVE (expediente de solo lectura)" },
       503: { description: "STORAGE_NOT_CONFIGURED" },
@@ -91,13 +91,13 @@ export const createDocumentsRouter = (controller: DocumentController): Router =>
 
   registerPath({
     method: "get", path: "/documents/{id}/download", tags: ["Documents"], security: bearer,
-    summary: "Descarga autorizada del archivo privado (documents.view, con alcance)",
+    summary: "Descarga autorizada del file privado (documents.view, con alcance)",
     parameters: [idParam],
     responses: { 200: { description: "Archivo" }, 404: { description: "Inexistente o fuera de alcance" } },
   });
   registerPath({
     method: "patch", path: "/documents/{id}/validate", tags: ["Documents"], security: bearer,
-    summary: "Valida o rechaza un documento PENDIENTE (documents.validate)",
+    summary: "Valida o rechaza un documento PENDING (documents.validate)",
     parameters: [idParam],
     request: { body: { required: true, content: json(DocumentValidateDto) } },
     responses: { 200: { description: "Documento", content: json(DocumentSchema) }, 409: { description: "DOCUMENT_ALREADY_REVIEWED" } },

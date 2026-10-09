@@ -76,10 +76,10 @@ export default function InboxPanel() {
               </span>
               <div className="min-w-0 flex-1">
                 <ITFlex justify="between" align="center" gap={2}>
-                  <ITText className="text-[12px] font-bold text-slate-700">{item.asunto ?? item.origen}</ITText>
+                  <ITText className="text-[12px] font-bold text-slate-700">{item.subject ?? item.origin}</ITText>
                   <ITText className="shrink-0 text-[10px] text-slate-400">{formatInstant(item.createdAt, i18n.language)}</ITText>
                 </ITFlex>
-                <ITText className="mt-0.5 block whitespace-pre-wrap text-[12px] text-slate-600">{item.cuerpo}</ITText>
+                <ITText className="mt-0.5 block whitespace-pre-wrap text-[12px] text-slate-600">{item.body}</ITText>
               </div>
               {!item.readAt && (
                 <ITButton variant="text" color="primary" size="sm" ariaLabel={t("inbox.markOne")} onClick={() => void markOne(item.id)}>

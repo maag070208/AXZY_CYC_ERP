@@ -24,8 +24,8 @@ const main = async (): Promise<void> => {
   const teacher = await db.user.findUniqueOrThrow({ where: { username: "e2e_profesor" }, select: { id: true } });
   await db.teacher.upsert({
     where: { userId: teacher.id },
-    create: { nombres: "E2E", apellidos: "Profesor", email: "e2e_profesor@e2e.local", userId: teacher.id },
-    update: { status: "ACTIVO" },
+    create: { firstNames: "E2E", surnames: "Profesor", email: "e2e_profesor@e2e.local", userId: teacher.id },
+    update: { status: "ACTIVE" },
   });
   console.log(`[e2e] provisionados: ${FIXED_USERS.map((u) => u.username).join(", ")}`);
 };

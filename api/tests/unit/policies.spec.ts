@@ -40,7 +40,7 @@ test.describe("evaluatePolicies", () => {
     expect(decision.policy?.key).toBe("no");
   });
 
-  test("la menor prioridad se evalúa primero; empate por clave", () => {
+  test("la menor prioridad se evalúa primero; empate por code", () => {
     const list = [
       policy({ key: "deny", effect: "DENY", priority: 20 }),
       policy({ key: "allow", effect: "ALLOW", priority: 10 }),

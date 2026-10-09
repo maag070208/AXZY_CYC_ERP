@@ -21,7 +21,7 @@ import type { TeacherCreateInput, TeacherUpdateInput, TeacherView } from "../mod
 
 /** La invitación es un token de restablecimiento de contraseña de vida más larga. */
 const INVITATION_TTL_MS = 72 * 60 * 60 * 1000;
-const STATUSES = ["ACTIVO", "INACTIVO"] as const;
+const STATUSES = ["ACTIVE", "INACTIVE"] as const;
 
 type AccountFields = Pick<User, "id" | "username" | "active" | "mustChangePassword" | "lastLoginAt">;
 type TeacherRow = Teacher & { user: AccountFields | null };
@@ -32,12 +32,12 @@ const include = {
 
 const toView = (row: TeacherRow): TeacherView => ({
   id: row.id,
-  nombres: row.nombres,
-  apellidos: row.apellidos,
-  nombreCompleto: `${row.nombres} ${row.apellidos}`,
+  firstNames: row.firstNames,
+  surnames: row.surnames,
+  nombreCompleto: `${row.firstNames} ${row.surnames}`,
   email: row.email,
-  telefono: row.telefono,
-  especialidad: row.especialidad,
+  phone: row.phone,
+  specialty: row.specialty,
   status: row.status,
   account: row.user
     ? {
@@ -53,11 +53,11 @@ const toView = (row: TeacherRow): TeacherView => ({
 });
 
 const auditState = (view: TeacherView): Prisma.InputJsonObject => ({
-  nombres: view.nombres,
-  apellidos: view.apellidos,
+  firstNames: view.firstNames,
+  surnames: view.surnames,
   email: view.email,
-  telefono: view.telefono,
-  especialidad: view.especialidad,
+  phone: view.phone,
+  specialty: view.specialty,
   status: view.status,
 });
 
@@ -98,21 +98,21 @@ export class TeacherService {
 
   private async where(filters: TableFilters, user: UserPermissions): Promise<Prisma.TeacherWhereInput> {
     const and: Prisma.TeacherWhereInput[] = [];
-    const name = filterText(filters, "nombre");
+    const name = filterText(filters, "name");
     if (name) {
       for (const word of name.contains.split(/\s+/).filter(Boolean)) {
         and.push({
           OR: [
-            { nombres: { contains: word, mode: "insensitive" } },
-            { apellidos: { contains: word, mode: "insensitive" } },
+            { firstNames: { contains: word, mode: "insensitive" } },
+            { surnames: { contains: word, mode: "insensitive" } },
           ],
         });
       }
     }
     const email = filterText(filters, "email");
     if (email) and.push({ email });
-    const especialidad = filterText(filters, "especialidad");
-    if (especialidad) and.push({ especialidad });
+    const specialty = filterText(filters, "specialty");
+    if (specialty) and.push({ specialty });
     const status = filterEnum(filters, "status", STATUSES);
     if (status) and.push({ status });
     const scoped = await this.scope(user, "teachers.view");
@@ -124,13 +124,13 @@ export class TeacherService {
     const orderBy = orderByOf(
       params.sort,
       {
-        nombre: (direction) => [{ apellidos: direction }, { nombres: direction }],
+        name: (direction) => [{ surnames: direction }, { firstNames: direction }],
         email: "email",
-        especialidad: "especialidad",
+        specialty: "specialty",
         status: "status",
         createdAt: "createdAt",
       },
-      [{ apellidos: "asc" }, { nombres: "asc" }]
+      [{ surnames: "asc" }, { firstNames: "asc" }]
     ).flat();
     const result = await paginatedQuery<TeacherRow>({
       model: this.db.teacher,
@@ -174,7 +174,7 @@ export class TeacherService {
       to: view.email,
       subject: "Invitación al Sistema de Gestión Escolar — CYC",
       html:
-        `<p>Hola ${view.nombres},</p>` +
+        `<p>Hola ${view.firstNames},</p>` +
         `<p>Se creó tu cuenta de profesor con el usuario <b>${view.account?.username ?? ""}</b>.</p>` +
         `<p>Define tu contraseña aquí: <a href="${link}">${link}</a></p>` +
         `<p>El enlace vence en 72 horas y es de un solo uso.</p>`,
@@ -195,19 +195,19 @@ export class TeacherService {
           username,
           email: input.email,
           passwordHash,
-          name: `${input.nombres} ${input.apellidos}`,
-          phone: input.telefono ?? null,
+          name: `${input.firstNames} ${input.surnames}`,
+          phone: input.phone ?? null,
           mustChangePassword: true,
           roles: { create: [{ roleKey: "TEACHER" }] },
         },
       });
       const row = await tx.teacher.create({
         data: {
-          nombres: input.nombres,
-          apellidos: input.apellidos,
+          firstNames: input.firstNames,
+          surnames: input.surnames,
           email: input.email,
-          telefono: input.telefono ?? null,
-          especialidad: input.especialidad ?? null,
+          phone: input.phone ?? null,
+          specialty: input.specialty ?? null,
           userId: user.id,
         },
         include,
@@ -249,11 +249,11 @@ export class TeacherService {
       const row = await tx.teacher.update({
         where: { id },
         data: {
-          ...(input.nombres !== undefined && { nombres: input.nombres }),
-          ...(input.apellidos !== undefined && { apellidos: input.apellidos }),
+          ...(input.firstNames !== undefined && { firstNames: input.firstNames }),
+          ...(input.surnames !== undefined && { surnames: input.surnames }),
           ...(input.email !== undefined && { email: input.email }),
-          ...(input.telefono !== undefined && { telefono: input.telefono }),
-          ...(input.especialidad !== undefined && { especialidad: input.especialidad }),
+          ...(input.phone !== undefined && { phone: input.phone }),
+          ...(input.specialty !== undefined && { specialty: input.specialty }),
         },
         include,
       });
@@ -262,9 +262,9 @@ export class TeacherService {
         await tx.user.update({
           where: { id: previous.userId },
           data: {
-            name: `${row.nombres} ${row.apellidos}`,
+            name: `${row.firstNames} ${row.surnames}`,
             email: row.email,
-            phone: row.telefono,
+            phone: row.phone,
           },
         });
       }
@@ -293,10 +293,10 @@ export class TeacherService {
   async deactivate(id: string, actor: AuthenticatedUser, reason?: string): Promise<TeacherView> {
     this.assertManager(actor);
     const previous = await this.load(id, actor, "teachers.edit");
-    if (previous.status === "INACTIVO") throw new HttpError(409, "TEACHER_INACTIVE");
+    if (previous.status === "INACTIVE") throw new HttpError(409, "TEACHER_INACTIVE");
     if (previous.userId === actor.id) throw new HttpError(400, "CANNOT_DEACTIVATE_SELF");
     return this.db.$transaction(async (tx) => {
-      const row = await tx.teacher.update({ where: { id }, data: { status: "INACTIVO" }, include });
+      const row = await tx.teacher.update({ where: { id }, data: { status: "INACTIVE" }, include });
       if (previous.userId) {
         await tx.user.update({
           where: { id: previous.userId },
@@ -314,8 +314,8 @@ export class TeacherService {
           entityId: id,
           userId: actor.id,
           userName: actor.username,
-          previousState: { status: "ACTIVO" },
-          newState: { status: "INACTIVO" },
+          previousState: { status: "ACTIVE" },
+          newState: { status: "INACTIVE" },
           metadata: { reason: reason ?? null, userId: previous.userId },
         },
         tx
@@ -327,7 +327,7 @@ export class TeacherService {
   async reactivate(id: string, actor: AuthenticatedUser): Promise<TeacherView> {
     this.assertManager(actor);
     const previous = await this.load(id, actor, "teachers.edit");
-    if (previous.status === "ACTIVO") throw new HttpError(409, "TEACHER_ALREADY_ACTIVE");
+    if (previous.status === "ACTIVE") throw new HttpError(409, "TEACHER_ALREADY_ACTIVE");
     return this.db.$transaction(async (tx) => {
       if (previous.userId) {
         await tx.user.update({
@@ -335,7 +335,7 @@ export class TeacherService {
           data: { active: true, deactivatedAt: null, deactivationReason: null, failedAttempts: 0, lockedUntil: null },
         });
       }
-      const row = await tx.teacher.update({ where: { id }, data: { status: "ACTIVO" }, include });
+      const row = await tx.teacher.update({ where: { id }, data: { status: "ACTIVE" }, include });
       await this.audit?.(
         {
           action: "TEACHER_REACTIVATED",
@@ -343,8 +343,8 @@ export class TeacherService {
           entityId: id,
           userId: actor.id,
           userName: actor.username,
-          previousState: { status: "INACTIVO" },
-          newState: { status: "ACTIVO" },
+          previousState: { status: "INACTIVE" },
+          newState: { status: "ACTIVE" },
         },
         tx
       );
@@ -355,7 +355,7 @@ export class TeacherService {
   /** Reenvía la invitación: invalida las anteriores y emite una nueva (no crea otra cuenta). */
   async resendInvitation(id: string, actor: AuthenticatedUser): Promise<{ ok: true }> {
     const teacher = await this.load(id, actor, "teachers.edit");
-    if (teacher.status === "INACTIVO") throw new HttpError(409, "TEACHER_INACTIVE");
+    if (teacher.status === "INACTIVE") throw new HttpError(409, "TEACHER_INACTIVE");
     if (!teacher.user) throw new HttpError(409, "TEACHER_HAS_NO_ACCOUNT");
     if (!teacher.user.mustChangePassword) throw new HttpError(409, "INVITATION_NOT_PENDING");
     const userId = teacher.user.id;

@@ -35,7 +35,7 @@ export default function DateTimeField({ name, label, timeLabel, value, onChange,
         }}
       />
       <ITSelect
-        name={`${name}-hora`}
+        name={`${name}-time`}
         label={timeLabel}
         value={time}
         disabled={disabled || !day}

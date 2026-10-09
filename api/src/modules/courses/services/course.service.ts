@@ -25,11 +25,11 @@ const include = {
 
 const toView = (row: CourseRow): CourseView => ({
   id: row.id,
-  clave: row.clave,
-  nombre: row.nombre,
+  code: row.code,
+  name: row.name,
   levelId: row.levelId,
   levelNombre: row.level?.name ?? null,
-  descripcion: row.descripcion,
+  description: row.description,
   active: row.active,
   groupsCount: row._count.groups,
   createdAt: row.createdAt.toISOString(),
@@ -37,10 +37,10 @@ const toView = (row: CourseRow): CourseView => ({
 });
 
 const stateOf = (view: CourseView): Prisma.InputJsonObject => ({
-  clave: view.clave,
-  nombre: view.nombre,
+  code: view.code,
+  name: view.name,
   levelId: view.levelId,
-  descripcion: view.descripcion,
+  description: view.description,
   active: view.active,
 });
 
@@ -64,18 +64,18 @@ export class CourseService {
     if (!level) throw new HttpError(400, "LEVEL_NOT_AVAILABLE");
   }
 
-  private async assertClaveFree(clave: string, exceptId?: string): Promise<void> {
-    const taken = await this.db.course.findFirst({ where: { clave, ...(exceptId ? { NOT: { id: exceptId } } : {}) } });
-    if (taken) throw new HttpError(409, "COURSE_CLAVE_TAKEN", { clave });
+  private async assertClaveFree(code: string, exceptId?: string): Promise<void> {
+    const taken = await this.db.course.findFirst({ where: { code, ...(exceptId ? { NOT: { id: exceptId } } : {}) } });
+    if (taken) throw new HttpError(409, "COURSE_CLAVE_TAKEN", { code });
   }
 
   async table(params: ITDataTableFetchParams, user: UserPermissions): Promise<ITDataTableResponse<CourseView>> {
     const { filters } = params;
     const and: Prisma.CourseWhereInput[] = [];
-    const clave = filterText(filters, "clave");
-    if (clave) and.push({ clave });
-    const nombre = filterText(filters, "nombre");
-    if (nombre) and.push({ nombre });
+    const code = filterText(filters, "code");
+    if (code) and.push({ code });
+    const name = filterText(filters, "name");
+    if (name) and.push({ name });
     const levelId = filterId(filters, "levelId");
     if (levelId) and.push({ levelId });
     const active = filterBool(filters, "active");
@@ -84,8 +84,8 @@ export class CourseService {
     if (scoped) and.push(scoped);
     const orderBy = orderByOf(
       params.sort,
-      { clave: "clave", nombre: "nombre", active: "active", createdAt: "createdAt" },
-      [{ nombre: "asc" }]
+      { code: "code", name: "name", active: "active", createdAt: "createdAt" },
+      [{ name: "asc" }]
     );
     const result = await paginatedQuery<CourseRow>({
       model: this.db.course,
@@ -99,12 +99,12 @@ export class CourseService {
   }
 
   /** Cursos activos para selectores. */
-  async options(user: UserPermissions): Promise<Array<{ id: string; clave: string; nombre: string }>> {
+  async options(user: UserPermissions): Promise<Array<{ id: string; code: string; name: string }>> {
     const scoped = await courseScope(user, "courses.view");
     return this.db.course.findMany({
       where: { AND: [{ active: true }, ...(scoped ? [scoped] : [])] },
-      select: { id: true, clave: true, nombre: true },
-      orderBy: { nombre: "asc" },
+      select: { id: true, code: true, name: true },
+      orderBy: { name: "asc" },
     });
   }
 
@@ -113,15 +113,15 @@ export class CourseService {
   }
 
   async create(input: CourseCreateInput, actor: AuthenticatedUser): Promise<CourseView> {
-    await this.assertClaveFree(input.clave);
+    await this.assertClaveFree(input.code);
     await this.assertLevel(input.levelId);
     return this.db.$transaction(async (tx) => {
       const row = await tx.course.create({
         data: {
-          clave: input.clave,
-          nombre: input.nombre,
+          code: input.code,
+          name: input.name,
           levelId: input.levelId ?? null,
-          descripcion: input.descripcion ?? null,
+          description: input.description ?? null,
         },
         include,
       });
@@ -137,16 +137,16 @@ export class CourseService {
 
   async update(id: string, input: CourseUpdateInput, actor: AuthenticatedUser): Promise<CourseView> {
     const before = toView(await this.load(id));
-    if (input.clave && input.clave !== before.clave) await this.assertClaveFree(input.clave, id);
+    if (input.code && input.code !== before.code) await this.assertClaveFree(input.code, id);
     if (input.levelId !== undefined) await this.assertLevel(input.levelId);
     return this.db.$transaction(async (tx) => {
       const row = await tx.course.update({
         where: { id },
         data: {
-          ...(input.clave !== undefined && { clave: input.clave }),
-          ...(input.nombre !== undefined && { nombre: input.nombre }),
+          ...(input.code !== undefined && { code: input.code }),
+          ...(input.name !== undefined && { name: input.name }),
           ...(input.levelId !== undefined && { levelId: input.levelId }),
-          ...(input.descripcion !== undefined && { descripcion: input.descripcion }),
+          ...(input.description !== undefined && { description: input.description }),
         },
         include,
       });

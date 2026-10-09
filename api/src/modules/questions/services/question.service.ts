@@ -20,8 +20,8 @@ import type { ImportResult, QuestionCreateInput, QuestionUpdateInput, QuestionVi
 import { DIFFICULTIES, QUESTION_TYPES, optionRuleError, readQuestionsCsv } from "../models/entity/question-rules";
 
 const include = {
-  course: { select: { clave: true, nombre: true } },
-  options: { orderBy: { orden: "asc" } },
+  course: { select: { code: true, name: true } },
+  options: { orderBy: { sortOrder: "asc" } },
   _count: { select: { examQuestions: true, answers: true } },
 } satisfies Prisma.QuestionInclude;
 
@@ -30,15 +30,15 @@ type QuestionRow = Prisma.QuestionGetPayload<{ include: typeof include }>;
 const toView = (row: QuestionRow): QuestionView => ({
   id: row.id,
   courseId: row.courseId,
-  courseClave: row.course.clave,
-  courseNombre: row.course.nombre,
-  tema: row.tema,
-  tipo: row.tipo,
-  enunciado: row.enunciado,
-  puntos: Number(row.puntos),
-  dificultad: row.dificultad,
+  courseClave: row.course.code,
+  courseNombre: row.course.name,
+  topic: row.topic,
+  type: row.type,
+  text: row.text,
+  points: Number(row.points),
+  difficulty: row.difficulty,
   status: row.status,
-  options: row.options.map((o) => ({ id: o.id, texto: o.texto, esCorrecta: o.esCorrecta, orden: o.orden })),
+  options: row.options.map((o) => ({ id: o.id, text: o.text, isCorrect: o.isCorrect, sortOrder: o.sortOrder })),
   usedInExams: row._count.examQuestions,
   locked: row._count.answers > 0,
   createdAt: row.createdAt.toISOString(),
@@ -46,13 +46,13 @@ const toView = (row: QuestionRow): QuestionView => ({
 });
 
 const stateOf = (v: QuestionView): Prisma.InputJsonObject => ({
-  tema: v.tema,
-  tipo: v.tipo,
-  enunciado: v.enunciado,
-  puntos: v.puntos,
-  dificultad: v.dificultad,
+  topic: v.topic,
+  type: v.type,
+  text: v.text,
+  points: v.points,
+  difficulty: v.difficulty,
   status: v.status,
-  options: v.options.map((o) => ({ texto: o.texto, esCorrecta: o.esCorrecta })),
+  options: v.options.map((o) => ({ text: o.text, isCorrect: o.isCorrect })),
 });
 
 /** Alcance por curso: el profesor ve los reactivos de los cursos de sus grupos. */
@@ -98,8 +98,8 @@ export class QuestionService {
     if (!allowed) throw new HttpError(403, "INSUFFICIENT_PERMISSIONS");
   }
 
-  private assertOptions(tipo: (typeof QUESTION_TYPES)[number], options: Array<{ texto: string; esCorrecta: boolean }>): void {
-    const error = optionRuleError(tipo, options);
+  private assertOptions(type: (typeof QUESTION_TYPES)[number], options: Array<{ text: string; isCorrect: boolean }>): void {
+    const error = optionRuleError(type, options);
     if (error) throw new HttpError(400, error);
   }
 
@@ -108,16 +108,16 @@ export class QuestionService {
     const and: Prisma.QuestionWhereInput[] = [];
     const courseId = filterId(filters, "courseId");
     if (courseId) and.push({ courseId });
-    const tipo = filterEnum(filters, "tipo", QUESTION_TYPES);
-    if (tipo) and.push({ tipo });
-    const dificultad = filterEnum(filters, "dificultad", DIFFICULTIES);
-    if (dificultad) and.push({ dificultad });
-    const status = filterEnum(filters, "status", ["ACTIVA", "INACTIVA"] as const);
+    const type = filterEnum(filters, "type", QUESTION_TYPES);
+    if (type) and.push({ type });
+    const difficulty = filterEnum(filters, "difficulty", DIFFICULTIES);
+    if (difficulty) and.push({ difficulty });
+    const status = filterEnum(filters, "status", ["ACTIVE", "INACTIVE"] as const);
     if (status) and.push({ status });
-    const tema = filterText(filters, "tema");
-    if (tema) and.push({ tema });
-    const enunciado = filterText(filters, "enunciado");
-    if (enunciado) and.push({ enunciado });
+    const topic = filterText(filters, "topic");
+    if (topic) and.push({ topic });
+    const text = filterText(filters, "text");
+    if (text) and.push({ text });
     const scoped = await questionScope(user, "questions.view");
     if (scoped) and.push(scoped);
     const result = await paginatedQuery<QuestionRow>({
@@ -125,7 +125,7 @@ export class QuestionService {
       where: (and.length ? { AND: and } : {}) as Record<string, unknown>,
       orderBy: orderByOf(
         params.sort,
-        { tema: "tema", tipo: "tipo", puntos: "puntos", dificultad: "dificultad", status: "status", createdAt: "createdAt" },
+        { topic: "topic", type: "type", points: "points", difficulty: "difficulty", status: "status", createdAt: "createdAt" },
         [{ createdAt: "desc" }]
       ),
       include,
@@ -141,18 +141,18 @@ export class QuestionService {
 
   async create(input: QuestionCreateInput, actor: AuthenticatedUser): Promise<QuestionView> {
     await this.assertCourse(input.courseId, actor, "questions.create");
-    this.assertOptions(input.tipo, input.options);
+    this.assertOptions(input.type, input.options);
     return this.db.$transaction(async (tx) => {
       const row = await tx.question.create({
         data: {
           courseId: input.courseId,
-          tema: input.tema ?? null,
-          tipo: input.tipo,
-          enunciado: input.enunciado,
-          puntos: input.puntos,
-          dificultad: input.dificultad ?? null,
+          topic: input.topic ?? null,
+          type: input.type,
+          text: input.text,
+          points: input.points,
+          difficulty: input.difficulty ?? null,
           createdBy: actor.id,
-          options: { create: input.options.map((o, i) => ({ texto: o.texto, esCorrecta: o.esCorrecta, orden: i + 1 })) },
+          options: { create: input.options.map((o, i) => ({ text: o.text, isCorrect: o.isCorrect, sortOrder: i + 1 })) },
         },
         include,
       });
@@ -170,24 +170,24 @@ export class QuestionService {
     const previous = await this.load(id, actor, "questions.edit");
     const before = toView(previous);
     if (before.locked) throw new HttpError(409, "QUESTION_IN_USE");
-    const tipo = input.tipo ?? previous.tipo;
-    const options = input.options ?? (input.tipo && input.tipo !== previous.tipo ? [] : before.options);
-    this.assertOptions(tipo, options);
+    const type = input.type ?? previous.type;
+    const options = input.options ?? (input.type && input.type !== previous.type ? [] : before.options);
+    this.assertOptions(type, options);
     return this.db.$transaction(async (tx) => {
-      if (input.options !== undefined || input.tipo !== undefined) {
+      if (input.options !== undefined || input.type !== undefined) {
         await tx.questionOption.deleteMany({ where: { questionId: id } });
         await tx.questionOption.createMany({
-          data: options.map((o, i) => ({ questionId: id, texto: o.texto, esCorrecta: o.esCorrecta, orden: i + 1 })),
+          data: options.map((o, i) => ({ questionId: id, text: o.text, isCorrect: o.isCorrect, sortOrder: i + 1 })),
         });
       }
       const row = await tx.question.update({
         where: { id },
         data: {
-          ...(input.tema !== undefined && { tema: input.tema }),
-          ...(input.tipo !== undefined && { tipo: input.tipo }),
-          ...(input.enunciado !== undefined && { enunciado: input.enunciado }),
-          ...(input.puntos !== undefined && { puntos: input.puntos }),
-          ...(input.dificultad !== undefined && { dificultad: input.dificultad }),
+          ...(input.topic !== undefined && { topic: input.topic }),
+          ...(input.type !== undefined && { type: input.type }),
+          ...(input.text !== undefined && { text: input.text }),
+          ...(input.points !== undefined && { points: input.points }),
+          ...(input.difficulty !== undefined && { difficulty: input.difficulty }),
         },
         include,
       });
@@ -204,10 +204,10 @@ export class QuestionService {
   /** Baja lógica (nunca `DELETE`): ya no se puede agregar a exámenes nuevos. */
   async setStatus(id: string, active: boolean, actor: AuthenticatedUser): Promise<QuestionView> {
     const previous = await this.load(id, actor, "questions.edit");
-    if (!active && previous.status === "INACTIVA") throw new HttpError(409, "QUESTION_ALREADY_INACTIVE");
-    if (active && previous.status === "ACTIVA") throw new HttpError(409, "QUESTION_INACTIVE");
+    if (!active && previous.status === "INACTIVE") throw new HttpError(409, "QUESTION_ALREADY_INACTIVE");
+    if (active && previous.status === "ACTIVE") throw new HttpError(409, "QUESTION_INACTIVE");
     return this.db.$transaction(async (tx) => {
-      const row = await tx.question.update({ where: { id }, data: { status: active ? "ACTIVA" : "INACTIVA" }, include });
+      const row = await tx.question.update({ where: { id }, data: { status: active ? "ACTIVE" : "INACTIVE" }, include });
       await this.audit?.(
         { action: active ? "QUESTION_REACTIVATED" : "QUESTION_DEACTIVATED", entityType: "Question", entityId: id,
           userId: actor.id, userName: actor.username,
@@ -237,13 +237,13 @@ export class QuestionService {
     const all = scopeOf(actor, "questions.import") === "ALL";
     const courses = await this.db.course.findMany({
       where: {
-        clave: { in: claves },
+        code: { in: claves },
         active: true,
         ...(all ? {} : { groups: { some: { teacher: { userId: actor.id } } } }),
       },
-      select: { id: true, clave: true },
+      select: { id: true, code: true },
     });
-    const courseByClave = new Map(courses.map((c) => [c.clave, c.id]));
+    const courseByClave = new Map(courses.map((c) => [c.code, c.id]));
     const rejected = [...parsed.rejected];
     const valid = parsed.rows.filter((r) => {
       if (courseByClave.has(r.cursoClave)) return true;
@@ -252,7 +252,7 @@ export class QuestionService {
     });
     rejected.sort((a, b) => a.row - b.row);
     const sample = valid.slice(0, 20).map((r) => ({
-      row: r.row, curso: r.cursoClave, tipo: r.tipo, enunciado: r.enunciado.slice(0, 140), puntos: r.puntos, opciones: r.options.length,
+      row: r.row, curso: r.cursoClave, type: r.type, text: r.text.slice(0, 140), points: r.points, opciones: r.options.length,
     }));
     const base = { total: parsed.total, valid: valid.length, rejected, sample };
     if (options.preview) return { preview: true, created: 0, ...base };
@@ -263,13 +263,13 @@ export class QuestionService {
           await tx.question.create({
             data: {
               courseId: courseByClave.get(r.cursoClave) as string,
-              tema: r.tema,
-              tipo: r.tipo,
-              enunciado: r.enunciado,
-              puntos: r.puntos,
-              dificultad: r.dificultad,
+              topic: r.topic,
+              type: r.type,
+              text: r.text,
+              points: r.points,
+              difficulty: r.difficulty,
               createdBy: actor.id,
-              options: { create: r.options.map((o) => ({ texto: o.texto, esCorrecta: o.esCorrecta, orden: o.orden })) },
+              options: { create: r.options.map((o) => ({ text: o.text, isCorrect: o.isCorrect, sortOrder: o.sortOrder })) },
             },
           });
         }

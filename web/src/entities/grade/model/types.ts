@@ -1,14 +1,14 @@
-export type AssessmentType = "PARCIAL" | "FINAL" | "TAREA" | "OTRO";
-export const ASSESSMENT_TYPES: readonly AssessmentType[] = ["PARCIAL", "FINAL", "TAREA", "OTRO"];
+export type AssessmentType = "PARTIAL" | "FINAL" | "HOMEWORK" | "OTHER";
+export const ASSESSMENT_TYPES: readonly AssessmentType[] = ["PARTIAL", "FINAL", "HOMEWORK", "OTHER"];
 
 /** Instrumento de evaluación (`/assessments`, M08). */
 export interface Assessment {
   id: string;
   groupId: string;
-  nombre: string;
-  tipo: AssessmentType;
-  ponderacion: number;
-  fecha: string | null;
+  name: string;
+  type: AssessmentType;
+  weight: number;
+  date: string | null;
   maxScore: number;
   active: boolean;
   capturadas: number;
@@ -18,29 +18,29 @@ export interface Assessment {
 
 export interface AssessmentInput {
   groupId?: string;
-  nombre?: string;
-  tipo?: AssessmentType;
-  ponderacion?: number;
-  fecha?: string | null;
+  name?: string;
+  type?: AssessmentType;
+  weight?: number;
+  date?: string | null;
   maxScore?: number;
 }
 
 export interface GradeInput {
   enrollmentId: string;
   score: number | null;
-  observaciones?: string | null;
+  notes?: string | null;
 }
 
-export type GradeResult = "ACREDITADO" | "REPROBADO";
+export type GradeResult = "PASSED" | "FAILED";
 
 export interface GradebookRow {
   enrollmentId: string;
   studentId: string;
-  matricula: string;
-  nombre: string;
-  enrollmentStatus: "INSCRITO" | "BAJA" | "ACREDITADO" | "REPROBADO";
+  studentNumber: string;
+  name: string;
+  enrollmentStatus: "ENROLLED" | "WITHDRAWN" | "PASSED" | "FAILED";
   scores: Record<string, number | null>;
-  observaciones: Record<string, string | null>;
+  notes: Record<string, string | null>;
   final: number | null;
   missing: number;
   result: GradeResult | null;
@@ -50,13 +50,13 @@ export interface GradebookRow {
 export interface Gradebook {
   group: {
     id: string;
-    nombre: string;
+    name: string;
     courseNombre: string;
     termNombre: string;
     teacherNombre: string | null;
     closedAt: string | null;
   };
-  assessments: Array<Pick<Assessment, "id" | "nombre" | "tipo" | "ponderacion" | "maxScore">>;
+  assessments: Array<Pick<Assessment, "id" | "name" | "type" | "weight" | "maxScore">>;
   weightsTotal: number;
   approvalThreshold: number;
   complete: boolean;

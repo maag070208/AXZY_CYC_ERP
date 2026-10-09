@@ -1,6 +1,6 @@
-export type ExamStatus = "BORRADOR" | "PUBLICADO" | "CERRADO";
-export type AttemptStatus = "EN_CURSO" | "ENVIADO" | "EXPIRADO";
-export type Criterion = "MEJOR" | "ULTIMO";
+export type ExamStatus = "DRAFT" | "PUBLISHED" | "CLOSED";
+export type AttemptStatus = "IN_PROGRESS" | "SUBMITTED" | "EXPIRED";
+export type Criterion = "BEST" | "LAST";
 
 /** Examen en línea (`/online-exams`, M15). Fechas en ISO (UTC). */
 export interface OnlineExam {
@@ -10,17 +10,17 @@ export interface OnlineExam {
   courseId: string;
   courseNombre: string;
   termNombre: string;
-  titulo: string;
-  instrucciones: string | null;
-  duracionMin: number;
-  intentosMax: number;
-  fechaApertura: string;
-  fechaCierre: string;
-  aleatorizarPreguntas: boolean;
-  aleatorizarOpciones: boolean;
-  mostrarResultado: boolean;
-  puntajeAprobatorio: number;
-  criterioIntentos: Criterion;
+  title: string;
+  instructions: string | null;
+  durationMin: number;
+  maxAttempts: number;
+  opensAt: string;
+  closesAt: string;
+  shuffleQuestions: boolean;
+  shuffleOptions: boolean;
+  showResult: boolean;
+  passingScore: number;
+  attemptCriterion: Criterion;
   assessmentId: string | null;
   assessmentNombre: string | null;
   status: ExamStatus;
@@ -33,35 +33,35 @@ export interface OnlineExam {
 }
 
 export interface OnlineExamDetail extends OnlineExam {
-  questions: Array<{ questionId: string; orden: number; puntos: number; tipo: string; tema: string | null; enunciado: string; status: "ACTIVA" | "INACTIVA" }>;
+  questions: Array<{ questionId: string; sortOrder: number; points: number; type: string; topic: string | null; text: string; status: "ACTIVE" | "INACTIVE" }>;
 }
 
 export interface OnlineExamInput {
   groupId?: string;
-  titulo?: string;
-  instrucciones?: string | null;
-  duracionMin?: number;
-  intentosMax?: number;
-  fechaApertura?: string;
-  fechaCierre?: string;
-  aleatorizarPreguntas?: boolean;
-  aleatorizarOpciones?: boolean;
-  mostrarResultado?: boolean;
-  puntajeAprobatorio?: number;
-  criterioIntentos?: Criterion;
+  title?: string;
+  instructions?: string | null;
+  durationMin?: number;
+  maxAttempts?: number;
+  opensAt?: string;
+  closesAt?: string;
+  shuffleQuestions?: boolean;
+  shuffleOptions?: boolean;
+  showResult?: boolean;
+  passingScore?: number;
+  attemptCriterion?: Criterion;
   assessmentId?: string | null;
 }
 
 /** Examen visto por el alumno (`/online-exams/available`). */
 export interface AvailableExam {
   examId: string;
-  titulo: string;
+  title: string;
   curso: string;
   grupo: string;
-  fechaApertura: string;
-  fechaCierre: string;
-  duracionMin: number;
-  intentosMax: number;
+  opensAt: string;
+  closesAt: string;
+  durationMin: number;
+  maxAttempts: number;
   intentosUsados: number;
   totalPuntos: number;
   state: "NOT_PUBLISHED" | "NOT_OPEN" | "CLOSED" | "OPEN";
@@ -74,25 +74,25 @@ export type AnswerValue = string | string[] | null;
 
 export interface AttemptQuestion {
   questionId: string;
-  orden: number;
-  tipo: "OPCION_MULTIPLE" | "VERDADERO_FALSO" | "MULTIPLE_RESPUESTA" | "ABIERTA";
-  enunciado: string;
-  puntos: number;
-  options: Array<{ id: string; texto: string; esCorrecta?: boolean }>;
-  respuesta: AnswerValue;
-  esCorrecta?: boolean | null;
-  puntosObtenidos?: number | null;
-  comentario?: string | null;
+  sortOrder: number;
+  type: "MULTIPLE_CHOICE" | "TRUE_FALSE" | "MULTIPLE_ANSWER" | "OPEN";
+  text: string;
+  points: number;
+  options: Array<{ id: string; text: string; isCorrect?: boolean }>;
+  answer: AnswerValue;
+  isCorrect?: boolean | null;
+  pointsEarned?: number | null;
+  comment?: string | null;
 }
 
 export interface Attempt {
   attemptId: string;
   examId: string;
-  titulo: string;
-  instrucciones: string | null;
-  numero: number;
+  title: string;
+  instructions: string | null;
+  number: number;
   status: AttemptStatus;
-  student: { id: string; matricula: string; nombre: string };
+  student: { id: string; studentNumber: string; name: string };
   startedAt: string;
   endsAt: string;
   finishedAt: string | null;
@@ -109,13 +109,13 @@ export interface ExamResults {
   rows: Array<{
     enrollmentId: string;
     studentId: string;
-    matricula: string;
-    nombre: string;
+    studentNumber: string;
+    name: string;
     intentos: number;
     enCurso: boolean;
     pendientes: number;
     calificacion: number | null;
     aprobado: boolean | null;
-    attempts: Array<{ attemptId: string; numero: number; status: AttemptStatus; score: number | null; pendingCount: number; focusLosses: number; startedAt: string; finishedAt: string | null }>;
+    attempts: Array<{ attemptId: string; number: number; status: AttemptStatus; score: number | null; pendingCount: number; focusLosses: number; startedAt: string; finishedAt: string | null }>;
   }>;
 }

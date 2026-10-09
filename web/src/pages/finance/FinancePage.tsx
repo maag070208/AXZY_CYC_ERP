@@ -98,7 +98,7 @@ export default function FinancePage() {
         onClose={() => setPaying(null)}
         onRegistered={(payment) => {
           setPaying(null);
-          notify.success(t("payments.registered", { folio: payment.reciboFolio }));
+          notify.success(t("payments.registered", { folio: payment.receiptNumber }));
           reload();
           void printReceipt(payment);
         }}
@@ -111,18 +111,18 @@ export default function FinancePage() {
         cancelLabel={t("common:actions.cancel")}
         requiredMessage={t("reasonRequired")}
         onClose={() => setCancellingCharge(null)}
-        onConfirm={(motivo) => void (cancellingCharge && guard(() => chargeApi.cancel(cancellingCharge.id, motivo), t("charges.cancelled"), () => setCancellingCharge(null)))}
+        onConfirm={(reason) => void (cancellingCharge && guard(() => chargeApi.cancel(cancellingCharge.id, reason), t("charges.cancelled"), () => setCancellingCharge(null)))}
       />
       <ReasonDialog
         isOpen={!!cancellingPayment}
-        title={t("payments.cancelTitle", { folio: cancellingPayment?.reciboFolio ?? "" })}
+        title={t("payments.cancelTitle", { folio: cancellingPayment?.receiptNumber ?? "" })}
         message={t("payments.cancelMessage")}
         label={t("charges.motivo")}
         confirmLabel={t("payments.cancel")}
         cancelLabel={t("common:actions.cancel")}
         requiredMessage={t("reasonRequired")}
         onClose={() => setCancellingPayment(null)}
-        onConfirm={(motivo) => void (cancellingPayment && guard(() => paymentApi.cancel(cancellingPayment.id, motivo), t("payments.cancelled"), () => setCancellingPayment(null)))}
+        onConfirm={(reason) => void (cancellingPayment && guard(() => paymentApi.cancel(cancellingPayment.id, reason), t("payments.cancelled"), () => setCancellingPayment(null)))}
       />
       <ITConfirmDialog
         isOpen={lateFees}

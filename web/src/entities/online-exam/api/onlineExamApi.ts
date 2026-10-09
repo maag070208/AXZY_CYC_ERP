@@ -8,7 +8,7 @@ export const onlineExamApi = {
   create: (data: OnlineExamInput) => api.post<OnlineExamDetail>("/online-exams", data),
   update: (id: string, data: OnlineExamInput) => api.patch<OnlineExamDetail>(`/online-exams/${id}`, data),
   remove: (id: string) => api.delete<void>(`/online-exams/${id}`),
-  setQuestions: (id: string, questions: Array<{ questionId: string; puntos?: number }>) =>
+  setQuestions: (id: string, questions: Array<{ questionId: string; points?: number }>) =>
     api.post<OnlineExamDetail>(`/online-exams/${id}/questions`, { questions }),
   publish: (id: string) => api.post<OnlineExamDetail>(`/online-exams/${id}/publish`),
   close: (id: string) => api.post<OnlineExamDetail>(`/online-exams/${id}/close`),
@@ -20,12 +20,12 @@ export const onlineExamApi = {
 
 export const attemptApi = {
   get: (id: string) => api.get<Attempt>(`/attempts/${id}`),
-  save: (id: string, answers: Array<{ questionId: string; respuesta: AnswerValue }>) =>
+  save: (id: string, answers: Array<{ questionId: string; answer: AnswerValue }>) =>
     api.put<{ saved: number; savedAt: string; remainingSeconds: number }>(`/attempts/${id}/answers`, { answers }),
-  submit: (id: string, answers?: Array<{ questionId: string; respuesta: AnswerValue }>) =>
+  submit: (id: string, answers?: Array<{ questionId: string; answer: AnswerValue }>) =>
     api.post<Attempt>(`/attempts/${id}/submit`, answers?.length ? { answers } : {}),
   event: (id: string, type: "TAB_BLUR" | "TAB_FOCUS") => api.post<{ focusLosses: number }>(`/attempts/${id}/events`, { type }),
-  review: (id: string, data: { questionId: string; puntosObtenidos: number; comentario?: string }) =>
+  review: (id: string, data: { questionId: string; pointsEarned: number; comment?: string }) =>
     api.patch<{ attemptId: string; score: number; pendingCount: number; grade: { score: number } | null }>(`/attempts/${id}/review`, data),
   regrade: (id: string) => api.post<{ attemptId: string; score: number; pendingCount: number }>(`/attempts/${id}/regrade`),
 };

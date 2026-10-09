@@ -24,7 +24,7 @@ import { GradeCaptureDto } from "../../src/modules/grades/models/dto/grade.dto";
 
 const s = (dia: ScheduleSlot["dia"], horaInicio: string, horaFin: string): ScheduleSlot => ({ dia, horaInicio, horaFin });
 
-test.describe("horario (M07)", () => {
+test.describe("schedule (M07)", () => {
   test("intervalos semiabiertos: contiguos no chocan, traslapes sí", () => {
     expect(minutesOf("07:30")).toBe(450);
     expect(slotsOverlap(s("LUNES", "08:00", "10:00"), s("LUNES", "09:59", "11:00"))).toBe(true);
@@ -42,7 +42,7 @@ test.describe("horario (M07)", () => {
     expect(hasInternalOverlap([...a, s("LUNES", "08:45", "09:15")])).toBe(true);
   });
 
-  test("orden estable y lectura defensiva del JSON guardado", () => {
+  test("sortOrder estable y lectura defensiva del JSON guardado", () => {
     const sorted = sortSchedule([s("VIERNES", "07:00", "08:00"), s("LUNES", "10:00", "11:00"), s("LUNES", "08:00", "09:00")]);
     expect(sorted.map((x) => `${x.dia} ${x.horaInicio}`)).toEqual(["LUNES 08:00", "LUNES 10:00", "VIERNES 07:00"]);
     expect(parseSchedule([s("LUNES", "08:00", "09:00"), { dia: "FERIADO", horaInicio: "x" }, null])).toHaveLength(1);
@@ -50,30 +50,30 @@ test.describe("horario (M07)", () => {
   });
 
   test("el DTO de grupo rechaza horas mal formadas, fin ≤ inicio y empalmes internos", () => {
-    const base = { courseId: crypto.randomUUID(), termId: crypto.randomUUID(), nombre: "A", cupo: 10 };
-    expect(GroupCreateDto.safeParse({ ...base, horario: [s("LUNES", "08:00", "09:00")] }).success).toBe(true);
-    expect(GroupCreateDto.safeParse({ ...base, horario: [s("LUNES", "9:00", "10:00")] }).success).toBe(false);
-    expect(GroupCreateDto.safeParse({ ...base, horario: [s("LUNES", "10:00", "10:00")] }).success).toBe(false);
+    const base = { courseId: crypto.randomUUID(), termId: crypto.randomUUID(), name: "A", capacity: 10 };
+    expect(GroupCreateDto.safeParse({ ...base, schedule: [s("LUNES", "08:00", "09:00")] }).success).toBe(true);
+    expect(GroupCreateDto.safeParse({ ...base, schedule: [s("LUNES", "9:00", "10:00")] }).success).toBe(false);
+    expect(GroupCreateDto.safeParse({ ...base, schedule: [s("LUNES", "10:00", "10:00")] }).success).toBe(false);
     expect(
-      GroupCreateDto.safeParse({ ...base, horario: [s("LUNES", "08:00", "10:00"), s("LUNES", "09:00", "11:00")] }).success
+      GroupCreateDto.safeParse({ ...base, schedule: [s("LUNES", "08:00", "10:00"), s("LUNES", "09:00", "11:00")] }).success
     ).toBe(false);
-    expect(GroupCreateDto.safeParse({ ...base, cupo: 0, horario: [s("LUNES", "08:00", "09:00")] }).success).toBe(false);
+    expect(GroupCreateDto.safeParse({ ...base, capacity: 0, schedule: [s("LUNES", "08:00", "09:00")] }).success).toBe(false);
   });
 });
 
 test.describe("calificaciones (M08)", () => {
   const items = [
-    { id: "p1", ponderacion: 30, maxScore: 10 },
-    { id: "fin", ponderacion: 60, maxScore: 100 },
-    { id: "t", ponderacion: 10, maxScore: 100 },
+    { id: "p1", weight: 30, maxScore: 10 },
+    { id: "fin", weight: 60, maxScore: 100 },
+    { id: "t", weight: 10, maxScore: 100 },
   ];
 
   test("suma de ponderaciones exacta en decimal (0.1 + 0.2 no es 0.30000000000000004)", () => {
     expect(weightsTotal(items)).toBe(100);
     expect(weightsComplete(items)).toBe(true);
-    expect(weightsTotal([{ ponderacion: 0.1 }, { ponderacion: 0.2 }])).toBe(0.3);
-    expect(weightsComplete([{ ponderacion: 33.33 }, { ponderacion: 33.33 }, { ponderacion: 33.33 }])).toBe(false);
-    expect(weightsComplete([{ ponderacion: 33.33 }, { ponderacion: 33.33 }, { ponderacion: 33.34 }])).toBe(true);
+    expect(weightsTotal([{ weight: 0.1 }, { weight: 0.2 }])).toBe(0.3);
+    expect(weightsComplete([{ weight: 33.33 }, { weight: 33.33 }, { weight: 33.33 }])).toBe(false);
+    expect(weightsComplete([{ weight: 33.33 }, { weight: 33.33 }, { weight: 33.34 }])).toBe(true);
   });
 
   test("final ponderada normalizada por maxScore y redondeo ROUND_HALF_UP a 2 decimales", () => {
@@ -89,9 +89,9 @@ test.describe("calificaciones (M08)", () => {
   });
 
   test("umbral configurable: >= acredita", () => {
-    expect(resultOf(70, 70)).toBe("ACREDITADO");
-    expect(resultOf(69.99, 70)).toBe("REPROBADO");
-    expect(resultOf(6, 6)).toBe("ACREDITADO");
+    expect(resultOf(70, 70)).toBe("PASSED");
+    expect(resultOf(69.99, 70)).toBe("FAILED");
+    expect(resultOf(6, 6)).toBe("PASSED");
   });
 
   test("rango [0, maxScore] y máximo dos decimales", () => {

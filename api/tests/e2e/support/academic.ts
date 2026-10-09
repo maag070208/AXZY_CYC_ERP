@@ -14,27 +14,27 @@ const next = () => `${Date.now().toString(36)}${(sequence += 1)}`;
 export const makeTerm = async (run: string, label = "T", days?: [string, string]) =>
   db.term.create({
     data: {
-      nombre: `E2E ${label} ${run} ${next()}`,
-      fechaInicio: new Date(`${days?.[0] ?? "2026-08-01"}T00:00:00.000Z`),
-      fechaFin: new Date(`${days?.[1] ?? "2026-12-15"}T00:00:00.000Z`),
+      name: `E2E ${label} ${run} ${next()}`,
+      startDate: new Date(`${days?.[0] ?? "2026-08-01"}T00:00:00.000Z`),
+      endDate: new Date(`${days?.[1] ?? "2026-12-15"}T00:00:00.000Z`),
     },
   });
 
-export const makeCourse = async (run: string, nombre = "Curso") =>
-  db.course.create({ data: { clave: `E2E-${run}-${next()}`.toUpperCase(), nombre: `E2E ${nombre} ${run}` } });
+export const makeCourse = async (run: string, name = "Curso") =>
+  db.course.create({ data: { code: `E2E-${run}-${next()}`.toUpperCase(), name: `E2E ${name} ${run}` } });
 
 /** Alumno ACTIVO (adulto: no exige tutor); `userId` lo vincula a una cuenta ALUMNO. */
 export const makeStudent = async (run: string, label: string, userId?: string) => {
   const birth = yearsAgo(20);
   return db.student.create({
     data: {
-      matricula: `E2E${next()}`.slice(0, 20),
-      nombres: `E2E ${label} ${run}`,
-      apellidoPaterno: "Academico",
-      apellidoMaterno: label,
+      studentNumber: `E2E${next()}`.slice(0, 20),
+      firstNames: `E2E ${label} ${run}`,
+      paternalSurname: "Academico",
+      maternalSurname: label,
       curp: makeCurp(birth),
-      fechaNacimiento: new Date(`${birth}T00:00:00.000Z`),
-      fechaIngreso: new Date("2026-08-01T00:00:00.000Z"),
+      birthDate: new Date(`${birth}T00:00:00.000Z`),
+      enrollmentDate: new Date("2026-08-01T00:00:00.000Z"),
       ...(userId ? { userId } : {}),
     },
   });
@@ -45,7 +45,7 @@ export const makeTeacher = async (run: string, label: string) => {
   const username = `${E2E_PREFIX}${label}_${run}`;
   const user = await createAuthUser({ username, name: `E2E Prof ${label}`, roleKey: "TEACHER", password: E2E.password });
   const teacher = await db.teacher.create({
-    data: { nombres: "E2E Prof", apellidos: `${label} ${run}`, email: `${username}@e2e.local`, userId: user.id },
+    data: { firstNames: "E2E Prof", surnames: `${label} ${run}`, email: `${username}@e2e.local`, userId: user.id },
   });
   return { username, userId: user.id, teacher };
 };

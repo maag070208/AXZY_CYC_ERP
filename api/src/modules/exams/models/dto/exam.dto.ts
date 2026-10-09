@@ -4,30 +4,30 @@ import { paginatedTableResponseSchema } from "@core/swagger/table.dto";
 const decimal = z.number().refine((v) => Math.abs(Math.round(v * 100) - v * 100) < 1e-6, "INVALID_DECIMAL");
 const instant = z.string().datetime({ offset: true, message: "INVALID_DATE" });
 
-export const EXAM_STATUSES = ["BORRADOR", "PUBLICADO", "CERRADO"] as const;
+export const EXAM_STATUSES = ["DRAFT", "PUBLISHED", "CLOSED"] as const;
 
 // --- Examen -------------------------------------------------------------------
 
 const examFields = {
   groupId: z.string().uuid(),
-  titulo: z.string().trim().min(1, "NOMBRE_REQUIRED").max(150),
-  instrucciones: z.string().trim().max(5000).transform((v) => v || null).nullable().optional(),
-  duracionMin: z.number().int().min(1).max(600),
-  intentosMax: z.number().int().min(1).max(10).default(1),
-  fechaApertura: instant,
-  fechaCierre: instant,
-  aleatorizarPreguntas: z.boolean().default(false),
-  aleatorizarOpciones: z.boolean().default(false),
-  mostrarResultado: z.boolean().default(true),
-  puntajeAprobatorio: decimal.pipe(z.number().min(0)),
-  criterioIntentos: z.enum(["MEJOR", "ULTIMO"]).default("MEJOR"),
+  title: z.string().trim().min(1, "NOMBRE_REQUIRED").max(150),
+  instructions: z.string().trim().max(5000).transform((v) => v || null).nullable().optional(),
+  durationMin: z.number().int().min(1).max(600),
+  maxAttempts: z.number().int().min(1).max(10).default(1),
+  opensAt: instant,
+  closesAt: instant,
+  shuffleQuestions: z.boolean().default(false),
+  shuffleOptions: z.boolean().default(false),
+  showResult: z.boolean().default(true),
+  passingScore: decimal.pipe(z.number().min(0)),
+  attemptCriterion: z.enum(["BEST", "LAST"]).default("BEST"),
   assessmentId: z.string().uuid().nullable().optional(),
 };
 
 export const ExamCreateDto = z
   .object(examFields)
   .strict()
-  .refine((v) => new Date(v.fechaApertura) < new Date(v.fechaCierre), { message: "INVALID_RANGE", path: ["fechaCierre"] })
+  .refine((v) => new Date(v.opensAt) < new Date(v.closesAt), { message: "INVALID_RANGE", path: ["closesAt"] })
   .openapi("OnlineExamCreateInput");
 registry.register("OnlineExamCreateInput", ExamCreateDto);
 export type ExamCreateInput = z.infer<typeof ExamCreateDto>;
@@ -36,11 +36,11 @@ const { groupId: _group, ...editable } = examFields;
 export const ExamUpdateDto = z
   .object({
     ...editable,
-    intentosMax: editable.intentosMax.removeDefault(),
-    aleatorizarPreguntas: z.boolean(),
-    aleatorizarOpciones: z.boolean(),
-    mostrarResultado: z.boolean(),
-    criterioIntentos: z.enum(["MEJOR", "ULTIMO"]),
+    maxAttempts: editable.maxAttempts.removeDefault(),
+    shuffleQuestions: z.boolean(),
+    shuffleOptions: z.boolean(),
+    showResult: z.boolean(),
+    attemptCriterion: z.enum(["BEST", "LAST"]),
   })
   .partial()
   .strict()
@@ -54,7 +54,7 @@ export const ExamQuestionsDto = z
     questions: z
       .array(
         z
-          .object({ questionId: z.string().uuid(), puntos: decimal.pipe(z.number().gt(0).max(1000)).optional() })
+          .object({ questionId: z.string().uuid(), points: decimal.pipe(z.number().gt(0).max(1000)).optional() })
           .strict()
       )
       .max(200)
@@ -73,17 +73,17 @@ export const ExamSchema = z
     courseId: z.string(),
     courseNombre: z.string(),
     termNombre: z.string(),
-    titulo: z.string(),
-    instrucciones: z.string().nullable(),
-    duracionMin: z.number().int(),
-    intentosMax: z.number().int(),
-    fechaApertura: z.string(),
-    fechaCierre: z.string(),
-    aleatorizarPreguntas: z.boolean(),
-    aleatorizarOpciones: z.boolean(),
-    mostrarResultado: z.boolean(),
-    puntajeAprobatorio: z.number(),
-    criterioIntentos: z.enum(["MEJOR", "ULTIMO"]),
+    title: z.string(),
+    instructions: z.string().nullable(),
+    durationMin: z.number().int(),
+    maxAttempts: z.number().int(),
+    opensAt: z.string(),
+    closesAt: z.string(),
+    shuffleQuestions: z.boolean(),
+    shuffleOptions: z.boolean(),
+    showResult: z.boolean(),
+    passingScore: z.number(),
+    attemptCriterion: z.enum(["BEST", "LAST"]),
     assessmentId: z.string().nullable(),
     assessmentNombre: z.string().nullable(),
     status: z.enum(EXAM_STATUSES),
@@ -103,12 +103,12 @@ export const ExamDetailSchema = ExamSchema.extend({
   questions: z.array(
     z.object({
       questionId: z.string(),
-      orden: z.number().int(),
-      puntos: z.number(),
-      tipo: z.string(),
-      tema: z.string().nullable(),
-      enunciado: z.string(),
-      status: z.enum(["ACTIVA", "INACTIVA"]),
+      sortOrder: z.number().int(),
+      points: z.number(),
+      type: z.string(),
+      topic: z.string().nullable(),
+      text: z.string(),
+      status: z.enum(["ACTIVE", "INACTIVE"]),
     })
   ),
 }).openapi("OnlineExamDetail");
@@ -121,7 +121,7 @@ const answerValue = z.union([z.string().max(5000), z.array(z.string().uuid()).ma
 
 export const SaveAnswersDto = z
   .object({
-    answers: z.array(z.object({ questionId: z.string().uuid(), respuesta: answerValue }).strict()).min(1, "REQUIRED_FIELD").max(200),
+    answers: z.array(z.object({ questionId: z.string().uuid(), answer: answerValue }).strict()).min(1, "REQUIRED_FIELD").max(200),
   })
   .strict()
   .openapi("SaveAnswersInput");
@@ -143,9 +143,9 @@ registry.register("AttemptEventInput", AttemptEventDto);
 export const ReviewDto = z
   .object({
     questionId: z.string().uuid(),
-    puntosObtenidos: decimal.pipe(z.number().min(0)),
-    esCorrecta: z.boolean().optional(),
-    comentario: z.string().trim().max(1000).optional(),
+    pointsEarned: decimal.pipe(z.number().min(0)),
+    isCorrect: z.boolean().optional(),
+    comment: z.string().trim().max(1000).optional(),
   })
   .strict()
   .openapi("ReviewAnswerInput");
@@ -154,25 +154,25 @@ export type ReviewInput = z.infer<typeof ReviewDto>;
 
 export interface AttemptQuestionView {
   questionId: string;
-  orden: number;
-  tipo: string;
-  enunciado: string;
-  puntos: number;
-  options: Array<{ id: string; texto: string; esCorrecta?: boolean }>;
-  respuesta: string | string[] | null;
-  esCorrecta?: boolean | null;
-  puntosObtenidos?: number | null;
-  comentario?: string | null;
+  sortOrder: number;
+  type: string;
+  text: string;
+  points: number;
+  options: Array<{ id: string; text: string; isCorrect?: boolean }>;
+  answer: string | string[] | null;
+  isCorrect?: boolean | null;
+  pointsEarned?: number | null;
+  comment?: string | null;
 }
 
 export interface AttemptView {
   attemptId: string;
   examId: string;
-  titulo: string;
-  instrucciones: string | null;
-  numero: number;
-  status: "EN_CURSO" | "ENVIADO" | "EXPIRADO";
-  student: { id: string; matricula: string; nombre: string };
+  title: string;
+  instructions: string | null;
+  number: number;
+  status: "IN_PROGRESS" | "SUBMITTED" | "EXPIRED";
+  student: { id: string; studentNumber: string; name: string };
   startedAt: string;
   endsAt: string;
   finishedAt: string | null;

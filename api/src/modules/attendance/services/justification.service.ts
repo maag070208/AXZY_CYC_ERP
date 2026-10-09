@@ -35,8 +35,8 @@ const include = {
       id: true,
       status: true,
       enrollmentId: true,
-      session: { select: { fecha: true, hora: true, groupId: true, group: { select: { nombre: true, course: { select: { nombre: true } } } } } },
-      enrollment: { select: { student: { select: { id: true, userId: true, matricula: true, nombres: true, apellidoPaterno: true, apellidoMaterno: true } } } },
+      session: { select: { date: true, time: true, groupId: true, group: { select: { name: true, course: { select: { name: true } } } } } },
+      enrollment: { select: { student: { select: { id: true, userId: true, studentNumber: true, firstNames: true, paternalSurname: true, maternalSurname: true } } } },
     },
   },
 } as const;
@@ -49,18 +49,18 @@ const toView = (row: JustificationRow): JustificationView => {
     id: row.id,
     attendanceId: row.attendanceId,
     status: row.status,
-    motivo: row.motivo,
-    nota: row.nota,
-    hasFile: !!row.archivoKey,
-    archivoNombre: row.archivoNombre,
-    fecha: fromDbDay(session.fecha),
-    hora: session.hora,
+    reason: row.reason,
+    note: row.note,
+    hasFile: !!row.fileKey,
+    fileName: row.fileName,
+    date: fromDbDay(session.date),
+    time: session.time,
     groupId: session.groupId,
-    grupo: session.group.nombre,
-    curso: session.group.course.nombre,
+    grupo: session.group.name,
+    curso: session.group.course.name,
     studentId: s.id,
-    matricula: s.matricula,
-    nombre: [s.nombres, s.apellidoPaterno, s.apellidoMaterno].filter(Boolean).join(" "),
+    studentNumber: s.studentNumber,
+    name: [s.firstNames, s.paternalSurname, s.maternalSurname].filter(Boolean).join(" "),
     resolvedAt: row.resolvedAt?.toISOString() ?? null,
     createdAt: row.createdAt.toISOString(),
   };
@@ -116,7 +116,7 @@ export class JustificationService {
         status: true,
         session: { select: { groupId: true, deletedAt: true } },
         enrollment: { select: { student: { select: { userId: true } } } },
-        justification: { select: { id: true, status: true, archivoKey: true } },
+        justification: { select: { id: true, status: true, fileKey: true } },
       },
     });
     if (!record) throw new HttpError(404, "ATTENDANCE_NOT_FOUND");
@@ -125,27 +125,27 @@ export class JustificationService {
     if (scope !== "OWN") await assertGroupInScope(this.db, actor, "attendance.justify", record.session.groupId);
     if (record.session.deletedAt) throw new HttpError(409, "SESSION_ANNULLED");
     if (!canJustify(record.status)) throw new HttpError(409, "JUSTIFICATION_ONLY_ABSENCE");
-    if (record.justification && record.justification.status !== "RECHAZADA") throw new HttpError(409, "JUSTIFICATION_EXISTS");
+    if (record.justification && record.justification.status !== "REJECTED") throw new HttpError(409, "JUSTIFICATION_EXISTS");
 
-    let upload: { key: string; mime: string; nombre: string; size: number } | null = null;
+    let upload: { key: string; mime: string; name: string; size: number } | null = null;
     if (file && file.size > 0) {
       if (file.size > MAX_JUSTIFICATION_BYTES) throw new HttpError(400, "FILE_TOO_LARGE", { maxMb: 5 });
       const type = detectFileType(file.buffer);
       if (!type) throw new HttpError(400, "FILE_TYPE_NOT_ALLOWED");
-      upload = { key: `justifications/${record.id}/${randomUUID()}.${type.ext}`, mime: type.mime, nombre: file.originalname.slice(0, 255), size: file.size };
+      upload = { key: `justifications/${record.id}/${randomUUID()}.${type.ext}`, mime: type.mime, name: file.originalname.slice(0, 255), size: file.size };
       await uploadObject(upload.key, file.buffer, upload.mime);
     }
     const data = {
-      motivo: fields.motivo,
-      archivoKey: upload?.key ?? null,
-      archivoNombre: upload?.nombre ?? null,
-      archivoMime: upload?.mime ?? null,
-      archivoSize: upload?.size ?? null,
-      status: "PENDIENTE" as const,
-      solicitadoPor: actor.id,
-      resueltoPor: null,
+      reason: fields.reason,
+      fileKey: upload?.key ?? null,
+      fileName: upload?.name ?? null,
+      fileMime: upload?.mime ?? null,
+      fileSize: upload?.size ?? null,
+      status: "PENDING" as const,
+      requestedBy: actor.id,
+      resolvedBy: null,
       resolvedAt: null,
-      nota: null,
+      note: null,
     };
     try {
       return await this.db.$transaction(async (tx) => {
@@ -156,7 +156,7 @@ export class JustificationService {
         await this.audit?.(
           { action: "JUSTIFICATION_CREATED", entityType: "Justification", entityId: row.id, userId: actor.id, userName: actor.username,
             previousState: record.justification ? { status: record.justification.status } : null,
-            newState: { attendanceId: record.id, status: "PENDIENTE", archivo: upload ? { nombre: upload.nombre, mime: upload.mime, size: upload.size } : null } },
+            newState: { attendanceId: record.id, status: "PENDING", file: upload ? { name: upload.name, mime: upload.mime, size: upload.size } : null } },
           tx
         );
         return toView(row);
@@ -197,23 +197,23 @@ export class JustificationService {
       groupId: row.attendance.session.groupId,
       studentUserId: row.attendance.enrollment.student.userId,
     });
-    if (row.status !== "PENDIENTE") throw new HttpError(409, "JUSTIFICATION_ALREADY_RESOLVED");
+    if (row.status !== "PENDING") throw new HttpError(409, "JUSTIFICATION_ALREADY_RESOLVED");
     const nextStatus = statusAfterResolution(input.status);
 
     return this.db.$transaction(async (tx) => {
       const updated = await tx.justification.update({
         where: { id },
-        data: { status: input.status, nota: input.nota ?? null, resueltoPor: actor.id, resolvedAt: new Date() },
+        data: { status: input.status, note: input.note ?? null, resolvedBy: actor.id, resolvedAt: new Date() },
         include,
       });
       if (row.attendance.status !== nextStatus) {
         await tx.attendance.update({ where: { id: row.attendanceId }, data: { status: nextStatus, recordedBy: actor.id } });
       }
       await this.audit?.(
-        { action: input.status === "APROBADA" ? "JUSTIFICATION_APPROVED" : "JUSTIFICATION_REJECTED", entityType: "Justification", entityId: id,
+        { action: input.status === "APPROVED" ? "JUSTIFICATION_APPROVED" : "JUSTIFICATION_REJECTED", entityType: "Justification", entityId: id,
           userId: actor.id, userName: actor.username,
-          previousState: { status: "PENDIENTE", attendance: row.attendance.status },
-          newState: { status: input.status, attendance: nextStatus, nota: input.nota ?? null } },
+          previousState: { status: "PENDING", attendance: row.attendance.status },
+          newState: { status: input.status, attendance: nextStatus, note: input.note ?? null } },
         tx
       );
       await this.attendance.refreshAlerts([row.attendance.enrollmentId], tx);
@@ -222,14 +222,14 @@ export class JustificationService {
         if (contacts) {
           await this.notifier(
             {
-              clave: "JUSTIFICANTE_RESUELTO",
+              code: "JUSTIFICANTE_RESUELTO",
               recipients: contacts.recipients,
               payload: {
-                nombre: contacts.nombre,
-                fecha: formatDay(fromDbDay(row.attendance.session.fecha)),
-                curso: row.attendance.session.group.course.nombre,
-                resultado: input.status === "APROBADA" ? "aprobado" : "rechazado",
-                nota: input.nota ?? "",
+                name: contacts.name,
+                date: formatDay(fromDbDay(row.attendance.session.date)),
+                curso: row.attendance.session.group.course.name,
+                resultado: input.status === "APPROVED" ? "aprobado" : "rechazado",
+                note: input.note ?? "",
               },
               idempotencyKey: `JUSTIFICANTE_RESUELTO:${id}:${updated.resolvedAt?.getTime()}`,
             },
@@ -248,7 +248,7 @@ export class JustificationService {
       groupId: row.attendance.session.groupId,
       studentUserId: row.attendance.enrollment.student.userId,
     });
-    if (!row.archivoKey) throw new HttpError(404, "JUSTIFICATION_NO_FILE");
-    return { buffer: await readObject(row.archivoKey), mimeType: row.archivoMime ?? "application/octet-stream", filename: row.archivoNombre ?? "justificante" };
+    if (!row.fileKey) throw new HttpError(404, "JUSTIFICATION_NO_FILE");
+    return { buffer: await readObject(row.fileKey), mimeType: row.fileMime ?? "application/octet-stream", filename: row.fileName ?? "justificante" };
   }
 }

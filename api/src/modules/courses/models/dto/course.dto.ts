@@ -18,16 +18,16 @@ const uuid = z.string().uuid();
 // --- Cursos -------------------------------------------------------------------
 
 const courseFields = {
-  clave: z
+  code: z
     .string()
     .trim()
     .toUpperCase()
     .min(1, "REQUIRED_FIELD")
     .max(30)
     .regex(/^[A-Z0-9][A-Z0-9._-]*$/, "CLAVE_FORMAT"),
-  nombre: z.string().trim().min(1, "NOMBRE_REQUIRED").max(150),
+  name: z.string().trim().min(1, "NOMBRE_REQUIRED").max(150),
   levelId: uuid.nullable().optional(),
-  descripcion: optionalText(1000),
+  description: optionalText(1000),
 };
 
 export const CourseCreateDto = z.object(courseFields).strict().openapi("CourseCreateInput");
@@ -46,11 +46,11 @@ export type CourseUpdateInput = z.infer<typeof CourseUpdateDto>;
 export const CourseSchema = z
   .object({
     id: z.string(),
-    clave: z.string(),
-    nombre: z.string(),
+    code: z.string(),
+    name: z.string(),
     levelId: z.string().nullable(),
     levelNombre: z.string().nullable(),
-    descripcion: z.string().nullable(),
+    description: z.string().nullable(),
     active: z.boolean(),
     groupsCount: z.number().int(),
     createdAt: z.string(),
@@ -83,10 +83,10 @@ const groupFields = {
   courseId: uuid,
   termId: uuid,
   teacherId: uuid.nullable().optional(),
-  nombre: z.string().trim().min(1, "NOMBRE_REQUIRED").max(60),
-  cupo: z.number().int().min(1).max(500),
-  horario: schedule,
-  aula: optionalText(60),
+  name: z.string().trim().min(1, "NOMBRE_REQUIRED").max(60),
+  capacity: z.number().int().min(1).max(500),
+  schedule: schedule,
+  classroom: optionalText(60),
 };
 
 export const GroupCreateDto = z.object(groupFields).strict().openapi("GroupCreateInput");
@@ -107,7 +107,7 @@ export type GroupUpdateInput = z.infer<typeof GroupUpdateDto>;
 export const GroupSchema = z
   .object({
     id: z.string(),
-    nombre: z.string(),
+    name: z.string(),
     courseId: z.string(),
     courseClave: z.string(),
     courseNombre: z.string(),
@@ -116,11 +116,11 @@ export const GroupSchema = z
     termActivo: z.boolean(),
     teacherId: z.string().nullable(),
     teacherNombre: z.string().nullable(),
-    cupo: z.number().int(),
+    capacity: z.number().int(),
     inscritos: z.number().int(),
     disponibles: z.number().int(),
-    horario: z.array(ScheduleSlotSchema),
-    aula: z.string().nullable(),
+    schedule: z.array(ScheduleSlotSchema),
+    classroom: z.string().nullable(),
     active: z.boolean(),
     closedAt: z.string().nullable(),
     createdAt: z.string(),
@@ -134,14 +134,14 @@ export const GroupTableResponseSchema = paginatedTableResponseSchema(GroupSchema
 // --- Inscripciones ------------------------------------------------------------
 
 export const EnrollDto = z
-  .object({ studentId: uuid, fecha: day.optional() })
+  .object({ studentId: uuid, date: day.optional() })
   .strict()
   .openapi("EnrollInput");
 registry.register("EnrollInput", EnrollDto);
 export type EnrollInput = z.infer<typeof EnrollDto>;
 
 export const EnrollmentDropDto = z
-  .object({ motivo: z.string().trim().min(3, "REASON_MIN_LENGTH").max(500).optional() })
+  .object({ reason: z.string().trim().min(3, "REASON_MIN_LENGTH").max(500).optional() })
   .strict()
   .openapi("EnrollmentDropInput");
 registry.register("EnrollmentDropInput", EnrollmentDropDto);
@@ -149,24 +149,24 @@ registry.register("EnrollmentDropInput", EnrollmentDropDto);
 export const ChangeGroupDto = z.object({ toGroupId: uuid }).strict().openapi("ChangeGroupInput");
 registry.register("ChangeGroupInput", ChangeGroupDto);
 
-export const ENROLLMENT_STATUSES = ["INSCRITO", "BAJA", "ACREDITADO", "REPROBADO"] as const;
+export const ENROLLMENT_STATUSES = ["ENROLLED", "WITHDRAWN", "PASSED", "FAILED"] as const;
 
 export const EnrollmentSchema = z
   .object({
     id: z.string(),
     studentId: z.string(),
-    matricula: z.string(),
+    studentNumber: z.string(),
     studentNombre: z.string(),
-    studentStatus: z.enum(["ACTIVO", "BAJA"]),
+    studentStatus: z.enum(["ACTIVE", "WITHDRAWN"]),
     groupId: z.string(),
     groupNombre: z.string(),
     courseNombre: z.string(),
     termNombre: z.string(),
-    fecha: z.string(),
+    date: z.string(),
     status: z.enum(ENROLLMENT_STATUSES),
     finalGrade: z.number().nullable(),
-    bajaAt: z.string().nullable(),
-    bajaMotivo: z.string().nullable(),
+    withdrawnAt: z.string().nullable(),
+    withdrawalReason: z.string().nullable(),
     transferredToId: z.string().nullable(),
     createdAt: z.string(),
   })

@@ -12,18 +12,18 @@ interface Props {
 /** Captura de la respuesta según el tipo de reactivo (M16 §4.3). */
 export default function QuestionField({ question, value, disabled, onChange }: Props) {
   const { t } = useTranslation("exams");
-  const name = `q-${question.orden}`;
-  if (question.tipo === "ABIERTA") {
+  const name = `q-${question.sortOrder}`;
+  if (question.type === "OPEN") {
     return (
       <ITTextarea name={name} label={t("runner.openPlaceholder")} value={typeof value === "string" ? value : ""} rows={4} maxLength={5000}
         disabled={disabled} onChange={(text) => onChange(text)} />
     );
   }
-  const multiple = question.tipo === "MULTIPLE_RESPUESTA";
+  const multiple = question.type === "MULTIPLE_ANSWER";
   // Opción múltiple y V/F guardan el id de la opción; respuesta múltiple, un arreglo.
   const chosen = new Set(Array.isArray(value) ? value : value ? [value] : []);
   return (
-    <div role={multiple ? "group" : "radiogroup"} aria-label={t("runner.question", { n: question.orden })} className="flex flex-col gap-2">
+    <div role={multiple ? "group" : "radiogroup"} aria-label={t("runner.question", { n: question.sortOrder })} className="flex flex-col gap-2">
       {question.options.map((o) => {
         const checked = chosen.has(o.id);
         return (
@@ -44,7 +44,7 @@ export default function QuestionField({ question, value, disabled, onChange }: P
                 onChange([...next]);
               }}
             />
-            <ITText className="text-[13px] text-slate-700">{o.texto}</ITText>
+            <ITText className="text-[13px] text-slate-700">{o.text}</ITText>
           </label>
         );
       })}

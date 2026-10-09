@@ -17,7 +17,7 @@ const newKey = (): string => `mig-${crypto.randomUUID()}`;
 export default function ImportWizard({ onExecuted }: Props) {
   const { t } = useTranslation(["migration", "common"]);
   const notify = useNotify();
-  const [entidad, setEntidad] = useState<MigrationEntity>("Student");
+  const [entity, setEntidad] = useState<MigrationEntity>("Student");
   const [file, setFile] = useState<File | null>(null);
   const [result, setResult] = useState<MigrationResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -35,7 +35,7 @@ export default function ImportWizard({ onExecuted }: Props) {
     setBusy(true);
     setError(null);
     try {
-      const res = await migrationApi.preview(entidad, file);
+      const res = await migrationApi.preview(entity, file);
       setResult(res);
       notify.success(t("wizard.previewed", { rejected: res.totals.rejected ?? 0 }));
     } catch (err) {
@@ -50,7 +50,7 @@ export default function ImportWizard({ onExecuted }: Props) {
     setBusy(true);
     setError(null);
     try {
-      const res = await migrationApi.execute(entidad, file, result.checksum, newKey());
+      const res = await migrationApi.execute(entity, file, result.checksum, newKey());
       setResult(res);
       notify.success(t("wizard.executed", { inserted: res.totals.inserted ?? 0, updated: res.totals.updated ?? 0, rejected: res.totals.rejected ?? 0 }));
       onExecuted();
@@ -81,9 +81,9 @@ export default function ImportWizard({ onExecuted }: Props) {
 
         <ITFlex gap={3} wrap="wrap" align="end">
           <ITSelect
-            name="entidad"
+            name="entity"
             label={t("wizard.entidad")}
-            value={entidad}
+            value={entity}
             options={MIGRATION_ENTITIES.map((e) => ({ value: e, label: t(`entities.${e}`) }))}
             onChange={(e) => { setEntidad(e.target.value as MigrationEntity); reset(); }}
           />
@@ -146,7 +146,7 @@ export default function ImportWizard({ onExecuted }: Props) {
         onClose={() => setConfirmOpen(false)}
         onConfirm={() => void execute()}
         title={t("wizard.confirmTitle")}
-        message={t("wizard.confirmMessage", { entidad: t(`entities.${entidad}`) })}
+        message={t("wizard.confirmMessage", { entity: t(`entities.${entity}`) })}
         confirmLabel={t("wizard.execute")}
         cancelLabel={t("common:actions.cancel")}
         variant="primary"

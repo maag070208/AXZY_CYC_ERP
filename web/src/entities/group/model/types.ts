@@ -11,7 +11,7 @@ export interface ScheduleSlot {
 /** Grupo (`/groups`, M07): curso + ciclo + profesor + cupo + horario. */
 export interface Group {
   id: string;
-  nombre: string;
+  name: string;
   courseId: string;
   courseClave: string;
   courseNombre: string;
@@ -20,11 +20,11 @@ export interface Group {
   termActivo: boolean;
   teacherId: string | null;
   teacherNombre: string | null;
-  cupo: number;
+  capacity: number;
   inscritos: number;
   disponibles: number;
-  horario: ScheduleSlot[];
-  aula: string | null;
+  schedule: ScheduleSlot[];
+  classroom: string | null;
   active: boolean;
   closedAt: string | null;
   createdAt: string;
@@ -35,29 +35,29 @@ export interface GroupInput {
   courseId?: string;
   termId?: string;
   teacherId?: string | null;
-  nombre?: string;
-  cupo?: number;
-  horario?: ScheduleSlot[];
-  aula?: string | null;
+  name?: string;
+  capacity?: number;
+  schedule?: ScheduleSlot[];
+  classroom?: string | null;
 }
 
-export type EnrollmentStatus = "INSCRITO" | "BAJA" | "ACREDITADO" | "REPROBADO";
+export type EnrollmentStatus = "ENROLLED" | "WITHDRAWN" | "PASSED" | "FAILED";
 
 export interface Enrollment {
   id: string;
   studentId: string;
-  matricula: string;
+  studentNumber: string;
   studentNombre: string;
-  studentStatus: "ACTIVO" | "BAJA";
+  studentStatus: "ACTIVE" | "WITHDRAWN";
   groupId: string;
   groupNombre: string;
   courseNombre: string;
   termNombre: string;
-  fecha: string;
+  date: string;
   status: EnrollmentStatus;
   finalGrade: number | null;
-  bajaAt: string | null;
-  bajaMotivo: string | null;
+  withdrawnAt: string | null;
+  withdrawalReason: string | null;
   transferredToId: string | null;
   createdAt: string;
 }

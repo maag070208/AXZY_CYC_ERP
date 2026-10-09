@@ -26,7 +26,7 @@ export default function ReportsPage() {
   const [catalog, setCatalog] = useState<ReportCatalogItem[]>([]);
   const [terms, setTerms] = useState<Term[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
-  const [tipo, setTipo] = useState<ReportType | "">("");
+  const [type, setTipo] = useState<ReportType | "">("");
   const [filters, setFilters] = useState<ReportFilters>({});
   const [result, setResult] = useState<ReportResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -42,7 +42,7 @@ export default function ReportsPage() {
   }, [filters.termId]);
 
   const set = (key: keyof ReportFilters, value: string) => setFilters((prev) => ({ ...prev, [key]: value || undefined }));
-  const current = tipo || undefined;
+  const current = type || undefined;
 
   const run = async () => {
     if (!current) return;
@@ -96,8 +96,8 @@ export default function ReportsPage() {
       <ITFlex direction="column" gap={4}>
         <PanelCard>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 items-end">
-            <ITSelect name="report" label={t("report")} value={tipo} placeholder="—"
-              options={catalog.map((r) => ({ value: r.tipo, label: r.financial ? `${r.title} · $` : r.title }))}
+            <ITSelect name="report" label={t("report")} value={type} placeholder="—"
+              options={catalog.map((r) => ({ value: r.type, label: r.financial ? `${r.title} · $` : r.title }))}
               onChange={(e) => { setTipo(e.target.value as ReportType); setResult(null); }} />
             {current && TERM_REPORTS.includes(current) && canTerms && (
               <ITSelect name="termId" label={t("ciclo")} value={filters.termId ?? ""} placeholder={current === "payments-period" || current === "debts" ? t("allGroups") : t("activeTerm")}
@@ -105,7 +105,7 @@ export default function ReportsPage() {
             )}
             {current && GROUP_REPORTS.includes(current) && (
               <ITSelect name="groupId" label={t("grupo")} value={filters.groupId ?? ""} placeholder={t("allGroups")}
-                options={groups.map((g) => ({ value: g.id, label: `${g.courseNombre} · ${g.nombre}` }))} onChange={(e) => set("groupId", e.target.value)} />
+                options={groups.map((g) => ({ value: g.id, label: `${g.courseNombre} · ${g.name}` }))} onChange={(e) => set("groupId", e.target.value)} />
             )}
             {current && RANGE_REPORTS.includes(current) && current !== "debts" && (
               <ITDatePicker name="from" label={t("from")} value={filters.from ? fromDay(filters.from) : undefined}
@@ -159,7 +159,7 @@ export default function ReportsPage() {
             <ITFlex gap={2} wrap="wrap" className="mt-3" data-role="report-totals">
               {Object.entries(result.totals).map(([key, value]) => {
                 const column = result.columns.find((c) => c.key === key);
-                const isMoney = column?.type === "money" || ["vencido", "EFECTIVO", "TRANSFERENCIA", "DEPOSITO", "TARJETA", "OTRO"].includes(key);
+                const isMoney = column?.type === "money" || ["vencido", "CASH", "TRANSFER", "DEPOSIT", "CARD", "OTHER"].includes(key);
                 return (
                   <ITBadget key={key} color="secondary" size="sm">
                     {`${key === "rows" ? t("rows", { count: value }) : `${column?.label ?? key}: ${isMoney ? formatMoney(value, i18n.language) : column?.type === "percent" ? `${value}%` : value}`}`}

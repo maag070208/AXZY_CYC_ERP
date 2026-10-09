@@ -115,10 +115,10 @@
     "dropped": "Inscripción dada de baja",
     "empty": "Aún no hay alumnos inscritos",
     "statuses": {
-      "INSCRITO": "Inscrito",
-      "BAJA": "Baja",
-      "ACREDITADO": "Acreditado",
-      "REPROBADO": "Reprobado"
+      "ENROLLED": "Inscrito",
+      "WITHDRAWN": "Baja",
+      "PASSED": "Acreditado",
+      "FAILED": "Reprobado"
     },
     "alreadyEnrolled": "Ya inscrito"
   }

@@ -6,11 +6,11 @@ const optional = <T extends z.ZodTypeAny>(schema: T) =>
   schema.nullable().optional().or(z.literal("").transform(() => null));
 
 const fields = {
-  nombres: z.string().trim().min(1, "REQUIRED_FIELD").max(100),
-  apellidos: z.string().trim().min(1, "REQUIRED_FIELD").max(150),
+  firstNames: z.string().trim().min(1, "REQUIRED_FIELD").max(100),
+  surnames: z.string().trim().min(1, "REQUIRED_FIELD").max(150),
   email: z.string().trim().toLowerCase().email("INVALID_EMAIL").max(150),
-  telefono: optional(phone),
-  especialidad: optional(z.string().trim().max(120)),
+  phone: optional(phone),
+  specialty: optional(z.string().trim().max(120)),
 };
 
 export const TeacherCreateDto = z.object(fields).strict().openapi("TeacherCreateInput");
@@ -35,13 +35,13 @@ registry.register("TeacherDeactivateInput", TeacherDeactivateDto);
 export const TeacherSchema = z
   .object({
     id: z.string(),
-    nombres: z.string(),
-    apellidos: z.string(),
+    firstNames: z.string(),
+    surnames: z.string(),
     nombreCompleto: z.string(),
     email: z.string(),
-    telefono: z.string().nullable(),
-    especialidad: z.string().nullable(),
-    status: z.enum(["ACTIVO", "INACTIVO"]),
+    phone: z.string().nullable(),
+    specialty: z.string().nullable(),
+    status: z.enum(["ACTIVE", "INACTIVE"]),
     account: z
       .object({
         userId: z.string(),

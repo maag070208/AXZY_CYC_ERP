@@ -75,7 +75,7 @@ export default function ImportQuestionsDialog({ isOpen, onClose, onImported }: P
               <ul className="max-h-48 overflow-y-auto divide-y divide-slate-100 rounded-xl border border-slate-200 text-[11px]">
                 {preview.sample.map((s) => (
                   <li key={s.row} className="px-2 py-1">
-                    <b>{s.curso}</b> · {t(`questions.types.${s.tipo}`)} · {s.puntos} pt — {s.enunciado}
+                    <b>{s.curso}</b> · {t(`questions.types.${s.type}`)} · {s.points} pt — {s.text}
                   </li>
                 ))}
               </ul>

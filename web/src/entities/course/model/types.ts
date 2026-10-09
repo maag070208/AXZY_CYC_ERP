@@ -1,11 +1,11 @@
 /** Curso (`/courses`, M07). */
 export interface Course {
   id: string;
-  clave: string;
-  nombre: string;
+  code: string;
+  name: string;
   levelId: string | null;
   levelNombre: string | null;
-  descripcion: string | null;
+  description: string | null;
   active: boolean;
   groupsCount: number;
   createdAt: string;
@@ -13,14 +13,14 @@ export interface Course {
 }
 
 export interface CourseInput {
-  clave?: string;
-  nombre?: string;
+  code?: string;
+  name?: string;
   levelId?: string | null;
-  descripcion?: string | null;
+  description?: string | null;
 }
 
 export interface CourseOption {
   id: string;
-  clave: string;
-  nombre: string;
+  code: string;
+  name: string;
 }

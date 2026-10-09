@@ -28,11 +28,11 @@ export default function TeachersTable({ fx, onAction }: Props) {
 
   const columns: Column<Teacher>[] = [
     {
-      key: "nombre", label: t("table.nombre"), type: "string", filter: true, sortable: false,
+      key: "name", label: t("table.name"), type: "string", filter: true, sortable: false,
       render: (row) => <ITText className="text-[12px] font-bold text-slate-700">{row.nombreCompleto}</ITText>,
     },
     { key: "email", label: t("table.email"), type: "string", width: 240, filter: true, sortable: false, truncate: true },
-    { key: "especialidad", label: t("table.especialidad"), type: "string", width: 180, filter: true, sortable: false },
+    { key: "specialty", label: t("table.specialty"), type: "string", width: 180, filter: true, sortable: false },
     {
       key: "account", label: t("table.account"), type: "string", width: 200,
       render: (row) =>
@@ -47,9 +47,9 @@ export default function TeachersTable({ fx, onAction }: Props) {
     },
     {
       key: "status", label: t("table.status"), type: "catalog", width: 130, filter: "catalog", sortable: false,
-      catalogOptions: { data: [{ id: "ACTIVO", name: t("status.ACTIVO") }, { id: "INACTIVO", name: t("status.INACTIVO") }] },
+      catalogOptions: { data: [{ id: "ACTIVE", name: t("status.ACTIVE") }, { id: "INACTIVE", name: t("status.INACTIVE") }] },
       render: (row) => (
-        <ITBadget color={row.status === "ACTIVO" ? "success" : "danger"} size="sm">{t(`status.${row.status}`)}</ITBadget>
+        <ITBadget color={row.status === "ACTIVE" ? "success" : "danger"} size="sm">{t(`status.${row.status}`)}</ITBadget>
       ),
     },
     {
@@ -57,9 +57,9 @@ export default function TeachersTable({ fx, onAction }: Props) {
       actions: (row) => (
         <ITFlex gap={1}>
           {canEdit && button("edit", row, <FaEdit size={12} />)}
-          {canEdit && row.status === "ACTIVO" && row.account?.pendingInvitation && button("resend", row, <FaEnvelope size={12} />, "primary")}
-          {canManage && row.status === "ACTIVO" && button("deactivate", row, <FaUserSlash size={12} />, "danger")}
-          {canManage && row.status === "INACTIVO" && button("reactivate", row, <FaUndo size={12} />, "success")}
+          {canEdit && row.status === "ACTIVE" && row.account?.pendingInvitation && button("resend", row, <FaEnvelope size={12} />, "primary")}
+          {canManage && row.status === "ACTIVE" && button("deactivate", row, <FaUserSlash size={12} />, "danger")}
+          {canManage && row.status === "INACTIVE" && button("reactivate", row, <FaUndo size={12} />, "success")}
         </ITFlex>
       ),
     },

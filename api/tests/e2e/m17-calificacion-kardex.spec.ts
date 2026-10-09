@@ -20,11 +20,11 @@ let profUserId: string;
 
 const makeExam = async (overrides: Record<string, unknown> = {}, maxScore = 100) => {
   const assessment = await db.assessment.create({
-    data: { groupId: world.group.id, nombre: `E2E Online ${Math.random().toString(36).slice(2, 6)}`, tipo: "PARCIAL", ponderacion: 10, maxScore },
+    data: { groupId: world.group.id, name: `E2E Online ${Math.random().toString(36).slice(2, 6)}`, type: "PARTIAL", weight: 10, maxScore },
   });
   const exam = await (
     await prof.post("online-exams", {
-      data: { groupId: world.group.id, titulo: "E2E Calificación", duracionMin: 30, intentosMax: 3, ...openWindow(), puntajeAprobatorio: 6,
+      data: { groupId: world.group.id, title: "E2E Calificación", durationMin: 30, maxAttempts: 3, ...openWindow(), passingScore: 6,
         assessmentId: assessment.id, ...overrides },
     })
   ).json();
@@ -38,12 +38,12 @@ const makeExam = async (overrides: Record<string, unknown> = {}, maxScore = 100)
 /** Presenta un intento con las respuestas dadas por clave (om, vf, mr, ab) y lo envía. */
 const take = async (api: APIRequestContext, examId: string, answers: { om?: number; vf?: number; mr?: number[]; ab?: string }) => {
   const attempt = await (await api.post(`online-exams/${examId}/start`)).json();
-  const byType = (tipo: string) => attempt.questions.find((q: { tipo: string }) => q.tipo === tipo);
+  const byType = (type: string) => attempt.questions.find((q: { type: string }) => q.type === type);
   const list = [];
-  if (answers.om !== undefined) list.push({ questionId: byType("OPCION_MULTIPLE").questionId, respuesta: world.questions.om.options[answers.om].id });
-  if (answers.vf !== undefined) list.push({ questionId: byType("VERDADERO_FALSO").questionId, respuesta: world.questions.vf.options[answers.vf].id });
-  if (answers.mr) list.push({ questionId: byType("MULTIPLE_RESPUESTA").questionId, respuesta: answers.mr.map((i) => world.questions.mr.options[i].id) });
-  if (answers.ab !== undefined) list.push({ questionId: byType("ABIERTA").questionId, respuesta: answers.ab });
+  if (answers.om !== undefined) list.push({ questionId: byType("MULTIPLE_CHOICE").questionId, answer: world.questions.om.options[answers.om].id });
+  if (answers.vf !== undefined) list.push({ questionId: byType("TRUE_FALSE").questionId, answer: world.questions.vf.options[answers.vf].id });
+  if (answers.mr) list.push({ questionId: byType("MULTIPLE_ANSWER").questionId, answer: answers.mr.map((i) => world.questions.mr.options[i].id) });
+  if (answers.ab !== undefined) list.push({ questionId: byType("OPEN").questionId, answer: answers.ab });
   const res = await api.post(`attempts/${attempt.attemptId}/submit`, { data: list.length ? { answers: list } : {} });
   expect(res.status(), await res.text()).toBe(200);
   return res.json();
@@ -73,44 +73,44 @@ test("califica cerradas todo o nada y deja la abierta pendiente; sin Grade hasta
   const { api } = await loginAs(pupil.username);
   // OM correcta (2), VF incorrecta (0), MR parcial = 0, abierta contestada → pendiente.
   const result = await take(api, examId, { om: 0, vf: 0, mr: [0], ab: "Revisar compresión de cada cilindro" });
-  expect(result.status).toBe("ENVIADO");
+  expect(result.status).toBe("SUBMITTED");
   expect(result.result).toEqual({ score: 2, totalPuntos: 10, pendingCount: 1, aprobado: null });
-  const marks = Object.fromEntries(result.questions.map((q: { tipo: string; esCorrecta: boolean | null; puntosObtenidos: number | null }) => [q.tipo, [q.esCorrecta, q.puntosObtenidos]]));
+  const marks = Object.fromEntries(result.questions.map((q: { type: string; isCorrect: boolean | null; pointsEarned: number | null }) => [q.type, [q.isCorrect, q.pointsEarned]]));
   expect(marks).toEqual({
-    OPCION_MULTIPLE: [true, 2],
-    VERDADERO_FALSO: [false, 0],
-    MULTIPLE_RESPUESTA: [false, 0],
-    ABIERTA: [null, null],
+    MULTIPLE_CHOICE: [true, 2],
+    TRUE_FALSE: [false, 0],
+    MULTIPLE_ANSWER: [false, 0],
+    OPEN: [null, null],
   });
   // Al terminar el alumno ya ve cuáles eran las correctas (mostrarResultado).
-  expect(JSON.stringify(result.questions)).toContain("esCorrecta");
+  expect(JSON.stringify(result.questions)).toContain("isCorrect");
   expect((await lastAudit("ATTEMPT_GRADED"))?.entityId).toBe(result.attemptId);
   expect(await gradeOf(assessmentId, pupil.enrollmentId)).toBeNull();
 
   // Revisión: puntos > máximo → 400; pregunta cerrada → 400; válida → Grade en la escala de la evaluación.
   const abId = world.questions.ab.id;
-  expect((await (await prof.patch(`attempts/${result.attemptId}/review`, { data: { questionId: abId, puntosObtenidos: 5 } })).json()).code).toBe("SCORE_OUT_OF_RANGE");
-  expect((await (await prof.patch(`attempts/${result.attemptId}/review`, { data: { questionId: world.questions.om.id, puntosObtenidos: 1 } })).json()).code).toBe("REVIEW_ONLY_OPEN");
-  const reviewed = await prof.patch(`attempts/${result.attemptId}/review`, { data: { questionId: abId, puntosObtenidos: 3, comentario: "Faltó la prueba de chispa" } });
+  expect((await (await prof.patch(`attempts/${result.attemptId}/review`, { data: { questionId: abId, pointsEarned: 5 } })).json()).code).toBe("SCORE_OUT_OF_RANGE");
+  expect((await (await prof.patch(`attempts/${result.attemptId}/review`, { data: { questionId: world.questions.om.id, pointsEarned: 1 } })).json()).code).toBe("REVIEW_ONLY_OPEN");
+  const reviewed = await prof.patch(`attempts/${result.attemptId}/review`, { data: { questionId: abId, pointsEarned: 3, comment: "Faltó la prueba de chispa" } });
   expect(reviewed.status(), await reviewed.text()).toBe(200);
   // 5 / 10 puntos → 50 en una evaluación de 100.
   expect(await reviewed.json()).toMatchObject({ score: 5, pendingCount: 0, grade: { assessmentId, enrollmentId: pupil.enrollmentId, score: 50 } });
   expect(Number((await gradeOf(assessmentId, pupil.enrollmentId))?.score)).toBe(50);
   const log = await lastAudit("ATTEMPT_REVIEWED", profUserId);
-  expect(log?.previousState).toMatchObject({ esCorrecta: null, puntosObtenidos: null });
-  expect(log?.newState).toMatchObject({ esCorrecta: true, puntosObtenidos: 3 });
+  expect(log?.previousState).toMatchObject({ isCorrect: null, pointsEarned: null });
+  expect(log?.newState).toMatchObject({ isCorrect: true, pointsEarned: 3 });
   expect((await lastAudit("GRADE_CAPTURED", profUserId))?.metadata).toMatchObject({ source: "online-exam", examId });
 
   // El alumno ve su comentario y ya no hay pendientes.
   const mine = await (await api.get(`attempts/${result.attemptId}`)).json();
   expect(mine.result).toMatchObject({ score: 5, pendingCount: 0, aprobado: false });
-  expect(mine.questions.find((q: { tipo: string }) => q.tipo === "ABIERTA").comentario).toBe("Faltó la prueba de chispa");
+  expect(mine.questions.find((q: { type: string }) => q.type === "OPEN").comment).toBe("Faltó la prueba de chispa");
   await api.dispose();
 });
 
-test("criterio MEJOR: el Grade toma el mejor intento; ULTIMO: el más reciente", async () => {
-  const best = await makeExam({ titulo: "E2E Mejor", criterioIntentos: "MEJOR" }, 10);
-  const last = await makeExam({ titulo: "E2E Último", criterioIntentos: "ULTIMO" }, 10);
+test("criterio BEST: el Grade toma el mejor intento; LAST: el más reciente", async () => {
+  const best = await makeExam({ title: "E2E Mejor", attemptCriterion: "BEST" }, 10);
+  const last = await makeExam({ title: "E2E Último", attemptCriterion: "LAST" }, 10);
   const pupil = await makePupil(RUN, "g2", world.group.id);
   const { api } = await loginAs(pupil.username);
   // Sin abierta contestada (vale 0, sin pendiente): 6 puntos y luego 2.
@@ -125,15 +125,15 @@ test("criterio MEJOR: el Grade toma el mejor intento; ULTIMO: el más reciente",
   await api.dispose();
 });
 
-test("mostrarResultado = false: el alumno no ve puntaje ni claves; resultados para el profesor", async () => {
-  const { examId } = await makeExam({ titulo: "E2E Oculto", mostrarResultado: false, intentosMax: 1 });
+test("showResult = false: el alumno no ve puntaje ni claves; resultados para el profesor", async () => {
+  const { examId } = await makeExam({ title: "E2E Oculto", showResult: false, maxAttempts: 1 });
   const pupil = await makePupil(RUN, "g3", world.group.id);
   const { api } = await loginAs(pupil.username);
   const result = await take(api, examId, { om: 0, vf: 1, mr: [0, 1], ab: "" });
   expect(result.result).toBeNull();
-  expect(JSON.stringify(result.questions)).not.toContain("esCorrecta");
+  expect(JSON.stringify(result.questions)).not.toContain("isCorrect");
   const available = await (await api.get("online-exams/available")).json();
-  expect(available.find((e: { examId: string }) => e.examId === examId).lastAttempt).toMatchObject({ score: null, status: "ENVIADO" });
+  expect(available.find((e: { examId: string }) => e.examId === examId).lastAttempt).toMatchObject({ score: null, status: "SUBMITTED" });
   await api.dispose();
 
   const res = await (await prof.get(`online-exams/${examId}/results`)).json();
@@ -144,8 +144,8 @@ test("mostrarResultado = false: el alumno no ve puntaje ni claves; resultados pa
   expect(staffView.result).toMatchObject({ score: 6, aprobado: true });
 });
 
-test("recalificar tras corregir la clave reescribe el Grade; repetirlo no cambia nada", async () => {
-  const { examId, assessmentId } = await makeExam({ titulo: "E2E Regrade" }, 10);
+test("recalificar tras corregir la code reescribe el Grade; repetirlo no cambia nada", async () => {
+  const { examId, assessmentId } = await makeExam({ title: "E2E Regrade" }, 10);
   const pupil = await makePupil(RUN, "g4", world.group.id);
   const { api } = await loginAs(pupil.username);
   const result = await take(api, examId, { om: 1, vf: 1, mr: [0, 1] }); // OM incorrecta: 4/10
@@ -153,35 +153,35 @@ test("recalificar tras corregir la clave reescribe el Grade; repetirlo no cambia
   expect(Number((await gradeOf(assessmentId, pupil.enrollmentId))?.score)).toBe(4);
 
   // La clave de la OM estaba mal: la opción 2 también es la buena (se corrige en BD, el reactivo está bloqueado).
-  await db.questionOption.update({ where: { id: world.questions.om.options[0].id }, data: { esCorrecta: false } });
-  await db.questionOption.update({ where: { id: world.questions.om.options[1].id }, data: { esCorrecta: true } });
+  await db.questionOption.update({ where: { id: world.questions.om.options[0].id }, data: { isCorrect: false } });
+  await db.questionOption.update({ where: { id: world.questions.om.options[1].id }, data: { isCorrect: true } });
   const regraded = await prof.post(`attempts/${result.attemptId}/regrade`);
   expect(await regraded.json()).toMatchObject({ score: 6, grade: { score: 6 } });
   expect((await lastAudit("ATTEMPT_REGRADED", profUserId))?.entityId).toBe(result.attemptId);
   const logs = await db.auditLog.count({ where: { action: "ATTEMPT_REGRADED", entityId: result.attemptId } });
   await prof.post(`attempts/${result.attemptId}/regrade`);
   expect(await db.auditLog.count({ where: { action: "ATTEMPT_REGRADED", entityId: result.attemptId } })).toBe(logs);
-  await db.questionOption.update({ where: { id: world.questions.om.options[1].id }, data: { esCorrecta: false } });
-  await db.questionOption.update({ where: { id: world.questions.om.options[0].id }, data: { esCorrecta: true } });
+  await db.questionOption.update({ where: { id: world.questions.om.options[1].id }, data: { isCorrect: false } });
+  await db.questionOption.update({ where: { id: world.questions.om.options[0].id }, data: { isCorrect: true } });
 
   // El reactivo ya respondido quedó bloqueado para edición.
-  const locked = await prof.patch(`questions/${world.questions.om.id}`, { data: { enunciado: "Otro texto" } });
+  const locked = await prof.patch(`questions/${world.questions.om.id}`, { data: { text: "Otro text" } });
   expect((await locked.json()).code).toBe("QUESTION_IN_USE");
 });
 
 test("alcance: otro profesor no revisa (403); no se revisa un intento en curso (409)", async () => {
-  const { examId } = await makeExam({ titulo: "E2E Alcance" });
+  const { examId } = await makeExam({ title: "E2E Alcance" });
   const pupil = await makePupil(RUN, "g5", world.group.id);
   const { api } = await loginAs(pupil.username);
   const open = await (await api.post(`online-exams/${examId}/start`)).json();
   await api.dispose();
-  const inProgress = await prof.patch(`attempts/${open.attemptId}/review`, { data: { questionId: world.questions.ab.id, puntosObtenidos: 1 } });
+  const inProgress = await prof.patch(`attempts/${open.attemptId}/review`, { data: { questionId: world.questions.ab.id, pointsEarned: 1 } });
   expect(inProgress.status()).toBe(409);
   expect((await inProgress.json()).code).toBe("ATTEMPT_OPEN");
 
   const other = await makeTeacher(RUN, "gother");
   const { api: stranger } = await loginAs(other.username);
-  expect((await stranger.patch(`attempts/${open.attemptId}/review`, { data: { questionId: world.questions.ab.id, puntosObtenidos: 1 } })).status()).toBe(403);
+  expect((await stranger.patch(`attempts/${open.attemptId}/review`, { data: { questionId: world.questions.ab.id, pointsEarned: 1 } })).status()).toBe(403);
   expect((await stranger.get(`online-exams/${examId}/results`)).status()).toBe(404);
   await stranger.dispose();
 });

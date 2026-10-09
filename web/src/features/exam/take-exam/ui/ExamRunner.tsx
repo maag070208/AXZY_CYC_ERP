@@ -36,7 +36,7 @@ export default function ExamRunner({ attempt, onFinished }: Props) {
   const { t, i18n } = useTranslation(["exams", "common"]);
   const notify = useNotify();
   const [answers, setAnswers] = useState<Record<string, AnswerValue>>(() =>
-    Object.fromEntries(attempt.questions.map((q) => [q.questionId, q.respuesta]))
+    Object.fromEntries(attempt.questions.map((q) => [q.questionId, q.answer]))
   );
   const [remaining, setRemaining] = useState(attempt.remainingSeconds);
   const [saveState, setSaveState] = useState<SaveState>("idle");
@@ -50,7 +50,7 @@ export default function ExamRunner({ attempt, onFinished }: Props) {
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   answersRef.current = answers;
 
-  const pendingAnswers = () => [...dirty.current].map((questionId) => ({ questionId, respuesta: answersRef.current[questionId] ?? null }));
+  const pendingAnswers = () => [...dirty.current].map((questionId) => ({ questionId, answer: answersRef.current[questionId] ?? null }));
 
   const finish = useCallback(async (expired: boolean) => {
     if (finished.current) return;
@@ -153,16 +153,16 @@ export default function ExamRunner({ attempt, onFinished }: Props) {
         </ITButton>
       </div>
       {low && <ITAlert variant="warning">{t("runner.warning")}</ITAlert>}
-      {attempt.instrucciones && <ITAlert variant="info"><span className="whitespace-pre-line">{attempt.instrucciones}</span></ITAlert>}
+      {attempt.instructions && <ITAlert variant="info"><span className="whitespace-pre-line">{attempt.instructions}</span></ITAlert>}
       <ITText className="text-[11px] text-slate-400">{t("runner.focusWarning")}</ITText>
       {attempt.questions.map((q) => (
         <PanelCard key={q.questionId}>
-          <section aria-label={t("runner.question", { n: q.orden })}>
+          <section aria-label={t("runner.question", { n: q.sortOrder })}>
             <ITFlex justify="between" align="start" gap={3} className="mb-3">
               <ITText className="text-[14px] font-bold text-slate-800">
-                <span className="mr-2 text-slate-400">{q.orden}.</span>{q.enunciado}
+                <span className="mr-2 text-slate-400">{q.sortOrder}.</span>{q.text}
               </ITText>
-              <span className="shrink-0 rounded-lg bg-slate-100 px-2 py-0.5 text-[10px] font-black text-slate-500">{t("runner.points", { count: q.puntos })}</span>
+              <span className="shrink-0 rounded-lg bg-slate-100 px-2 py-0.5 text-[10px] font-black text-slate-500">{t("runner.points", { count: q.points })}</span>
             </ITFlex>
             <QuestionField question={q} value={answers[q.questionId] ?? null} disabled={submitting} onChange={(v) => change(q.questionId, v)} />
           </section>

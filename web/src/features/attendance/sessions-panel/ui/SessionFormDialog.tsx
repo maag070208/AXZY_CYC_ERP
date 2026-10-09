@@ -13,16 +13,16 @@ interface Props {
   onSaved: (session: AttendanceSession) => void;
 }
 
-type Errors = Partial<Record<"fecha" | "tema", string>>;
+type Errors = Partial<Record<"date" | "topic", string>>;
 
 const pickDay = (value: unknown): string => (value instanceof Date && !Number.isNaN(value.getTime()) ? toDay(value) : "");
 
 /** Alta de una sesión de asistencia (M18 §4.1). No se permiten fechas futuras. */
 export default function SessionFormDialog({ isOpen, groupId, onClose, onSaved }: Props) {
   const { t } = useTranslation(["attendance", "common"]);
-  const [fecha, setFecha] = useState("");
-  const [hora, setHora] = useState("");
-  const [tema, setTema] = useState("");
+  const [date, setFecha] = useState("");
+  const [time, setHora] = useState("");
+  const [topic, setTema] = useState("");
   const [errors, setErrors] = useState<Errors>({});
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -38,8 +38,8 @@ export default function SessionFormDialog({ isOpen, groupId, onClose, onSaved }:
 
   const save = async () => {
     const next: Errors = {
-      fecha: validateRequired(fecha, t("form.fecha")) ?? undefined,
-      tema: tema.trim().length > 200 ? t("common:validation.minLength", { label: t("form.tema"), min: 0 }) : undefined,
+      date: validateRequired(date, t("form.fecha")) ?? undefined,
+      topic: topic.trim().length > 200 ? t("common:validation.minLength", { label: t("form.tema"), min: 0 }) : undefined,
     };
     setErrors(next);
     if (Object.values(next).some(Boolean)) return;
@@ -47,9 +47,9 @@ export default function SessionFormDialog({ isOpen, groupId, onClose, onSaved }:
     setError(null);
     try {
       const session = await attendanceApi.createSession(groupId, {
-        fecha,
-        hora: hora || null,
-        tema: tema.trim() || null,
+        date,
+        time: time || null,
+        topic: topic.trim() || null,
       });
       onSaved(session);
     } catch (err) {
@@ -67,15 +67,15 @@ export default function SessionFormDialog({ isOpen, groupId, onClose, onSaved }:
           {error && <ITAlert variant="error">{error}</ITAlert>}
           <ITGrid container columns={12} spacing={4}>
             <ITGrid item xs={12} md={7}>
-              <ITDatePicker name="fecha" label={t("form.fecha")} required error={errors.fecha} maxDate={new Date()}
-                value={fecha ? fromDay(fecha) : undefined}
+              <ITDatePicker name="date" label={t("form.fecha")} required error={errors.date} maxDate={new Date()}
+                value={date ? fromDay(date) : undefined}
                 onChange={(e) => setFecha(pickDay(e.target.value))} />
             </ITGrid>
             <ITGrid item xs={12} md={5}>
-              <ITTimePicker name="hora" label={t("form.hora")} value={hora} onChange={(e) => setHora(e.target.value)} />
+              <ITTimePicker name="time" label={t("form.hora")} value={time} onChange={(e) => setHora(e.target.value)} />
             </ITGrid>
             <ITGrid item xs={12}>
-              <ITInput name="tema" label={t("form.tema")} value={tema} maxLength={200} onChange={(e) => setTema(e.target.value)} />
+              <ITInput name="topic" label={t("form.tema")} value={topic} maxLength={200} onChange={(e) => setTema(e.target.value)} />
             </ITGrid>
           </ITGrid>
           <ITFlex justify="end" gap={2}>

@@ -35,15 +35,15 @@ export default function FeeConceptsPanel() {
   };
 
   const columns: Column<FeeConcept>[] = [
-    { key: "nombre", label: t("concepts.nombre"), type: "string", filter: true, sortable: false },
+    { key: "name", label: t("concepts.nombre"), type: "string", filter: true, sortable: false },
     {
-      key: "tipo", label: t("concepts.tipo"), type: "catalog", width: 150, filter: "catalog", sortable: false,
-      catalogOptions: { data: [...EDITABLE_FEE_TYPES, "RECARGO" as const].map((x) => ({ id: x, name: t(`concepts.types.${x}`) })) },
-      render: (row) => <ITText className="text-[12px] text-slate-600">{t(`concepts.types.${row.tipo}`)}</ITText>,
+      key: "type", label: t("concepts.tipo"), type: "catalog", width: 150, filter: "catalog", sortable: false,
+      catalogOptions: { data: [...EDITABLE_FEE_TYPES, "LATE_FEE" as const].map((x) => ({ id: x, name: t(`concepts.types.${x}`) })) },
+      render: (row) => <ITText className="text-[12px] text-slate-600">{t(`concepts.types.${row.type}`)}</ITText>,
     },
     {
-      key: "monto", label: t("concepts.monto"), type: "number", width: 140, sortable: false,
-      render: (row) => <ITText className="text-[12px] font-bold text-slate-700">{formatMoney(row.monto, i18n.language)}</ITText>,
+      key: "amount", label: t("concepts.monto"), type: "number", width: 140, sortable: false,
+      render: (row) => <ITText className="text-[12px] font-bold text-slate-700">{formatMoney(row.amount, i18n.language)}</ITText>,
     },
     {
       key: "active", label: t("concepts.status"), type: "boolean", width: 120, filter: true,
@@ -53,16 +53,16 @@ export default function FeeConceptsPanel() {
       ? [{
           key: "actions", label: t("common:labels.actions"), type: "actions" as const, width: 110,
           actions: (row: FeeConcept) =>
-            row.tipo === "RECARGO" ? (
+            row.type === "LATE_FEE" ? (
               <ITBadget color="secondary" size="sm">{t("concepts.reserved")}</ITBadget>
             ) : (
               <ITFlex gap={1}>
-                <ITButton variant="text" color="secondary" size="sm" ariaLabel={`${t("common:actions.edit")} ${row.nombre}`}
+                <ITButton variant="text" color="secondary" size="sm" ariaLabel={`${t("common:actions.edit")} ${row.name}`}
                   onClick={() => { setEditing(row); setFormOpen(true); }}>
                   <FaEdit size={12} />
                 </ITButton>
                 <ITButton variant="text" color={row.active ? "danger" : "success"} size="sm"
-                  ariaLabel={`${row.active ? t("common:actions.deactivate") : t("common:actions.reactivate")} ${row.nombre}`}
+                  ariaLabel={`${row.active ? t("common:actions.deactivate") : t("common:actions.reactivate")} ${row.name}`}
                   onClick={() => void toggle(row)}>
                   {row.active ? <FaBan size={12} /> : <FaUndo size={12} />}
                 </ITButton>

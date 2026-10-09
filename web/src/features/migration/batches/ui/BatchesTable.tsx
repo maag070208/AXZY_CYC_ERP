@@ -41,11 +41,11 @@ export default function BatchesTable({ reloadKey, onTotal }: Props) {
 
   const columns: Column<MigrationBatch>[] = [
     {
-      key: "archivo", label: t("batches.archivo"), type: "string", filter: true, sortable: false,
+      key: "file", label: t("batches.archivo"), type: "string", filter: true, sortable: false,
       render: (r) => (
         <div>
-          <ITText className="block text-[12px] font-bold text-slate-700">{r.archivo}</ITText>
-          <ITText className="text-[10px] text-slate-400">{t(`entities.${r.entidad}`)}</ITText>
+          <ITText className="block text-[12px] font-bold text-slate-700">{r.file}</ITText>
+          <ITText className="text-[10px] text-slate-400">{t(`entities.${r.entity}`)}</ITText>
         </div>
       ),
     },
@@ -56,7 +56,7 @@ export default function BatchesTable({ reloadKey, onTotal }: Props) {
     },
     {
       key: "status", label: t("batches.status"), type: "string", width: 110,
-      render: (r) => <ITBadget color={r.status === "COMPLETADO" ? "success" : "danger"} size="sm">{t(`status.${r.status}`)}</ITBadget>,
+      render: (r) => <ITBadget color={r.status === "COMPLETED" ? "success" : "danger"} size="sm">{t(`status.${r.status}`)}</ITBadget>,
     },
     {
       key: "totals", label: t("batches.totals"), type: "string",
@@ -69,7 +69,7 @@ export default function BatchesTable({ reloadKey, onTotal }: Props) {
     {
       key: "actions", label: t("common:labels.actions"), type: "actions", width: 70,
       actions: (r) => (
-        <ITButton variant="text" color="primary" size="sm" title={t("batches.view")} ariaLabel={`${t("batches.view")} ${r.archivo}`} onClick={() => void open(r)}>
+        <ITButton variant="text" color="primary" size="sm" title={t("batches.view")} ariaLabel={`${t("batches.view")} ${r.file}`} onClick={() => void open(r)}>
           <FaEye size={12} />
         </ITButton>
       ),
@@ -82,7 +82,7 @@ export default function BatchesTable({ reloadKey, onTotal }: Props) {
     { key: "value", label: t("wizard.value"), type: "string", render: (r) => <ITText className="font-mono text-[11px] text-slate-600">{r.value ?? "—"}</ITText> },
   ];
 
-  const title = detail ? t("batches.detailTitle", { archivo: detail.archivo }) : "";
+  const title = detail ? t("batches.detailTitle", { file: detail.file }) : "";
   return (
     <>
       <ITDataTable

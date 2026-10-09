@@ -14,7 +14,7 @@ interface Props {
   onSaved: () => void;
 }
 
-type Errors = Partial<Record<"motivo", string>>;
+type Errors = Partial<Record<"reason", string>>;
 
 const MAX_BYTES = 5 * 1024 * 1024;
 const ACCEPTED = ["application/pdf", "image/jpeg", "image/png"];
@@ -23,7 +23,7 @@ const ACCEPTED = ["application/pdf", "image/jpeg", "image/png"];
 export default function JustificationRequestDialog({ isOpen, attendanceId, studentName, onClose, onSaved }: Props) {
   const { t } = useTranslation(["attendance", "common"]);
   const notify = useNotify();
-  const [motivo, setMotivo] = useState("");
+  const [reason, setMotivo] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [errors, setErrors] = useState<Errors>({});
   const [error, setError] = useState<string | null>(null);
@@ -39,15 +39,15 @@ export default function JustificationRequestDialog({ isOpen, attendanceId, stude
 
   const save = async () => {
     const next: Errors = {
-      motivo: validateRequired(motivo, t("justifications.motivo")) ?? validateMinLength(motivo, 5, t("justifications.motivo")) ?? undefined,
+      reason: validateRequired(reason, t("justifications.motivo")) ?? validateMinLength(reason, 5, t("justifications.motivo")) ?? undefined,
     };
     setErrors(next);
-    if (next.motivo) return;
+    if (next.reason) return;
     if (!attendanceId) return;
     setSaving(true);
     setError(null);
     try {
-      await justificationApi.create(attendanceId, motivo.trim(), file ?? undefined);
+      await justificationApi.create(attendanceId, reason.trim(), file ?? undefined);
       notify.success(t("justifications.requested"));
       onSaved();
     } catch (err) {
@@ -64,7 +64,7 @@ export default function JustificationRequestDialog({ isOpen, attendanceId, stude
         <ITFlex direction="column" gap={4}>
           {error && <ITAlert variant="error">{error}</ITAlert>}
           <ITText className="text-[12px] text-slate-500">{t("justifications.requestHint")}</ITText>
-          <ITTextarea name="motivo" label={t("justifications.motivo")} value={motivo} onChange={setMotivo} rows={3} maxLength={1000} error={errors.motivo} />
+          <ITTextarea name="reason" label={t("justifications.motivo")} value={reason} onChange={setMotivo} rows={3} maxLength={1000} error={errors.reason} />
           <label className="flex flex-col gap-1 text-[12px] font-bold text-slate-600">
             {t("justifications.archivo")}
             <input

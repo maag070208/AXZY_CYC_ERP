@@ -32,7 +32,7 @@ export const chargeApi = {
     api.post<{ created: number; skipped: number }>("/charges/generate", data, idempotency(key)),
   lateFees: (asOf?: string) =>
     api.post<{ asOf: string; created: number; updated: number; skipped: number }>("/charges/late-fees", asOf ? { asOf } : {}),
-  cancel: (id: string, motivo: string) => api.delete<Charge>(`/charges/${id}`, { data: { motivo } }),
+  cancel: (id: string, reason: string) => api.delete<Charge>(`/charges/${id}`, { data: { reason } }),
   statement: (studentId: string) => api.get<AccountStatement>(`/students/${studentId}/account-statement`),
 };
 
@@ -40,5 +40,5 @@ export const paymentApi = {
   table: (params: ITDataTableFetchParamsPost) => tableRequest<Payment>("/payments/query", params),
   get: (id: string) => api.get<Payment>(`/payments/${id}`),
   register: (data: PaymentInput, key?: string) => api.post<Payment>("/payments", data, idempotency(key)),
-  cancel: (id: string, motivo: string) => api.delete<Payment>(`/payments/${id}`, { data: { motivo } }),
+  cancel: (id: string, reason: string) => api.delete<Payment>(`/payments/${id}`, { data: { reason } }),
 };

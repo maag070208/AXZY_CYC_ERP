@@ -13,24 +13,24 @@ import type { PlanCreateInput, PlanDetailView, PlanView } from "../models/dto/pr
 type Tx = Prisma.TransactionClient;
 
 const include = {
-  student: { select: { id: true, matricula: true, nombres: true, apellidoPaterno: true, apellidoMaterno: true } },
+  student: { select: { id: true, studentNumber: true, firstNames: true, paternalSurname: true, maternalSurname: true } },
   program: { select: { id: true, code: true, name: true } },
   term: { select: { id: true, name: true } },
   charges: { orderBy: { planChargeIndex: "asc" } },
 } satisfies Prisma.StudentPlanInclude;
 type PlanRow = Prisma.StudentPlanGetPayload<{ include: typeof include }>;
 
-const studentName = (s: { nombres: string; apellidoPaterno: string; apellidoMaterno: string | null }): string =>
-  [s.nombres, s.apellidoPaterno, s.apellidoMaterno].filter(Boolean).join(" ");
+const studentName = (s: { firstNames: string; paternalSurname: string; maternalSurname: string | null }): string =>
+  [s.firstNames, s.paternalSurname, s.maternalSurname].filter(Boolean).join(" ");
 
 const toPlanView = (row: PlanRow): PlanView => {
-  const amounts = row.charges.map((c) => Number(c.monto));
-  const dates = row.charges.map((c) => c.fechaVencimiento.toISOString().slice(0, 10)).sort();
+  const amounts = row.charges.map((c) => Number(c.amount));
+  const dates = row.charges.map((c) => c.dueDate.toISOString().slice(0, 10)).sort();
   return {
     id: row.id,
-    student: { id: row.student.id, matricula: row.student.matricula, name: studentName(row.student) },
+    student: { id: row.student.id, studentNumber: row.student.studentNumber, name: studentName(row.student) },
     program: { id: row.program.id, code: row.program.code, name: row.program.name },
-    term: row.term ? { id: row.term.id, nombre: row.term.name } : null,
+    term: row.term ? { id: row.term.id, name: row.term.name } : null,
     startDate: row.startDate.toISOString().slice(0, 10),
     periodType: row.periodType,
     periodCount: row.periodCount,
@@ -43,8 +43,8 @@ const toPlanView = (row: PlanRow): PlanView => {
     status: row.status,
     totals: {
       charges: row.charges.length,
-      enrollmentCharges: row.charges.filter((c) => c.descripcion?.startsWith("Reinscripción")).length,
-      monthlyCharges: row.charges.filter((c) => c.descripcion?.startsWith("Colegiatura")).length,
+      enrollmentCharges: row.charges.filter((c) => c.description?.startsWith("Reinscripción")).length,
+      monthlyCharges: row.charges.filter((c) => c.description?.startsWith("Colegiatura")).length,
       amount: Math.round(amounts.reduce((sum, a) => sum + a, 0) * 100) / 100,
     },
     firstDueDate: dates[0] ?? null,
@@ -58,17 +58,17 @@ const toPlanDetail = (row: PlanRow): PlanDetailView => ({
   charges: row.charges.map((c) => ({
     id: c.id,
     planChargeIndex: c.planChargeIndex,
-    descripcion: c.descripcion,
-    monto: Number(c.monto),
-    fechaVencimiento: c.fechaVencimiento.toISOString().slice(0, 10),
+    description: c.description,
+    amount: Number(c.amount),
+    dueDate: c.dueDate.toISOString().slice(0, 10),
     status: c.status,
   })),
 });
 
 /** Conceptos genéricos que usan los cargos del plan (M09). */
-const CONCEPTS: Record<ChargeKind, { nombre: string; tipo: "INSCRIPCION" | "COLEGIATURA" }> = {
-  ENROLLMENT: { nombre: "Reinscripción", tipo: "INSCRIPCION" },
-  MONTHLY: { nombre: "Colegiatura", tipo: "COLEGIATURA" },
+const CONCEPTS: Record<ChargeKind, { name: string; type: "ENROLLMENT" | "TUITION" }> = {
+  ENROLLMENT: { name: "Reinscripción", type: "ENROLLMENT" },
+  MONTHLY: { name: "Colegiatura", type: "TUITION" },
 };
 
 /** M22 — plan de pagos del alumno: generación idempotente de cargos. */
@@ -87,9 +87,9 @@ export class PlanService {
 
   private async ensureConcept(tx: Tx, kind: ChargeKind): Promise<string> {
     const def = CONCEPTS[kind];
-    const existing = await tx.feeConcept.findUnique({ where: { nombre: def.nombre }, select: { id: true } });
+    const existing = await tx.feeConcept.findUnique({ where: { name: def.name }, select: { id: true } });
     if (existing) return existing.id;
-    const created = await tx.feeConcept.create({ data: { nombre: def.nombre, descripcion: "Generado por M22", monto: 0, tipo: def.tipo } });
+    const created = await tx.feeConcept.create({ data: { name: def.name, description: "Generado por M22", amount: 0, type: def.type } });
     return created.id;
   }
 
@@ -126,7 +126,7 @@ export class PlanService {
     if (!program.active) throw new HttpError(409, "PROGRAM_INACTIVE");
     const student = await this.db.student.findUnique({ where: { id: input.studentId }, select: { id: true, status: true } });
     if (!student) throw new HttpError(404, "STUDENT_NOT_FOUND");
-    if (student.status === "BAJA") throw new HttpError(409, "STUDENT_INACTIVE");
+    if (student.status === "WITHDRAWN") throw new HttpError(409, "STUDENT_INACTIVE");
     if (input.termId) {
       const term = await this.db.term.findUnique({ where: { id: input.termId }, select: { id: true } });
       if (!term) throw new HttpError(404, "TERM_NOT_FOUND");
@@ -171,9 +171,9 @@ export class PlanService {
             termId: input.termId ?? null,
             planId: plan.id,
             planChargeIndex: seed.index,
-            descripcion: chargeDescription(seed),
-            monto: applyDiscount(seed.amount, discount),
-            fechaVencimiento: toDbDay(dueDayFor(input.startDate, seed.monthOffset, dueDay)),
+            description: chargeDescription(seed),
+            amount: applyDiscount(seed.amount, discount),
+            dueDate: toDbDay(dueDayFor(input.startDate, seed.monthOffset, dueDay)),
             createdBy: actor.id,
           })),
         });
@@ -195,8 +195,8 @@ export class PlanService {
     if (plan.status !== "ACTIVE") throw new HttpError(409, "PLAN_NOT_ACTIVE");
     await this.db.$transaction(async (tx) => {
       await tx.charge.updateMany({
-        where: { planId: id, status: "PENDIENTE", payments: { none: {} } },
-        data: { status: "CANCELADO", cancelledAt: new Date(), cancelReason: reason, cancelledBy: actor.id },
+        where: { planId: id, status: "PENDING", payments: { none: {} } },
+        data: { status: "CANCELLED", cancelledAt: new Date(), cancelReason: reason, cancelledBy: actor.id },
       });
       await tx.studentPlan.update({ where: { id }, data: { status: "CANCELLED" } });
       await this.audit?.(

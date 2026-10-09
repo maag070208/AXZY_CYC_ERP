@@ -56,7 +56,7 @@ export default function TermsManager({ canManage }: Props) {
 
   const columns: Column<Term>[] = [
     {
-      key: "nombre",
+      key: "name",
       label: t("terms.nombre"),
       type: "string",
       filter: true,

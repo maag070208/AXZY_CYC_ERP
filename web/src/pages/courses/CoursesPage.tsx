@@ -72,8 +72,8 @@ export default function CoursesPage() {
         isOpen={!!toggling}
         onClose={() => setToggling(null)}
         onConfirm={() => void toggle()}
-        title={toggling?.active ? t("common:actions.reactivate") : t("courses.deactivateTitle", { name: toggling?.course.nombre ?? "" })}
-        message={toggling?.active ? toggling.course.nombre : t("courses.deactivateMessage")}
+        title={toggling?.active ? t("common:actions.reactivate") : t("courses.deactivateTitle", { name: toggling?.course.name ?? "" })}
+        message={toggling?.active ? toggling.course.name : t("courses.deactivateMessage")}
         confirmLabel={toggling?.active ? t("common:actions.reactivate") : t("common:actions.deactivate")}
         cancelLabel={t("common:actions.cancel")}
         variant={toggling?.active ? "success" : "danger"}

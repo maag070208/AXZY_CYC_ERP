@@ -46,13 +46,13 @@ export default function StudentAttendancePanel({ studentId, studentName, readOnl
 
   const columns: Column<StudentAttendanceRecord>[] = [
     {
-      key: "fecha", label: t("student.fecha"), type: "string", width: 170,
-      render: (r) => <ITText className="text-[12px] text-slate-600">{formatDay(r.fecha, i18n.language)}{r.hora ? ` · ${r.hora}` : ""}</ITText>,
+      key: "date", label: t("student.fecha"), type: "string", width: 170,
+      render: (r) => <ITText className="text-[12px] text-slate-600">{formatDay(r.date, i18n.language)}{r.time ? ` · ${r.time}` : ""}</ITText>,
     },
     {
       key: "status", label: t("student.estado"), type: "string", width: 130,
       render: (r) => (
-        <ITBadget color={r.status === "FALTA" ? "danger" : r.status === "RETARDO" ? "warning" : "success"} size="sm">
+        <ITBadget color={r.status === "ABSENT" ? "danger" : r.status === "LATE" ? "warning" : "success"} size="sm">
           {t(`status.${r.status}`)}
         </ITBadget>
       ),
@@ -62,11 +62,11 @@ export default function StudentAttendancePanel({ studentId, studentName, readOnl
       render: (r) => (
         <ITFlex direction="column" gap={1}>
           {r.justification ? (
-            <ITBadget color={r.justification.status === "APROBADA" ? "success" : r.justification.status === "RECHAZADA" ? "danger" : "warning"} size="sm">
+            <ITBadget color={r.justification.status === "APPROVED" ? "success" : r.justification.status === "REJECTED" ? "danger" : "warning"} size="sm">
               {t(`justificationStatus.${r.justification.status}`)}
             </ITBadget>
           ) : (
-            <ITText className="text-[11px] text-slate-400">{r.status === "FALTA" ? t("student.sinJustificar") : "—"}</ITText>
+            <ITText className="text-[11px] text-slate-400">{r.status === "ABSENT" ? t("student.sinJustificar") : "—"}</ITText>
           )}
         </ITFlex>
       ),
@@ -74,8 +74,8 @@ export default function StudentAttendancePanel({ studentId, studentName, readOnl
     {
       key: "actions", label: t("common:labels.actions"), type: "actions", width: 120,
       actions: (r) => (
-        canJustify && !readOnly && r.status === "FALTA" && (!r.justification || r.justification.status === "RECHAZADA") ? (
-          <ITButton variant="text" color="primary" size="sm" ariaLabel={`${t("justifications.request")} ${r.fecha}`} onClick={() => setRequesting(r)}>
+        canJustify && !readOnly && r.status === "ABSENT" && (!r.justification || r.justification.status === "REJECTED") ? (
+          <ITButton variant="text" color="primary" size="sm" ariaLabel={`${t("justifications.request")} ${r.date}`} onClick={() => setRequesting(r)}>
             {t("justifications.request")}
           </ITButton>
         ) : null

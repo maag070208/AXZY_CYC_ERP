@@ -22,39 +22,39 @@ const twoDecimals = (v: number) => Math.abs(Math.round(v * 100) - v * 100) < 1e-
 /** Alta/edición de un instrumento: nombre, tipo, ponderación (%), máximo y fecha. */
 export default function AssessmentFormDialog({ isOpen, groupId, assessment, available, onClose, onSaved }: Props) {
   const { t } = useTranslation(["grades", "common"]);
-  const [nombre, setNombre] = useState("");
-  const [tipo, setTipo] = useState<AssessmentType>("PARCIAL");
-  const [ponderacion, setPonderacion] = useState("");
+  const [name, setName] = useState("");
+  const [type, setType] = useState<AssessmentType>("PARTIAL");
+  const [weightInput, setWeightInput] = useState("");
   const [maxScore, setMaxScore] = useState("100");
-  const [fecha, setFecha] = useState("");
-  const [errors, setErrors] = useState<{ nombre?: string; ponderacion?: string; maxScore?: string }>({});
+  const [date, setDate] = useState("");
+  const [errors, setErrors] = useState<{ name?: string; weight?: string; maxScore?: string }>({});
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isOpen) return;
-    setNombre(assessment?.nombre ?? "");
-    setTipo(assessment?.tipo ?? "PARCIAL");
-    setPonderacion(assessment ? String(assessment.ponderacion) : available > 0 ? String(available) : "");
+    setName(assessment?.name ?? "");
+    setType(assessment?.type ?? "PARTIAL");
+    setWeightInput(assessment ? String(assessment.weight) : available > 0 ? String(available) : "");
     setMaxScore(String(assessment?.maxScore ?? 100));
-    setFecha(assessment?.fecha ?? "");
+    setDate(assessment?.date ?? "");
     setErrors({});
     setError(null);
   }, [assessment, isOpen, available]);
 
   const save = async () => {
-    const weight = Number(ponderacion);
+    const weight = Number(weightInput);
     const max = Number(maxScore);
     const next = {
-      nombre: validateRequired(nombre, t("assessments.nombre")) ?? undefined,
-      ponderacion: weight > 0 && weight <= 100 && twoDecimals(weight) ? undefined : "0 < % ≤ 100",
+      name: validateRequired(name, t("assessments.nombre")) ?? undefined,
+      weight: weight > 0 && weight <= 100 && twoDecimals(weight) ? undefined : "0 < % ≤ 100",
       maxScore: max > 0 && twoDecimals(max) ? undefined : "> 0",
     };
     setErrors(next);
-    if (next.nombre || next.ponderacion || next.maxScore) return;
+    if (next.name || next.weight || next.maxScore) return;
     setSaving(true);
     setError(null);
-    const data = { nombre: nombre.trim(), tipo, ponderacion: weight, maxScore: max, fecha: fecha || null };
+    const data = { name: name.trim(), type, weight: weight, maxScore: max, date: date || null };
     try {
       if (assessment) onSaved(await assessmentApi.update(assessment.id, data), false);
       else onSaved(await assessmentApi.create({ ...data, groupId }), true);
@@ -73,25 +73,25 @@ export default function AssessmentFormDialog({ isOpen, groupId, assessment, avai
           {error && <ITAlert variant="error">{error}</ITAlert>}
           <ITGrid container columns={12} spacing={4}>
             <ITGrid item xs={12} md={8}>
-              <ITInput name="nombre" label={t("assessments.nombre")} value={nombre} required error={errors.nombre}
-                onChange={(e) => setNombre(e.target.value)} />
+              <ITInput name="name" label={t("assessments.nombre")} value={name} required error={errors.name}
+                onChange={(e) => setName(e.target.value)} />
             </ITGrid>
             <ITGrid item xs={12} md={4}>
-              <ITSelect name="tipo" label={t("assessments.tipo")} value={tipo}
+              <ITSelect name="type" label={t("assessments.tipo")} value={type}
                 options={ASSESSMENT_TYPES.map((x) => ({ value: x, label: t(`assessments.types.${x}`) }))}
-                onChange={(e) => setTipo(e.target.value as AssessmentType)} />
+                onChange={(e) => setType(e.target.value as AssessmentType)} />
             </ITGrid>
             <ITGrid item xs={12} md={4}>
-              <ITInput name="ponderacion" type="number" label={t("assessments.ponderacion")} value={ponderacion} required
-                error={errors.ponderacion} onChange={(e) => setPonderacion(e.target.value)} />
+              <ITInput name="weight" type="number" label={t("assessments.ponderacion")} value={weightInput} required
+                error={errors.weight} onChange={(e) => setWeightInput(e.target.value)} />
             </ITGrid>
             <ITGrid item xs={12} md={4}>
               <ITInput name="maxScore" type="number" label={t("assessments.maxScore")} value={maxScore} required
                 error={errors.maxScore} onChange={(e) => setMaxScore(e.target.value)} />
             </ITGrid>
             <ITGrid item xs={12} md={4}>
-              <ITDatePicker name="fecha" label={t("assessments.fecha")} value={fecha ? fromDay(fecha) : undefined}
-                onChange={(e) => setFecha(pickDay(e.target.value))} />
+              <ITDatePicker name="date" label={t("assessments.fecha")} value={date ? fromDay(date) : undefined}
+                onChange={(e) => setDate(pickDay(e.target.value))} />
             </ITGrid>
           </ITGrid>
           <ITFlex justify="end" gap={2}>

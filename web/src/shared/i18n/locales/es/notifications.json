@@ -7,13 +7,13 @@
     "EMAIL": "Correo",
     "SMS": "SMS",
     "WHATSAPP": "WhatsApp",
-    "INTERNO": "Interno"
+    "IN_APP": "Interno"
   },
   "status": {
-    "EN_COLA": "En cola",
-    "ENVIADO": "Enviado",
-    "FALLIDO": "Fallido",
-    "OMITIDO": "Omitido"
+    "QUEUED": "En cola",
+    "SENT": "Enviado",
+    "FAILED": "Fallido",
+    "SKIPPED": "Omitido"
   },
   "page": {
     "title": "Notificaciones",
@@ -67,7 +67,7 @@
       "EMAIL": "Correo válido, por ejemplo alumno@escuela.mx.",
       "SMS": "Teléfono de 10 a 15 dígitos, con lada (por ejemplo +521234567890).",
       "WHATSAPP": "Teléfono de 10 a 15 dígitos, con lada.",
-      "INTERNO": "Bandeja interna: usa el formato user:<uuid de la cuenta>."
+      "IN_APP": "Bandeja interna: usa el formato user:<uuid de la cuenta>."
     }
   },
   "preferences": {

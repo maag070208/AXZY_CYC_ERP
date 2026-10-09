@@ -18,37 +18,37 @@ const CLAVE = /^[A-Z0-9][A-Z0-9._-]*$/;
 /** Alta y edición de un curso (clave, nombre, nivel, descripción). */
 export default function CourseFormDialog({ isOpen, course, onClose, onSaved }: Props) {
   const { t } = useTranslation(["courses", "common"]);
-  const [clave, setClave] = useState("");
-  const [nombre, setNombre] = useState("");
+  const [code, setClave] = useState("");
+  const [name, setNombre] = useState("");
   const [levelId, setLevelId] = useState("");
-  const [descripcion, setDescripcion] = useState("");
+  const [description, setDescripcion] = useState("");
   const [levels, setLevels] = useState<CatalogItem[]>([]);
-  const [errors, setErrors] = useState<{ clave?: string; nombre?: string }>({});
+  const [errors, setErrors] = useState<{ code?: string; name?: string }>({});
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isOpen) return;
-    setClave(course?.clave ?? "");
-    setNombre(course?.nombre ?? "");
+    setClave(course?.code ?? "");
+    setNombre(course?.name ?? "");
     setLevelId(course?.levelId ?? "");
-    setDescripcion(course?.descripcion ?? "");
+    setDescripcion(course?.description ?? "");
     setErrors({});
     setError(null);
     catalogApi.options("levels").then(setLevels).catch(() => setLevels([]));
   }, [course, isOpen]);
 
   const save = async () => {
-    const normalized = clave.trim().toUpperCase();
+    const normalized = code.trim().toUpperCase();
     const next = {
-      clave: validateRequired(normalized, t("courses.clave")) ?? (CLAVE.test(normalized) ? undefined : t("courses.claveHint")),
-      nombre: validateRequired(nombre, t("courses.nombre")) ?? undefined,
+      code: validateRequired(normalized, t("courses.clave")) ?? (CLAVE.test(normalized) ? undefined : t("courses.claveHint")),
+      name: validateRequired(name, t("courses.nombre")) ?? undefined,
     };
     setErrors(next);
-    if (next.clave || next.nombre) return;
+    if (next.code || next.name) return;
     setSaving(true);
     setError(null);
-    const data = { clave: normalized, nombre: nombre.trim(), levelId: levelId || null, descripcion: descripcion.trim() || null };
+    const data = { code: normalized, name: name.trim(), levelId: levelId || null, description: description.trim() || null };
     try {
       if (course) onSaved(await courseApi.update(course.id, data), false);
       else onSaved(await courseApi.create(data), true);
@@ -67,11 +67,11 @@ export default function CourseFormDialog({ isOpen, course, onClose, onSaved }: P
           {error && <ITAlert variant="error">{error}</ITAlert>}
           <ITGrid container columns={12} spacing={4}>
             <ITGrid item xs={12} md={5}>
-              <ITInput name="clave" label={t("courses.clave")} value={clave} required error={errors.clave}
+              <ITInput name="code" label={t("courses.clave")} value={code} required error={errors.code}
                 onChange={(e) => setClave(e.target.value.toUpperCase())} />
             </ITGrid>
             <ITGrid item xs={12} md={7}>
-              <ITInput name="nombre" label={t("courses.nombre")} value={nombre} required error={errors.nombre}
+              <ITInput name="name" label={t("courses.nombre")} value={name} required error={errors.name}
                 onChange={(e) => setNombre(e.target.value)} />
             </ITGrid>
             <ITGrid item xs={12}>
@@ -79,7 +79,7 @@ export default function CourseFormDialog({ isOpen, course, onClose, onSaved }: P
                 options={levels.map((l) => ({ value: l.id, label: l.name }))} onChange={(e) => setLevelId(e.target.value)} />
             </ITGrid>
             <ITGrid item xs={12}>
-              <ITTextarea name="descripcion" label={t("courses.descripcion")} value={descripcion} onChange={setDescripcion} rows={3} maxLength={1000} />
+              <ITTextarea name="description" label={t("courses.descripcion")} value={description} onChange={setDescripcion} rows={3} maxLength={1000} />
             </ITGrid>
           </ITGrid>
           <ITText className="text-[11px] text-slate-400">{t("courses.claveHint")}</ITText>

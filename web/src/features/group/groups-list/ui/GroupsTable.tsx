@@ -21,7 +21,7 @@ export default function GroupsTable({ fx, onAction }: Props) {
 
   const button = (action: GroupAction, group: Group, icon: React.ReactNode, color = "secondary") => (
     <ITButton key={action} variant="text" color={color as "secondary"} size="sm" title={t(`common:actions.${action}`)}
-      ariaLabel={`${t(`common:actions.${action}`)} ${group.courseNombre} ${group.nombre}`} onClick={() => onAction(action, group)}>
+      ariaLabel={`${t(`common:actions.${action}`)} ${group.courseNombre} ${group.name}`} onClick={() => onAction(action, group)}>
       {icon}
     </ITButton>
   );
@@ -36,7 +36,7 @@ export default function GroupsTable({ fx, onAction }: Props) {
         </button>
       ),
     },
-    { key: "nombre", label: t("groups.nombre"), type: "string", width: 100, filter: true, sortable: false },
+    { key: "name", label: t("groups.nombre"), type: "string", width: 100, filter: true, sortable: false },
     {
       key: "termId", label: t("groups.ciclo"), type: "catalog", width: 150, filter: "catalog", sortable: false,
       catalogOptions: { data: fx.terms.map((term) => ({ id: term.id, name: term.name })) },
@@ -46,10 +46,10 @@ export default function GroupsTable({ fx, onAction }: Props) {
       key: "teacherNombre", label: t("groups.profesor"), type: "string", width: 180,
       render: (row) => <ITText className="text-[12px] text-slate-600">{row.teacherNombre ?? t("groups.noTeacher")}</ITText>,
     },
-    { key: "horario", label: t("groups.horario"), type: "string", width: 220, render: (row) => <ScheduleSummary slots={row.horario} /> },
+    { key: "schedule", label: t("groups.horario"), type: "string", width: 220, render: (row) => <ScheduleSummary slots={row.schedule} /> },
     {
-      key: "cupo", label: t("groups.inscritos"), type: "number", width: 110, sortable: false,
-      render: (row) => <ITText className="text-[12px] font-bold text-slate-700">{row.inscritos} / {row.cupo}</ITText>,
+      key: "capacity", label: t("groups.inscritos"), type: "number", width: 110, sortable: false,
+      render: (row) => <ITText className="text-[12px] font-bold text-slate-700">{row.inscritos} / {row.capacity}</ITText>,
     },
     { key: "status", label: t("groups.status"), type: "string", width: 110, render: (row) => <GroupStatusBadge group={row} /> },
     {

@@ -15,19 +15,19 @@ import { applyDiscount, buildChargeSchedule, dueDayFor } from "../src/modules/pr
 const prisma = new PrismaClient();
 const RUN_YEAR = new Date().getFullYear();
 
-const COURSES: Array<{ clave: string; nombre: string; period: number }> = [
-  { clave: "MOT-101", nombre: "Motores de Combustión", period: 1 },
-  { clave: "MAT-101", nombre: "Matemáticas Aplicadas", period: 1 },
-  { clave: "DIB-101", nombre: "Dibujo Técnico", period: 1 },
-  { clave: "SEG-101", nombre: "Seguridad e Higiene", period: 1 },
-  { clave: "MOT-201", nombre: "Sistemas de Inyección", period: 2 },
-  { clave: "ELE-201", nombre: "Electricidad Automotriz", period: 2 },
-  { clave: "FRE-201", nombre: "Sistemas de Frenos", period: 2 },
-  { clave: "TRA-201", nombre: "Transmisión y Embrague", period: 2 },
-  { clave: "DIA-301", nombre: "Diagnóstico por Computadora", period: 3 },
-  { clave: "SUS-301", nombre: "Suspensión y Dirección", period: 3 },
-  { clave: "CLI-301", nombre: "Práctica en Taller", period: 3 },
-  { clave: "EMP-301", nombre: "Emprendimiento Técnico", period: 3 },
+const COURSES: Array<{ code: string; name: string; period: number }> = [
+  { code: "MOT-101", name: "Motores de Combustión", period: 1 },
+  { code: "MAT-101", name: "Matemáticas Aplicadas", period: 1 },
+  { code: "DIB-101", name: "Dibujo Técnico", period: 1 },
+  { code: "SEG-101", name: "Seguridad e Higiene", period: 1 },
+  { code: "MOT-201", name: "Sistemas de Inyección", period: 2 },
+  { code: "ELE-201", name: "Electricidad Automotriz", period: 2 },
+  { code: "FRE-201", name: "Sistemas de Frenos", period: 2 },
+  { code: "TRA-201", name: "Transmisión y Embrague", period: 2 },
+  { code: "DIA-301", name: "Diagnóstico por Computadora", period: 3 },
+  { code: "SUS-301", name: "Suspensión y Dirección", period: 3 },
+  { code: "CLI-301", name: "Práctica en Taller", period: 3 },
+  { code: "EMP-301", name: "Emprendimiento Técnico", period: 3 },
 ];
 
 const PROGRAMS = [
@@ -37,11 +37,11 @@ const PROGRAMS = [
 ];
 
 const TEACHERS = [
-  { username: "marco", nombres: "Marco", apellidos: "Demo", email: "marco@axzy.dev" },
-  { username: "martin", nombres: "Martín", apellidos: "Demo", email: "martin@axzy.dev" },
-  { username: "rlopez", nombres: "Raúl", apellidos: "López", email: "rlopez@cyc.edu.mx" },
-  { username: "cgarcia", nombres: "Carmen", apellidos: "García", email: "cgarcia@cyc.edu.mx" },
-  { username: "jperez", nombres: "Jorge", apellidos: "Pérez", email: "jperez@cyc.edu.mx" },
+  { username: "marco", firstNames: "Marco", surnames: "Demo", email: "marco@axzy.dev" },
+  { username: "martin", firstNames: "Martín", surnames: "Demo", email: "martin@axzy.dev" },
+  { username: "rlopez", firstNames: "Raúl", surnames: "López", email: "rlopez@cyc.edu.mx" },
+  { username: "cgarcia", firstNames: "Carmen", surnames: "García", email: "cgarcia@cyc.edu.mx" },
+  { username: "jperez", firstNames: "Jorge", surnames: "Pérez", email: "jperez@cyc.edu.mx" },
 ];
 
 const PASSWORD = "123123";
@@ -61,8 +61,8 @@ const ensureUser = async (input: { username: string; name: string; email: string
   return user.id;
 };
 
-const ensureCourse = async (clave: string, nombre: string, levelId: string): Promise<string> => {
-  const row = await prisma.course.upsert({ where: { clave }, create: { clave, nombre, levelId }, update: { nombre, levelId, active: true }, select: { id: true } });
+const ensureCourse = async (code: string, name: string, levelId: string): Promise<string> => {
+  const row = await prisma.course.upsert({ where: { code }, create: { code, name, levelId }, update: { name, levelId, active: true }, select: { id: true } });
   return row.id;
 };
 
@@ -76,10 +76,10 @@ const ensureProgram = async (p: (typeof PROGRAMS)[number]): Promise<string> => {
   return row.id;
 };
 
-const ensureGroup = async (courseId: string, termId: string, teacherId: string | null, nombre: string): Promise<string> => {
+const ensureGroup = async (courseId: string, termId: string, teacherId: string | null, name: string): Promise<string> => {
   const row = await prisma.group.upsert({
-    where: { courseId_termId_nombre: { courseId, termId, nombre } },
-    create: { courseId, termId, teacherId, nombre, cupo: 30, horario: [{ dia: "LUNES", horaInicio: "08:00", horaFin: "10:00" }, { dia: "MIERCOLES", horaInicio: "08:00", horaFin: "10:00" }] },
+    where: { courseId_termId_name: { courseId, termId, name } },
+    create: { courseId, termId, teacherId, name, capacity: 30, schedule: [{ dia: "LUNES", horaInicio: "08:00", horaFin: "10:00" }, { dia: "MIERCOLES", horaInicio: "08:00", horaFin: "10:00" }] },
     update: { teacherId, active: true },
     select: { id: true },
   });
@@ -89,7 +89,7 @@ const ensureGroup = async (courseId: string, termId: string, teacherId: string |
 const ensureEnrollment = async (studentId: string, groupId: string, actorId: string): Promise<void> => {
   const existing = await prisma.enrollment.findFirst({ where: { studentId, groupId }, select: { id: true } });
   if (existing) return;
-  await prisma.enrollment.create({ data: { studentId, groupId, fecha: new Date(`${RUN_YEAR}-08-15T00:00:00.000Z`), createdBy: actorId } });
+  await prisma.enrollment.create({ data: { studentId, groupId, date: new Date(`${RUN_YEAR}-08-15T00:00:00.000Z`), createdBy: actorId } });
 };
 
 const nextFolio = async (tx: Prisma.TransactionClient): Promise<string> => {
@@ -119,9 +119,9 @@ const ensurePlan = async (studentId: string, programId: string, termId: string, 
       data: schedule.map((seed) => ({
         studentId, termId, planId: created.id, planChargeIndex: seed.index, createdBy: actor.id,
         conceptId: seed.kind === "ENROLLMENT" ? concepts.enrollment : concepts.monthly,
-        descripcion: seed.kind === "ENROLLMENT" ? `Reinscripción — Periodo ${seed.period}` : `Colegiatura — Periodo ${seed.period} · Mes ${seed.monthInPeriod}`,
-        monto: applyDiscount(seed.amount, {}),
-        fechaVencimiento: new Date(`${dueDayFor(start, seed.monthOffset, 5)}T00:00:00.000Z`),
+        description: seed.kind === "ENROLLMENT" ? `Reinscripción — Periodo ${seed.period}` : `Colegiatura — Periodo ${seed.period} · Mes ${seed.monthInPeriod}`,
+        amount: applyDiscount(seed.amount, {}),
+        dueDate: new Date(`${dueDayFor(start, seed.monthOffset, 5)}T00:00:00.000Z`),
       })),
     });
   }
@@ -134,8 +134,8 @@ const ensurePlan = async (studentId: string, programId: string, termId: string, 
     if (paid >= payCount) break;
     if (charge.payments.length > 0) { paid += 1; continue; }
     await prisma.$transaction(async (tx) => {
-      await tx.payment.create({ data: { chargeId: charge.id, monto: charge.monto, fecha: new Date(`${day(new Date())}T00:00:00.000Z`), metodo: "EFECTIVO", reciboFolio: await nextFolio(tx), registeredBy: actor.id, registeredByName: actor.name } });
-      await tx.charge.update({ where: { id: charge.id }, data: { status: "PAGADO" } });
+      await tx.payment.create({ data: { chargeId: charge.id, amount: charge.amount, date: new Date(`${day(new Date())}T00:00:00.000Z`), method: "CASH", receiptNumber: await nextFolio(tx), registeredBy: actor.id, registeredByName: actor.name } });
+      await tx.charge.update({ where: { id: charge.id }, data: { status: "PAID" } });
     });
     paid += 1;
   }
@@ -144,9 +144,9 @@ const ensurePlan = async (studentId: string, programId: string, termId: string, 
 let conceptsCache: { enrollment: string; monthly: string } | null = null;
 const ensureConcepts = async (): Promise<{ enrollment: string; monthly: string }> => {
   if (conceptsCache) return conceptsCache;
-  const upsert = async (nombre: string, tipo: "INSCRIPCION" | "COLEGIATURA") =>
-    (await prisma.feeConcept.upsert({ where: { nombre }, create: { nombre, descripcion: "Generado por M22", monto: 0, tipo }, update: {}, select: { id: true } })).id;
-  conceptsCache = { enrollment: await upsert("Reinscripción", "INSCRIPCION"), monthly: await upsert("Colegiatura", "COLEGIATURA") };
+  const upsert = async (name: string, type: "ENROLLMENT" | "TUITION") =>
+    (await prisma.feeConcept.upsert({ where: { name }, create: { name, description: "Generado por M22", amount: 0, type }, update: {}, select: { id: true } })).id;
+  conceptsCache = { enrollment: await upsert("Reinscripción", "ENROLLMENT"), monthly: await upsert("Colegiatura", "TUITION") };
   return conceptsCache;
 };
 
@@ -173,13 +173,13 @@ async function main(): Promise<void> {
 
   // 2) Cursos + carreras + plan de estudios.
   const courseIds = new Map<string, string>();
-  for (const c of COURSES) courseIds.set(c.clave, await ensureCourse(c.clave, c.nombre, level.id));
+  for (const c of COURSES) courseIds.set(c.code, await ensureCourse(c.code, c.name, level.id));
 
   const programIds: string[] = [];
   for (const p of PROGRAMS) {
     const id = await ensureProgram(p);
     programIds.push(id);
-    const subjects = COURSES.map((c, i) => ({ courseId: courseIds.get(c.clave)!, periodIndex: c.period, sortOrder: i }));
+    const subjects = COURSES.map((c, i) => ({ courseId: courseIds.get(c.code)!, periodIndex: c.period, sortOrder: i }));
     await prisma.$transaction(async (tx) => {
       await tx.programSubject.deleteMany({ where: { programId: id } });
       await tx.programSubject.createMany({ data: subjects.map((s) => ({ ...s, programId: id })) });
@@ -189,11 +189,11 @@ async function main(): Promise<void> {
   // 3) Profesores.
   const teacherIds: string[] = [];
   for (const t of TEACHERS) {
-    const userId = await ensureUser({ username: t.username, name: `${t.nombres} ${t.apellidos}`, email: t.email, roleKey: "TEACHER" });
+    const userId = await ensureUser({ username: t.username, name: `${t.firstNames} ${t.surnames}`, email: t.email, roleKey: "TEACHER" });
     const row = await prisma.teacher.upsert({
       where: { email: t.email },
-      create: { nombres: t.nombres, apellidos: t.apellidos, email: t.email, userId },
-      update: { nombres: t.nombres, apellidos: t.apellidos, userId, status: "ACTIVO" },
+      create: { firstNames: t.firstNames, surnames: t.surnames, email: t.email, userId },
+      update: { firstNames: t.firstNames, surnames: t.surnames, userId, status: "ACTIVE" },
       select: { id: true },
     });
     teacherIds.push(row.id);
@@ -206,13 +206,13 @@ async function main(): Promise<void> {
     const groups: string[] = [];
     for (let gi = 0; gi < period1.length; gi += 1) {
       const teacher = teacherIds[(pi + gi) % teacherIds.length];
-      groups.push(await ensureGroup(courseIds.get(period1[gi].clave)!, term.id, teacher, `${PROGRAMS[pi].code}-A`));
+      groups.push(await ensureGroup(courseIds.get(period1[gi].code)!, term.id, teacher, `${PROGRAMS[pi].code}-A`));
     }
     groupsByProgram.push(groups);
   }
 
   // 5) Alumnos del seed:demo → inscripción, plan y pagos.
-  const students = await prisma.student.findMany({ where: { userId: { not: null } }, orderBy: { matricula: "asc" }, select: { id: true } });
+  const students = await prisma.student.findMany({ where: { userId: { not: null } }, orderBy: { studentNumber: "asc" }, select: { id: true } });
   let enrolled = 0;
   for (let i = 0; i < students.length; i += 1) {
     const student = students[i];
@@ -225,9 +225,9 @@ async function main(): Promise<void> {
   // 6) Calificaciones (instrumento + captura) en los primeros grupos.
   const sampleGroups = [...groupsByProgram[0].slice(0, 2), ...groupsByProgram[1].slice(0, 1)];
   for (const groupId of sampleGroups) {
-    const assessment = await prisma.assessment.findFirst({ where: { groupId, nombre: "Parcial 1" }, select: { id: true } });
-    const assessmentId = assessment?.id ?? (await prisma.assessment.create({ data: { groupId, nombre: "Parcial 1", tipo: "PARCIAL", ponderacion: 50, maxScore: 10 } })).id;
-    const enrollments = await prisma.enrollment.findMany({ where: { groupId, status: "INSCRITO" }, select: { id: true } });
+    const assessment = await prisma.assessment.findFirst({ where: { groupId, name: "Parcial 1" }, select: { id: true } });
+    const assessmentId = assessment?.id ?? (await prisma.assessment.create({ data: { groupId, name: "Parcial 1", type: "PARTIAL", weight: 50, maxScore: 10 } })).id;
+    const enrollments = await prisma.enrollment.findMany({ where: { groupId, status: "ENROLLED" }, select: { id: true } });
     for (let e = 0; e < enrollments.length; e += 1) {
       const score = 6 + ((e * 7) % 5); // 6..10
       await prisma.grade.upsert({
@@ -239,14 +239,14 @@ async function main(): Promise<void> {
   }
 
   // 7) Asistencia: 4 sesiones por grupo con pase.
-  const statuses = ["PRESENTE", "PRESENTE", "PRESENTE", "PRESENTE", "RETARDO", "FALTA"] as const;
+  const statuses = ["PRESENT", "PRESENT", "PRESENT", "PRESENT", "LATE", "ABSENT"] as const;
   for (let g = 0; g < groupsByProgram.length; g += 1) {
     for (const groupId of groupsByProgram[g]) {
-      const enrollments = await prisma.enrollment.findMany({ where: { groupId, status: "INSCRITO" }, select: { id: true } });
+      const enrollments = await prisma.enrollment.findMany({ where: { groupId, status: "ENROLLED" }, select: { id: true } });
       for (let s = 0; s < 4; s += 1) {
-        const fecha = new Date(`${RUN_YEAR}-09-${pad(8 + s * 2)}T00:00:00.000Z`);
-        let session = await prisma.attendanceSession.findFirst({ where: { groupId, fecha }, select: { id: true } });
-        if (!session) session = await prisma.attendanceSession.create({ data: { groupId, fecha, createdBy: actor.id }, select: { id: true } });
+        const date = new Date(`${RUN_YEAR}-09-${pad(8 + s * 2)}T00:00:00.000Z`);
+        let session = await prisma.attendanceSession.findFirst({ where: { groupId, date }, select: { id: true } });
+        if (!session) session = await prisma.attendanceSession.create({ data: { groupId, date, createdBy: actor.id }, select: { id: true } });
         for (let e = 0; e < enrollments.length; e += 1) {
           await prisma.attendance.upsert({
             where: { sessionId_enrollmentId: { sessionId: session.id, enrollmentId: enrollments[e].id } },

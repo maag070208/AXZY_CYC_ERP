@@ -3,9 +3,9 @@
  * destinatarios y backoff del outbox. Cubiertas por `tests/unit/notifications.spec.ts`.
  */
 
-export const CHANNELS = ["EMAIL", "SMS", "WHATSAPP", "INTERNO"] as const;
+export const CHANNELS = ["EMAIL", "SMS", "WHATSAPP", "IN_APP"] as const;
 export type Channel = (typeof CHANNELS)[number];
-export const NOTIFICATION_STATUSES = ["EN_COLA", "ENVIADO", "FALLIDO", "OMITIDO"] as const;
+export const NOTIFICATION_STATUSES = ["QUEUED", "SENT", "FAILED", "SKIPPED"] as const;
 
 const VARIABLE = /\{\{\s*([A-Za-z_][A-Za-z0-9_]*)\s*\}\}/g;
 
@@ -19,9 +19,9 @@ export const variablesIn = (...texts: Array<string | null | undefined>): string[
 };
 
 /** Variables que el payload debe cubrir: las declaradas más las usadas en asunto/cuerpo. */
-export const requiredVariables = (declared: readonly string[], asunto: string | null | undefined, cuerpo: string): string[] => {
+export const requiredVariables = (declared: readonly string[], subject: string | null | undefined, body: string): string[] => {
   const all = [...declared];
-  for (const v of variablesIn(asunto, cuerpo)) if (!all.includes(v)) all.push(v);
+  for (const v of variablesIn(subject, body)) if (!all.includes(v)) all.push(v);
   return all;
 };
 
@@ -36,10 +36,10 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE = /^\+?[0-9]{10,15}$/;
 
 /** Normaliza y valida el destinatario según el canal; `null` si no es válido. */
-export const normalizeRecipient = (canal: Channel, value: string | null | undefined): string | null => {
+export const normalizeRecipient = (channel: Channel, value: string | null | undefined): string | null => {
   const v = (value ?? "").trim();
   if (!v) return null;
-  switch (canal) {
+  switch (channel) {
     case "EMAIL":
       return EMAIL.test(v) && v.length <= 200 ? v.toLowerCase() : null;
     case "SMS":
@@ -47,7 +47,7 @@ export const normalizeRecipient = (canal: Channel, value: string | null | undefi
       const digits = v.replace(/[\s()-]/g, "");
       return PHONE.test(digits) ? digits : null;
     }
-    case "INTERNO":
+    case "IN_APP":
       return /^user:[0-9a-f-]{36}$/.test(v) ? v : null;
   }
 };
@@ -73,8 +73,8 @@ export const afterFailure = (
   maxAttempts: number,
   now: Date,
   random = 0.5
-): { status: "EN_COLA"; nextRetryAt: Date } | { status: "FALLIDO" } =>
-  attempts >= maxAttempts ? { status: "FALLIDO" } : { status: "EN_COLA", nextRetryAt: new Date(now.getTime() + backoffMs(attempts, random)) };
+): { status: "QUEUED"; nextRetryAt: Date } | { status: "FAILED" } =>
+  attempts >= maxAttempts ? { status: "FAILED" } : { status: "QUEUED", nextRetryAt: new Date(now.getTime() + backoffMs(attempts, random)) };
 
 /** Texto plano → HTML mínimo y seguro para el correo. */
 export const toHtml = (text: string): string =>

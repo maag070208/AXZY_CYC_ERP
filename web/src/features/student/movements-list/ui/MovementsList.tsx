@@ -18,23 +18,23 @@ export default function MovementsList({ studentId, reloadKey }: Props) {
 
   const columns: Column<StudentMovement>[] = [
     {
-      key: "tipo",
+      key: "type",
       label: t("movements.tipo"),
       type: "string",
       width: 120,
       render: (m) => (
-        <ITBadget color={m.tipo === "BAJA" ? "danger" : "success"} size="sm">
-          {t(`movements.${m.tipo}`)}
+        <ITBadget color={m.type === "WITHDRAWAL" ? "danger" : "success"} size="sm">
+          {t(`movements.${m.type}`)}
         </ITBadget>
       ),
     },
-    { key: "fecha", label: t("movements.fecha"), type: "string", width: 140, render: (m) => formatDay(m.fecha, i18n.language) },
-    { key: "motivo", label: t("movements.motivo"), type: "string" },
+    { key: "date", label: t("movements.fecha"), type: "string", width: 140, render: (m) => formatDay(m.date, i18n.language) },
+    { key: "reason", label: t("movements.motivo"), type: "string" },
     {
-      key: "observaciones",
+      key: "notes",
       label: t("movements.observaciones"),
       type: "string",
-      render: (m) => <ITText className="text-[11px] text-slate-500">{m.observaciones ?? "—"}</ITText>,
+      render: (m) => <ITText className="text-[11px] text-slate-500">{m.notes ?? "—"}</ITText>,
     },
     { key: "authorName", label: t("movements.autor"), type: "string", width: 180 },
   ];

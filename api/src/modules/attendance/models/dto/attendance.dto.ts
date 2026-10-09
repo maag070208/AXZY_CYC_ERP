@@ -8,7 +8,7 @@ const hour = z.string().regex(/^([01][0-9]|2[0-3]):[0-5][0-9]$/, "INVALID_FORMAT
 const optionalText = (max: number) => z.string().trim().max(max).transform((v) => v || null).nullable().optional();
 
 export const SessionCreateDto = z
-  .object({ fecha: day, hora: hour.nullable().optional(), tema: optionalText(200) })
+  .object({ date: day, time: hour.nullable().optional(), topic: optionalText(200) })
   .strict()
   .openapi("AttendanceSessionCreateInput");
 registry.register("AttendanceSessionCreateInput", SessionCreateDto);
@@ -28,18 +28,18 @@ registry.register("RollCallInput", RollCallDto);
 export type RollCallInput = z.infer<typeof RollCallDto>;
 
 export const AnnulDto = z
-  .object({ motivo: z.string().trim().min(3, "REASON_MIN_LENGTH").max(300) })
+  .object({ reason: z.string().trim().min(3, "REASON_MIN_LENGTH").max(300) })
   .strict()
   .openapi("AttendanceSessionAnnulInput");
 registry.register("AttendanceSessionAnnulInput", AnnulDto);
 
 export const JustificationFieldsDto = z
-  .object({ attendanceId: z.string().uuid(), motivo: z.string().trim().min(5, "REASON_MIN_LENGTH").max(1000) })
+  .object({ attendanceId: z.string().uuid(), reason: z.string().trim().min(5, "REASON_MIN_LENGTH").max(1000) })
   .strict();
 export type JustificationFields = z.infer<typeof JustificationFieldsDto>;
 
 export const ResolveDto = z
-  .object({ status: z.enum(["APROBADA", "RECHAZADA"]), nota: optionalText(500) })
+  .object({ status: z.enum(["APPROVED", "REJECTED"]), note: optionalText(500) })
   .strict()
   .openapi("JustificationResolveInput");
 registry.register("JustificationResolveInput", ResolveDto);
@@ -51,9 +51,9 @@ export const SessionSchema = z
   .object({
     id: z.string(),
     groupId: z.string(),
-    fecha: z.string(),
-    hora: z.string().nullable(),
-    tema: z.string().nullable(),
+    date: z.string(),
+    time: z.string().nullable(),
+    topic: z.string().nullable(),
     registrados: z.number().int(),
     faltas: z.number().int(),
     annulled: z.boolean(),
@@ -67,8 +67,8 @@ export type SessionView = z.infer<typeof SessionSchema>;
 export const RollRowSchema = z.object({
   enrollmentId: z.string(),
   studentId: z.string(),
-  matricula: z.string(),
-  nombre: z.string(),
+  studentNumber: z.string(),
+  name: z.string(),
   attendanceId: z.string().nullable(),
   status: z.enum(ATTENDANCE_STATUSES).nullable(),
   justification: z.enum(JUSTIFICATION_STATUSES).nullable(),
@@ -77,7 +77,7 @@ export const RollRowSchema = z.object({
 });
 
 export const SessionRollSchema = SessionSchema.extend({
-  group: z.object({ id: z.string(), nombre: z.string(), courseNombre: z.string(), termNombre: z.string(), closed: z.boolean() }),
+  group: z.object({ id: z.string(), name: z.string(), courseNombre: z.string(), termNombre: z.string(), closed: z.boolean() }),
   rows: z.array(RollRowSchema),
 }).openapi("AttendanceSessionRoll");
 registry.register("AttendanceSessionRoll", SessionRollSchema);
@@ -86,8 +86,8 @@ export type SessionRollView = z.infer<typeof SessionRollSchema>;
 export const SummaryRowSchema = z.object({
   enrollmentId: z.string(),
   studentId: z.string(),
-  matricula: z.string(),
-  nombre: z.string(),
+  studentNumber: z.string(),
+  name: z.string(),
   sesiones: z.number().int(),
   presentes: z.number().int(),
   retardos: z.number().int(),
@@ -109,7 +109,7 @@ export const StudentAttendanceSchema = z
     studentId: z.string(),
     threshold: z.number(),
     groups: z.array(
-      SummaryRowSchema.omit({ studentId: true, matricula: true, nombre: true }).extend({
+      SummaryRowSchema.omit({ studentId: true, studentNumber: true, name: true }).extend({
         groupId: z.string(),
         grupo: z.string(),
         curso: z.string(),
@@ -118,10 +118,10 @@ export const StudentAttendanceSchema = z
           z.object({
             attendanceId: z.string(),
             sessionId: z.string(),
-            fecha: z.string(),
-            hora: z.string().nullable(),
+            date: z.string(),
+            time: z.string().nullable(),
             status: z.enum(ATTENDANCE_STATUSES),
-            justification: z.object({ id: z.string(), status: z.enum(JUSTIFICATION_STATUSES), nota: z.string().nullable() }).nullable(),
+            justification: z.object({ id: z.string(), status: z.enum(JUSTIFICATION_STATUSES), note: z.string().nullable() }).nullable(),
           })
         ),
       })
@@ -136,18 +136,18 @@ export const JustificationSchema = z
     id: z.string(),
     attendanceId: z.string(),
     status: z.enum(JUSTIFICATION_STATUSES),
-    motivo: z.string(),
-    nota: z.string().nullable(),
+    reason: z.string(),
+    note: z.string().nullable(),
     hasFile: z.boolean(),
-    archivoNombre: z.string().nullable(),
-    fecha: z.string(),
-    hora: z.string().nullable(),
+    fileName: z.string().nullable(),
+    date: z.string(),
+    time: z.string().nullable(),
     groupId: z.string(),
     grupo: z.string(),
     curso: z.string(),
     studentId: z.string(),
-    matricula: z.string(),
-    nombre: z.string(),
+    studentNumber: z.string(),
+    name: z.string(),
     resolvedAt: z.string().nullable(),
     createdAt: z.string(),
   })

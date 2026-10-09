@@ -112,9 +112,9 @@ export const PlanTotalsSchema = z.object({
 export const PlanSchema = z
   .object({
     id: z.string(),
-    student: z.object({ id: z.string(), matricula: z.string(), name: z.string() }),
+    student: z.object({ id: z.string(), studentNumber: z.string(), name: z.string() }),
     program: z.object({ id: z.string(), code: z.string(), name: z.string() }),
-    term: z.object({ id: z.string(), nombre: z.string() }).nullable(),
+    term: z.object({ id: z.string(), name: z.string() }).nullable(),
     startDate: z.string(),
     periodType: PeriodTypeSchema,
     periodCount: z.number().int(),
@@ -137,9 +137,9 @@ export type PlanView = z.infer<typeof PlanSchema>;
 export const PlanChargeSchema = z.object({
   id: z.string(),
   planChargeIndex: z.number().int().nullable(),
-  descripcion: z.string().nullable(),
-  monto: z.number(),
-  fechaVencimiento: z.string(),
+  description: z.string().nullable(),
+  amount: z.number(),
+  dueDate: z.string(),
   status: z.string(),
 });
 export type PlanChargeView = z.infer<typeof PlanChargeSchema>;

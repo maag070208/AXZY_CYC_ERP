@@ -44,19 +44,19 @@ export default function MyExamsPage() {
       {exams && exams.length === 0 && <ITEmptyState title={t("my.empty")} />}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
         {exams?.map((exam) => (
-          <PanelCard key={exam.examId} title={exam.titulo}>
-            <article aria-label={exam.titulo}>
+          <PanelCard key={exam.examId} title={exam.title}>
+            <article aria-label={exam.title}>
             <ITFlex direction="column" gap={2}>
               <ITText className="text-[12px] text-slate-500">{exam.curso} · {exam.grupo}</ITText>
               <ITFlex gap={1} wrap="wrap">
                 <ITBadget color={STATE_COLORS[exam.state]} size="sm">{t(`my.states.${exam.state}`)}</ITBadget>
-                <ITBadget color="secondary" size="sm">{t("my.duracion", { min: exam.duracionMin })}</ITBadget>
-                <ITBadget color="secondary" size="sm">{t("my.intentos", { used: exam.intentosUsados, max: exam.intentosMax })}</ITBadget>
+                <ITBadget color="secondary" size="sm">{t("my.duracion", { min: exam.durationMin })}</ITBadget>
+                <ITBadget color="secondary" size="sm">{t("my.intentos", { used: exam.intentosUsados, max: exam.maxAttempts })}</ITBadget>
               </ITFlex>
               <ITText className="text-[11px] text-slate-500">
-                {exam.state === "NOT_OPEN" ? t("my.notOpen", { date: date(exam.fechaApertura) })
-                  : exam.state === "OPEN" ? t("my.available", { date: date(exam.fechaCierre) })
-                  : t("my.closedAt", { date: date(exam.fechaCierre) })}
+                {exam.state === "NOT_OPEN" ? t("my.notOpen", { date: date(exam.opensAt) })
+                  : exam.state === "OPEN" ? t("my.available", { date: date(exam.closesAt) })
+                  : t("my.closedAt", { date: date(exam.closesAt) })}
               </ITText>
               {exam.lastAttempt && (
                 <div className="rounded-xl bg-slate-50 px-3 py-2">

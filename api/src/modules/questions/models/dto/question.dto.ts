@@ -9,16 +9,16 @@ const points = z
   .refine((v) => Math.abs(Math.round(v * 100) - v * 100) < 1e-6, "INVALID_DECIMAL");
 
 const option = z
-  .object({ texto: z.string().trim().min(1, "REQUIRED_FIELD").max(1000), esCorrecta: z.boolean() })
+  .object({ text: z.string().trim().min(1, "REQUIRED_FIELD").max(1000), isCorrect: z.boolean() })
   .strict();
 
 const fields = {
   courseId: z.string().uuid(),
-  tema: z.string().trim().max(120).transform((v) => v || null).nullable().optional(),
-  tipo: z.enum(QUESTION_TYPES),
-  enunciado: z.string().trim().min(3, "REQUIRED_FIELD").max(5000),
-  puntos: points,
-  dificultad: z.enum(DIFFICULTIES).nullable().optional(),
+  topic: z.string().trim().max(120).transform((v) => v || null).nullable().optional(),
+  type: z.enum(QUESTION_TYPES),
+  text: z.string().trim().min(3, "REQUIRED_FIELD").max(5000),
+  points: points,
+  difficulty: z.enum(DIFFICULTIES).nullable().optional(),
   options: z.array(option).max(10).default([]),
 };
 
@@ -43,13 +43,13 @@ export const QuestionSchema = z
     courseId: z.string(),
     courseClave: z.string(),
     courseNombre: z.string(),
-    tema: z.string().nullable(),
-    tipo: z.enum(QUESTION_TYPES),
-    enunciado: z.string(),
-    puntos: z.number(),
-    dificultad: z.enum(DIFFICULTIES).nullable(),
-    status: z.enum(["ACTIVA", "INACTIVA"]),
-    options: z.array(z.object({ id: z.string(), texto: z.string(), esCorrecta: z.boolean(), orden: z.number().int() })),
+    topic: z.string().nullable(),
+    type: z.enum(QUESTION_TYPES),
+    text: z.string(),
+    points: z.number(),
+    difficulty: z.enum(DIFFICULTIES).nullable(),
+    status: z.enum(["ACTIVE", "INACTIVE"]),
+    options: z.array(z.object({ id: z.string(), text: z.string(), isCorrect: z.boolean(), sortOrder: z.number().int() })),
     /** Exámenes que la incluyen. */
     usedInExams: z.number().int(),
     /** Ya respondida en un intento: solo se puede desactivar. */
@@ -69,7 +69,7 @@ export const ImportResultSchema = z
     valid: z.number().int(),
     created: z.number().int(),
     rejected: z.array(z.object({ row: z.number().int(), code: z.string(), message: z.string() })),
-    sample: z.array(z.object({ row: z.number().int(), curso: z.string(), tipo: z.string(), enunciado: z.string(), puntos: z.number(), opciones: z.number().int() })),
+    sample: z.array(z.object({ row: z.number().int(), curso: z.string(), type: z.string(), text: z.string(), points: z.number(), opciones: z.number().int() })),
   })
   .openapi("QuestionImportResult");
 registry.register("QuestionImportResult", ImportResultSchema);

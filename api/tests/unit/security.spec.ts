@@ -24,7 +24,7 @@ test.describe("contraseñas (bcryptjs)", () => {
     expect(await comparePassword("otra-cosa", hash)).toBe(false);
   });
 
-  test("dos hashes del mismo texto son distintos (sal aleatoria)", async () => {
+  test("dos hashes del mismo text son distintos (sal aleatoria)", async () => {
     const [a, b] = await Promise.all([hashPassword("misma"), hashPassword("misma")]);
     expect(a).not.toBe(b);
   });

@@ -19,7 +19,7 @@ interface Props {
   readOnly: boolean;
 }
 
-const STATUS_COLOR = { PENDIENTE: "warning", VALIDADO: "success", RECHAZADO: "danger" } as const;
+const STATUS_COLOR = { PENDING: "warning", VALIDATED: "success", REJECTED: "danger" } as const;
 
 const kb = (bytes: number) => (bytes < 1024 * 1024 ? `${Math.ceil(bytes / 1024)} KB` : `${(bytes / 1024 / 1024).toFixed(1)} MB`);
 
@@ -31,8 +31,8 @@ export default function DocumentsPanel({ studentId, readOnly }: Props) {
   const canUpload = useCan("documents.upload") && !readOnly;
   const canValidate = useCan("documents.validate") && !readOnly;
   const canDelete = useCan("documents.delete") && !readOnly;
-  const [reviewing, setReviewing] = useState<{ doc: StudentDocument; status: "VALIDADO" | "RECHAZADO" } | null>(null);
-  const [notas, setNotas] = useState("");
+  const [reviewing, setReviewing] = useState<{ doc: StudentDocument; status: "VALIDATED" | "REJECTED" } | null>(null);
+  const [notes, setNotas] = useState("");
   const [deleting, setDeleting] = useState<StudentDocument | null>(null);
 
   const act = async (call: () => Promise<void>, message: string) => {
@@ -56,7 +56,7 @@ export default function DocumentsPanel({ studentId, readOnly }: Props) {
       render: (d) => (
         <ITFlex gap={1} align="center">
           <ITText className="text-[12px] font-bold text-slate-700">{d.documentType}</ITText>
-          {d.obligatorio && <ITText className="text-danger-500">*</ITText>}
+          {d.required && <ITText className="text-danger-500">*</ITText>}
         </ITFlex>
       ),
     },
@@ -73,7 +73,7 @@ export default function DocumentsPanel({ studentId, readOnly }: Props) {
       render: (d) => (
         <ITFlex direction="column" gap={1}>
           <ITBadget color={STATUS_COLOR[d.status]} size="sm">{t(`status.${d.status}`)}</ITBadget>
-          {d.notas && <ITText className="text-[10px] text-slate-500">{d.notas}</ITText>}
+          {d.notes && <ITText className="text-[10px] text-slate-500">{d.notes}</ITText>}
         </ITFlex>
       ),
     },
@@ -92,8 +92,8 @@ export default function DocumentsPanel({ studentId, readOnly }: Props) {
       actions: (d) => (
         <ITFlex gap={1}>
           {button(t("actions.download"), d, <FaDownload size={12} />, () => void act(() => fx.download(d), t("actions.download")))}
-          {canValidate && d.status === "PENDIENTE" && button(t("actions.validate"), d, <FaCheck size={12} />, () => { setNotas(""); setReviewing({ doc: d, status: "VALIDADO" }); }, "success")}
-          {canValidate && d.status === "PENDIENTE" && button(t("actions.reject"), d, <FaTimes size={12} />, () => { setNotas(""); setReviewing({ doc: d, status: "RECHAZADO" }); }, "danger")}
+          {canValidate && d.status === "PENDING" && button(t("actions.validate"), d, <FaCheck size={12} />, () => { setNotas(""); setReviewing({ doc: d, status: "VALIDATED" }); }, "success")}
+          {canValidate && d.status === "PENDING" && button(t("actions.reject"), d, <FaTimes size={12} />, () => { setNotas(""); setReviewing({ doc: d, status: "REJECTED" }); }, "danger")}
           {canDelete && button(t("actions.delete"), d, <FaTrash size={11} />, () => setDeleting(d), "danger")}
         </ITFlex>
       ),
@@ -103,7 +103,7 @@ export default function DocumentsPanel({ studentId, readOnly }: Props) {
   if (fx.loading && !fx.data) return <ITLoader />;
   const data = fx.data;
   const reviewTitle = reviewing
-    ? t(reviewing.status === "VALIDADO" ? "review.validateTitle" : "review.rejectTitle", { name: reviewing.doc.originalName })
+    ? t(reviewing.status === "VALIDATED" ? "review.validateTitle" : "review.rejectTitle", { name: reviewing.doc.originalName })
     : "";
 
   return (
@@ -119,7 +119,7 @@ export default function DocumentsPanel({ studentId, readOnly }: Props) {
         </div>
       )}
       {data && (data.missing.length > 0
-        ? <ITAlert variant="warning">{t("missingList", { list: data.missing.map((m) => m.nombre).join(", ") })}</ITAlert>
+        ? <ITAlert variant="warning">{t("missingList", { list: data.missing.map((m) => m.name).join(", ") })}</ITAlert>
         : <ITAlert variant="success">{t("complete")}</ITAlert>)}
 
       {canUpload && <UploadCard onUpload={fx.upload} onDone={() => notify.success(t("upload.done"))} />}
@@ -136,19 +136,19 @@ export default function DocumentsPanel({ studentId, readOnly }: Props) {
       <ITDialog isOpen={!!reviewing} onClose={() => setReviewing(null)} title={reviewTitle} className="w-full max-w-lg">
         <div role="dialog" aria-label={reviewTitle}>
           <ITFlex direction="column" gap={3}>
-            {reviewing?.status === "RECHAZADO" && <ITText className="text-[12px] text-slate-600">{t("review.rejectHint")}</ITText>}
-            <ITTextarea name="reviewNotas" label={t("review.notas")} value={notas} onChange={setNotas} rows={3} maxLength={1000} />
+            {reviewing?.status === "REJECTED" && <ITText className="text-[12px] text-slate-600">{t("review.rejectHint")}</ITText>}
+            <ITTextarea name="reviewNotas" label={t("review.notas")} value={notes} onChange={setNotas} rows={3} maxLength={1000} />
             <ITFlex justify="end" gap={2}>
               <ITButton variant="outlined" color="secondary" onClick={() => setReviewing(null)}>{t("common:actions.cancel")}</ITButton>
-              <ITButton variant="filled" color={reviewing?.status === "VALIDADO" ? "success" : "danger"}
+              <ITButton variant="filled" color={reviewing?.status === "VALIDATED" ? "success" : "danger"}
                 onClick={() => {
                   if (!reviewing) return;
                   const { doc, status } = reviewing;
                   setReviewing(null);
-                  void act(() => fx.review(doc, status, notas.trim() || undefined),
-                    status === "VALIDADO" ? t("review.validated") : t("review.rejected"));
+                  void act(() => fx.review(doc, status, notes.trim() || undefined),
+                    status === "VALIDATED" ? t("review.validated") : t("review.rejected"));
                 }}>
-                {reviewing?.status === "VALIDADO" ? t("actions.validate") : t("actions.reject")}
+                {reviewing?.status === "VALIDATED" ? t("actions.validate") : t("actions.reject")}
               </ITButton>
             </ITFlex>
           </ITFlex>

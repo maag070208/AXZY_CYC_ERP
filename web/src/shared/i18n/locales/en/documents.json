@@ -31,9 +31,9 @@
     "empty": "No documents."
   },
   "status": {
-    "PENDIENTE": "Pending",
-    "VALIDADO": "Validated",
-    "RECHAZADO": "Rejected"
+    "PENDING": "Pending",
+    "VALIDATED": "Validated",
+    "REJECTED": "Rejected"
   },
   "actions": {
     "download": "Download",
@@ -70,10 +70,10 @@
     "faltantes": "Missing documents",
     "ninguno": "None",
     "estatusValues": {
-      "ACREDITADO": "Passed",
-      "REPROBADO": "Failed",
-      "EN_CURSO": "In progress",
-      "BAJA": "Withdrawn"
+      "PASSED": "Passed",
+      "FAILED": "Failed",
+      "IN_PROGRESS": "In progress",
+      "WITHDRAWN": "Withdrawn"
     }
   }
 }

@@ -55,7 +55,7 @@ type SessionUser = {
   permissions: Array<{ permissionKey: string; scope: Scope; expiresAt: Date | null }>;
 };
 
-const PASSWORD_RESET_TTL_MS = 60 * 60 * 1000; // 1 hora.
+const PASSWORD_RESET_TTL_MS = 60 * 60 * 1000; // 1 time.
 
 export class AuthService {
   constructor(
@@ -304,7 +304,7 @@ export class AuthService {
         `<p>Hola ${user.name},</p>` +
         `<p>Para restablecer tu contraseña entra a:</p>` +
         `<p><a href="${link}">${link}</a></p>` +
-        `<p>El enlace vence en 1 hora y es de un solo uso.</p>`,
+        `<p>El enlace vence en 1 time y es de un solo uso.</p>`,
     }).catch((error) => logger.error(`[auth] forgot-password email failed: ${String(error)}`));
   }
 

@@ -332,25 +332,25 @@ model DocumentType {
 // ---------------------------------------------------------------------------
 
 enum StudentStatus {
-  ACTIVO
-  BAJA
+  ACTIVE
+  WITHDRAWN
 }
 
 model Student {
   id              String        @id @default(uuid())
   /// `AAAA-NNNN`: año de ingreso + consecutivo. Inmutable.
-  matricula       String        @unique
-  nombres         String
-  apellidoPaterno String        @map("apellido_paterno")
-  apellidoMaterno String?       @map("apellido_materno")
+  studentNumber   String        @unique @map("student_number")
+  firstNames      String        @map("first_names")
+  paternalSurname String        @map("paternal_surname")
+  maternalSurname String?       @map("maternal_surname")
   curp            String        @unique
-  fechaNacimiento DateTime      @map("fecha_nacimiento") @db.Date
-  genero          String?
+  birthDate       DateTime      @map("birth_date") @db.Date
+  gender          String?
   email           String?
-  telefono        String?
-  direccion       String?
-  status          StudentStatus @default(ACTIVO)
-  fechaIngreso    DateTime      @map("fecha_ingreso") @db.Date
+  phone           String?
+  address         String?
+  status          StudentStatus @default(ACTIVE)
+  enrollmentDate  DateTime      @map("enrollment_date") @db.Date
   userId          String?       @unique @map("user_id")
   createdAt       DateTime      @default(now()) @map("created_at")
   updatedAt       DateTime      @updatedAt @map("updated_at")
@@ -365,28 +365,28 @@ model Student {
   plans       StudentPlan[]
 
   @@index([status])
-  @@index([apellidoPaterno, apellidoMaterno, nombres])
+  @@index([paternalSurname, maternalSurname, firstNames])
   @@map("students")
 }
 
 /// Consecutivo de matrícula por año de ingreso (se incrementa en la transacción del alta).
-model MatriculaSequence {
+model StudentNumberSequence {
   year Int @id
   last Int @default(0)
 
-  @@map("matricula_sequences")
+  @@map("student_number_sequences")
 }
 
 model Guardian {
-  id                String   @id @default(uuid())
-  studentId         String   @map("student_id")
-  nombre            String
-  parentesco        String
-  telefono          String
-  email             String?
-  esResponsablePago Boolean  @default(false) @map("es_responsable_pago")
-  createdAt         DateTime @default(now()) @map("created_at")
-  updatedAt         DateTime @updatedAt @map("updated_at")
+  id                   String   @id @default(uuid())
+  studentId            String   @map("student_id")
+  name                 String
+  relationship         String
+  phone                String
+  email                String?
+  isPaymentResponsible Boolean  @default(false) @map("is_payment_responsible")
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
 
   student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
@@ -399,29 +399,29 @@ model Guardian {
 // ---------------------------------------------------------------------------
 
 enum MovementType {
-  BAJA
-  REINGRESO
+  WITHDRAWAL
+  REENTRY
 }
 
 model StudentMovement {
-  id            String       @id @default(uuid())
-  studentId     String       @map("student_id")
-  tipo          MovementType
-  motivo        String
+  id        String       @id @default(uuid())
+  studentId String       @map("student_id")
+  type      MovementType
+  reason    String
   /// Motivo del catálogo M11 (opcional; `motivo` guarda el texto).
-  reasonId      String?      @map("reason_id")
-  fecha         DateTime     @db.Date
-  observaciones String?
-  createdBy     String       @map("created_by")
-  createdAt     DateTime     @default(now()) @map("created_at")
-  updatedAt     DateTime     @updatedAt @map("updated_at")
+  reasonId  String?      @map("reason_id")
+  date      DateTime     @db.Date
+  notes     String?
+  createdBy String       @map("created_by")
+  createdAt DateTime     @default(now()) @map("created_at")
+  updatedAt DateTime     @updatedAt @map("updated_at")
 
-  student Student             @relation(fields: [studentId], references: [id])
-  author  User                @relation(fields: [createdBy], references: [id])
-  reason  CancellationReason? @relation(fields: [reasonId], references: [id])
+  student            Student             @relation(fields: [studentId], references: [id])
+  author             User                @relation(fields: [createdBy], references: [id])
+  cancellationReason CancellationReason? @relation(fields: [reasonId], references: [id])
 
-  @@index([studentId, fecha])
-  @@index([tipo])
+  @@index([studentId, date])
+  @@index([type])
   @@index([createdBy])
   @@map("student_movements")
 }
@@ -431,27 +431,27 @@ model StudentMovement {
 // ---------------------------------------------------------------------------
 
 enum TeacherStatus {
-  ACTIVO
-  INACTIVO
+  ACTIVE
+  INACTIVE
 }
 
 model Teacher {
-  id           String        @id @default(uuid())
-  nombres      String
-  apellidos    String
-  email        String        @unique
-  telefono     String?
-  especialidad String?
-  status       TeacherStatus @default(ACTIVO)
-  userId       String?       @unique @map("user_id")
-  createdAt    DateTime      @default(now()) @map("created_at")
-  updatedAt    DateTime      @updatedAt @map("updated_at")
+  id         String        @id @default(uuid())
+  firstNames String        @map("first_names")
+  surnames   String
+  email      String        @unique
+  phone      String?
+  specialty  String?
+  status     TeacherStatus @default(ACTIVE)
+  userId     String?       @unique @map("user_id")
+  createdAt  DateTime      @default(now()) @map("created_at")
+  updatedAt  DateTime      @updatedAt @map("updated_at")
 
   user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
   groups Group[]
 
   @@index([status])
-  @@index([apellidos, nombres])
+  @@index([surnames, firstNames])
   @@map("teachers")
 }
 
@@ -460,9 +460,9 @@ model Teacher {
 // ---------------------------------------------------------------------------
 
 enum DocumentStatus {
-  PENDIENTE
-  VALIDADO
-  RECHAZADO
+  PENDING
+  VALIDATED
+  REJECTED
 }
 
 model Document {
@@ -474,11 +474,11 @@ model Document {
   originalName   String         @map("original_name")
   mimeType       String         @map("mime_type")
   size           Int
-  status         DocumentStatus @default(PENDIENTE)
+  status         DocumentStatus @default(PENDING)
   uploadedBy     String         @map("uploaded_by")
   validatedBy    String?        @map("validated_by")
   validatedAt    DateTime?      @map("validated_at")
-  notas          String?
+  notes          String?
   deletedAt      DateTime?      @map("deleted_at")
   createdAt      DateTime       @default(now()) @map("created_at")
   updatedAt      DateTime       @updatedAt @map("updated_at")
@@ -500,21 +500,21 @@ model Document {
 model Course {
   id          String   @id @default(uuid())
   /// Clave corta e inmutable en la práctica (p. ej. `MAT-101`).
-  clave       String   @unique
-  nombre      String
+  code        String   @unique
+  name        String
   levelId     String?  @map("level_id")
-  descripcion String?
+  description String?
   active      Boolean  @default(true)
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
-  level     Level?     @relation(fields: [levelId], references: [id])
-  groups    Group[]
-  questions Question[]
+  level           Level?           @relation(fields: [levelId], references: [id])
+  groups          Group[]
+  questions       Question[]
   programSubjects ProgramSubject[]
 
   @@index([active])
-  @@index([nombre])
+  @@index([name])
   @@map("courses")
 }
 
@@ -523,11 +523,11 @@ model Group {
   courseId  String    @map("course_id")
   termId    String    @map("term_id")
   teacherId String?   @map("teacher_id")
-  nombre    String
-  cupo      Int
+  name      String
+  capacity  Int
   /// `[{ dia: "LUNES", horaInicio: "08:00", horaFin: "09:00" }]`
-  horario   Json
-  aula      String?
+  schedule  Json
+  classroom String?
   active    Boolean   @default(true)
   /// Cierre de calificaciones (M08): finales escritas y estatus aplicados.
   closedAt  DateTime? @map("closed_at")
@@ -543,7 +543,7 @@ model Group {
   onlineExams        OnlineExam[]
   attendanceSessions AttendanceSession[]
 
-  @@unique([courseId, termId, nombre])
+  @@unique([courseId, termId, name])
   @@index([termId])
   @@index([teacherId])
   @@index([active])
@@ -551,27 +551,27 @@ model Group {
 }
 
 enum EnrollmentStatus {
-  INSCRITO
-  BAJA
-  ACREDITADO
-  REPROBADO
+  ENROLLED
+  WITHDRAWN
+  PASSED
+  FAILED
 }
 
 model Enrollment {
-  id              String           @id @default(uuid())
-  studentId       String           @map("student_id")
-  groupId         String           @map("group_id")
-  fecha           DateTime         @db.Date
-  status          EnrollmentStatus @default(INSCRITO)
+  id               String           @id @default(uuid())
+  studentId        String           @map("student_id")
+  groupId          String           @map("group_id")
+  date             DateTime         @db.Date
+  status           EnrollmentStatus @default(ENROLLED)
   /// Calificación final escrita al cerrar el grupo (M08).
-  finalGrade      Decimal?         @map("final_grade") @db.Decimal(5, 2)
-  bajaAt          DateTime?        @map("baja_at")
-  bajaMotivo      String?          @map("baja_motivo")
+  finalGrade       Decimal?         @map("final_grade") @db.Decimal(5, 2)
+  withdrawnAt      DateTime?        @map("withdrawn_at")
+  withdrawalReason String?          @map("withdrawal_reason")
   /// Si la baja fue por cambio de grupo, la inscripción destino.
-  transferredToId String?          @unique @map("transferred_to_id")
-  createdBy       String?          @map("created_by")
-  createdAt       DateTime         @default(now()) @map("created_at")
-  updatedAt       DateTime         @updatedAt @map("updated_at")
+  transferredToId  String?          @unique @map("transferred_to_id")
+  createdBy        String?          @map("created_by")
+  createdAt        DateTime         @default(now()) @map("created_at")
+  updatedAt        DateTime         @updatedAt @map("updated_at")
 
   student           Student      @relation(fields: [studentId], references: [id])
   group             Group        @relation(fields: [groupId], references: [id])
@@ -592,24 +592,24 @@ model Enrollment {
 // ---------------------------------------------------------------------------
 
 enum AssessmentType {
-  PARCIAL
+  PARTIAL
   FINAL
-  TAREA
-  OTRO
+  HOMEWORK
+  OTHER
 }
 
 model Assessment {
-  id          String         @id @default(uuid())
-  groupId     String         @map("group_id")
-  nombre      String
-  tipo        AssessmentType
+  id        String         @id @default(uuid())
+  groupId   String         @map("group_id")
+  name      String
+  type      AssessmentType
   /// Porcentaje; la suma de los activos del grupo debe ser 100.00 para cerrar.
-  ponderacion Decimal        @db.Decimal(5, 2)
-  fecha       DateTime?      @db.Date
-  maxScore    Decimal        @map("max_score") @db.Decimal(6, 2)
-  active      Boolean        @default(true)
-  createdAt   DateTime       @default(now()) @map("created_at")
-  updatedAt   DateTime       @updatedAt @map("updated_at")
+  weight    Decimal        @db.Decimal(5, 2)
+  date      DateTime?      @db.Date
+  maxScore  Decimal        @map("max_score") @db.Decimal(6, 2)
+  active    Boolean        @default(true)
+  createdAt DateTime       @default(now()) @map("created_at")
+  updatedAt DateTime       @updatedAt @map("updated_at")
 
   group      Group       @relation(fields: [groupId], references: [id])
   grades     Grade[]
@@ -620,15 +620,15 @@ model Assessment {
 }
 
 model Grade {
-  id            String    @id @default(uuid())
-  assessmentId  String    @map("assessment_id")
-  enrollmentId  String    @map("enrollment_id")
-  score         Decimal?  @db.Decimal(6, 2)
-  observaciones String?
-  capturedBy    String?   @map("captured_by")
-  capturedAt    DateTime? @map("captured_at")
-  createdAt     DateTime  @default(now()) @map("created_at")
-  updatedAt     DateTime  @updatedAt @map("updated_at")
+  id           String    @id @default(uuid())
+  assessmentId String    @map("assessment_id")
+  enrollmentId String    @map("enrollment_id")
+  score        Decimal?  @db.Decimal(6, 2)
+  notes        String?
+  capturedBy   String?   @map("captured_by")
+  capturedAt   DateTime? @map("captured_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
 
   assessment Assessment @relation(fields: [assessmentId], references: [id])
   enrollment Enrollment @relation(fields: [enrollmentId], references: [id])
@@ -643,34 +643,34 @@ model Grade {
 // ---------------------------------------------------------------------------
 
 enum FeeConceptType {
-  INSCRIPCION
-  COLEGIATURA
+  ENROLLMENT
+  TUITION
   MATERIAL
-  RECARGO
-  OTRO
+  LATE_FEE
+  OTHER
 }
 
 enum ChargeStatus {
-  PENDIENTE
-  PARCIAL
-  PAGADO
-  CANCELADO
+  PENDING
+  PARTIAL
+  PAID
+  CANCELLED
 }
 
 enum PaymentMethod {
-  EFECTIVO
-  TRANSFERENCIA
-  DEPOSITO
-  TARJETA
-  OTRO
+  CASH
+  TRANSFER
+  DEPOSIT
+  CARD
+  OTHER
 }
 
 model FeeConcept {
   id          String         @id @default(uuid())
-  nombre      String         @unique
-  descripcion String?
-  monto       Decimal        @db.Decimal(12, 2)
-  tipo        FeeConceptType
+  name        String         @unique
+  description String?
+  amount      Decimal        @db.Decimal(12, 2)
+  type        FeeConceptType
   active      Boolean        @default(true)
   createdAt   DateTime       @default(now()) @map("created_at")
   updatedAt   DateTime       @updatedAt @map("updated_at")
@@ -682,54 +682,54 @@ model FeeConcept {
 }
 
 model Charge {
-  id               String       @id @default(uuid())
-  studentId        String       @map("student_id")
-  conceptId        String       @map("concept_id")
-  termId           String?      @map("term_id")
+  id              String       @id @default(uuid())
+  studentId       String       @map("student_id")
+  conceptId       String       @map("concept_id")
+  termId          String?      @map("term_id")
   /// Plan de pagos que originó el cargo (M22).
-  planId           String?      @map("plan_id")
+  planId          String?      @map("plan_id")
   /// Índice del cargo dentro del plan (0..n) para idempotencia.
-  planChargeIndex  Int?         @map("plan_charge_index")
+  planChargeIndex Int?         @map("plan_charge_index")
   /// Texto libre visible en el estado de cuenta (p. ej. «Colegiatura septiembre»).
-  descripcion      String?
-  monto            Decimal      @db.Decimal(12, 2)
-  descuento        Decimal      @default(0) @db.Decimal(12, 2)
-  fechaVencimiento DateTime     @map("fecha_vencimiento") @db.Date
-  status           ChargeStatus @default(PENDIENTE)
+  description     String?
+  amount          Decimal      @db.Decimal(12, 2)
+  discount        Decimal      @default(0) @db.Decimal(12, 2)
+  dueDate         DateTime     @map("due_date") @db.Date
+  status          ChargeStatus @default(PENDING)
   /// Recargo por mora: el cargo vencido que lo origina (uno por cargo).
-  parentChargeId   String?      @unique @map("parent_charge_id")
-  createdBy        String?      @map("created_by")
-  cancelledAt      DateTime?    @map("cancelled_at")
-  cancelReason     String?      @map("cancel_reason")
-  cancelledBy      String?      @map("cancelled_by")
-  createdAt        DateTime     @default(now()) @map("created_at")
-  updatedAt        DateTime     @updatedAt @map("updated_at")
+  parentChargeId  String?      @unique @map("parent_charge_id")
+  createdBy       String?      @map("created_by")
+  cancelledAt     DateTime?    @map("cancelled_at")
+  cancelReason    String?      @map("cancel_reason")
+  cancelledBy     String?      @map("cancelled_by")
+  createdAt       DateTime     @default(now()) @map("created_at")
+  updatedAt       DateTime     @updatedAt @map("updated_at")
 
-  student  Student    @relation(fields: [studentId], references: [id])
-  concept  FeeConcept @relation(fields: [conceptId], references: [id])
-  term     Term?      @relation(fields: [termId], references: [id])
+  student  Student      @relation(fields: [studentId], references: [id])
+  concept  FeeConcept   @relation(fields: [conceptId], references: [id])
+  term     Term?        @relation(fields: [termId], references: [id])
   plan     StudentPlan? @relation(fields: [planId], references: [id])
-  parent   Charge?    @relation("LateFee", fields: [parentChargeId], references: [id])
-  lateFee  Charge?    @relation("LateFee")
+  parent   Charge?      @relation("LateFee", fields: [parentChargeId], references: [id])
+  lateFee  Charge?      @relation("LateFee")
   payments Payment[]
 
   @@unique([planId, planChargeIndex])
   @@index([studentId])
   @@index([status])
   @@index([termId])
-  @@index([fechaVencimiento])
+  @@index([dueDate])
   @@map("charges")
 }
 
 model Payment {
   id               String        @id @default(uuid())
   chargeId         String        @map("charge_id")
-  monto            Decimal       @db.Decimal(12, 2)
-  fecha            DateTime      @db.Date
-  metodo           PaymentMethod
-  referencia       String?
+  amount           Decimal       @db.Decimal(12, 2)
+  date             DateTime      @db.Date
+  method           PaymentMethod
+  reference        String?
   /// `REC-AAAA-NNNNNN`, consecutivo por año e irrepetible.
-  reciboFolio      String        @unique @map("recibo_folio")
+  receiptNumber    String        @unique @map("receipt_number")
   registeredBy     String        @map("registered_by")
   /// Nombre de quien cobró al momento del pago (el recibo no cambia si la cuenta cambia).
   registeredByName String        @map("registered_by_name")
@@ -743,7 +743,7 @@ model Payment {
   charge Charge @relation(fields: [chargeId], references: [id])
 
   @@index([chargeId])
-  @@index([fecha])
+  @@index([date])
   @@map("payments")
 }
 
@@ -770,33 +770,33 @@ model IdempotencyRecord {
 // ---------------------------------------------------------------------------
 
 enum QuestionType {
-  OPCION_MULTIPLE
-  VERDADERO_FALSO
-  MULTIPLE_RESPUESTA
-  ABIERTA
+  MULTIPLE_CHOICE
+  TRUE_FALSE
+  MULTIPLE_ANSWER
+  OPEN
 }
 
 enum QuestionDifficulty {
-  FACIL
-  MEDIA
-  DIFICIL
+  EASY
+  MEDIUM
+  HARD
 }
 
 enum QuestionStatus {
-  ACTIVA
-  INACTIVA
+  ACTIVE
+  INACTIVE
 }
 
 model Question {
   id         String              @id @default(uuid())
   courseId   String              @map("course_id")
-  tema       String?
-  tipo       QuestionType
-  enunciado  String              @db.Text
+  topic      String?
+  type       QuestionType
+  text       String              @db.Text
   /// Puntos sugeridos al agregarla a un examen (M15 puede cambiarlos).
-  puntos     Decimal             @db.Decimal(6, 2)
-  dificultad QuestionDifficulty?
-  status     QuestionStatus      @default(ACTIVA)
+  points     Decimal             @db.Decimal(6, 2)
+  difficulty QuestionDifficulty?
+  status     QuestionStatus      @default(ACTIVE)
   createdBy  String?             @map("created_by")
   createdAt  DateTime            @default(now()) @map("created_at")
   updatedAt  DateTime            @updatedAt @map("updated_at")
@@ -807,8 +807,8 @@ model Question {
   answers       AttemptAnswer[]
 
   @@index([courseId])
-  @@index([tipo])
-  @@index([dificultad])
+  @@index([type])
+  @@index([difficulty])
   @@index([status])
   @@map("questions")
 }
@@ -816,9 +816,9 @@ model Question {
 model QuestionOption {
   id         String   @id @default(uuid())
   questionId String   @map("question_id")
-  texto      String   @db.Text
-  esCorrecta Boolean  @default(false) @map("es_correcta")
-  orden      Int
+  text       String   @db.Text
+  isCorrect  Boolean  @default(false) @map("is_correct")
+  sortOrder  Int      @map("sort_order")
   createdAt  DateTime @default(now()) @map("created_at")
   updatedAt  DateTime @updatedAt @map("updated_at")
 
@@ -833,39 +833,39 @@ model QuestionOption {
 // ---------------------------------------------------------------------------
 
 enum OnlineExamStatus {
-  BORRADOR
-  PUBLICADO
-  CERRADO
+  DRAFT
+  PUBLISHED
+  CLOSED
 }
 
 /// Qué intento cuenta para la calificación (M17 §4.4).
 enum AttemptCriterion {
-  MEJOR
-  ULTIMO
+  BEST
+  LAST
 }
 
 model OnlineExam {
-  id                   String           @id @default(uuid())
-  groupId              String           @map("group_id")
-  titulo               String
-  instrucciones        String?          @db.Text
-  duracionMin          Int              @map("duracion_min")
-  intentosMax          Int              @default(1) @map("intentos_max")
-  fechaApertura        DateTime         @map("fecha_apertura") @db.Timestamptz
-  fechaCierre          DateTime         @map("fecha_cierre") @db.Timestamptz
-  aleatorizarPreguntas Boolean          @default(false) @map("aleatorizar_preguntas")
-  aleatorizarOpciones  Boolean          @default(false) @map("aleatorizar_opciones")
-  mostrarResultado     Boolean          @default(true) @map("mostrar_resultado")
-  puntajeAprobatorio   Decimal          @map("puntaje_aprobatorio") @db.Decimal(6, 2)
-  criterioIntentos     AttemptCriterion @default(MEJOR) @map("criterio_intentos")
+  id               String           @id @default(uuid())
+  groupId          String           @map("group_id")
+  title            String
+  instructions     String?          @db.Text
+  durationMin      Int              @map("duration_min")
+  maxAttempts      Int              @default(1) @map("max_attempts")
+  opensAt          DateTime         @map("opens_at") @db.Timestamptz
+  closesAt         DateTime         @map("closes_at") @db.Timestamptz
+  shuffleQuestions Boolean          @default(false) @map("shuffle_questions")
+  shuffleOptions   Boolean          @default(false) @map("shuffle_options")
+  showResult       Boolean          @default(true) @map("show_result")
+  passingScore     Decimal          @map("passing_score") @db.Decimal(6, 2)
+  attemptCriterion AttemptCriterion @default(BEST) @map("attempt_criterion")
   /// Evaluación de M08 que recibe la calificación (una por examen).
-  assessmentId         String?          @unique @map("assessment_id")
-  status               OnlineExamStatus @default(BORRADOR)
-  publishedAt          DateTime?        @map("published_at")
-  closedAt             DateTime?        @map("closed_at")
-  createdBy            String?          @map("created_by")
-  createdAt            DateTime         @default(now()) @map("created_at")
-  updatedAt            DateTime         @updatedAt @map("updated_at")
+  assessmentId     String?          @unique @map("assessment_id")
+  status           OnlineExamStatus @default(DRAFT)
+  publishedAt      DateTime?        @map("published_at")
+  closedAt         DateTime?        @map("closed_at")
+  createdBy        String?          @map("created_by")
+  createdAt        DateTime         @default(now()) @map("created_at")
+  updatedAt        DateTime         @updatedAt @map("updated_at")
 
   group      Group                @relation(fields: [groupId], references: [id])
   assessment Assessment?          @relation(fields: [assessmentId], references: [id])
@@ -881,8 +881,8 @@ model OnlineExamQuestion {
   id         String   @id @default(uuid())
   examId     String   @map("exam_id")
   questionId String   @map("question_id")
-  puntos     Decimal  @db.Decimal(6, 2)
-  orden      Int
+  points     Decimal  @db.Decimal(6, 2)
+  sortOrder  Int      @map("sort_order")
   createdAt  DateTime @default(now()) @map("created_at")
   updatedAt  DateTime @updatedAt @map("updated_at")
 
@@ -899,21 +899,21 @@ model OnlineExamQuestion {
 // ---------------------------------------------------------------------------
 
 enum AttemptStatus {
-  EN_CURSO
-  ENVIADO
-  EXPIRADO
+  IN_PROGRESS
+  SUBMITTED
+  EXPIRED
 }
 
 model ExamAttempt {
   id           String        @id @default(uuid())
   examId       String        @map("exam_id")
   studentId    String        @map("student_id")
-  numero       Int
+  number       Int
   startedAt    DateTime      @default(now()) @map("started_at")
   /// Fin calculado en el servidor: min(inicio + duración, cierre del examen).
   endsAt       DateTime      @map("ends_at")
   finishedAt   DateTime?     @map("finished_at")
-  status       AttemptStatus @default(EN_CURSO)
+  status       AttemptStatus @default(IN_PROGRESS)
   /// Orden fijo del intento: `[{ questionId, optionIds[] }]` (aleatorización reproducible).
   layout       Json
   score        Decimal?      @db.Decimal(6, 2)
@@ -930,7 +930,7 @@ model ExamAttempt {
   student Student         @relation(fields: [studentId], references: [id])
   answers AttemptAnswer[]
 
-  @@unique([examId, studentId, numero])
+  @@unique([examId, studentId, number])
   @@index([examId, studentId])
   @@index([studentId, status])
   @@index([status, endsAt])
@@ -938,19 +938,19 @@ model ExamAttempt {
 }
 
 model AttemptAnswer {
-  id              String    @id @default(uuid())
-  attemptId       String    @map("attempt_id")
-  questionId      String    @map("question_id")
+  id           String    @id @default(uuid())
+  attemptId    String    @map("attempt_id")
+  questionId   String    @map("question_id")
   /// Opción (`optionId`), arreglo de opciones o texto, según el tipo.
-  respuesta       Json?
+  answer       Json?
   /// NULL = pendiente de revisión manual (abiertas).
-  esCorrecta      Boolean?  @map("es_correcta")
-  puntosObtenidos Decimal?  @map("puntos_obtenidos") @db.Decimal(6, 2)
-  comentario      String?
-  answeredAt      DateTime  @default(now()) @map("answered_at")
-  reviewedAt      DateTime? @map("reviewed_at")
-  createdAt       DateTime  @default(now()) @map("created_at")
-  updatedAt       DateTime  @updatedAt @map("updated_at")
+  isCorrect    Boolean?  @map("is_correct")
+  pointsEarned Decimal?  @map("points_earned") @db.Decimal(6, 2)
+  comment      String?
+  answeredAt   DateTime  @default(now()) @map("answered_at")
+  reviewedAt   DateTime? @map("reviewed_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
 
   attempt  ExamAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
   question Question    @relation(fields: [questionId], references: [id])
@@ -965,25 +965,25 @@ model AttemptAnswer {
 // ---------------------------------------------------------------------------
 
 enum AttendanceStatus {
-  PRESENTE
-  FALTA
-  RETARDO
-  JUSTIFICADA
+  PRESENT
+  ABSENT
+  LATE
+  JUSTIFIED
 }
 
 enum JustificationStatus {
-  PENDIENTE
-  APROBADA
-  RECHAZADA
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 model AttendanceSession {
   id           String    @id @default(uuid())
   groupId      String    @map("group_id")
-  fecha        DateTime  @db.Date
+  date         DateTime  @db.Date
   /// `HH:mm` opcional (varias sesiones el mismo día).
-  hora         String?   @db.VarChar(5)
-  tema         String?   @db.VarChar(200)
+  time         String?   @db.VarChar(5)
+  topic        String?   @db.VarChar(200)
   createdBy    String    @map("created_by")
   /// Anulación lógica: la sesión deja de contar para el porcentaje.
   deletedAt    DateTime? @map("deleted_at")
@@ -995,7 +995,7 @@ model AttendanceSession {
   group   Group        @relation(fields: [groupId], references: [id])
   records Attendance[]
 
-  @@index([groupId, fecha])
+  @@index([groupId, date])
   @@map("attendance_sessions")
 }
 
@@ -1018,21 +1018,21 @@ model Attendance {
 }
 
 model Justification {
-  id            String              @id @default(uuid())
-  attendanceId  String              @unique @map("attendance_id")
-  motivo        String              @db.VarChar(1000)
+  id           String              @id @default(uuid())
+  attendanceId String              @unique @map("attendance_id")
+  reason       String              @db.VarChar(1000)
   /// Clave privada en el almacenamiento (S3 o disco); nunca una URL pública.
-  archivoKey    String?             @map("archivo_key")
-  archivoNombre String?             @map("archivo_nombre") @db.VarChar(255)
-  archivoMime   String?             @map("archivo_mime") @db.VarChar(100)
-  archivoSize   Int?                @map("archivo_size")
-  status        JustificationStatus @default(PENDIENTE)
-  solicitadoPor String              @map("solicitado_por")
-  resueltoPor   String?             @map("resuelto_por")
-  resolvedAt    DateTime?           @map("resolved_at")
-  nota          String?             @db.VarChar(500)
-  createdAt     DateTime            @default(now()) @map("created_at")
-  updatedAt     DateTime            @updatedAt @map("updated_at")
+  fileKey      String?             @map("file_key")
+  fileName     String?             @map("file_name") @db.VarChar(255)
+  fileMime     String?             @map("file_mime") @db.VarChar(100)
+  fileSize     Int?                @map("file_size")
+  status       JustificationStatus @default(PENDING)
+  requestedBy  String              @map("requested_by")
+  resolvedBy   String?             @map("resolved_by")
+  resolvedAt   DateTime?           @map("resolved_at")
+  note         String?             @db.VarChar(500)
+  createdAt    DateTime            @default(now()) @map("created_at")
+  updatedAt    DateTime            @updatedAt @map("updated_at")
 
   attendance Attendance @relation(fields: [attendanceId], references: [id])
 
@@ -1049,54 +1049,54 @@ enum NotificationChannel {
   SMS
   WHATSAPP
   /// Bandeja dentro de la app (campana); se entrega al encolar.
-  INTERNO
+  IN_APP
 }
 
 enum NotificationStatus {
-  EN_COLA
-  ENVIADO
-  FALLIDO
+  QUEUED
+  SENT
+  FAILED
   /// No se envió por baja del destinatario (opt-out).
-  OMITIDO
+  SKIPPED
 }
 
 model NotificationTemplate {
-  id          String              @id @default(uuid())
+  id        String              @id @default(uuid())
   /// Evento que la dispara (p. ej. `ALERTA_INASISTENCIA`); una por canal.
-  clave       String              @db.VarChar(60)
-  nombre      String              @db.VarChar(150)
-  canal       NotificationChannel
-  asunto      String?             @db.VarChar(200)
-  cuerpo      String
+  code      String              @db.VarChar(60)
+  name      String              @db.VarChar(150)
+  channel   NotificationChannel
+  subject   String?             @db.VarChar(200)
+  body      String
   /// Variables declaradas que el payload debe cubrir (`["nombre", "monto"]`).
-  variables   Json                @default("[]")
+  variables Json                @default("[]")
   /// Transaccional obligatorio: ignora la baja (opt-out).
-  obligatorio Boolean             @default(false)
-  active      Boolean             @default(true)
-  createdAt   DateTime            @default(now()) @map("created_at")
-  updatedAt   DateTime            @updatedAt @map("updated_at")
+  required  Boolean             @default(false)
+  active    Boolean             @default(true)
+  createdAt DateTime            @default(now()) @map("created_at")
+  updatedAt DateTime            @updatedAt @map("updated_at")
 
   notifications Notification[]
 
-  @@unique([clave, canal])
-  @@index([canal, active])
+  @@unique([code, channel])
+  @@index([channel, active])
   @@map("notification_templates")
 }
 
 model Notification {
   id                String              @id @default(uuid())
   /// Correo, teléfono o `user:<id>` para la bandeja interna.
-  destinatario      String              @db.VarChar(200)
-  canal             NotificationChannel
+  recipient         String              @db.VarChar(200)
+  channel           NotificationChannel
   templateId        String?             @map("template_id")
   /// Cuenta destinataria (bandeja y tiempo real), si se conoce.
   userId            String?             @map("user_id")
   /// Evento o módulo de origen (`ALERTA_INASISTENCIA`, `MANUAL`…).
-  origen            String              @default("MANUAL") @db.VarChar(60)
+  origin            String              @default("MANUAL") @db.VarChar(60)
   payload           Json                @default("{}")
-  asunto            String?             @db.VarChar(200)
-  cuerpo            String
-  status            NotificationStatus  @default(EN_COLA)
+  subject           String?             @db.VarChar(200)
+  body              String
+  status            NotificationStatus  @default(QUEUED)
   attempts          Int                 @default(0)
   maxAttempts       Int                 @default(5) @map("max_attempts")
   nextRetryAt       DateTime            @default(now()) @map("next_retry_at")
@@ -1116,23 +1116,23 @@ model Notification {
   template NotificationTemplate? @relation(fields: [templateId], references: [id])
 
   @@index([status, nextRetryAt])
-  @@index([destinatario])
-  @@index([userId, canal, createdAt])
+  @@index([recipient])
+  @@index([userId, channel, createdAt])
   @@index([templateId])
   @@map("notifications")
 }
 
 model NotificationPreference {
-  id           String              @id @default(uuid())
-  destinatario String              @db.VarChar(200)
-  canal        NotificationChannel
-  optOut       Boolean             @default(false) @map("opt_out")
-  motivo       String?             @db.VarChar(300)
-  updatedBy    String?             @map("updated_by")
-  createdAt    DateTime            @default(now()) @map("created_at")
-  updatedAt    DateTime            @updatedAt @map("updated_at")
+  id        String              @id @default(uuid())
+  recipient String              @db.VarChar(200)
+  channel   NotificationChannel
+  optOut    Boolean             @default(false) @map("opt_out")
+  reason    String?             @db.VarChar(300)
+  updatedBy String?             @map("updated_by")
+  createdAt DateTime            @default(now()) @map("created_at")
+  updatedAt DateTime            @updatedAt @map("updated_at")
 
-  @@unique([destinatario, canal])
+  @@unique([recipient, channel])
   @@map("notification_preferences")
 }
 
@@ -1146,56 +1146,56 @@ enum MigrationMode {
 }
 
 enum MigrationBatchStatus {
-  EN_PROCESO
-  COMPLETADO
-  FALLIDO
-  CANCELADO
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+  CANCELLED
 }
 
 enum MigrationRowStatus {
-  ACEPTADA
-  RECHAZADA
-  OMITIDA
+  ACCEPTED
+  REJECTED
+  SKIPPED
 }
 
 /// Lote de migración (una ejecución dry-run o real). Trazabilidad del proceso;
 /// el dataset final vive en cada módulo destino.
 model MigrationBatch {
-  id             String                @id @default(uuid())
+  id             String               @id @default(uuid())
   /// Entidad destino: Student, Teacher…
-  entidad        String
+  entity         String
   /// Nombre del archivo origen (el contenido no se guarda).
-  archivo        String
+  file           String
   /// sha256 del archivo; la confirmación revalida que coincide.
-  checksum       String                @db.VarChar(64)
+  checksum       String               @db.VarChar(64)
   mode           MigrationMode
-  status         MigrationBatchStatus  @default(EN_PROCESO)
-  idempotencyKey String?               @unique @map("idempotency_key") @db.VarChar(200)
+  status         MigrationBatchStatus @default(IN_PROGRESS)
+  idempotencyKey String?              @unique @map("idempotency_key") @db.VarChar(200)
   /// { read, valid|inserted, updated?, rejected }
-  totalsJson     Json                  @default("{}") @map("totals_json")
-  createdBy      String                @map("created_by")
-  executedAt     DateTime?             @map("executed_at")
-  createdAt      DateTime              @default(now()) @map("created_at")
-  updatedAt      DateTime              @updatedAt @map("updated_at")
+  totalsJson     Json                 @default("{}") @map("totals_json")
+  createdBy      String               @map("created_by")
+  executedAt     DateTime?            @map("executed_at")
+  createdAt      DateTime             @default(now()) @map("created_at")
+  updatedAt      DateTime             @updatedAt @map("updated_at")
 
   rows MigrationRow[]
 
-  @@index([entidad, status])
+  @@index([entity, status])
   @@index([createdAt])
   @@map("migration_batches")
 }
 
 /// Resultado fila a fila de un lote (se guardan las filas no aceptadas).
 model MigrationRow {
-  id         String              @id @default(uuid())
-  batchId    String              @map("batch_id")
-  rowNumber  Int                 @map("row_number")
-  entidad    String
-  naturalKey String?             @map("natural_key") @db.VarChar(200)
+  id         String             @id @default(uuid())
+  batchId    String             @map("batch_id")
+  rowNumber  Int                @map("row_number")
+  entity     String
+  naturalKey String?            @map("natural_key") @db.VarChar(200)
   status     MigrationRowStatus
-  reason     String?             @db.VarChar(120)
+  reason     String?            @db.VarChar(120)
   raw        Json?
-  createdAt  DateTime            @default(now()) @map("created_at")
+  createdAt  DateTime           @default(now()) @map("created_at")
 
   batch MigrationBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
 
@@ -1283,9 +1283,9 @@ model StudentPlan {
   createdAt       DateTime   @default(now()) @map("created_at")
   updatedAt       DateTime   @updatedAt @map("updated_at")
 
-  student Student @relation(fields: [studentId], references: [id])
-  program Program @relation(fields: [programId], references: [id])
-  term    Term?   @relation(fields: [termId], references: [id])
+  student Student  @relation(fields: [studentId], references: [id])
+  program Program  @relation(fields: [programId], references: [id])
+  term    Term?    @relation(fields: [termId], references: [id])
   charges Charge[]
 
   @@index([studentId, status])

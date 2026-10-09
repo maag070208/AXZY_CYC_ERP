@@ -12,9 +12,9 @@ export interface PlanTotals {
 
 export interface Plan {
   id: string;
-  student: { id: string; matricula: string; name: string };
+  student: { id: string; studentNumber: string; name: string };
   program: { id: string; code: string; name: string };
-  term: { id: string; nombre: string } | null;
+  term: { id: string; name: string } | null;
   startDate: string;
   periodType: PeriodType;
   periodCount: number;
@@ -34,9 +34,9 @@ export interface Plan {
 export interface PlanCharge {
   id: string;
   planChargeIndex: number | null;
-  descripcion: string | null;
-  monto: number;
-  fechaVencimiento: string;
+  description: string | null;
+  amount: number;
+  dueDate: string;
   status: string;
 }
 

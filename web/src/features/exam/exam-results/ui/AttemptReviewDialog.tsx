@@ -14,30 +14,30 @@ interface Props {
 }
 
 const answerText = (q: AttemptQuestion, empty: string): string => {
-  if (q.respuesta === null || q.respuesta === "" || (Array.isArray(q.respuesta) && q.respuesta.length === 0)) return empty;
-  if (typeof q.respuesta === "string") return q.respuesta;
-  const chosen = new Set(q.respuesta);
-  return q.options.filter((o) => chosen.has(o.id)).map((o) => o.texto).join(", ");
+  if (q.answer === null || q.answer === "" || (Array.isArray(q.answer) && q.answer.length === 0)) return empty;
+  if (typeof q.answer === "string") return q.answer;
+  const chosen = new Set(q.answer);
+  return q.options.filter((o) => chosen.has(o.id)).map((o) => o.text).join(", ");
 };
 
 function OpenReview({ attemptId, question, onDone }: { attemptId: string; question: AttemptQuestion; onDone: () => void }) {
   const { t } = useTranslation(["exams", "common"]);
   const notify = useNotify();
-  const [puntos, setPuntos] = useState(question.puntosObtenidos === null || question.puntosObtenidos === undefined ? "" : String(question.puntosObtenidos));
-  const [comentario, setComentario] = useState(question.comentario ?? "");
+  const [points, setPuntos] = useState(question.pointsEarned === null || question.pointsEarned === undefined ? "" : String(question.pointsEarned));
+  const [comment, setComentario] = useState(question.comment ?? "");
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
   const save = async () => {
-    const value = Number(puntos);
-    if (puntos === "" || value < 0 || value > question.puntos) {
-      setError(t("review.puntos", { max: question.puntos }));
+    const value = Number(points);
+    if (points === "" || value < 0 || value > question.points) {
+      setError(t("review.puntos", { max: question.points }));
       return;
     }
     setSaving(true);
     setError(null);
     try {
-      await attemptApi.review(attemptId, { questionId: question.questionId, puntosObtenidos: value, comentario: comentario.trim() || undefined });
+      await attemptApi.review(attemptId, { questionId: question.questionId, pointsEarned: value, comment: comment.trim() || undefined });
       notify.success(t("review.reviewed"));
       onDone();
     } catch (err) {
@@ -51,8 +51,8 @@ function OpenReview({ attemptId, question, onDone }: { attemptId: string; questi
     <div data-role="open-review" className="mt-2 rounded-xl border border-amber-200 bg-amber-50/60 p-3">
       {error && <div className="mb-2"><ITAlert variant="error">{error}</ITAlert></div>}
       <div className="grid grid-cols-1 gap-2 md:grid-cols-[8rem_1fr_auto] md:items-end">
-        <ITInput name={`review-puntos-${question.orden}`} type="number" decimals={2} label={t("review.puntos", { max: question.puntos })} value={puntos} onChange={(e) => setPuntos(e.target.value)} />
-        <ITTextarea name={`review-comentario-${question.orden}`} label={t("review.comentario")} value={comentario} onChange={setComentario} rows={1} maxLength={1000} />
+        <ITInput name={`review-points-${question.sortOrder}`} type="number" decimals={2} label={t("review.puntos", { max: question.points })} value={points} onChange={(e) => setPuntos(e.target.value)} />
+        <ITTextarea name={`review-comment-${question.sortOrder}`} label={t("review.comentario")} value={comment} onChange={setComentario} rows={1} maxLength={1000} />
         <ITButton variant="filled" color="primary" disabled={saving} onClick={() => void save()}>{t("review.calificar")}</ITButton>
       </div>
     </div>
@@ -91,8 +91,8 @@ export default function AttemptReviewDialog({ attemptId, canReview, onClose, onC
     }
   };
 
-  const title = attempt ? t("review.title", { numero: attempt.numero, name: attempt.student.nombre }) : t("results.ver");
-  const finished = !!attempt && attempt.status !== "EN_CURSO";
+  const title = attempt ? t("review.title", { number: attempt.number, name: attempt.student.name }) : t("results.ver");
+  const finished = !!attempt && attempt.status !== "IN_PROGRESS";
   return (
     <ITDialog isOpen={!!attemptId} onClose={onClose} title={title} className="w-full max-w-3xl">
       <div role="dialog" aria-label={title}>
@@ -101,7 +101,7 @@ export default function AttemptReviewDialog({ attemptId, canReview, onClose, onC
           <ITFlex direction="column" gap={3}>
             <ITFlex justify="between" align="center" wrap="wrap" gap={2}>
               <ITFlex gap={2} align="center">
-                <ITBadget color={attempt.status === "EN_CURSO" ? "warning" : "secondary"} size="sm">{t(`runner.statuses.${attempt.status}`)}</ITBadget>
+                <ITBadget color={attempt.status === "IN_PROGRESS" ? "warning" : "secondary"} size="sm">{t(`runner.statuses.${attempt.status}`)}</ITBadget>
                 {attempt.result && (
                   <ITText className="text-[13px] font-bold text-slate-700">
                     {t("review.score", { score: attempt.result.score, total: attempt.result.totalPuntos })}
@@ -118,17 +118,17 @@ export default function AttemptReviewDialog({ attemptId, canReview, onClose, onC
             </ITFlex>
             <ol className="max-h-[60vh] divide-y divide-slate-100 overflow-y-auto">
               {attempt.questions.map((q) => {
-                const pending = q.tipo === "ABIERTA" && (q.puntosObtenidos === null || q.puntosObtenidos === undefined);
+                const pending = q.type === "OPEN" && (q.pointsEarned === null || q.pointsEarned === undefined);
                 return (
                   <li key={q.questionId} data-role="attempt-question" className="py-3">
                     <ITFlex justify="between" gap={3}>
-                      <ITText className="text-[12px] font-bold text-slate-700">{q.orden}. {q.enunciado}</ITText>
+                      <ITText className="text-[12px] font-bold text-slate-700">{q.sortOrder}. {q.text}</ITText>
                       <span className="shrink-0">
                         {pending ? (
                           <ITBadget color="warning" size="sm">{t("review.pendiente")}</ITBadget>
                         ) : (
-                          <ITBadget color={q.esCorrecta ? "success" : "danger"} size="sm">
-                            <ITFlex align="center" gap={1}>{q.esCorrecta ? <FaCheck size={8} /> : <FaTimes size={8} />}{q.puntosObtenidos ?? 0} / {q.puntos}</ITFlex>
+                          <ITBadget color={q.isCorrect ? "success" : "danger"} size="sm">
+                            <ITFlex align="center" gap={1}>{q.isCorrect ? <FaCheck size={8} /> : <FaTimes size={8} />}{q.pointsEarned ?? 0} / {q.points}</ITFlex>
                           </ITBadget>
                         )}
                       </span>
@@ -136,13 +136,13 @@ export default function AttemptReviewDialog({ attemptId, canReview, onClose, onC
                     <ITText className="mt-1 block text-[12px] text-slate-600">
                       <b>{t("review.respuesta")}:</b> {answerText(q, t("review.sinRespuesta"))}
                     </ITText>
-                    {q.tipo !== "ABIERTA" && (
+                    {q.type !== "OPEN" && (
                       <ITText className="block text-[11px] text-emerald-700">
-                        {t("review.correcta")}: {q.options.filter((o) => o.esCorrecta).map((o) => o.texto).join(", ")}
+                        {t("review.correcta")}: {q.options.filter((o) => o.isCorrect).map((o) => o.text).join(", ")}
                       </ITText>
                     )}
-                    {q.comentario && <ITText className="block text-[11px] italic text-slate-500">“{q.comentario}”</ITText>}
-                    {q.tipo === "ABIERTA" && canReview && finished && <OpenReview attemptId={attempt.attemptId} question={q} onDone={changed} />}
+                    {q.comment && <ITText className="block text-[11px] italic text-slate-500">“{q.comment}”</ITText>}
+                    {q.type === "OPEN" && canReview && finished && <OpenReview attemptId={attempt.attemptId} question={q} onDone={changed} />}
                   </li>
                 );
               })}

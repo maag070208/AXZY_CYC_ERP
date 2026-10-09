@@ -7,13 +7,13 @@
     "EMAIL": "Email",
     "SMS": "SMS",
     "WHATSAPP": "WhatsApp",
-    "INTERNO": "Internal"
+    "IN_APP": "Internal"
   },
   "status": {
-    "EN_COLA": "Queued",
-    "ENVIADO": "Sent",
-    "FALLIDO": "Failed",
-    "OMITIDO": "Skipped"
+    "QUEUED": "Queued",
+    "SENT": "Sent",
+    "FAILED": "Failed",
+    "SKIPPED": "Skipped"
   },
   "page": {
     "title": "Notifications",
@@ -67,7 +67,7 @@
       "EMAIL": "Valid email, e.g. student@school.mx.",
       "SMS": "10 to 15 digit phone with country code (e.g. +521234567890).",
       "WHATSAPP": "10 to 15 digit phone with country code.",
-      "INTERNO": "Internal inbox: use the format user:<account uuid>."
+      "IN_APP": "Internal inbox: use the format user:<account uuid>."
     }
   },
   "preferences": {

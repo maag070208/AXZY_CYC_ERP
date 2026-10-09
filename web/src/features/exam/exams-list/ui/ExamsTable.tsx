@@ -25,19 +25,19 @@ export default function ExamsTable({ reloadKey, onTotal, onOpen }: Props) {
 
   const columns: Column<OnlineExam>[] = [
     {
-      key: "titulo", label: t("exams.titulo"), type: "string", filter: true, sortable: false,
+      key: "title", label: t("exams.titulo"), type: "string", filter: true, sortable: false,
       render: (row) => (
         <div>
-          <ITText className="block text-[12px] font-bold text-slate-700">{row.titulo}</ITText>
+          <ITText className="block text-[12px] font-bold text-slate-700">{row.title}</ITText>
           <ITText className="text-[10px] text-slate-400">{row.courseNombre} · {row.groupNombre} · {row.termNombre}</ITText>
         </div>
       ),
     },
     {
-      key: "fechaApertura", label: t("exams.ventana"), type: "date", width: 260, sortable: false,
+      key: "opensAt", label: t("exams.ventana"), type: "date", width: 260, sortable: false,
       render: (row) => (
         <ITText className="text-[11px] text-slate-600">
-          {formatInstant(row.fechaApertura, i18n.language)} → {formatInstant(row.fechaCierre, i18n.language)}
+          {formatInstant(row.opensAt, i18n.language)} → {formatInstant(row.closesAt, i18n.language)}
         </ITText>
       ),
     },
@@ -48,13 +48,13 @@ export default function ExamsTable({ reloadKey, onTotal, onOpen }: Props) {
     { key: "intentos", label: t("exams.intentos"), type: "number", width: 90 },
     {
       key: "status", label: t("exams.status"), type: "catalog", width: 120, filter: "catalog", sortable: false,
-      catalogOptions: { data: (["BORRADOR", "PUBLICADO", "CERRADO"] as const).map((s) => ({ id: s, name: t(`exams.statuses.${s}`) })) },
+      catalogOptions: { data: (["DRAFT", "PUBLISHED", "CLOSED"] as const).map((s) => ({ id: s, name: t(`exams.statuses.${s}`) })) },
       render: (row) => <ExamStatusBadge status={row.status} />,
     },
     {
       key: "actions", label: t("common:labels.actions"), type: "actions", width: 70,
       actions: (row: OnlineExam) => (
-        <ITButton variant="text" color="secondary" size="sm" ariaLabel={`${t("common:actions.view")} ${row.titulo}`} onClick={() => onOpen(row)}>
+        <ITButton variant="text" color="secondary" size="sm" ariaLabel={`${t("common:actions.view")} ${row.title}`} onClick={() => onOpen(row)}>
           <FaChevronRight size={12} />
         </ITButton>
       ),

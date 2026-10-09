@@ -6,7 +6,7 @@ import { errorMessage } from "@app/toast/useNotify";
 import { cents, formatMoney, isValidAmount } from "@shared/lib/money";
 
 interface Props {
-  charge: Pick<Charge, "id" | "studentNombre" | "conceptNombre" | "descripcion" | "saldo"> | null;
+  charge: Pick<Charge, "id" | "studentNombre" | "conceptNombre" | "description" | "saldo"> | null;
   onClose: () => void;
   onRegistered: (payment: Payment) => void;
 }
@@ -17,9 +17,9 @@ interface Props {
  */
 export default function RegisterPaymentDialog({ charge, onClose, onRegistered }: Props) {
   const { t, i18n } = useTranslation(["finance", "common"]);
-  const [monto, setMonto] = useState("");
-  const [metodo, setMetodo] = useState<PaymentMethod>("EFECTIVO");
-  const [referencia, setReferencia] = useState("");
+  const [amountInput, setAmountInput] = useState("");
+  const [method, setMethod] = useState<PaymentMethod>("CASH");
+  const [reference, setReference] = useState("");
   const [fieldError, setFieldError] = useState<string | undefined>();
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -27,16 +27,16 @@ export default function RegisterPaymentDialog({ charge, onClose, onRegistered }:
 
   useEffect(() => {
     if (!charge) return;
-    setMonto(String(charge.saldo));
-    setMetodo("EFECTIVO");
-    setReferencia("");
+    setAmountInput(String(charge.saldo));
+    setMethod("CASH");
+    setReference("");
     setFieldError(undefined);
     setError(null);
   }, [charge]);
 
   const save = async () => {
     if (!charge) return;
-    const amount = Number(monto);
+    const amount = Number(amountInput);
     if (!isValidAmount(amount) || cents(amount) > charge.saldo) {
       setFieldError(t("payments.exceeds", { saldo: formatMoney(charge.saldo, i18n.language) }));
       return;
@@ -45,7 +45,7 @@ export default function RegisterPaymentDialog({ charge, onClose, onRegistered }:
     setSaving(true);
     setError(null);
     try {
-      onRegistered(await paymentApi.register({ chargeId: charge.id, monto: amount, metodo, referencia: referencia.trim() || null }, idempotencyKey));
+      onRegistered(await paymentApi.register({ chargeId: charge.id, amount: amount, method, reference: reference.trim() || null }, idempotencyKey));
     } catch (err) {
       setError(errorMessage(err, t("common:errors.save")));
     } finally {
@@ -53,7 +53,7 @@ export default function RegisterPaymentDialog({ charge, onClose, onRegistered }:
     }
   };
 
-  const title = t("payments.registerTitle", { concept: charge?.descripcion ?? charge?.conceptNombre ?? "" });
+  const title = t("payments.registerTitle", { concept: charge?.description ?? charge?.conceptNombre ?? "" });
   return (
     <ITDialog isOpen={!!charge} onClose={onClose} title={title} className="w-full max-w-lg">
       <form role="dialog" aria-label={title} noValidate onSubmit={(e) => { e.preventDefault(); void save(); }}>
@@ -71,16 +71,16 @@ export default function RegisterPaymentDialog({ charge, onClose, onRegistered }:
           </ITFlex>
           <ITGrid container columns={12} spacing={4}>
             <ITGrid item xs={12} md={6}>
-              <ITInput name="monto" type="number" label={t("payments.monto")} value={monto} required error={fieldError}
-                onChange={(e) => setMonto(e.target.value)} />
+              <ITInput name="amount" type="number" label={t("payments.monto")} value={amountInput} required error={fieldError}
+                onChange={(e) => setAmountInput(e.target.value)} />
             </ITGrid>
             <ITGrid item xs={12} md={6}>
-              <ITSelect name="metodo" label={t("payments.metodo")} value={metodo}
+              <ITSelect name="method" label={t("payments.metodo")} value={method}
                 options={PAYMENT_METHODS.map((m) => ({ value: m, label: t(`payments.methods.${m}`) }))}
-                onChange={(e) => setMetodo(e.target.value as PaymentMethod)} />
+                onChange={(e) => setMethod(e.target.value as PaymentMethod)} />
             </ITGrid>
             <ITGrid item xs={12}>
-              <ITInput name="referencia" label={t("payments.referencia")} value={referencia} onChange={(e) => setReferencia(e.target.value)} />
+              <ITInput name="reference" label={t("payments.referencia")} value={reference} onChange={(e) => setReference(e.target.value)} />
             </ITGrid>
           </ITGrid>
           <ITFlex justify="end" gap={2}>

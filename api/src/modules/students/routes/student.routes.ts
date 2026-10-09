@@ -52,17 +52,17 @@ export const createStudentRouter = (controller: StudentController): Router => {
     request: { body: { required: true, content: json(StudentUpdateDto) } },
     responses: { 200: { description: "Alumno", content: json(StudentSchema) } },
   });
-  doc("delete", "/students/{id}", "Baja lógica con motivo (students.delete); registra el movimiento", {
+  doc("delete", "/students/{id}", "Baja lógica con reason (students.delete); registra el movimiento", {
     parameters: [idParam],
     request: { body: { required: true, content: json(MovementInputDto) } },
     responses: { 200: { description: "Baja registrada", content: json(MovementResultSchema) } },
   });
-  doc("post", "/students/{id}/baja", "Baja con motivo (students.movements)", {
+  doc("post", "/students/{id}/baja", "Baja con reason (students.movements)", {
     parameters: [idParam],
     request: { body: { required: true, content: json(MovementInputDto) } },
     responses: { 200: { description: "Baja registrada", content: json(MovementResultSchema) }, 409: { description: "STUDENT_INACTIVE" } },
   });
-  doc("post", "/students/{id}/reingreso", "Reingreso con motivo; conserva la matrícula (students.movements)", {
+  doc("post", "/students/{id}/reingreso", "Reingreso con reason; conserva la matrícula (students.movements)", {
     parameters: [idParam],
     request: { body: { required: true, content: json(MovementInputDto) } },
     responses: { 200: { description: "Reingreso registrado", content: json(MovementResultSchema) }, 409: { description: "STUDENT_ALREADY_ACTIVE" } },

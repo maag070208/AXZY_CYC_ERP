@@ -29,9 +29,9 @@ export default function MovementDialog({ kind, student, onClose, onDone }: Props
   const { t } = useTranslation(["students", "common"]);
   const [reasons, setReasons] = useState<CatalogItem[]>([]);
   const [reasonId, setReasonId] = useState("");
-  const [motivo, setMotivo] = useState("");
-  const [fecha, setFecha] = useState(toDay(new Date()));
-  const [observaciones, setObservaciones] = useState("");
+  const [reason, setMotivo] = useState("");
+  const [date, setFecha] = useState(toDay(new Date()));
+  const [notes, setObservaciones] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -42,29 +42,29 @@ export default function MovementDialog({ kind, student, onClose, onDone }: Props
     setFecha(toDay(new Date()));
     setObservaciones("");
     setError(null);
-    if (kind === "BAJA") {
+    if (kind === "WITHDRAWAL") {
       catalogApi.options("cancellation-reasons").then(setReasons).catch(() => setReasons([]));
     }
   }, [kind]);
 
   const title =
-    kind === "BAJA"
+    kind === "WITHDRAWAL"
       ? t("movements.bajaTitle", { name: student.nombreCompleto })
       : t("movements.reingresoTitle", { name: student.nombreCompleto });
 
   const confirm = async () => {
     if (!kind) return;
-    if (motivo.trim().length < 3) return setError(t("movements.motivoRequired"));
+    if (reason.trim().length < 3) return setError(t("movements.motivoRequired"));
     setSaving(true);
     setError(null);
     const data = {
-      motivo: motivo.trim(),
+      reason: reason.trim(),
       reasonId: reasonId || null,
-      fecha,
-      observaciones: observaciones.trim() || null,
+      date,
+      notes: notes.trim() || null,
     };
     try {
-      onDone(kind === "BAJA" ? await studentApi.baja(student.id, data) : await studentApi.reingreso(student.id, data));
+      onDone(kind === "WITHDRAWAL" ? await studentApi.baja(student.id, data) : await studentApi.reingreso(student.id, data));
     } catch (err) {
       setError(errorMessage(err, t("common:errors.save")));
     } finally {
@@ -78,9 +78,9 @@ export default function MovementDialog({ kind, student, onClose, onDone }: Props
         <ITFlex direction="column" gap={4}>
           {error && <ITAlert variant="error">{error}</ITAlert>}
           <ITText className="text-[12px] text-slate-600">
-            {kind === "BAJA" ? t("movements.bajaMessage") : t("movements.reingresoMessage")}
+            {kind === "WITHDRAWAL" ? t("movements.bajaMessage") : t("movements.reingresoMessage")}
           </ITText>
-          {kind === "BAJA" && reasons.length > 0 && (
+          {kind === "WITHDRAWAL" && reasons.length > 0 && (
             <ITSelect
               name="reasonId"
               label={t("movements.reason")}
@@ -94,22 +94,22 @@ export default function MovementDialog({ kind, student, onClose, onDone }: Props
               }}
             />
           )}
-          <ITInput name="motivo" label={t("movements.motivo")} value={motivo} required
+          <ITInput name="reason" label={t("movements.motivo")} value={reason} required
             onChange={(e) => setMotivo(e.target.value)} />
-          <ITDatePicker name="fecha" label={t("movements.fecha")} value={fromDay(fecha)} maxDate={new Date()}
+          <ITDatePicker name="date" label={t("movements.fecha")} value={fromDay(date)} maxDate={new Date()}
             onChange={(e) => {
               const value = e.target.value;
               if (value instanceof Date && !Number.isNaN(value.getTime())) setFecha(toDay(value));
             }} />
-          <ITTextarea name="observaciones" label={t("movements.observaciones")} value={observaciones}
+          <ITTextarea name="notes" label={t("movements.observaciones")} value={notes}
             onChange={setObservaciones} rows={3} maxLength={1000} />
           <ITFlex justify="end" gap={2}>
             <ITButton variant="outlined" color="secondary" onClick={onClose}>
               {t("common:actions.cancel")}
             </ITButton>
-            <ITButton variant="filled" color={kind === "BAJA" ? "danger" : "success"} disabled={saving}
+            <ITButton variant="filled" color={kind === "WITHDRAWAL" ? "danger" : "success"} disabled={saving}
               onClick={() => void confirm()}>
-              {kind === "BAJA" ? t("movements.confirmBaja") : t("movements.confirmReingreso")}
+              {kind === "WITHDRAWAL" ? t("movements.confirmBaja") : t("movements.confirmReingreso")}
             </ITButton>
           </ITFlex>
         </ITFlex>

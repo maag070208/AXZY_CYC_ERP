@@ -26,31 +26,31 @@ export default function QuestionsTable({ reloadKey, onTotal, onAction }: Props) 
 
   const columns: Column<Question>[] = [
     {
-      key: "enunciado", label: t("questions.enunciado"), type: "string", filter: true,
+      key: "text", label: t("questions.enunciado"), type: "string", filter: true,
       render: (row) => (
         <div>
-          <ITText className="block text-[12px] font-bold text-slate-700">{row.enunciado.length > 110 ? `${row.enunciado.slice(0, 110)}…` : row.enunciado}</ITText>
-          <ITText className="text-[10px] text-slate-400">{row.courseClave}{row.tema ? ` · ${row.tema}` : ""}</ITText>
+          <ITText className="block text-[12px] font-bold text-slate-700">{row.text.length > 110 ? `${row.text.slice(0, 110)}…` : row.text}</ITText>
+          <ITText className="text-[10px] text-slate-400">{row.courseClave}{row.topic ? ` · ${row.topic}` : ""}</ITText>
         </div>
       ),
     },
     {
-      key: "tipo", label: t("questions.tipo"), type: "catalog", width: 160, filter: "catalog", sortable: false,
+      key: "type", label: t("questions.tipo"), type: "catalog", width: 160, filter: "catalog", sortable: false,
       catalogOptions: { data: QUESTION_TYPES.map((x) => ({ id: x, name: t(`questions.types.${x}`) })) },
-      render: (row) => <ITText className="text-[12px] text-slate-600">{t(`questions.types.${row.tipo}`)}</ITText>,
+      render: (row) => <ITText className="text-[12px] text-slate-600">{t(`questions.types.${row.type}`)}</ITText>,
     },
     {
-      key: "dificultad", label: t("questions.dificultad"), type: "catalog", width: 120, filter: "catalog", sortable: false,
+      key: "difficulty", label: t("questions.dificultad"), type: "catalog", width: 120, filter: "catalog", sortable: false,
       catalogOptions: { data: DIFFICULTIES.map((x) => ({ id: x, name: t(`questions.difficulties.${x}`) })) },
-      render: (row) => <ITText className="text-[12px] text-slate-600">{row.dificultad ? t(`questions.difficulties.${row.dificultad}`) : "—"}</ITText>,
+      render: (row) => <ITText className="text-[12px] text-slate-600">{row.difficulty ? t(`questions.difficulties.${row.difficulty}`) : "—"}</ITText>,
     },
-    { key: "puntos", label: t("questions.puntos"), type: "number", width: 90, sortable: false },
+    { key: "points", label: t("questions.puntos"), type: "number", width: 90, sortable: false },
     {
       key: "status", label: t("questions.status"), type: "catalog", width: 150, filter: "catalog", sortable: false,
-      catalogOptions: { data: [{ id: "ACTIVA", name: t("questions.activa") }, { id: "INACTIVA", name: t("questions.inactiva") }] },
+      catalogOptions: { data: [{ id: "ACTIVE", name: t("questions.activa") }, { id: "INACTIVE", name: t("questions.inactiva") }] },
       render: (row) => (
         <ITFlex gap={1} align="center">
-          <ITBadget color={row.status === "ACTIVA" ? "success" : "danger"} size="sm">{row.status === "ACTIVA" ? t("questions.activa") : t("questions.inactiva")}</ITBadget>
+          <ITBadget color={row.status === "ACTIVE" ? "success" : "danger"} size="sm">{row.status === "ACTIVE" ? t("questions.activa") : t("questions.inactiva")}</ITBadget>
           {row.locked && <ITBadget color="secondary" size="sm">{t("questions.enUso")}</ITBadget>}
         </ITFlex>
       ),
@@ -60,15 +60,15 @@ export default function QuestionsTable({ reloadKey, onTotal, onAction }: Props) 
           key: "actions", label: t("common:labels.actions"), type: "actions" as const, width: 100,
           actions: (row: Question) => (
             <ITFlex gap={1}>
-              <ITButton variant="text" color="secondary" size="sm" ariaLabel={`${t("common:actions.edit")} ${row.enunciado}`} onClick={() => onAction("edit", row)}>
+              <ITButton variant="text" color="secondary" size="sm" ariaLabel={`${t("common:actions.edit")} ${row.text}`} onClick={() => onAction("edit", row)}>
                 <FaEdit size={12} />
               </ITButton>
-              {row.status === "ACTIVA" ? (
-                <ITButton variant="text" color="danger" size="sm" ariaLabel={`${t("common:actions.deactivate")} ${row.enunciado}`} onClick={() => onAction("deactivate", row)}>
+              {row.status === "ACTIVE" ? (
+                <ITButton variant="text" color="danger" size="sm" ariaLabel={`${t("common:actions.deactivate")} ${row.text}`} onClick={() => onAction("deactivate", row)}>
                   <FaBan size={12} />
                 </ITButton>
               ) : (
-                <ITButton variant="text" color="success" size="sm" ariaLabel={`${t("common:actions.reactivate")} ${row.enunciado}`} onClick={() => onAction("reactivate", row)}>
+                <ITButton variant="text" color="success" size="sm" ariaLabel={`${t("common:actions.reactivate")} ${row.text}`} onClick={() => onAction("reactivate", row)}>
                   <FaUndo size={12} />
                 </ITButton>
               )}

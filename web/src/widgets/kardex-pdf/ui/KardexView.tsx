@@ -13,7 +13,7 @@ import { PanelCard } from "@shared/ui/panel-card";
 import { useKardex } from "../model/useKardex";
 import { renderKardexPdf } from "../lib/renderKardexPdf";
 
-const STATUS_COLOR = { ACREDITADO: "success", REPROBADO: "danger", EN_CURSO: "info", BAJA: "gray" } as const;
+const STATUS_COLOR = { PASSED: "success", FAILED: "danger", IN_PROGRESS: "info", WITHDRAWN: "gray" } as const;
 
 /** Kardex del alumno: indicadores, cursos por ciclo y exportación a PDF. */
 export default function KardexView({ studentId }: { studentId: string }) {
@@ -34,9 +34,9 @@ export default function KardexView({ studentId }: { studentId: string }) {
     try {
       const blob = await renderKardexPdf(kardex, {
         title: t("kardex.title"),
-        matricula: t("students:detail.matricula"),
+        studentNumber: t("students:detail.studentNumber"),
         status: t("students:table.status"),
-        ingreso: t("students:form.fechaIngreso"),
+        ingreso: t("students:form.enrollmentDate"),
         ciclo: t("kardex.ciclo"),
         curso: t("kardex.curso"),
         grupo: t("kardex.grupo"),
@@ -48,13 +48,13 @@ export default function KardexView({ studentId }: { studentId: string }) {
         ninguno: t("kardex.ninguno"),
         generated,
         estatusValues: {
-          ACREDITADO: t("kardex.estatusValues.ACREDITADO"),
-          REPROBADO: t("kardex.estatusValues.REPROBADO"),
-          EN_CURSO: t("kardex.estatusValues.EN_CURSO"),
-          BAJA: t("kardex.estatusValues.BAJA"),
+          PASSED: t("kardex.estatusValues.PASSED"),
+          FAILED: t("kardex.estatusValues.FAILED"),
+          IN_PROGRESS: t("kardex.estatusValues.IN_PROGRESS"),
+          WITHDRAWN: t("kardex.estatusValues.WITHDRAWN"),
         },
       });
-      saveAs(blob, `kardex-${kardex.matricula}.pdf`);
+      saveAs(blob, `kardex-${kardex.studentNumber}.pdf`);
     } catch (err) {
       notify.error(errorMessage(err, t("common:errors.load")));
     } finally {

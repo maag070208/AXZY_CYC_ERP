@@ -14,15 +14,15 @@ const optionalText = (max: number) =>
     .nullable()
     .optional();
 
-export const GENDERS = ["M", "F", "OTRO"] as const;
+export const GENDERS = ["M", "F", "OTHER"] as const;
 
 export const GuardianSchema = z
   .object({
-    nombre: z.string().trim().min(1, "REQUIRED_FIELD").max(150),
-    parentesco: z.string().trim().min(1, "REQUIRED_FIELD").max(60),
-    telefono: phone,
+    name: z.string().trim().min(1, "REQUIRED_FIELD").max(150),
+    relationship: z.string().trim().min(1, "REQUIRED_FIELD").max(60),
+    phone: phone,
     email: z.string().trim().email("INVALID_EMAIL").max(150).nullable().optional().or(z.literal("").transform(() => null)),
-    esResponsablePago: z.boolean().optional(),
+    isPaymentResponsible: z.boolean().optional(),
   })
   .strict()
   .openapi("GuardianInput");
@@ -30,18 +30,18 @@ registry.register("GuardianInput", GuardianSchema);
 export type GuardianInput = z.infer<typeof GuardianSchema>;
 
 const studentFields = {
-  nombres: z.string().trim().min(1, "REQUIRED_FIELD").max(100),
-  apellidoPaterno: z.string().trim().min(1, "REQUIRED_FIELD").max(100),
-  apellidoMaterno: optionalText(100),
+  firstNames: z.string().trim().min(1, "REQUIRED_FIELD").max(100),
+  paternalSurname: z.string().trim().min(1, "REQUIRED_FIELD").max(100),
+  maternalSurname: optionalText(100),
   curp: z
     .string()
     .transform(normalizeCurp)
     .refine(isValidCurp, "INVALID_CURP"),
-  fechaNacimiento: day,
-  genero: z.enum(GENDERS).nullable().optional(),
+  birthDate: day,
+  gender: z.enum(GENDERS).nullable().optional(),
   email: z.string().trim().email("INVALID_EMAIL").max(150).nullable().optional().or(z.literal("").transform(() => null)),
-  telefono: phone.nullable().optional().or(z.literal("").transform(() => null)),
-  direccion: optionalText(300),
+  phone: phone.nullable().optional().or(z.literal("").transform(() => null)),
+  address: optionalText(300),
   guardians: z.array(GuardianSchema).max(10).optional(),
   /** Cuenta del portal (opcional, única; A-007). */
   userId: z.string().uuid().nullable().optional(),
@@ -51,7 +51,7 @@ export const StudentCreateDto = z
   .object({
     ...studentFields,
     /** Por defecto, el día del alta. */
-    fechaIngreso: day.optional(),
+    enrollmentDate: day.optional(),
     /** Confirma el alta aunque exista alguien con el mismo nombre y nacimiento. */
     confirmDuplicate: z.boolean().optional(),
   })
@@ -74,11 +74,11 @@ export type StudentUpdateInput = z.infer<typeof StudentUpdateDto>;
 export const GuardianViewSchema = z
   .object({
     id: z.string(),
-    nombre: z.string(),
-    parentesco: z.string(),
-    telefono: z.string(),
+    name: z.string(),
+    relationship: z.string(),
+    phone: z.string(),
     email: z.string().nullable(),
-    esResponsablePago: z.boolean(),
+    isPaymentResponsible: z.boolean(),
   })
   .openapi("Guardian");
 registry.register("Guardian", GuardianViewSchema);
@@ -86,19 +86,19 @@ registry.register("Guardian", GuardianViewSchema);
 export const StudentSchema = z
   .object({
     id: z.string(),
-    matricula: z.string(),
-    nombres: z.string(),
-    apellidoPaterno: z.string(),
-    apellidoMaterno: z.string().nullable(),
+    studentNumber: z.string(),
+    firstNames: z.string(),
+    paternalSurname: z.string(),
+    maternalSurname: z.string().nullable(),
     nombreCompleto: z.string(),
     curp: z.string(),
-    fechaNacimiento: z.string(),
-    genero: z.string().nullable(),
+    birthDate: z.string(),
+    gender: z.string().nullable(),
     email: z.string().nullable(),
-    telefono: z.string().nullable(),
-    direccion: z.string().nullable(),
-    status: z.enum(["ACTIVO", "BAJA"]),
-    fechaIngreso: z.string(),
+    phone: z.string().nullable(),
+    address: z.string().nullable(),
+    status: z.enum(["ACTIVE", "WITHDRAWN"]),
+    enrollmentDate: z.string(),
     userId: z.string().nullable(),
     guardians: z.array(GuardianViewSchema),
     createdAt: z.string(),
@@ -114,12 +114,12 @@ export const StudentTableResponseSchema = paginatedTableResponseSchema(StudentSc
 
 export const MovementInputDto = z
   .object({
-    motivo: z.string().trim().min(3, "REQUIRED_FIELD").max(500),
+    reason: z.string().trim().min(3, "REQUIRED_FIELD").max(500),
     /** Motivo del catálogo M11 (`cancellation_reasons`), opcional. */
     reasonId: z.string().uuid().nullable().optional(),
     /** `AAAA-MM-DD`; por defecto hoy. No puede ser futura. */
-    fecha: day.optional(),
-    observaciones: z.string().trim().max(1000).nullable().optional(),
+    date: day.optional(),
+    notes: z.string().trim().max(1000).nullable().optional(),
   })
   .strict()
   .openapi("StudentMovementInput");
@@ -130,11 +130,11 @@ export const MovementSchema = z
   .object({
     id: z.string(),
     studentId: z.string(),
-    tipo: z.enum(["BAJA", "REINGRESO"]),
-    motivo: z.string(),
+    type: z.enum(["WITHDRAWAL", "REENTRY"]),
+    reason: z.string(),
     reasonId: z.string().nullable(),
-    fecha: z.string(),
-    observaciones: z.string().nullable(),
+    date: z.string(),
+    notes: z.string().nullable(),
     createdBy: z.string(),
     authorName: z.string().nullable(),
     createdAt: z.string(),
@@ -146,7 +146,7 @@ export type MovementView = z.infer<typeof MovementSchema>;
 export const MovementResultSchema = z
   .object({
     studentId: z.string(),
-    status: z.enum(["ACTIVO", "BAJA"]),
+    status: z.enum(["ACTIVE", "WITHDRAWN"]),
     movement: MovementSchema,
     cancelledEnrollments: z.number().int(),
   })

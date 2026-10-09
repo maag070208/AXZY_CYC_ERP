@@ -17,7 +17,7 @@ interface Props {
   onSaved: (group: Group, created: boolean) => void;
 }
 
-type Field = "courseId" | "termId" | "nombre" | "cupo";
+type Field = "courseId" | "termId" | "name" | "capacity";
 
 /** Alta y edición de un grupo: curso, ciclo, profesor, cupo, aula y horario. */
 export default function GroupFormDialog({ isOpen, group, onClose, onSaved }: Props) {
@@ -25,14 +25,14 @@ export default function GroupFormDialog({ isOpen, group, onClose, onSaved }: Pro
   const [courseId, setCourseId] = useState("");
   const [termId, setTermId] = useState("");
   const [teacherId, setTeacherId] = useState("");
-  const [nombre, setNombre] = useState("");
-  const [cupo, setCupo] = useState("30");
-  const [aula, setAula] = useState("");
-  const [horario, setHorario] = useState<ScheduleSlot[]>([]);
+  const [name, setNombre] = useState("");
+  const [capacity, setCupo] = useState("30");
+  const [classroom, setAula] = useState("");
+  const [schedule, setHorario] = useState<ScheduleSlot[]>([]);
   const [courses, setCourses] = useState<CourseOption[]>([]);
   const [terms, setTerms] = useState<Term[]>([]);
   const [teachers, setTeachers] = useState<Teacher[]>([]);
-  const [errors, setErrors] = useState<Partial<Record<Field | "horario", string>>>({});
+  const [errors, setErrors] = useState<Partial<Record<Field | "schedule", string>>>({});
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -41,10 +41,10 @@ export default function GroupFormDialog({ isOpen, group, onClose, onSaved }: Pro
     setCourseId(group?.courseId ?? "");
     setTermId(group?.termId ?? "");
     setTeacherId(group?.teacherId ?? "");
-    setNombre(group?.nombre ?? "");
-    setCupo(String(group?.cupo ?? 30));
-    setAula(group?.aula ?? "");
-    setHorario(group?.horario ?? [{ dia: "LUNES", horaInicio: "08:00", horaFin: "09:00" }]);
+    setNombre(group?.name ?? "");
+    setCupo(String(group?.capacity ?? 30));
+    setAula(group?.classroom ?? "");
+    setHorario(group?.schedule ?? [{ dia: "LUNES", horaInicio: "08:00", horaFin: "09:00" }]);
     setErrors({});
     setError(null);
     courseApi.options().then(setCourses).catch(() => setCourses([]));
@@ -53,27 +53,27 @@ export default function GroupFormDialog({ isOpen, group, onClose, onSaved }: Pro
       if (!group) setTermId((current) => current || list.find((term) => term.active)?.id || "");
     }).catch(() => setTerms([]));
     teacherApi
-      .table({ page: 1, limit: 200, filters: { status: "ACTIVO" }, sort: { key: "nombre", direction: "asc" } })
+      .table({ page: 1, limit: 200, filters: { status: "ACTIVE" }, sort: { key: "name", direction: "asc" } })
       .then((res) => setTeachers(res.data))
       .catch(() => setTeachers([]));
   }, [group, isOpen]);
 
   const save = async () => {
-    const cupoNumber = Number(cupo);
-    const slotError = scheduleError(horario);
-    const next: Partial<Record<Field | "horario", string>> = {
+    const cupoNumber = Number(capacity);
+    const slotError = scheduleError(schedule);
+    const next: Partial<Record<Field | "schedule", string>> = {
       courseId: validateRequired(courseId, t("groups.curso")) ?? undefined,
       termId: validateRequired(termId, t("groups.ciclo")) ?? undefined,
-      nombre: validateRequired(nombre, t("groups.nombre")) ?? undefined,
-      cupo: Number.isInteger(cupoNumber) && cupoNumber >= 1 ? undefined : t("common:validation.required", { label: t("groups.cupo") }),
-      horario: slotError ? t(`groups.${slotError}`) : undefined,
+      name: validateRequired(name, t("groups.nombre")) ?? undefined,
+      capacity: Number.isInteger(cupoNumber) && cupoNumber >= 1 ? undefined : t("common:validation.required", { label: t("groups.cupo") }),
+      schedule: slotError ? t(`groups.${slotError}`) : undefined,
     };
     for (const key of Object.keys(next) as (keyof typeof next)[]) if (!next[key]) delete next[key];
     setErrors(next);
     if (Object.keys(next).length > 0) return;
     setSaving(true);
     setError(null);
-    const common = { teacherId: teacherId || null, nombre: nombre.trim(), cupo: cupoNumber, aula: aula.trim() || null, horario };
+    const common = { teacherId: teacherId || null, name: name.trim(), capacity: cupoNumber, classroom: classroom.trim() || null, schedule };
     try {
       if (group) onSaved(await groupApi.update(group.id, common), false);
       else onSaved(await groupApi.create({ ...common, courseId, termId }), true);
@@ -93,7 +93,7 @@ export default function GroupFormDialog({ isOpen, group, onClose, onSaved }: Pro
           <ITGrid container columns={12} spacing={4}>
             <ITGrid item xs={12} md={6}>
               <ITSelect name="courseId" label={t("groups.curso")} value={courseId} disabled={!!group} error={errors.courseId}
-                placeholder="—" options={courses.map((c) => ({ value: c.id, label: `${c.clave} · ${c.nombre}` }))}
+                placeholder="—" options={courses.map((c) => ({ value: c.id, label: `${c.code} · ${c.name}` }))}
                 onChange={(e) => setCourseId(e.target.value)} />
             </ITGrid>
             <ITGrid item xs={12} md={6}>
@@ -102,15 +102,15 @@ export default function GroupFormDialog({ isOpen, group, onClose, onSaved }: Pro
                 onChange={(e) => setTermId(e.target.value)} />
             </ITGrid>
             <ITGrid item xs={12} md={4}>
-              <ITInput name="nombre" label={t("groups.nombre")} value={nombre} required error={errors.nombre}
+              <ITInput name="name" label={t("groups.nombre")} value={name} required error={errors.name}
                 onChange={(e) => setNombre(e.target.value)} />
             </ITGrid>
             <ITGrid item xs={12} md={4}>
-              <ITInput name="cupo" type="number" label={t("groups.cupo")} value={cupo} required error={errors.cupo}
+              <ITInput name="capacity" type="number" label={t("groups.cupo")} value={capacity} required error={errors.capacity}
                 onChange={(e) => setCupo(e.target.value)} />
             </ITGrid>
             <ITGrid item xs={12} md={4}>
-              <ITInput name="aula" label={t("groups.aula")} value={aula} onChange={(e) => setAula(e.target.value)} />
+              <ITInput name="classroom" label={t("groups.aula")} value={classroom} onChange={(e) => setAula(e.target.value)} />
             </ITGrid>
             <ITGrid item xs={12}>
               <ITSelect name="teacherId" label={t("groups.profesor")} value={teacherId} placeholder={t("groups.noTeacher")}
@@ -118,7 +118,7 @@ export default function GroupFormDialog({ isOpen, group, onClose, onSaved }: Pro
                 onChange={(e) => setTeacherId(e.target.value)} />
             </ITGrid>
             <ITGrid item xs={12}>
-              <ScheduleEditor value={horario} onChange={setHorario} error={errors.horario} />
+              <ScheduleEditor value={schedule} onChange={setHorario} error={errors.schedule} />
             </ITGrid>
           </ITGrid>
           <ITFlex justify="end" gap={2}>

@@ -14,12 +14,12 @@ interface Props {
   onSaved: (question: Question, created: boolean) => void;
 }
 
-type Option = { texto: string; esCorrecta: boolean };
+type Option = { text: string; isCorrect: boolean };
 
-const defaultOptions = (tipo: QuestionType, t: (k: string) => string): Option[] => {
-  if (tipo === "ABIERTA") return [];
-  if (tipo === "VERDADERO_FALSO") return [{ texto: t("verdadero"), esCorrecta: true }, { texto: t("falso"), esCorrecta: false }];
-  return [{ texto: "", esCorrecta: true }, { texto: "", esCorrecta: false }];
+const defaultOptions = (type: QuestionType, t: (k: string) => string): Option[] => {
+  if (type === "OPEN") return [];
+  if (type === "TRUE_FALSE") return [{ text: t("verdadero"), isCorrect: true }, { text: t("falso"), isCorrect: false }];
+  return [{ text: "", isCorrect: true }, { text: "", isCorrect: false }];
 };
 
 /** Alta/edición de reactivo con opciones según el tipo (M14 §4.1–4.5). */
@@ -27,13 +27,13 @@ export default function QuestionFormDialog({ isOpen, question, onClose, onSaved 
   const { t } = useTranslation(["exams", "common"]);
   const [courses, setCourses] = useState<CourseOption[]>([]);
   const [courseId, setCourseId] = useState("");
-  const [tipo, setTipo] = useState<QuestionType>("OPCION_MULTIPLE");
-  const [tema, setTema] = useState("");
-  const [enunciado, setEnunciado] = useState("");
-  const [puntos, setPuntos] = useState("1");
-  const [dificultad, setDificultad] = useState<Difficulty | "">("");
+  const [type, setTipo] = useState<QuestionType>("MULTIPLE_CHOICE");
+  const [topic, setTema] = useState("");
+  const [text, setEnunciado] = useState("");
+  const [pointsInput, setPointsInput] = useState("1");
+  const [difficulty, setDificultad] = useState<Difficulty | "">("");
   const [options, setOptions] = useState<Option[]>([]);
-  const [errors, setErrors] = useState<{ courseId?: string; enunciado?: string; puntos?: string; options?: string }>({});
+  const [errors, setErrors] = useState<{ courseId?: string; text?: string; points?: string; options?: string }>({});
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const tf = (key: string) => (key === "verdadero" ? "Verdadero" : "Falso");
@@ -42,12 +42,12 @@ export default function QuestionFormDialog({ isOpen, question, onClose, onSaved 
     if (!isOpen) return;
     courseApi.options().then(setCourses).catch(() => setCourses([]));
     setCourseId(question?.courseId ?? "");
-    setTipo(question?.tipo ?? "OPCION_MULTIPLE");
-    setTema(question?.tema ?? "");
-    setEnunciado(question?.enunciado ?? "");
-    setPuntos(String(question?.puntos ?? 1));
-    setDificultad(question?.dificultad ?? "");
-    setOptions(question ? question.options.map((o) => ({ texto: o.texto, esCorrecta: o.esCorrecta })) : defaultOptions("OPCION_MULTIPLE", tf));
+    setTipo(question?.type ?? "MULTIPLE_CHOICE");
+    setTema(question?.topic ?? "");
+    setEnunciado(question?.text ?? "");
+    setPointsInput(String(question?.points ?? 1));
+    setDificultad(question?.difficulty ?? "");
+    setOptions(question ? question.options.map((o) => ({ text: o.text, isCorrect: o.isCorrect })) : defaultOptions("MULTIPLE_CHOICE", tf));
     setErrors({});
     setError(null);
   }, [question, isOpen]);
@@ -61,18 +61,18 @@ export default function QuestionFormDialog({ isOpen, question, onClose, onSaved 
       prev.map((o, i) => {
         if (i === index) return { ...o, ...patch };
         // En opción múltiple y V/F marcar una desmarca las demás.
-        if (patch.esCorrecta && (tipo === "OPCION_MULTIPLE" || tipo === "VERDADERO_FALSO")) return { ...o, esCorrecta: false };
+        if (patch.isCorrect && (type === "MULTIPLE_CHOICE" || type === "TRUE_FALSE")) return { ...o, isCorrect: false };
         return o;
       })
     );
 
   const save = async () => {
-    const points = Number(puntos);
+    const points = Number(pointsInput);
     const next = {
       courseId: question ? undefined : validateRequired(courseId, t("questions.curso")) ?? undefined,
-      enunciado: validateRequired(enunciado, t("questions.enunciado")) ?? undefined,
-      puntos: points > 0 ? undefined : t("common:validation.required", { label: t("questions.puntos") }),
-      options: tipo !== "ABIERTA" && (options.some((o) => !o.texto.trim()) || !options.some((o) => o.esCorrecta))
+      text: validateRequired(text, t("questions.enunciado")) ?? undefined,
+      points: points > 0 ? undefined : t("common:validation.required", { label: t("questions.puntos") }),
+      options: type !== "OPEN" && (options.some((o) => !o.text.trim()) || !options.some((o) => o.isCorrect))
         ? t("questions.opciones")
         : undefined,
     };
@@ -81,12 +81,12 @@ export default function QuestionFormDialog({ isOpen, question, onClose, onSaved 
     setSaving(true);
     setError(null);
     const data = {
-      tema: tema.trim() || null,
-      tipo,
-      enunciado: enunciado.trim(),
-      puntos: points,
-      dificultad: dificultad || null,
-      options: options.map((o) => ({ texto: o.texto.trim(), esCorrecta: o.esCorrecta })),
+      topic: topic.trim() || null,
+      type,
+      text: text.trim(),
+      points: points,
+      difficulty: difficulty || null,
+      options: options.map((o) => ({ text: o.text.trim(), isCorrect: o.isCorrect })),
     };
     try {
       if (question) onSaved(await questionApi.update(question.id, data), false);
@@ -99,7 +99,7 @@ export default function QuestionFormDialog({ isOpen, question, onClose, onSaved 
   };
 
   const title = question ? t("questions.titleEdit") : t("questions.titleNew");
-  const fixedCount = tipo === "VERDADERO_FALSO";
+  const fixedCount = type === "TRUE_FALSE";
   return (
     <ITDialog isOpen={isOpen} onClose={onClose} title={title} className="w-full max-w-3xl">
       <form role="dialog" aria-label={title} noValidate onSubmit={(e) => { e.preventDefault(); void save(); }}>
@@ -109,34 +109,34 @@ export default function QuestionFormDialog({ isOpen, question, onClose, onSaved 
           <ITGrid container columns={12} spacing={4}>
             <ITGrid item xs={12} md={6}>
               <ITSelect name="courseId" label={t("questions.curso")} value={courseId} disabled={!!question} error={errors.courseId} placeholder="—"
-                options={courses.map((c) => ({ value: c.id, label: `${c.clave} · ${c.nombre}` }))} onChange={(e) => setCourseId(e.target.value)} />
+                options={courses.map((c) => ({ value: c.id, label: `${c.code} · ${c.name}` }))} onChange={(e) => setCourseId(e.target.value)} />
             </ITGrid>
             <ITGrid item xs={12} md={6}>
-              <ITSelect name="tipo" label={t("questions.tipo")} value={tipo}
+              <ITSelect name="type" label={t("questions.tipo")} value={type}
                 options={QUESTION_TYPES.map((x) => ({ value: x, label: t(`questions.types.${x}`) }))} onChange={(e) => changeType(e.target.value as QuestionType)} />
             </ITGrid>
             <ITGrid item xs={12}>
-              <ITTextarea name="enunciado" label={t("questions.enunciado")} value={enunciado} onChange={setEnunciado} rows={3} maxLength={5000} error={errors.enunciado} />
+              <ITTextarea name="text" label={t("questions.enunciado")} value={text} onChange={setEnunciado} rows={3} maxLength={5000} error={errors.text} />
             </ITGrid>
             <ITGrid item xs={12} md={4}>
-              <ITInput name="tema" label={t("questions.tema")} value={tema} onChange={(e) => setTema(e.target.value)} />
+              <ITInput name="topic" label={t("questions.tema")} value={topic} onChange={(e) => setTema(e.target.value)} />
             </ITGrid>
             <ITGrid item xs={12} md={4}>
-              <ITInput name="puntos" type="number" label={t("questions.puntos")} value={puntos} required error={errors.puntos} onChange={(e) => setPuntos(e.target.value)} />
+              <ITInput name="points" type="number" label={t("questions.puntos")} value={pointsInput} required error={errors.points} onChange={(e) => setPointsInput(e.target.value)} />
             </ITGrid>
             <ITGrid item xs={12} md={4}>
-              <ITSelect name="dificultad" label={t("questions.dificultad")} value={dificultad} placeholder="—"
+              <ITSelect name="difficulty" label={t("questions.dificultad")} value={difficulty} placeholder="—"
                 options={DIFFICULTIES.map((d) => ({ value: d, label: t(`questions.difficulties.${d}`) }))} onChange={(e) => setDificultad(e.target.value as Difficulty)} />
             </ITGrid>
           </ITGrid>
-          {tipo === "ABIERTA" ? (
+          {type === "OPEN" ? (
             <ITText className="text-[12px] text-slate-500">{t("questions.openHint")}</ITText>
           ) : (
             <div data-role="options-editor">
               <ITFlex justify="between" align="center" className="mb-2">
                 <ITText className="text-[11px] font-black uppercase tracking-wide text-slate-500">{t("questions.opciones")}</ITText>
                 {!fixedCount && options.length < 10 && (
-                  <ITButton variant="text" color="primary" size="sm" onClick={() => setOptions((prev) => [...prev, { texto: "", esCorrecta: false }])}>
+                  <ITButton variant="text" color="primary" size="sm" onClick={() => setOptions((prev) => [...prev, { text: "", isCorrect: false }])}>
                     <ITFlex align="center" gap={1}><FaPlus size={10} /><ITText className="text-[11px] font-bold">{t("questions.addOption")}</ITText></ITFlex>
                   </ITButton>
                 )}
@@ -144,9 +144,9 @@ export default function QuestionFormDialog({ isOpen, question, onClose, onSaved 
               <ITFlex direction="column" gap={2}>
                 {options.map((o, i) => (
                   <ITFlex key={i} align="center" gap={2}>
-                    <ITCheckbox name={`correcta-${i}`} checked={o.esCorrecta} label={t("questions.correcta")} onChange={(checked) => setOption(i, { esCorrecta: checked })} />
+                    <ITCheckbox name={`correcta-${i}`} checked={o.isCorrect} label={t("questions.correcta")} onChange={(checked) => setOption(i, { isCorrect: checked })} />
                     <div className="flex-1">
-                      <ITInput name={`opcion-${i}`} value={o.texto} disabled={fixedCount} onChange={(e) => setOption(i, { texto: e.target.value })} />
+                      <ITInput name={`opcion-${i}`} value={o.text} disabled={fixedCount} onChange={(e) => setOption(i, { text: e.target.value })} />
                     </div>
                     {!fixedCount && options.length > 2 && (
                       <ITButton variant="text" color="danger" size="sm" ariaLabel={t("questions.removeOption")}

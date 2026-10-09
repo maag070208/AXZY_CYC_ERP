@@ -34,8 +34,8 @@ export class DocumentController {
   };
 
   validate = async (req: Request, res: Response) => {
-    const { status, notas } = DocumentValidateDto.parse(req.body);
-    res.json(await this.documents.validate(req.params.id, status, notas, this.actor(req)));
+    const { status, notes } = DocumentValidateDto.parse(req.body);
+    res.json(await this.documents.validate(req.params.id, status, notes, this.actor(req)));
   };
 
   remove = async (req: Request, res: Response) => {

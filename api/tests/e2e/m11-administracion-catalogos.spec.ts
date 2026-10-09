@@ -39,7 +39,7 @@ test.beforeAll(async () => {
   control = (await loginAs(CONTROL.username)).api;
   teacher = (await loginAs(TEACHER.username)).api;
   originalSettings = await db.setting.findMany({ select: { key: true, value: true } });
-  originalActiveTerm = (await db.term.findFirst({ where: { activo: true } }))?.id ?? null;
+  originalActiveTerm = (await db.term.findFirst({ where: { active: true } }))?.id ?? null;
 });
 
 test.afterAll(async () => {
@@ -48,7 +48,7 @@ test.afterAll(async () => {
   }
   await clearCatalogsE2E();
   if (originalActiveTerm) {
-    await db.term.update({ where: { id: originalActiveTerm }, data: { activo: true } }).catch(() => undefined);
+    await db.term.update({ where: { id: originalActiveTerm }, data: { active: true } }).catch(() => undefined);
   }
   await Promise.all([admin?.dispose(), control?.dispose(), teacher?.dispose()]);
   await clearAuthE2E();
@@ -77,7 +77,7 @@ test.describe("parámetros generales", () => {
     expect((await res.json()).code).toBe("INSUFFICIENT_PERMISSIONS");
   });
 
-  test("PUT /settings actualiza por clave y audita SYS_CONFIG_UPDATED con antes/después", async () => {
+  test("PUT /settings actualiza por code y audita SYS_CONFIG_UPDATED con antes/después", async () => {
     const before = (await db.setting.findUnique({ where: { key: "MIN_PASSING_GRADE" } }))?.value;
     const next = before === 75 ? 72 : 75;
     const res = await admin.put("settings", {
@@ -98,7 +98,7 @@ test.describe("parámetros generales", () => {
     expect(log?.newState).toEqual({ value: next });
   });
 
-  test("clave desconocida o valor inválido → 400 sin escribir nada", async () => {
+  test("code desconocida o valor inválido → 400 sin escribir nada", async () => {
     const unknown = await admin.put("settings", { data: { NO_EXISTE: 1 } });
     expect(unknown.status()).toBe(400);
     expect((await unknown.json()).code).toBe("SETTING_UNKNOWN");
@@ -124,18 +124,18 @@ test.describe("parámetros generales", () => {
 
 test.describe("niveles educativos", () => {
   test("CRUD con desactivación lógica; inactivos fuera de los selects", async () => {
-    const created = await admin.post("levels", { data: { nombre: NAME("Bachillerato"), orden: 3 } });
+    const created = await admin.post("levels", { data: { name: NAME("Bachillerato"), sortOrder: 3 } });
     expect(created.status()).toBe(201);
     const level = await created.json();
-    expect(level).toMatchObject({ nombre: NAME("Bachillerato"), orden: 3, active: true });
+    expect(level).toMatchObject({ name: NAME("Bachillerato"), sortOrder: 3, active: true });
     expect((await lastAudit("LEVEL_CREATED", adminId))?.entityId).toBe(level.id);
 
-    const updated = await admin.patch(`levels/${level.id}`, { data: { orden: 4 } });
-    expect((await updated.json()).orden).toBe(4);
+    const updated = await admin.patch(`levels/${level.id}`, { data: { sortOrder: 4 } });
+    expect((await updated.json()).sortOrder).toBe(4);
     expect((await lastAudit("LEVEL_UPDATED", adminId))?.entityId).toBe(level.id);
 
     const query = await control.post("levels/query", {
-      data: { page: 1, limit: 10, filters: { nombre: RUN } },
+      data: { page: 1, limit: 10, filters: { name: RUN } },
     });
     expect(query.status()).toBe(200);
     expect((await query.json()).total).toBe(1);
@@ -151,19 +151,19 @@ test.describe("niveles educativos", () => {
     expect(all.some((o) => o.id === level.id)).toBe(true);
   });
 
-  test("nombre duplicado → 409 DUPLICATE_RECORD; sin nombre → 400", async () => {
-    await admin.post("levels", { data: { nombre: NAME("Dup") } });
-    const dup = await admin.post("levels", { data: { nombre: NAME("Dup") } });
+  test("name duplicado → 409 DUPLICATE_RECORD; sin name → 400", async () => {
+    await admin.post("levels", { data: { name: NAME("Dup") } });
+    const dup = await admin.post("levels", { data: { name: NAME("Dup") } });
     expect(dup.status()).toBe(409);
     expect((await dup.json()).code).toBe("DUPLICATE_RECORD");
 
-    const empty = await admin.post("levels", { data: { nombre: "  " } });
+    const empty = await admin.post("levels", { data: { name: "  " } });
     expect(empty.status()).toBe(400);
     expect((await empty.json()).code).toBe("VALIDATION_ERROR");
   });
 
   test("solo levels.view (CONTROL_ESCOLAR) no escribe → 403", async () => {
-    const res = await control.post("levels", { data: { nombre: NAME("Prohibido") } });
+    const res = await control.post("levels", { data: { name: NAME("Prohibido") } });
     expect(res.status()).toBe(403);
   });
 
@@ -177,28 +177,28 @@ test.describe("niveles educativos", () => {
 test.describe("ciclos escolares", () => {
   test("fechas: inicio posterior a fin → 400 TERM_DATES_INVALID", async () => {
     const res = await admin.post("terms", {
-      data: { nombre: NAME("Malo"), fechaInicio: "2027-07-01", fechaFin: "2027-01-01" },
+      data: { name: NAME("Malo"), startDate: "2027-07-01", endDate: "2027-01-01" },
     });
     expect(res.status()).toBe(400);
     expect((await res.json()).code).toBe("TERM_DATES_INVALID");
   });
 
-  test("solo un ciclo activo: activar uno desactiva el anterior y se audita", async () => {
+  test("solo un ciclo active: activar uno desactiva el anterior y se audita", async () => {
     const a = await (
-      await admin.post("terms", { data: { nombre: NAME("2026-A"), fechaInicio: "2026-01-15", fechaFin: "2026-06-30" } })
+      await admin.post("terms", { data: { name: NAME("2026-A"), startDate: "2026-01-15", endDate: "2026-06-30" } })
     ).json();
     const b = await (
-      await admin.post("terms", { data: { nombre: NAME("2026-B"), fechaInicio: "2026-08-15", fechaFin: "2026-12-15" } })
+      await admin.post("terms", { data: { name: NAME("2026-B"), startDate: "2026-08-15", endDate: "2026-12-15" } })
     ).json();
-    expect(a).toMatchObject({ fechaInicio: "2026-01-15", fechaFin: "2026-06-30", activo: false });
+    expect(a).toMatchObject({ startDate: "2026-01-15", endDate: "2026-06-30", active: false });
 
     expect((await admin.put(`terms/${a.id}/activate`)).status()).toBe(200);
     expect((await (await control.get("terms/active")).json()).id).toBe(a.id);
 
     const second = await admin.put(`terms/${b.id}/activate`);
-    expect((await second.json()).activo).toBe(true);
-    expect(await db.term.count({ where: { activo: true } })).toBe(1);
-    expect((await db.term.findUnique({ where: { id: a.id } }))?.activo).toBe(false);
+    expect((await second.json()).active).toBe(true);
+    expect(await db.term.count({ where: { active: true } })).toBe(1);
+    expect((await db.term.findUnique({ where: { id: a.id } }))?.active).toBe(false);
 
     const log = await lastAudit("TERM_ACTIVATED", adminId);
     expect(log?.previousState).toMatchObject({ activeTermId: a.id });
@@ -209,7 +209,7 @@ test.describe("ciclos escolares", () => {
   });
 
   test("terms.view (CONTROL_ESCOLAR) consulta; no activa → 403", async () => {
-    const list = await control.post("terms/query", { data: { page: 1, limit: 5, filters: { nombre: RUN } } });
+    const list = await control.post("terms/query", { data: { page: 1, limit: 5, filters: { name: RUN } } });
     expect(list.status()).toBe(200);
     const id = (await list.json()).data[0].id;
     expect((await control.put(`terms/${id}/activate`)).status()).toBe(403);
@@ -218,27 +218,27 @@ test.describe("ciclos escolares", () => {
 
 test.describe("motivos de baja y tipos de documento", () => {
   test("motivos de baja: alta/edición con config.manage; lectura con config.view", async () => {
-    const created = await admin.post("cancellation-reasons", { data: { nombre: NAME("Traslado") } });
+    const created = await admin.post("cancellation-reasons", { data: { name: NAME("Traslado") } });
     expect(created.status()).toBe(201);
     const reason = await created.json();
     expect((await lastAudit("CANCELLATION_REASON_CREATED", adminId))?.entityId).toBe(reason.id);
 
-    const edited = await admin.patch(`cancellation-reasons/${reason.id}`, { data: { nombre: NAME("Traslado foráneo") } });
-    expect((await edited.json()).nombre).toBe(NAME("Traslado foráneo"));
+    const edited = await admin.patch(`cancellation-reasons/${reason.id}`, { data: { name: NAME("Traslado foráneo") } });
+    expect((await edited.json()).name).toBe(NAME("Traslado foráneo"));
 
     expect((await control.post("cancellation-reasons/query", { data: { page: 1, limit: 5 } })).status()).toBe(200);
-    expect((await control.post("cancellation-reasons", { data: { nombre: NAME("No") } })).status()).toBe(403);
+    expect((await control.post("cancellation-reasons", { data: { name: NAME("No") } })).status()).toBe(403);
     expect((await teacher.post("cancellation-reasons/query", { data: { page: 1, limit: 5 } })).status()).toBe(403);
   });
 
-  test("tipos de documento: bandera obligatorio filtrable y reactivación por PATCH", async () => {
+  test("tipos de documento: bandera required filtrable y reactivación por PATCH", async () => {
     const doc = await (
-      await admin.post("document-types", { data: { nombre: NAME("Constancia"), obligatorio: true } })
+      await admin.post("document-types", { data: { name: NAME("Constancia"), required: true } })
     ).json();
-    expect(doc).toMatchObject({ obligatorio: true, active: true });
+    expect(doc).toMatchObject({ required: true, active: true });
 
     const required = await control.post("document-types/query", {
-      data: { page: 1, limit: 50, filters: { obligatorio: true, nombre: RUN } },
+      data: { page: 1, limit: 50, filters: { required: true, name: RUN } },
     });
     expect((await required.json()).total).toBe(1);
 
@@ -248,12 +248,12 @@ test.describe("motivos de baja y tipos de documento", () => {
     expect((await back.json()).active).toBe(true);
 
     // Los tipos sembrados por la migración están disponibles para M06.
-    const seeded: Array<{ nombre: string }> = await (await control.get("document-types")).json();
-    expect(seeded.map((d) => d.nombre)).toEqual(expect.arrayContaining(["CURP", "Acta de nacimiento"]));
+    const seeded: Array<{ name: string }> = await (await control.get("document-types")).json();
+    expect(seeded.map((d) => d.name)).toEqual(expect.arrayContaining(["CURP", "Acta de nacimiento"]));
   });
 
   test("campos fuera de la whitelist → 400 VALIDATION_ERROR", async () => {
-    const res = await admin.post("document-types", { data: { nombre: NAME("X"), id: "forzado" } });
+    const res = await admin.post("document-types", { data: { name: NAME("X"), id: "forzado" } });
     expect(res.status()).toBe(400);
     expect((await res.json()).code).toBe("VALIDATION_ERROR");
   });

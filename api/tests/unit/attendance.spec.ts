@@ -13,9 +13,9 @@ import {
 const counts = (c: Partial<ReturnType<typeof emptyCounts>>) => ({ ...emptyCounts(), ...c });
 
 test("porcentaje: solo la falta resta; retardo y justificada cuentan como asistencia", () => {
-  expect(attendancePct(counts({ PRESENTE: 7, FALTA: 2, RETARDO: 1 }))).toBe(80);
-  expect(attendancePct(counts({ PRESENTE: 1, JUSTIFICADA: 1 }))).toBe(100);
-  expect(attendancePct(counts({ PRESENTE: 2, FALTA: 1 }))).toBe(66.67);
+  expect(attendancePct(counts({ PRESENT: 7, ABSENT: 2, LATE: 1 }))).toBe(80);
+  expect(attendancePct(counts({ PRESENT: 1, JUSTIFIED: 1 }))).toBe(100);
+  expect(attendancePct(counts({ PRESENT: 2, ABSENT: 1 }))).toBe(66.67);
   expect(attendancePct(emptyCounts())).toBeNull();
 });
 
@@ -33,10 +33,10 @@ test("alerta: se dispara al cruzar, no se repite y se limpia al recuperar", () =
   expect(alertTransition(null, 80, true)).toBe("CLEAR");
 });
 
-test("justificante: solo faltas; aprobado → JUSTIFICADA, rechazado → FALTA", () => {
-  expect(canJustify("FALTA")).toBe(true);
-  expect(canJustify("RETARDO")).toBe(false);
-  expect(canJustify("JUSTIFICADA")).toBe(false);
-  expect(statusAfterResolution("APROBADA")).toBe("JUSTIFICADA");
-  expect(statusAfterResolution("RECHAZADA")).toBe("FALTA");
+test("justificante: solo faltas; aprobado → JUSTIFIED, rechazado → ABSENT", () => {
+  expect(canJustify("ABSENT")).toBe(true);
+  expect(canJustify("LATE")).toBe(false);
+  expect(canJustify("JUSTIFIED")).toBe(false);
+  expect(statusAfterResolution("APPROVED")).toBe("JUSTIFIED");
+  expect(statusAfterResolution("REJECTED")).toBe("ABSENT");
 });

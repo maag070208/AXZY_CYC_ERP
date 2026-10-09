@@ -25,8 +25,8 @@ export default function StudentSearch({ label, hint, emptyText, actionLabel, onS
       return;
     }
     const handle = setTimeout(() => {
-      const filters: Record<string, string> = /^\d/.test(term) ? { matricula: term } : { nombre: term };
-      if (activeOnly) filters.status = "ACTIVO";
+      const filters: Record<string, string> = /^\d/.test(term) ? { studentNumber: term } : { name: term };
+      if (activeOnly) filters.status = "ACTIVE";
       studentApi
         .table({ page: 1, limit: 8, filters })
         .then((res) => setResults(res.data))
@@ -48,7 +48,7 @@ export default function StudentSearch({ label, hint, emptyText, actionLabel, onS
             <li key={s.id} className="flex items-center justify-between gap-3 px-3 py-2">
               <div>
                 <ITText className="block text-[12px] font-bold text-slate-700">{s.nombreCompleto}</ITText>
-                <ITText className="font-mono text-[11px] text-slate-400">{s.matricula}</ITText>
+                <ITText className="font-mono text-[11px] text-slate-400">{s.studentNumber}</ITText>
               </div>
               <ITButton variant="outlined" color="primary" size="sm" ariaLabel={`${actionLabel} ${s.nombreCompleto}`} onClick={() => onSelect(s)}>
                 {actionLabel}

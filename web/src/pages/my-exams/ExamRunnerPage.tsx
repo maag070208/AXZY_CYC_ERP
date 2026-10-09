@@ -23,20 +23,20 @@ export default function ExamRunnerPage() {
 
   const onFinished = useCallback((final: Attempt, wasExpired: boolean) => {
     setAttempt(final);
-    setExpired(wasExpired && final.status === "EXPIRADO");
+    setExpired(wasExpired && final.status === "EXPIRED");
   }, []);
 
   return (
     <ITPage
-      title={attempt?.titulo ?? t("my.title")}
-      description={attempt ? `${attempt.student.nombre} · #${attempt.numero}` : undefined}
+      title={attempt?.title ?? t("my.title")}
+      description={attempt ? `${attempt.student.name} · #${attempt.number}` : undefined}
       icon={<FaFileSignature size={20} />}
       loading={!attempt && !error}
       error={error}
-      backAction={attempt?.status === "EN_CURSO" ? undefined : () => navigate("/my-exams")}
+      backAction={attempt?.status === "IN_PROGRESS" ? undefined : () => navigate("/my-exams")}
     >
-      {attempt?.status === "EN_CURSO" && <ExamRunner key={attempt.attemptId} attempt={attempt} onFinished={onFinished} />}
-      {attempt && attempt.status !== "EN_CURSO" && (
+      {attempt?.status === "IN_PROGRESS" && <ExamRunner key={attempt.attemptId} attempt={attempt} onFinished={onFinished} />}
+      {attempt && attempt.status !== "IN_PROGRESS" && (
         <ITFlex direction="column" gap={4}>
           <AttemptResult attempt={attempt} expired={expired} />
           <ITFlex justify="end">

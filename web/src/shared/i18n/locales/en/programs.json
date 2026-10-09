@@ -99,9 +99,9 @@
     "CANCELLED": "Cancelled"
   },
   "chargeStatus": {
-    "PENDIENTE": "Pending",
-    "PARCIAL": "Partial",
-    "PAGADO": "Paid",
-    "CANCELADO": "Cancelled"
+    "PENDING": "Pending",
+    "PARTIAL": "Partial",
+    "PAID": "Paid",
+    "CANCELLED": "Cancelled"
   }
 }

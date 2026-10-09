@@ -48,7 +48,7 @@ export interface PlanRow {
 
 export interface RowRejection {
   rowNumber: number;
-  entidad: MigrationEntity;
+  entity: MigrationEntity;
   naturalKey: string | null;
   reason: string;
   value: string | null;
@@ -102,20 +102,41 @@ export const parseCsv = (text: string, delimiter = ","): string[][] => {
 export const detectDelimiter = (firstLine: string): string =>
   firstLine.includes(";") && !firstLine.includes(",") ? ";" : ",";
 
-/** Encabezado normalizado a `snake_case` sin acentos ni espacios. */
-export const normalizeHeader = (value: string): string =>
-  value
+/** Alias de encabezados de origen (español/inglés) → clave interna en inglés. */
+const HEADER_ALIASES: Record<string, string> = {
+  nombre: "name",
+  nombres: "name",
+  apellido_paterno: "paternal_surname",
+  apellido_materno: "maternal_surname",
+  fecha_nacimiento: "birth_date",
+  fecha_ingreso: "enrollment_date",
+  genero: "gender",
+  telefono: "phone",
+  direccion: "address",
+  matricula: "student_number",
+  apellidos: "surnames",
+  especialidad: "specialty",
+  tutor_nombre: "tutor_name",
+  tutor_parentesco: "tutor_relationship",
+  tutor_telefono: "tutor_phone",
+};
+
+/** Encabezado normalizado a `snake_case` sin acentos ni espacios, con alias. */
+export const normalizeHeader = (value: string): string => {
+  const key = value
     .trim()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "_")
     .replace(/^_+|_+$/g, "");
+  return HEADER_ALIASES[key] ?? key;
+};
 
 /** Columnas mínimas por entidad (los encabezados del archivo deben cubrirlas). */
 export const REQUIRED_COLUMNS: Record<MigrationEntity, readonly string[]> = {
-  Student: ["nombre", "apellido_paterno", "curp", "fecha_nacimiento"],
-  Teacher: ["nombre", "apellidos", "email"],
+  Student: ["name", "paternal_surname", "curp", "birth_date"],
+  Teacher: ["name", "surnames", "email"],
 };
 
 const cell = (values: Record<string, string>, key: string): string => (values[key] ?? "").trim();
@@ -123,7 +144,7 @@ const optional = (values: Record<string, string>, key: string): string | null =>
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE = /^[0-9+()\-\s]{7,20}$/;
-const GENEROS = ["M", "F", "OTRO"] as const;
+const GENEROS = ["M", "F", "OTHER"] as const;
 
 /** Construye la tabla del CSV: encabezado normalizado y filas indexadas. */
 export const readTable = (text: string): SourceTable => {
@@ -142,8 +163,8 @@ export const readTable = (text: string): SourceTable => {
 };
 
 /** Columnas mínimas que faltan en el encabezado (vacío si está completo). */
-export const missingColumns = (entidad: MigrationEntity, header: readonly string[]): string[] =>
-  REQUIRED_COLUMNS[entidad].filter((column) => !header.includes(column));
+export const missingColumns = (entity: MigrationEntity, header: readonly string[]): string[] =>
+  REQUIRED_COLUMNS[entity].filter((column) => !header.includes(column));
 
 // --- Validación por entidad ---------------------------------------------------
 
@@ -151,61 +172,61 @@ const problem = (reason: string, value: string | null = null): RowProblem => ({ 
 
 /** Valida y normaliza una fila de alumno; clave natural = CURP. */
 export const parseStudentRow = (values: Record<string, string>, today: string): ParsedRecord | RowProblem => {
-  const nombres = cell(values, "nombre");
-  if (!nombres) return problem("REQUIRED_FIELD", "nombre");
-  const apellidoPaterno = cell(values, "apellido_paterno");
-  if (!apellidoPaterno) return problem("REQUIRED_FIELD", "apellido_paterno");
+  const firstNames = cell(values, "name");
+  if (!firstNames) return problem("REQUIRED_FIELD", "name");
+  const paternalSurname = cell(values, "paternal_surname");
+  if (!paternalSurname) return problem("REQUIRED_FIELD", "paternal_surname");
 
   const curpRaw = cell(values, "curp");
   if (!curpRaw) return problem("REQUIRED_FIELD", "curp");
   const curp = normalizeCurp(curpRaw);
   if (!isValidCurp(curp)) return problem("INVALID_CURP", curpRaw);
 
-  const fechaNacimiento = cell(values, "fecha_nacimiento");
-  if (!fechaNacimiento || !isRealDay(fechaNacimiento)) return problem("INVALID_DATE", fechaNacimiento || "fecha_nacimiento");
-  if (fechaNacimiento > today) return problem("INVALID_DATE", fechaNacimiento);
+  const birthDate = cell(values, "birth_date");
+  if (!birthDate || !isRealDay(birthDate)) return problem("INVALID_DATE", birthDate || "birth_date");
+  if (birthDate > today) return problem("INVALID_DATE", birthDate);
 
-  const fechaIngreso = optional(values, "fecha_ingreso") ?? today;
-  if (!isRealDay(fechaIngreso)) return problem("INVALID_DATE", fechaIngreso);
+  const enrollmentDate = optional(values, "enrollment_date") ?? today;
+  if (!isRealDay(enrollmentDate)) return problem("INVALID_DATE", enrollmentDate);
 
-  const genero = optional(values, "genero");
-  if (genero && !(GENEROS as readonly string[]).includes(genero.toUpperCase())) return problem("INVALID_FORMAT", genero);
+  const gender = optional(values, "gender");
+  if (gender && !(GENEROS as readonly string[]).includes(gender.toUpperCase())) return problem("INVALID_FORMAT", gender);
 
   const email = optional(values, "email");
   if (email && !EMAIL.test(email)) return problem("INVALID_EMAIL", email);
-  const telefono = optional(values, "telefono");
-  if (telefono && !PHONE.test(telefono)) return problem("INVALID_PHONE", telefono);
+  const phone = optional(values, "phone");
+  if (phone && !PHONE.test(phone)) return problem("INVALID_PHONE", phone);
 
-  const matricula = optional(values, "matricula");
-  if (matricula && !/^[A-Za-z0-9-]{4,20}$/.test(matricula)) return problem("INVALID_FORMAT", matricula);
+  const studentNumber = optional(values, "student_number");
+  if (studentNumber && !/^[A-Za-z0-9-]{4,20}$/.test(studentNumber)) return problem("INVALID_FORMAT", studentNumber);
 
   // Tutor opcional: si se declara un nombre, se exigen parentesco y teléfono.
-  const tutorNombre = optional(values, "tutor_nombre");
-  const tutorParentesco = optional(values, "tutor_parentesco");
-  const tutorTelefono = optional(values, "tutor_telefono");
+  const tutorName = optional(values, "tutor_name");
+  const tutorRelationship = optional(values, "tutor_relationship");
+  const tutorPhone = optional(values, "tutor_phone");
   const tutorEmail = optional(values, "tutor_email");
-  if (tutorNombre && (!tutorParentesco || !tutorTelefono)) return problem("REQUIRED_FIELD", "tutor_parentesco/telefono");
+  if (tutorName && (!tutorRelationship || !tutorPhone)) return problem("REQUIRED_FIELD", "tutor_relationship/phone");
   if (tutorEmail && !EMAIL.test(tutorEmail)) return problem("INVALID_EMAIL", tutorEmail);
-  if (!tutorNombre && ageOn(fechaNacimiento, today) < 18) return problem("GUARDIAN_REQUIRED", curp);
+  if (!tutorName && ageOn(birthDate, today) < 18) return problem("GUARDIAN_REQUIRED", curp);
 
-  const guardians = tutorNombre
-    ? [{ nombre: tutorNombre, parentesco: tutorParentesco, telefono: tutorTelefono, email: tutorEmail, esResponsablePago: true }]
+  const guardians = tutorName
+    ? [{ name: tutorName, relationship: tutorRelationship, phone: tutorPhone, email: tutorEmail, isPaymentResponsible: true }]
     : [];
 
   return {
     naturalKey: curp,
     data: {
-      nombres,
-      apellidoPaterno,
-      apellidoMaterno: optional(values, "apellido_materno"),
+      firstNames,
+      paternalSurname,
+      maternalSurname: optional(values, "maternal_surname"),
       curp,
-      fechaNacimiento,
-      fechaIngreso,
-      genero: genero ? genero.toUpperCase() : null,
+      birthDate,
+      enrollmentDate,
+      gender: gender ? gender.toUpperCase() : null,
       email: email ? email.toLowerCase() : null,
-      telefono,
-      direccion: optional(values, "direccion"),
-      matricula,
+      phone,
+      address: optional(values, "address"),
+      studentNumber,
       guardians,
     },
   };
@@ -213,43 +234,43 @@ export const parseStudentRow = (values: Record<string, string>, today: string): 
 
 /** Valida y normaliza una fila de profesor; clave natural = email. */
 export const parseTeacherRow = (values: Record<string, string>): ParsedRecord | RowProblem => {
-  const nombres = cell(values, "nombre");
-  if (!nombres) return problem("REQUIRED_FIELD", "nombre");
-  const apellidos = cell(values, "apellidos");
-  if (!apellidos) return problem("REQUIRED_FIELD", "apellidos");
+  const firstNames = cell(values, "name");
+  if (!firstNames) return problem("REQUIRED_FIELD", "name");
+  const surnames = cell(values, "surnames");
+  if (!surnames) return problem("REQUIRED_FIELD", "surnames");
   const emailRaw = cell(values, "email");
   if (!emailRaw) return problem("REQUIRED_FIELD", "email");
   const email = emailRaw.toLowerCase();
   if (!EMAIL.test(email) || email.length > 150) return problem("INVALID_EMAIL", emailRaw);
 
-  const telefono = optional(values, "telefono");
-  if (telefono && !PHONE.test(telefono)) return problem("INVALID_PHONE", telefono);
+  const phone = optional(values, "phone");
+  if (phone && !PHONE.test(phone)) return problem("INVALID_PHONE", phone);
 
   return {
     naturalKey: email,
     data: {
-      nombres,
-      apellidos,
+      firstNames,
+      surnames,
       email,
-      telefono,
-      especialidad: optional(values, "especialidad"),
+      phone,
+      specialty: optional(values, "specialty"),
     },
   };
 };
 
 /** Código de duplicado por entidad (dentro del archivo). */
-export const duplicateReason = (entidad: MigrationEntity): string =>
-  entidad === "Student" ? "DUPLICATE_CURP" : "DUPLICATE_EMAIL";
+export const duplicateReason = (entity: MigrationEntity): string =>
+  entity === "Student" ? "DUPLICATE_CURP" : "DUPLICATE_EMAIL";
 
 /** Plan fila a fila: marca rechazos y duplicados internos (sin BD). */
-export const planRows = (entidad: MigrationEntity, table: SourceTable, today: string): PlanRow[] => {
+export const planRows = (entity: MigrationEntity, table: SourceTable, today: string): PlanRow[] => {
   const seen = new Set<string>();
-  const parse = entidad === "Student" ? (values: Record<string, string>) => parseStudentRow(values, today) : parseTeacherRow;
+  const parse = entity === "Student" ? (values: Record<string, string>) => parseStudentRow(values, today) : parseTeacherRow;
   return table.rows.map(({ rowNumber, values }) => {
     const parsed = parse(values);
     if ("reason" in parsed) return { rowNumber, naturalKey: null, problem: parsed };
     if (seen.has(parsed.naturalKey)) {
-      return { rowNumber, naturalKey: parsed.naturalKey, problem: problem(duplicateReason(entidad), parsed.naturalKey) };
+      return { rowNumber, naturalKey: parsed.naturalKey, problem: problem(duplicateReason(entity), parsed.naturalKey) };
     }
     seen.add(parsed.naturalKey);
     return { rowNumber, naturalKey: parsed.naturalKey, record: parsed };

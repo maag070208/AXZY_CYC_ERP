@@ -3,12 +3,12 @@ export type MigrationEntity = "Student" | "Teacher";
 export const MIGRATION_ENTITIES: readonly MigrationEntity[] = ["Student", "Teacher"];
 
 export type MigrationMode = "DRY_RUN" | "EXECUTE";
-export type MigrationStatus = "EN_PROCESO" | "COMPLETADO" | "FALLIDO" | "CANCELADO";
+export type MigrationStatus = "IN_PROGRESS" | "COMPLETED" | "FAILED" | "CANCELLED";
 
 export interface MigrationBatch {
   id: string;
-  entidad: MigrationEntity;
-  archivo: string;
+  entity: MigrationEntity;
+  file: string;
   checksum: string;
   mode: MigrationMode;
   status: MigrationStatus;
@@ -27,7 +27,7 @@ export interface MigrationRejection {
 
 export interface MigrationResult {
   batchId: string;
-  entidad: MigrationEntity;
+  entity: MigrationEntity;
   mode: MigrationMode;
   status: MigrationStatus;
   checksum: string;

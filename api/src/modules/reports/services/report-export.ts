@@ -42,7 +42,7 @@ export const toPdf = (result: ReportResult, school: string): Promise<Buffer> =>
 
     const left = doc.page.margins.left;
     const width = doc.page.width - doc.page.margins.left - doc.page.margins.right;
-    const weights = result.columns.map((c) => (c.key === "nombre" || c.key === "concepto" || c.key === "motivo" ? 2.2 : c.type === "text" ? 1.3 : 1));
+    const weights = result.columns.map((c) => (c.key === "name" || c.key === "concepto" || c.key === "reason" ? 2.2 : c.type === "text" ? 1.3 : 1));
     const unit = width / weights.reduce((a, b) => a + b, 0);
     const widths = weights.map((w) => w * unit);
 
@@ -88,7 +88,7 @@ export const toPdf = (result: ReportResult, school: string): Promise<Buffer> =>
     doc.font("Helvetica-Bold").fontSize(9).fillColor("#0f172a").text(t("reports.totals"), left);
     doc.font("Helvetica").fontSize(8.5);
     for (const [key, value] of Object.entries(result.totals)) {
-      const money = ["monto", "saldo", "vencido", "EFECTIVO", "TRANSFERENCIA", "DEPOSITO", "TARJETA", "OTRO"].includes(key);
+      const money = ["amount", "saldo", "vencido", "CASH", "TRANSFER", "DEPOSIT", "CARD", "OTHER"].includes(key);
       const label = key === "rows" ? t("reports.rows") : result.columns.find((c) => c.key === key)?.label ?? key;
       const percent = result.columns.find((c) => c.key === key)?.type === "percent";
       const shown = money ? Number(value).toLocaleString("es-MX", { style: "currency", currency: "MXN" }) : percent ? `${value}%` : value;

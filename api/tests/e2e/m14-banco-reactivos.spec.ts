@@ -25,12 +25,12 @@ let termId: string;
 
 const question = (overrides: Record<string, unknown> = {}) => ({
   courseId,
-  tema: "Motores",
-  tipo: "OPCION_MULTIPLE",
-  enunciado: "¿Cuántos tiempos tiene un motor Otto?",
-  puntos: 2,
-  dificultad: "MEDIA",
-  options: [{ texto: "4", esCorrecta: true }, { texto: "2", esCorrecta: false }],
+  topic: "Motores",
+  type: "MULTIPLE_CHOICE",
+  text: "¿Cuántos tiempos tiene un motor Otto?",
+  points: 2,
+  difficulty: "MEDIUM",
+  options: [{ text: "4", isCorrect: true }, { text: "2", isCorrect: false }],
   ...overrides,
 });
 
@@ -43,12 +43,12 @@ test.beforeAll(async () => {
   termId = (await makeTerm(RUN, "Reactivos")).id;
   const course = await makeCourse(RUN, "Reactivos");
   courseId = course.id;
-  courseClave = course.clave;
+  courseClave = course.code;
   foreignCourseId = (await makeCourse(RUN, "Ajeno")).id;
   const teacher = await makeTeacher(RUN, "qprof");
   profUserId = teacher.userId;
   await db.group.create({
-    data: { courseId, termId, teacherId: teacher.teacher.id, nombre: "Q1", cupo: 10, horario: [{ dia: "LUNES", horaInicio: "07:00", horaFin: "08:00" }] },
+    data: { courseId, termId, teacherId: teacher.teacher.id, name: "Q1", capacity: 10, schedule: [{ dia: "LUNES", horaInicio: "07:00", horaFin: "08:00" }] },
   });
   prof = (await loginAs(teacher.username)).api;
 });
@@ -64,39 +64,39 @@ test.afterAll(async () => {
 });
 
 test.describe("reglas de opciones", () => {
-  test("los cuatro tipos válidos; ABIERTA sin opciones; bitácora", async () => {
+  test("los cuatro tipos válidos; OPEN sin opciones; bitácora", async () => {
     const om = await prof.post("questions", { data: question() });
     expect(om.status(), await om.text()).toBe(201);
-    expect(await om.json()).toMatchObject({ tipo: "OPCION_MULTIPLE", status: "ACTIVA", puntos: 2, locked: false, courseClave });
+    expect(await om.json()).toMatchObject({ type: "MULTIPLE_CHOICE", status: "ACTIVE", points: 2, locked: false, courseClave });
     expect((await lastAudit("QUESTION_CREATED", profUserId))?.entityId).toBe((await om.json()).id);
     const vf = await prof.post("questions", {
-      data: question({ tipo: "VERDADERO_FALSO", options: [{ texto: "Verdadero", esCorrecta: true }, { texto: "Falso", esCorrecta: false }] }),
+      data: question({ type: "TRUE_FALSE", options: [{ text: "Verdadero", isCorrect: true }, { text: "Falso", isCorrect: false }] }),
     });
     expect(vf.status()).toBe(201);
     const mr = await prof.post("questions", {
-      data: question({ tipo: "MULTIPLE_RESPUESTA", options: [{ texto: "a", esCorrecta: true }, { texto: "b", esCorrecta: true }, { texto: "c", esCorrecta: false }] }),
+      data: question({ type: "MULTIPLE_ANSWER", options: [{ text: "a", isCorrect: true }, { text: "b", isCorrect: true }, { text: "c", isCorrect: false }] }),
     });
     expect(mr.status()).toBe(201);
-    const ab = await prof.post("questions", { data: question({ tipo: "ABIERTA", options: [] }) });
+    const ab = await prof.post("questions", { data: question({ type: "OPEN", options: [] }) });
     expect(ab.status()).toBe(201);
     expect((await ab.json()).options).toEqual([]);
   });
 
   test("violaciones → 400 con el código de la regla", async () => {
     const cases: Array<[Record<string, unknown>, string]> = [
-      [{ options: [{ texto: "a", esCorrecta: true }, { texto: "b", esCorrecta: true }] }, "QUESTION_MULTIPLE_CORRECT"],
-      [{ options: [{ texto: "a", esCorrecta: false }, { texto: "b", esCorrecta: false }] }, "QUESTION_OPTION_REQUIRED"],
-      [{ tipo: "VERDADERO_FALSO", options: [{ texto: "V", esCorrecta: true }, { texto: "F", esCorrecta: false }, { texto: "?", esCorrecta: false }] }, "QUESTION_OPTION_COUNT_INVALID"],
-      [{ tipo: "MULTIPLE_RESPUESTA", options: [{ texto: "a", esCorrecta: false }, { texto: "b", esCorrecta: false }] }, "QUESTION_OPTION_REQUIRED"],
-      [{ tipo: "ABIERTA" }, "QUESTION_OPEN_NO_OPTIONS"],
+      [{ options: [{ text: "a", isCorrect: true }, { text: "b", isCorrect: true }] }, "QUESTION_MULTIPLE_CORRECT"],
+      [{ options: [{ text: "a", isCorrect: false }, { text: "b", isCorrect: false }] }, "QUESTION_OPTION_REQUIRED"],
+      [{ type: "TRUE_FALSE", options: [{ text: "V", isCorrect: true }, { text: "F", isCorrect: false }, { text: "?", isCorrect: false }] }, "QUESTION_OPTION_COUNT_INVALID"],
+      [{ type: "MULTIPLE_ANSWER", options: [{ text: "a", isCorrect: false }, { text: "b", isCorrect: false }] }, "QUESTION_OPTION_REQUIRED"],
+      [{ type: "OPEN" }, "QUESTION_OPEN_NO_OPTIONS"],
     ];
     for (const [overrides, code] of cases) {
       const res = await prof.post("questions", { data: question(overrides) });
       expect(res.status(), code).toBe(400);
       expect((await res.json()).code).toBe(code);
     }
-    const zero = await prof.post("questions", { data: question({ puntos: 0, enunciado: "" }) });
-    expect(Object.keys((await zero.json()).details.fieldErrors).sort()).toEqual(["enunciado", "puntos"]);
+    const zero = await prof.post("questions", { data: question({ points: 0, text: "" }) });
+    expect(Object.keys((await zero.json()).details.fieldErrors).sort()).toEqual(["text", "points"]);
   });
 });
 
@@ -104,7 +104,7 @@ test.describe("alcance y edición", () => {
   test("el profesor solo crea y ve reactivos de los cursos de sus grupos; control solo lee", async () => {
     const foreign = await prof.post("questions", { data: question({ courseId: foreignCourseId }) });
     expect(foreign.status()).toBe(403);
-    const adminQ = await (await admin.post("questions", { data: question({ courseId: foreignCourseId, enunciado: "Reactivo de otro curso" }) })).json();
+    const adminQ = await (await admin.post("questions", { data: question({ courseId: foreignCourseId, text: "Reactivo de otro curso" }) })).json();
     const list = await (await prof.post("questions/query", { data: { page: 1, limit: 100, filters: {} } })).json();
     const ids = list.data.map((q: { id: string }) => q.id);
     expect(ids).not.toContain(adminQ.id);
@@ -118,23 +118,23 @@ test.describe("alcance y edición", () => {
   });
 
   test("editar cambia opciones y audita antes/después; desactivar y reactivar", async () => {
-    const created = await (await prof.post("questions", { data: question({ enunciado: "Para editar" }) })).json();
+    const created = await (await prof.post("questions", { data: question({ text: "Para editar" }) })).json();
     const res = await prof.patch(`questions/${created.id}`, {
-      data: { tipo: "MULTIPLE_RESPUESTA", options: [{ texto: "x", esCorrecta: true }, { texto: "y", esCorrecta: true }], puntos: 3 },
+      data: { type: "MULTIPLE_ANSWER", options: [{ text: "x", isCorrect: true }, { text: "y", isCorrect: true }], points: 3 },
     });
     expect(res.status(), await res.text()).toBe(200);
-    expect(await res.json()).toMatchObject({ tipo: "MULTIPLE_RESPUESTA", puntos: 3 });
+    expect(await res.json()).toMatchObject({ type: "MULTIPLE_ANSWER", points: 3 });
     const log = await lastAudit("QUESTION_UPDATED", profUserId);
-    expect(log?.previousState).toMatchObject({ tipo: "OPCION_MULTIPLE", puntos: 2 });
-    expect(log?.newState).toMatchObject({ tipo: "MULTIPLE_RESPUESTA", puntos: 3 });
+    expect(log?.previousState).toMatchObject({ type: "MULTIPLE_CHOICE", points: 2 });
+    expect(log?.newState).toMatchObject({ type: "MULTIPLE_ANSWER", points: 3 });
     // Cambiar a ABIERTA sin mandar opciones las quita.
-    expect((await (await prof.patch(`questions/${created.id}`, { data: { tipo: "ABIERTA" } })).json()).options).toEqual([]);
+    expect((await (await prof.patch(`questions/${created.id}`, { data: { type: "OPEN" } })).json()).options).toEqual([]);
 
     const off = await prof.delete(`questions/${created.id}`);
-    expect((await off.json()).status).toBe("INACTIVA");
+    expect((await off.json()).status).toBe("INACTIVE");
     expect((await (await prof.delete(`questions/${created.id}`)).json()).code).toBe("QUESTION_ALREADY_INACTIVE");
-    expect((await (await prof.post(`questions/${created.id}/reactivate`)).json()).status).toBe("ACTIVA");
-    const filtered = await (await prof.post("questions/query", { data: { page: 1, limit: 50, filters: { tipo: "ABIERTA", status: "ACTIVA" } } })).json();
+    expect((await (await prof.post(`questions/${created.id}/reactivate`)).json()).status).toBe("ACTIVE");
+    const filtered = await (await prof.post("questions/query", { data: { page: 1, limit: 50, filters: { type: "OPEN", status: "ACTIVE" } } })).json();
     expect(filtered.data.map((q: { id: string }) => q.id)).toContain(created.id);
   });
 });
@@ -142,13 +142,13 @@ test.describe("alcance y edición", () => {
 test.describe("importación CSV", () => {
   const csv = () =>
     [
-      "curso,tema,tipo,enunciado,puntos,dificultad,opciones,correctas",
+      "curso,topic,type,text,points,difficulty,opciones,correctas",
       `${courseClave},Frenos,opcion multiple,"¿Qué líquido usan los frenos? (DOT)",2,media,Agua|DOT 4|Aceite,2`,
       `${courseClave},Frenos,verdadero_falso,"El ABS evita el bloqueo de ruedas",1,facil,,1`,
-      `${courseClave},Encendido,MULTIPLE_RESPUESTA,"Componentes del encendido",3,dificil,Bobina|Bujía|Radiador,1|2`,
-      `${courseClave},Diagnóstico,ABIERTA,"Describe el diagnóstico de una falla P0300",4,,,`,
-      `${courseClave},Mal,OPCION_MULTIPLE,"Dos correctas",1,,a|b,1|2`,
-      `NOEXISTE-${RUN},X,ABIERTA,"Curso inexistente",1,,,`,
+      `${courseClave},Encendido,MULTIPLE_ANSWER,"Componentes del encendido",3,dificil,Bobina|Bujía|Radiador,1|2`,
+      `${courseClave},Diagnóstico,OPEN,"Describe el diagnóstico de una falla P0300",4,,,`,
+      `${courseClave},Mal,MULTIPLE_CHOICE,"Dos correctas",1,,a|b,1|2`,
+      `NOEXISTE-${RUN},X,OPEN,"Curso inexistente",1,,,`,
       `${courseClave},X,DIBUJO,"Tipo inválido",1,,,`,
     ].join("\n");
 
@@ -173,8 +173,8 @@ test.describe("importación CSV", () => {
     expect(applied.status()).toBe(201);
     expect(await applied.json()).toMatchObject({ preview: false, created: 4 });
     expect(await db.question.count({ where: { courseId } })).toBe(before + 4);
-    const vf = await db.question.findFirst({ where: { courseId, enunciado: { contains: "ABS" } }, include: { options: { orderBy: { orden: "asc" } } } });
-    expect(vf?.options.map((o) => [o.texto, o.esCorrecta])).toEqual([["Verdadero", true], ["Falso", false]]);
+    const vf = await db.question.findFirst({ where: { courseId, text: { contains: "ABS" } }, include: { options: { orderBy: { sortOrder: "asc" } } } });
+    expect(vf?.options.map((o) => [o.text, o.isCorrect])).toEqual([["Verdadero", true], ["Falso", false]]);
     expect((await lastAudit("QUESTIONS_IMPORTED", profUserId))?.metadata).toMatchObject({ created: 4, rejected: 3 });
 
     const again = await prof.post("questions/import", { multipart: csvFile(csv()), headers: { "Idempotency-Key": key } });
@@ -182,8 +182,8 @@ test.describe("importación CSV", () => {
     expect(await db.question.count({ where: { courseId } })).toBe(before + 4);
   });
 
-  test("cabecera incompleta → 400 CSV_INVALID; sin archivo → 400", async () => {
-    const bad = await prof.post("questions/import?preview=true", { multipart: csvFile("curso,tipo\nX,ABIERTA") });
+  test("cabecera incompleta → 400 CSV_INVALID; sin file → 400", async () => {
+    const bad = await prof.post("questions/import?preview=true", { multipart: csvFile("curso,type\nX,OPEN") });
     expect(bad.status()).toBe(400);
     expect((await bad.json()).code).toBe("CSV_INVALID");
     const none = await prof.post("questions/import?preview=true", { data: {} });

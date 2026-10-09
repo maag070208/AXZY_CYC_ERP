@@ -28,15 +28,15 @@
     "activa": "Activa",
     "inactiva": "Inactiva",
     "types": {
-      "OPCION_MULTIPLE": "Opción múltiple",
-      "VERDADERO_FALSO": "Verdadero / falso",
-      "MULTIPLE_RESPUESTA": "Respuesta múltiple",
-      "ABIERTA": "Abierta"
+      "MULTIPLE_CHOICE": "Opción múltiple",
+      "TRUE_FALSE": "Verdadero / falso",
+      "MULTIPLE_ANSWER": "Respuesta múltiple",
+      "OPEN": "Abierta"
     },
     "difficulties": {
-      "FACIL": "Fácil",
-      "MEDIA": "Media",
-      "DIFICIL": "Difícil"
+      "EASY": "Fácil",
+      "MEDIUM": "Media",
+      "HARD": "Difícil"
     },
     "importTitle": "Importar reactivos desde CSV",
     "importHint": "Columnas: curso (clave), tema, tipo, enunciado, puntos, dificultad, opciones (separadas por |), correctas (posiciones, p. ej. 1|3).",
@@ -64,8 +64,8 @@
     "aprobatorio": "Puntaje aprobatorio",
     "criterio": "Criterio de intentos",
     "criterios": {
-      "MEJOR": "El mejor intento",
-      "ULTIMO": "El último intento"
+      "BEST": "El mejor intento",
+      "LAST": "El último intento"
     },
     "instrucciones": "Instrucciones",
     "aleatorizarPreguntas": "Barajar preguntas",
@@ -75,9 +75,9 @@
     "sinEvaluacion": "Sin vincular",
     "status": "Estatus",
     "statuses": {
-      "BORRADOR": "Borrador",
-      "PUBLICADO": "Publicado",
-      "CERRADO": "Cerrado"
+      "DRAFT": "Borrador",
+      "PUBLISHED": "Publicado",
+      "CLOSED": "Cerrado"
     },
     "preguntas": "Preguntas",
     "total": "Total",
@@ -194,9 +194,9 @@
     "correct": "Correcta",
     "incorrect": "Incorrecta",
     "statuses": {
-      "EN_CURSO": "En curso",
-      "ENVIADO": "Enviado",
-      "EXPIRADO": "Expirado"
+      "IN_PROGRESS": "En curso",
+      "SUBMITTED": "Enviado",
+      "EXPIRED": "Expirado"
     }
   }
 }

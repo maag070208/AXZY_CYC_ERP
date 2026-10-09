@@ -1,16 +1,16 @@
-export type DocumentStatus = "PENDIENTE" | "VALIDADO" | "RECHAZADO";
+export type DocumentStatus = "PENDING" | "VALIDATED" | "REJECTED";
 
 export interface StudentDocument {
   id: string;
   studentId: string;
   documentTypeId: string;
   documentType: string;
-  obligatorio: boolean;
+  required: boolean;
   originalName: string;
   mimeType: string;
   size: number;
   status: DocumentStatus;
-  notas: string | null;
+  notes: string | null;
   uploadedByName: string | null;
   validatedByName: string | null;
   validatedAt: string | null;
@@ -20,7 +20,7 @@ export interface StudentDocument {
 export interface StudentDocuments {
   documents: StudentDocument[];
   /** Tipos obligatorios sin un documento VALIDADO. */
-  missing: Array<{ id: string; nombre: string }>;
+  missing: Array<{ id: string; name: string }>;
   requiredCount: number;
 }
 
@@ -33,15 +33,15 @@ export interface KardexEntry {
   calificaciones: number[];
   ponderaciones: number[];
   calificacionFinal: number | null;
-  estatus: "ACREDITADO" | "REPROBADO" | "EN_CURSO" | "BAJA";
+  estatus: "PASSED" | "FAILED" | "IN_PROGRESS" | "WITHDRAWN";
 }
 
 export interface Kardex {
   studentId: string;
-  matricula: string;
-  nombre: string;
-  status: "ACTIVO" | "BAJA";
-  fechaIngreso: string;
+  studentNumber: string;
+  name: string;
+  status: "ACTIVE" | "WITHDRAWN";
+  enrollmentDate: string;
   entries: KardexEntry[];
   promedioGeneral: number | null;
   creditosAcreditados: number;

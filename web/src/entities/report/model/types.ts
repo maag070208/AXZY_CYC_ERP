@@ -7,7 +7,7 @@ export type ReportType =
   | "debts";
 
 export interface ReportCatalogItem {
-  tipo: ReportType;
+  type: ReportType;
   title: string;
   financial: boolean;
 }
@@ -43,7 +43,7 @@ export interface Dashboard {
   inactiveStudents: number;
   groupOccupancy: {
     average: number;
-    groups: Array<{ groupId: string; nombre: string; curso: string; inscritos: number; cupo: number; ratio: number }>;
+    groups: Array<{ groupId: string; name: string; curso: string; inscritos: number; capacity: number; ratio: number }>;
   };
   monthIncome: number | null;
   totalDebt: number | null;

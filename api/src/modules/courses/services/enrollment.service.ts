@@ -22,31 +22,31 @@ import { CURRENT_ENROLLMENT, enrollmentScope } from "./academic-scope";
 
 const include = {
   student: {
-    select: { matricula: true, nombres: true, apellidoPaterno: true, apellidoMaterno: true, status: true },
+    select: { studentNumber: true, firstNames: true, paternalSurname: true, maternalSurname: true, status: true },
   },
-  group: { select: { nombre: true, course: { select: { nombre: true } }, term: { select: { name: true } } } },
+  group: { select: { name: true, course: { select: { name: true } }, term: { select: { name: true } } } },
 } satisfies Prisma.EnrollmentInclude;
 
 type EnrollmentRow = Enrollment & {
-  student: { matricula: string; nombres: string; apellidoPaterno: string; apellidoMaterno: string | null; status: "ACTIVO" | "BAJA" };
-  group: { nombre: string; course: { nombre: string }; term: { name: string } };
+  student: { studentNumber: string; firstNames: string; paternalSurname: string; maternalSurname: string | null; status: "ACTIVE" | "WITHDRAWN" };
+  group: { name: string; course: { name: string }; term: { name: string } };
 };
 
 const toView = (row: EnrollmentRow): EnrollmentView => ({
   id: row.id,
   studentId: row.studentId,
-  matricula: row.student.matricula,
+  studentNumber: row.student.studentNumber,
   studentNombre: fullName(row.student),
   studentStatus: row.student.status,
   groupId: row.groupId,
-  groupNombre: row.group.nombre,
-  courseNombre: row.group.course.nombre,
+  groupNombre: row.group.name,
+  courseNombre: row.group.course.name,
   termNombre: row.group.term.name,
-  fecha: fromDbDay(row.fecha),
+  date: fromDbDay(row.date),
   status: row.status,
   finalGrade: row.finalGrade === null ? null : Number(row.finalGrade),
-  bajaAt: row.bajaAt?.toISOString() ?? null,
-  bajaMotivo: row.bajaMotivo,
+  withdrawnAt: row.withdrawnAt?.toISOString() ?? null,
+  withdrawalReason: row.withdrawalReason,
   transferredToId: row.transferredToId,
   createdAt: row.createdAt.toISOString(),
 });
@@ -93,14 +93,14 @@ export class EnrollmentService {
     if (termId) and.push({ group: { termId } });
     const status = filterEnum(filters, "status", ENROLLMENT_STATUSES);
     if (status) and.push({ status });
-    const matricula = filterText(filters, "matricula");
-    if (matricula) and.push({ student: { matricula } });
-    const nombre = filterText(filters, "nombre");
-    if (nombre) {
-      for (const word of nombre.contains.split(/\s+/).filter(Boolean)) {
+    const studentNumber = filterText(filters, "studentNumber");
+    if (studentNumber) and.push({ student: { studentNumber } });
+    const name = filterText(filters, "name");
+    if (name) {
+      for (const word of name.contains.split(/\s+/).filter(Boolean)) {
         const contains = { contains: word, mode: "insensitive" as const };
         and.push({
-          student: { OR: [{ nombres: contains }, { apellidoPaterno: contains }, { apellidoMaterno: contains }] },
+          student: { OR: [{ firstNames: contains }, { paternalSurname: contains }, { maternalSurname: contains }] },
         });
       }
     }
@@ -109,12 +109,12 @@ export class EnrollmentService {
     const orderBy = orderByOf(
       params.sort,
       {
-        nombre: (direction) => [{ student: { apellidoPaterno: direction } }, { student: { nombres: direction } }],
-        matricula: (direction) => ({ student: { matricula: direction } }),
-        fecha: "fecha",
+        name: (direction) => [{ student: { paternalSurname: direction } }, { student: { firstNames: direction } }],
+        studentNumber: (direction) => ({ student: { studentNumber: direction } }),
+        date: "date",
         status: "status",
       },
-      [[{ student: { apellidoPaterno: "asc" } }, { student: { nombres: "asc" } }]]
+      [[{ student: { paternalSurname: "asc" } }, { student: { firstNames: "asc" } }]]
     ).flat();
     const result = await paginatedQuery<EnrollmentRow>({
       model: this.db.enrollment,
@@ -141,31 +141,31 @@ export class EnrollmentService {
 
     const student = await tx.student.findUnique({ where: { id: studentId }, select: { status: true } });
     if (!student) throw new HttpError(404, "STUDENT_NOT_FOUND");
-    if (student.status !== "ACTIVO") throw new HttpError(409, "STUDENT_INACTIVE");
+    if (student.status !== "ACTIVE") throw new HttpError(409, "STUDENT_INACTIVE");
 
     const already = await tx.enrollment.findFirst({ where: { studentId, groupId, ...CURRENT_ENROLLMENT } });
     if (already) throw new HttpError(409, "ALREADY_ENROLLED");
 
     const taken = await tx.enrollment.count({ where: { groupId, ...CURRENT_ENROLLMENT } });
-    if (taken >= group.cupo) throw new HttpError(409, "GROUP_FULL", { cupo: group.cupo });
+    if (taken >= group.capacity) throw new HttpError(409, "GROUP_FULL", { capacity: group.capacity });
 
     // Empalme contra los grupos vigentes del alumno en el mismo ciclo.
     const others = await tx.enrollment.findMany({
       where: {
         studentId,
-        status: "INSCRITO",
+        status: "ENROLLED",
         group: { termId: group.termId, active: true },
         ...(ignoreEnrollmentId ? { NOT: { id: ignoreEnrollmentId } } : {}),
       },
-      select: { group: { select: { nombre: true, horario: true, course: { select: { nombre: true } } } } },
+      select: { group: { select: { name: true, schedule: true, course: { select: { name: true } } } } },
     });
-    const schedule = parseSchedule(group.horario);
+    const schedule = parseSchedule(group.schedule);
     for (const other of others) {
-      const conflict = firstConflict(schedule, parseSchedule(other.group.horario));
+      const conflict = firstConflict(schedule, parseSchedule(other.group.schedule));
       if (conflict) {
         throw new HttpError(409, "SCHEDULE_CONFLICT", {
-          grupo: other.group.nombre,
-          curso: other.group.course.nombre,
+          grupo: other.group.name,
+          curso: other.group.course.name,
           dia: DAY_LABEL[conflict.mine.dia],
         }, { conflict });
       }
@@ -182,17 +182,17 @@ export class EnrollmentService {
   }
 
   async enroll(groupId: string, input: EnrollInput, actor: AuthenticatedUser): Promise<EnrollmentView> {
-    const fecha = input.fecha ?? todayInBusinessZone();
+    const date = input.date ?? todayInBusinessZone();
     try {
       return await serializable(async (tx) => {
         await this.assertCanJoin(tx, groupId, input.studentId);
         const row = await tx.enrollment.create({
-          data: { studentId: input.studentId, groupId, fecha: toDbDay(fecha), createdBy: actor.id },
+          data: { studentId: input.studentId, groupId, date: toDbDay(date), createdBy: actor.id },
           include,
         });
         await this.audit?.(
           { action: "ENROLLMENT_CREATED", entityType: "Enrollment", entityId: row.id, userId: actor.id,
-            userName: actor.username, newState: { studentId: row.studentId, groupId, fecha, status: row.status } },
+            userName: actor.username, newState: { studentId: row.studentId, groupId, date, status: row.status } },
           tx
         );
         return toView(row);
@@ -203,21 +203,21 @@ export class EnrollmentService {
   }
 
   /** Baja lógica de la inscripción (solo vigente y con grupo abierto). */
-  async drop(id: string, actor: AuthenticatedUser, motivo?: string): Promise<EnrollmentView> {
+  async drop(id: string, actor: AuthenticatedUser, reason?: string): Promise<EnrollmentView> {
     const previous = await this.load(id, actor, "enrollments.delete");
-    if (previous.status !== "INSCRITO") throw new HttpError(409, "ENROLLMENT_NOT_ACTIVE");
+    if (previous.status !== "ENROLLED") throw new HttpError(409, "ENROLLMENT_NOT_ACTIVE");
     return this.db.$transaction(async (tx) => {
       const group = await tx.group.findUnique({ where: { id: previous.groupId }, select: { closedAt: true } });
       if (group?.closedAt) throw new HttpError(409, "GROUP_CLOSED");
       const changed = await tx.enrollment.updateMany({
-        where: { id, status: "INSCRITO" },
-        data: { status: "BAJA", bajaAt: new Date(), bajaMotivo: motivo ?? null },
+        where: { id, status: "ENROLLED" },
+        data: { status: "WITHDRAWN", withdrawnAt: new Date(), withdrawalReason: reason ?? null },
       });
       if (changed.count === 0) throw new HttpError(409, "ENROLLMENT_NOT_ACTIVE");
       await this.audit?.(
         { action: "ENROLLMENT_DELETED", entityType: "Enrollment", entityId: id, userId: actor.id,
-          userName: actor.username, previousState: { status: "INSCRITO" }, newState: { status: "BAJA" },
-          metadata: { studentId: previous.studentId, groupId: previous.groupId, motivo: motivo ?? null } },
+          userName: actor.username, previousState: { status: "ENROLLED" }, newState: { status: "WITHDRAWN" },
+          metadata: { studentId: previous.studentId, groupId: previous.groupId, reason: reason ?? null } },
         tx
       );
       return toView((await tx.enrollment.findUniqueOrThrow({ where: { id }, include })) as EnrollmentRow);
@@ -230,7 +230,7 @@ export class EnrollmentService {
    */
   async changeGroup(id: string, toGroupId: string, actor: AuthenticatedUser): Promise<EnrollmentView> {
     const origin = await this.load(id, actor, "enrollments.edit");
-    if (origin.status !== "INSCRITO") throw new HttpError(409, "ENROLLMENT_NOT_ACTIVE");
+    if (origin.status !== "ENROLLED") throw new HttpError(409, "ENROLLMENT_NOT_ACTIVE");
     try {
       return await serializable(async (tx) => {
         const [from, to] = await Promise.all([
@@ -244,12 +244,12 @@ export class EnrollmentService {
         if (from.closedAt) throw new HttpError(409, "GROUP_CLOSED");
         await this.assertCanJoin(tx, toGroupId, origin.studentId, { ignoreEnrollmentId: id });
         const created = await tx.enrollment.create({
-          data: { studentId: origin.studentId, groupId: toGroupId, fecha: toDbDay(todayInBusinessZone()), createdBy: actor.id },
+          data: { studentId: origin.studentId, groupId: toGroupId, date: toDbDay(todayInBusinessZone()), createdBy: actor.id },
           include,
         });
         const changed = await tx.enrollment.updateMany({
-          where: { id, status: "INSCRITO" },
-          data: { status: "BAJA", bajaAt: new Date(), bajaMotivo: "Cambio de grupo", transferredToId: created.id },
+          where: { id, status: "ENROLLED" },
+          data: { status: "WITHDRAWN", withdrawnAt: new Date(), withdrawalReason: "Cambio de grupo", transferredToId: created.id },
         });
         if (changed.count === 0) throw new HttpError(409, "ENROLLMENT_NOT_ACTIVE");
         await this.audit?.(
@@ -273,8 +273,8 @@ export class EnrollmentService {
   cancelForStudent = async (studentId: string, tx: unknown): Promise<number> => {
     const client = (tx ?? this.db) as Tx;
     const result = await client.enrollment.updateMany({
-      where: { studentId, status: "INSCRITO" },
-      data: { status: "BAJA", bajaAt: new Date(), bajaMotivo: "Baja del alumno" },
+      where: { studentId, status: "ENROLLED" },
+      data: { status: "WITHDRAWN", withdrawnAt: new Date(), withdrawalReason: "Baja del alumno" },
     });
     return result.count;
   };

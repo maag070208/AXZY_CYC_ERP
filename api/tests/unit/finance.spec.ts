@@ -23,12 +23,12 @@ test.describe("dinero (M09)", () => {
     expect(balanceOf(1000, 333.33)).toBe(666.67);
   });
 
-  test("estatus: PENDIENTE → PARCIAL → PAGADO; cancelado se queda cancelado", () => {
-    expect(chargeStatusOf(1000, 0)).toBe("PENDIENTE");
-    expect(chargeStatusOf(1000, 0.01)).toBe("PARCIAL");
-    expect(chargeStatusOf(1000, 999.99)).toBe("PARCIAL");
-    expect(chargeStatusOf(1000, 1000)).toBe("PAGADO");
-    expect(chargeStatusOf(1000, 1000, true)).toBe("CANCELADO");
+  test("estatus: PENDING → PARTIAL → PAID; cancelado se queda cancelado", () => {
+    expect(chargeStatusOf(1000, 0)).toBe("PENDING");
+    expect(chargeStatusOf(1000, 0.01)).toBe("PARTIAL");
+    expect(chargeStatusOf(1000, 999.99)).toBe("PARTIAL");
+    expect(chargeStatusOf(1000, 1000)).toBe("PAID");
+    expect(chargeStatusOf(1000, 1000, true)).toBe("CANCELLED");
   });
 
   test("recargo por mora: tasa diaria sobre el saldo después de la gracia", () => {
@@ -50,12 +50,12 @@ test.describe("dinero (M09)", () => {
     expect(isCents(1500.5)).toBe(true);
     expect(isCents(10.005)).toBe(false);
     const chargeId = crypto.randomUUID();
-    expect(PaymentCreateDto.safeParse({ chargeId, monto: 100.25, metodo: "EFECTIVO" }).success).toBe(true);
-    expect(PaymentCreateDto.safeParse({ chargeId, monto: 0, metodo: "EFECTIVO" }).success).toBe(false);
-    expect(PaymentCreateDto.safeParse({ chargeId, monto: 10.001, metodo: "EFECTIVO" }).success).toBe(false);
-    expect(PaymentCreateDto.safeParse({ chargeId, monto: 10, metodo: "CHEQUE" }).success).toBe(false);
+    expect(PaymentCreateDto.safeParse({ chargeId, amount: 100.25, method: "CASH" }).success).toBe(true);
+    expect(PaymentCreateDto.safeParse({ chargeId, amount: 0, method: "CASH" }).success).toBe(false);
+    expect(PaymentCreateDto.safeParse({ chargeId, amount: 10.001, method: "CASH" }).success).toBe(false);
+    expect(PaymentCreateDto.safeParse({ chargeId, amount: 10, method: "CHEQUE" }).success).toBe(false);
     expect(
-      ChargeCreateDto.safeParse({ studentId: chargeId, conceptId: chargeId, fechaVencimiento: "2026-02-30" }).success
+      ChargeCreateDto.safeParse({ studentId: chargeId, conceptId: chargeId, dueDate: "2026-02-30" }).success
     ).toBe(false);
   });
 });

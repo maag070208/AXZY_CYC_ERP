@@ -17,24 +17,24 @@ export const attendanceApi = {
   getRoll: (sessionId: string) => api.get<AttendanceRoll>(`/attendance-sessions/${sessionId}`),
   saveRoll: (sessionId: string, items: RollCallItem[]) =>
     api.put<{ sessionId: string; saved: number; skipped: number }>(`/attendance-sessions/${sessionId}/attendance`, { items }),
-  annul: (sessionId: string, motivo: string) =>
-    api.delete<AttendanceSession>(`/attendance-sessions/${sessionId}`, { data: { motivo } }),
+  annul: (sessionId: string, reason: string) =>
+    api.delete<AttendanceSession>(`/attendance-sessions/${sessionId}`, { data: { reason } }),
   student: (studentId: string) => api.get<StudentAttendance>(`/students/${studentId}/attendance`),
 };
 
 export const justificationApi = {
   /** Alta multipart: `attendanceId` + `motivo` y, opcionalmente, el archivo. */
-  create: (attendanceId: string, motivo: string, file?: File) => {
+  create: (attendanceId: string, reason: string, file?: File) => {
     const form = new FormData();
     form.append("attendanceId", attendanceId);
-    form.append("motivo", motivo);
+    form.append("reason", reason);
     if (file) form.append("file", file);
     return api.post<Justification>("/justifications", form, {
       headers: { "Content-Type": "multipart/form-data" },
     });
   },
   table: (params: ITDataTableFetchParamsPost) => tableRequest<Justification>("/justifications/query", params),
-  resolve: (id: string, data: { status: "APROBADA" | "RECHAZADA"; nota?: string | null }) =>
+  resolve: (id: string, data: { status: "APPROVED" | "REJECTED"; note?: string | null }) =>
     api.patch<Justification>(`/justifications/${id}/resolve`, data),
   /** Descarga autorizada (el archivo nunca tiene URL pública). */
   file: (id: string) => api.get<Blob>(`/justifications/${id}/file`, { responseType: "blob" }),

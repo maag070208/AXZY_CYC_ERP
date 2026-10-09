@@ -16,22 +16,22 @@ import {
 
 test.describe("plantillas", () => {
   test("variablesIn detecta {{var}} sin repetir y tolera espacios", () => {
-    expect(variablesIn("Hola {{nombre}}", "{{ monto }} de {{nombre}} el {{fecha}}")).toEqual(["nombre", "monto", "fecha"]);
+    expect(variablesIn("Hola {{name}}", "{{ amount }} de {{name}} el {{date}}")).toEqual(["name", "amount", "date"]);
     expect(variablesIn(null, "sin variables")).toEqual([]);
   });
 
   test("requiredVariables une declaradas y usadas; missingVariables marca las faltantes", () => {
-    const required = requiredVariables(["nombre"], "Pago {{folio}}", "Hola {{nombre}}, {{monto}}");
-    expect(required).toEqual(["nombre", "folio", "monto"]);
-    expect(missingVariables(required, { nombre: "Ana", monto: 10 })).toEqual(["folio"]);
-    expect(missingVariables(required, { nombre: "Ana", monto: 0, folio: "REC-1" })).toEqual([]);
+    const required = requiredVariables(["name"], "Pago {{folio}}", "Hola {{name}}, {{amount}}");
+    expect(required).toEqual(["name", "folio", "amount"]);
+    expect(missingVariables(required, { name: "Ana", amount: 10 })).toEqual(["folio"]);
+    expect(missingVariables(required, { name: "Ana", amount: 0, folio: "REC-1" })).toEqual([]);
   });
 
   test("render sustituye, convierte números y deja vacías las no provistas", () => {
-    expect(render("Hola {{nombre}}, debes {{monto}} {{extra}}", { nombre: "Ana", monto: 1500 })).toBe("Hola Ana, debes 1500");
+    expect(render("Hola {{name}}, debes {{amount}} {{extra}}", { name: "Ana", amount: 1500 })).toBe("Hola Ana, debes 1500");
   });
 
-  test("toHtml escapa el texto del usuario", () => {
+  test("toHtml escapa el text del usuario", () => {
     expect(toHtml("<b>Hola</b>\nAdiós & bye")).toBe("<p>&lt;b&gt;Hola&lt;/b&gt;<br>Adiós &amp; bye</p>");
   });
 });
@@ -50,8 +50,8 @@ test.describe("destinatarios", () => {
   });
 
   test("bandeja interna solo con user:<uuid>", () => {
-    expect(normalizeRecipient("INTERNO", "user:3f2b8c1e-1d2a-4b5c-9d8e-0f1a2b3c4d5e")).toBe("user:3f2b8c1e-1d2a-4b5c-9d8e-0f1a2b3c4d5e");
-    expect(normalizeRecipient("INTERNO", "ana@escuela.mx")).toBeNull();
+    expect(normalizeRecipient("IN_APP", "user:3f2b8c1e-1d2a-4b5c-9d8e-0f1a2b3c4d5e")).toBe("user:3f2b8c1e-1d2a-4b5c-9d8e-0f1a2b3c4d5e");
+    expect(normalizeRecipient("IN_APP", "ana@escuela.mx")).toBeNull();
   });
 });
 
@@ -65,10 +65,10 @@ test.describe("reintentos con backoff", () => {
     expect(backoffMs(30, 0.5)).toBe(BACKOFF_CAP_MS);
   });
 
-  test("afterFailure reintenta hasta maxAttempts y luego FALLIDO", () => {
+  test("afterFailure reintenta hasta maxAttempts y luego FAILED", () => {
     const now = new Date("2026-10-09T12:00:00Z");
     const retry = afterFailure(2, 5, now, 0.5);
-    expect(retry).toEqual({ status: "EN_COLA", nextRetryAt: new Date(now.getTime() + BACKOFF_BASE_MS * 2) });
-    expect(afterFailure(5, 5, now)).toEqual({ status: "FALLIDO" });
+    expect(retry).toEqual({ status: "QUEUED", nextRetryAt: new Date(now.getTime() + BACKOFF_BASE_MS * 2) });
+    expect(afterFailure(5, 5, now)).toEqual({ status: "FAILED" });
   });
 });

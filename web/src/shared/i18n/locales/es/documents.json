@@ -31,9 +31,9 @@
     "empty": "Sin documentos."
   },
   "status": {
-    "PENDIENTE": "Pendiente",
-    "VALIDADO": "Validado",
-    "RECHAZADO": "Rechazado"
+    "PENDING": "Pendiente",
+    "VALIDATED": "Validado",
+    "REJECTED": "Rechazado"
   },
   "actions": {
     "download": "Descargar",
@@ -70,10 +70,10 @@
     "faltantes": "Documentos faltantes",
     "ninguno": "Ninguno",
     "estatusValues": {
-      "ACREDITADO": "Acreditado",
-      "REPROBADO": "Reprobado",
-      "EN_CURSO": "En curso",
-      "BAJA": "Baja"
+      "PASSED": "Acreditado",
+      "FAILED": "Reprobado",
+      "IN_PROGRESS": "En curso",
+      "WITHDRAWN": "Baja"
     }
   }
 }

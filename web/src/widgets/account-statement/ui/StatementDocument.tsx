@@ -22,7 +22,7 @@ const styles = StyleSheet.create({
 
 export interface StatementLabels {
   title: string;
-  matricula: string;
+  studentNumber: string;
   alumno: string;
   concepto: string;
   vencimiento: string;
@@ -42,15 +42,15 @@ export interface StatementLabels {
 export default function StatementDocument({ statement, labels }: { statement: AccountStatement; labels: StatementLabels }) {
   const { escuela, student, totals } = statement;
   return (
-    <Document title={`${labels.title} ${student.matricula}`} author={escuela.nombre}>
+    <Document title={`${labels.title} ${student.studentNumber}`} author={escuela.name}>
       <Page size="LETTER" style={styles.page}>
         <View style={styles.header}>
-          <Text style={styles.school}>{escuela.nombre}</Text>
-          <Text style={styles.small}>{[escuela.direccion, escuela.telefono, escuela.email].filter(Boolean).join(" · ")}</Text>
+          <Text style={styles.school}>{escuela.name}</Text>
+          <Text style={styles.small}>{[escuela.address, escuela.phone, escuela.email].filter(Boolean).join(" · ")}</Text>
           <Text style={{ fontSize: 11, marginTop: 4 }}>{labels.title}</Text>
         </View>
-        <View style={styles.row}><Text style={styles.label}>{labels.alumno}</Text><Text>{student.nombre}</Text></View>
-        <View style={styles.row}><Text style={styles.label}>{labels.matricula}</Text><Text>{student.matricula}</Text></View>
+        <View style={styles.row}><Text style={styles.label}>{labels.alumno}</Text><Text>{student.name}</Text></View>
+        <View style={styles.row}><Text style={styles.label}>{labels.studentNumber}</Text><Text>{student.studentNumber}</Text></View>
         <View style={styles.table}>
           <View style={styles.th}>
             <Text style={styles.wide}>{labels.concepto}</Text>
@@ -65,16 +65,16 @@ export default function StatementDocument({ statement, labels }: { statement: Ac
             statement.charges.map((c) => (
               <View key={c.id} wrap={false}>
                 <View style={styles.tr}>
-                  <Text style={styles.wide}>{c.descripcion ?? c.conceptNombre}</Text>
-                  <Text style={styles.date}>{labels.date(c.fechaVencimiento)}</Text>
+                  <Text style={styles.wide}>{c.description ?? c.conceptNombre}</Text>
+                  <Text style={styles.date}>{labels.date(c.dueDate)}</Text>
                   <Text style={styles.cell}>{labels.money(c.total)}</Text>
                   <Text style={styles.cell}>{labels.money(c.pagado)}</Text>
                   <Text style={[styles.cell, { fontFamily: "Helvetica-Bold" }]}>{labels.money(c.saldo)}</Text>
                 </View>
                 {c.payments.map((p) => (
                   <View key={p.id} style={styles.pay}>
-                    <Text style={styles.wide}>{`${p.reciboFolio} · ${labels.date(p.fecha)}`}</Text>
-                    <Text style={styles.cell}>{labels.money(p.monto)}</Text>
+                    <Text style={styles.wide}>{`${p.receiptNumber} · ${labels.date(p.date)}`}</Text>
+                    <Text style={styles.cell}>{labels.money(p.amount)}</Text>
                   </View>
                 ))}
               </View>

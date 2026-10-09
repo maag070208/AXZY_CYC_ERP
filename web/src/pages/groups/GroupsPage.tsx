@@ -42,7 +42,7 @@ export default function GroupsPage() {
     }
   };
 
-  const name = toggling ? `${toggling.group.courseNombre} ${toggling.group.nombre}` : "";
+  const name = toggling ? `${toggling.group.courseNombre} ${toggling.group.name}` : "";
   return (
     <ITPage
       noPadding

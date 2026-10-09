@@ -10,7 +10,7 @@ const D = (value: Num) => new Prisma.Decimal(value);
 
 export interface WeightedItem {
   id: string;
-  ponderacion: Num;
+  weight: Num;
   maxScore: Num;
 }
 
@@ -20,11 +20,11 @@ export type ScoreMap = Record<string, Num | null | undefined>;
 export const round2 = (value: Num): number => D(value).toDecimalPlaces(2, Prisma.Decimal.ROUND_HALF_UP).toNumber();
 
 /** Suma de ponderaciones (en %). */
-export const weightsTotal = (items: readonly Pick<WeightedItem, "ponderacion">[]): number =>
-  round2(items.reduce((sum, item) => sum.plus(D(item.ponderacion)), D(0)));
+export const weightsTotal = (items: readonly Pick<WeightedItem, "weight">[]): number =>
+  round2(items.reduce((sum, item) => sum.plus(D(item.weight)), D(0)));
 
 /** ¿Las ponderaciones suman exactamente 100.00? */
-export const weightsComplete = (items: readonly Pick<WeightedItem, "ponderacion">[]): boolean =>
+export const weightsComplete = (items: readonly Pick<WeightedItem, "weight">[]): boolean =>
   D(weightsTotal(items)).equals(100);
 
 /**
@@ -39,16 +39,16 @@ export const finalGradeOf = (items: readonly WeightedItem[], scores: ScoreMap): 
       missing += 1;
       return sum;
     }
-    return sum.plus(D(score).div(D(item.maxScore)).times(D(item.ponderacion)));
+    return sum.plus(D(score).div(D(item.maxScore)).times(D(item.weight)));
   }, D(0));
   return { final: round2(total), missing };
 };
 
-export type GradeResult = "ACREDITADO" | "REPROBADO";
+export type GradeResult = "PASSED" | "FAILED";
 
 /** Regla de aprobación configurable (M11 `MIN_PASSING_GRADE`): `>= umbral` acredita. */
 export const resultOf = (final: Num, threshold: Num): GradeResult =>
-  D(final).greaterThanOrEqualTo(D(threshold)) ? "ACREDITADO" : "REPROBADO";
+  D(final).greaterThanOrEqualTo(D(threshold)) ? "PASSED" : "FAILED";
 
 /** ¿El valor está en `[0, max]`? */
 export const scoreInRange = (score: Num, max: Num): boolean => D(score).greaterThanOrEqualTo(0) && D(score).lessThanOrEqualTo(D(max));

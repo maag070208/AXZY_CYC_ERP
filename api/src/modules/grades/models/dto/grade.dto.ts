@@ -6,16 +6,16 @@ import { hasTwoDecimalsAtMost } from "../entity/grading";
 const day = z.string().refine(isRealDay, "INVALID_DATE");
 const decimal = z.number().refine(hasTwoDecimalsAtMost, "INVALID_DECIMAL");
 
-export const ASSESSMENT_TYPES = ["PARCIAL", "FINAL", "TAREA", "OTRO"] as const;
+export const ASSESSMENT_TYPES = ["PARTIAL", "FINAL", "HOMEWORK", "OTHER"] as const;
 
 // --- Instrumentos de evaluación -------------------------------------------------
 
 const assessmentFields = {
-  nombre: z.string().trim().min(1, "NOMBRE_REQUIRED").max(120),
-  tipo: z.enum(ASSESSMENT_TYPES),
+  name: z.string().trim().min(1, "NOMBRE_REQUIRED").max(120),
+  type: z.enum(ASSESSMENT_TYPES),
   /** Porcentaje de la final: `> 0` y `<= 100`. */
-  ponderacion: decimal.pipe(z.number().gt(0).max(100)),
-  fecha: day.nullable().optional(),
+  weight: decimal.pipe(z.number().gt(0).max(100)),
+  date: day.nullable().optional(),
   maxScore: decimal.pipe(z.number().gt(0).max(1000)).optional(),
 };
 
@@ -39,10 +39,10 @@ export const AssessmentSchema = z
   .object({
     id: z.string(),
     groupId: z.string(),
-    nombre: z.string(),
-    tipo: z.enum(ASSESSMENT_TYPES),
-    ponderacion: z.number(),
-    fecha: z.string().nullable(),
+    name: z.string(),
+    type: z.enum(ASSESSMENT_TYPES),
+    weight: z.number(),
+    date: z.string().nullable(),
     maxScore: z.number(),
     active: z.boolean(),
     capturadas: z.number().int(),
@@ -65,7 +65,7 @@ export const GradeCaptureDto = z
             enrollmentId: z.string().uuid(),
             /** `null` vacía una calificación capturada. */
             score: decimal.pipe(z.number().min(0)).nullable(),
-            observaciones: z.string().trim().max(500).nullable().optional(),
+            notes: z.string().trim().max(500).nullable().optional(),
           })
           .strict()
       )
@@ -87,10 +87,10 @@ export const GradeSchema = z
     assessmentNombre: z.string(),
     enrollmentId: z.string(),
     studentId: z.string(),
-    matricula: z.string(),
+    studentNumber: z.string(),
     studentNombre: z.string(),
     score: z.number().nullable(),
-    observaciones: z.string().nullable(),
+    notes: z.string().nullable(),
     capturedBy: z.string().nullable(),
     capturedAt: z.string().nullable(),
   })
@@ -105,14 +105,14 @@ export const GradebookSchema = z
   .object({
     group: z.object({
       id: z.string(),
-      nombre: z.string(),
+      name: z.string(),
       courseNombre: z.string(),
       termNombre: z.string(),
       teacherNombre: z.string().nullable(),
       closedAt: z.string().nullable(),
     }),
     assessments: z.array(
-      z.object({ id: z.string(), nombre: z.string(), tipo: z.enum(ASSESSMENT_TYPES), ponderacion: z.number(), maxScore: z.number() })
+      z.object({ id: z.string(), name: z.string(), type: z.enum(ASSESSMENT_TYPES), weight: z.number(), maxScore: z.number() })
     ),
     weightsTotal: z.number(),
     approvalThreshold: z.number(),
@@ -122,15 +122,15 @@ export const GradebookSchema = z
       z.object({
         enrollmentId: z.string(),
         studentId: z.string(),
-        matricula: z.string(),
-        nombre: z.string(),
-        enrollmentStatus: z.enum(["INSCRITO", "BAJA", "ACREDITADO", "REPROBADO"]),
+        studentNumber: z.string(),
+        name: z.string(),
+        enrollmentStatus: z.enum(["ENROLLED", "WITHDRAWN", "PASSED", "FAILED"]),
         scores: z.record(z.number().nullable()),
-        observaciones: z.record(z.string().nullable()),
+        notes: z.record(z.string().nullable()),
         /** Proyección (abierto) o final escrita (cerrado); `null` si las ponderaciones no suman 100. */
         final: z.number().nullable(),
         missing: z.number().int(),
-        result: z.enum(["ACREDITADO", "REPROBADO"]).nullable(),
+        result: z.enum(["PASSED", "FAILED"]).nullable(),
       })
     ),
   })

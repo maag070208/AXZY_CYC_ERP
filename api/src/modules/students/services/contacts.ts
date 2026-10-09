@@ -12,23 +12,23 @@ export const studentContacts = async (
   client: Client,
   studentId: string,
   guardians: "all" | "payer" | "none" = "none"
-): Promise<{ nombre: string; recipients: NotificationRecipient[] } | null> => {
+): Promise<{ name: string; recipients: NotificationRecipient[] } | null> => {
   const student = await client.student.findUnique({
     where: { id: studentId },
     select: {
-      nombres: true,
-      apellidoPaterno: true,
+      firstNames: true,
+      paternalSurname: true,
       email: true,
-      telefono: true,
+      phone: true,
       userId: true,
       user: { select: { email: true } },
-      guardians: guardians === "none" ? false : { where: guardians === "payer" ? { esResponsablePago: true } : {}, select: { email: true, telefono: true } },
+      guardians: guardians === "none" ? false : { where: guardians === "payer" ? { isPaymentResponsible: true } : {}, select: { email: true, phone: true } },
     },
   });
   if (!student) return null;
   const recipients: NotificationRecipient[] = [
-    { userId: student.userId, email: student.email ?? student.user?.email ?? null, phone: student.telefono },
-    ...(student.guardians ?? []).map((g) => ({ email: g.email, phone: g.telefono })),
+    { userId: student.userId, email: student.email ?? student.user?.email ?? null, phone: student.phone },
+    ...(student.guardians ?? []).map((g) => ({ email: g.email, phone: g.phone })),
   ];
-  return { nombre: `${student.nombres} ${student.apellidoPaterno}`, recipients };
+  return { name: `${student.firstNames} ${student.paternalSurname}`, recipients };
 };

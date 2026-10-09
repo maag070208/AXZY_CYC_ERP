@@ -5,9 +5,9 @@
     "new": "New teacher"
   },
   "table": {
-    "nombre": "Name",
+    "name": "Name",
     "email": "Email",
-    "especialidad": "Specialty",
+    "specialty": "Specialty",
     "status": "Status",
     "account": "Account",
     "pending": "Invitation pending",
@@ -15,17 +15,17 @@
     "lastLogin": "Last sign-in"
   },
   "status": {
-    "ACTIVO": "Active",
-    "INACTIVO": "Inactive"
+    "ACTIVE": "Active",
+    "INACTIVE": "Inactive"
   },
   "form": {
     "titleNew": "New teacher",
     "titleEdit": "Edit teacher",
-    "nombres": "First name(s)",
-    "apellidos": "Surnames",
+    "firstNames": "First name(s)",
+    "surnames": "Surnames",
     "email": "Email",
-    "telefono": "Phone",
-    "especialidad": "Specialty",
+    "phone": "Phone",
+    "specialty": "Specialty",
     "newHint": "A TEACHER account will be created and an invitation will be sent to set the password.",
     "created": "Teacher created: invitation sent to {{email}}",
     "saved": "Teacher updated"

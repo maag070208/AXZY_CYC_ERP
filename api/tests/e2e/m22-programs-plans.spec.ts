@@ -27,13 +27,13 @@ test.beforeAll(async () => {
   await createAuthUser({ ...ADMIN, password: E2E.password });
   admin = (await loginAs(ADMIN.username)).api;
 
-  const course = await admin.post("courses", { data: { clave: COURSE_CODE, nombre: `E2E Materia ${RUN}` } });
+  const course = await admin.post("courses", { data: { code: COURSE_CODE, name: `E2E Materia ${RUN}` } });
   expect(course.status(), await course.text()).toBe(201);
   courseId = (await course.json()).id;
 
   const birth = "2000-05-05";
   const student = await admin.post("students", {
-    data: { nombres: `E2E M22 ${RUN}`, apellidoPaterno: "Plan", curp: makeCurp(birth, "M"), fechaNacimiento: birth },
+    data: { firstNames: `E2E M22 ${RUN}`, paternalSurname: "Plan", curp: makeCurp(birth, "M"), birthDate: birth },
   });
   expect(student.status(), await student.text()).toBe(201);
   studentId = (await student.json()).id;
@@ -70,7 +70,7 @@ test.describe.serial("programas y planes de pago", () => {
     expect((await res.json()).code).toBe("INVALID_IDEMPOTENCY_KEY");
   });
 
-  test("genera 15 cargos (3 reinscripciones + 12 mensualidades) y no duplica al repetir la clave", async () => {
+  test("genera 15 cargos (3 reinscripciones + 12 mensualidades) y no duplica al repetir la code", async () => {
     const key = `${E2E_PREFIX}plan_${RUN}`;
     const res = await admin.post("plans", {
       headers: { "Idempotency-Key": key },
@@ -88,7 +88,7 @@ test.describe.serial("programas y planes de pago", () => {
     expect(await db.charge.count({ where: { planId: body.id } })).toBe(15);
   });
 
-  test("el descuento se aplica a los cargos (snapshot)", async () => {
+  test("el discount se aplica a los cargos (snapshot)", async () => {
     const res = await admin.post("plans", {
       headers: { "Idempotency-Key": `${E2E_PREFIX}plan_d_${RUN}` },
       data: { studentId, programId, startDate: "2026-09-01", discountPercent: 20, discountReason: "Beca" },
@@ -96,16 +96,16 @@ test.describe.serial("programas y planes de pago", () => {
     expect(res.status(), await res.text()).toBe(201);
     const body = await res.json();
     expect(body.discountPercent).toBe(20);
-    const charges = await db.charge.findMany({ where: { planId: body.id }, select: { monto: true, descripcion: true } });
-    const enrollment = charges.find((c) => c.descripcion?.startsWith("Reinscripción"));
-    const monthly = charges.find((c) => c.descripcion?.startsWith("Colegiatura"));
-    expect(Number(enrollment?.monto)).toBe(800);
-    expect(Number(monthly?.monto)).toBe(1200);
+    const charges = await db.charge.findMany({ where: { planId: body.id }, select: { amount: true, description: true } });
+    const enrollment = charges.find((c) => c.description?.startsWith("Reinscripción"));
+    const monthly = charges.find((c) => c.description?.startsWith("Colegiatura"));
+    expect(Number(enrollment?.amount)).toBe(800);
+    expect(Number(monthly?.amount)).toBe(1200);
 
     // Cambiar el precio de la carrera NO recalcula los cargos existentes.
     await admin.patch(`programs/${programId}`, { data: { monthlyFee: 9999 } });
-    const after = await db.charge.findMany({ where: { planId: body.id }, select: { monto: true }, orderBy: { planChargeIndex: "asc" } });
-    expect(Number(after[1].monto)).toBe(1200);
+    const after = await db.charge.findMany({ where: { planId: body.id }, select: { amount: true }, orderBy: { planChargeIndex: "asc" } });
+    expect(Number(after[1].amount)).toBe(1200);
   });
 
   test("cancela el plan y sus cargos pendientes", async () => {
@@ -117,7 +117,7 @@ test.describe.serial("programas y planes de pago", () => {
     const cancelled = await admin.post(`plans/${planId}/cancel`, { data: { reason: "Cambio de carrera" } });
     expect(cancelled.status(), await cancelled.text()).toBe(200);
     expect((await cancelled.json()).status).toBe("CANCELLED");
-    expect(await db.charge.count({ where: { planId, status: "CANCELADO" } })).toBe(15);
+    expect(await db.charge.count({ where: { planId, status: "CANCELLED" } })).toBe(15);
   });
 
   test("tabla de carreras y planes responde el contrato", async () => {

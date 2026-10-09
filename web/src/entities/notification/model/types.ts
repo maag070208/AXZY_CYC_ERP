@@ -1,19 +1,19 @@
 // Tipos del módulo de notificaciones (M19): plantillas, outbox, preferencias y
 // bandeja interna. Espejo de los DTO de la API.
-export type NotificationChannel = "EMAIL" | "SMS" | "WHATSAPP" | "INTERNO";
-export type NotificationStatus = "EN_COLA" | "ENVIADO" | "FALLIDO" | "OMITIDO";
+export type NotificationChannel = "EMAIL" | "SMS" | "WHATSAPP" | "IN_APP";
+export type NotificationStatus = "QUEUED" | "SENT" | "FAILED" | "SKIPPED";
 
-export const NOTIFICATION_CHANNELS: readonly NotificationChannel[] = ["EMAIL", "SMS", "WHATSAPP", "INTERNO"];
+export const NOTIFICATION_CHANNELS: readonly NotificationChannel[] = ["EMAIL", "SMS", "WHATSAPP", "IN_APP"];
 
 export interface NotificationTemplate {
   id: string;
-  clave: string;
-  nombre: string;
-  canal: NotificationChannel;
-  asunto: string | null;
-  cuerpo: string;
+  code: string;
+  name: string;
+  channel: NotificationChannel;
+  subject: string | null;
+  body: string;
   variables: string[];
-  obligatorio: boolean;
+  required: boolean;
   active: boolean;
   enviadas: number;
   createdAt: string;
@@ -21,24 +21,24 @@ export interface NotificationTemplate {
 }
 
 export interface NotificationTemplateInput {
-  clave?: string;
-  nombre?: string;
-  canal?: NotificationChannel;
-  asunto?: string | null;
-  cuerpo?: string;
+  code?: string;
+  name?: string;
+  channel?: NotificationChannel;
+  subject?: string | null;
+  body?: string;
   variables?: string[];
-  obligatorio?: boolean;
+  required?: boolean;
 }
 
 export interface NotificationItem {
   id: string;
-  canal: NotificationChannel;
-  destinatario: string;
+  channel: NotificationChannel;
+  recipient: string;
   userId: string | null;
-  origen: string;
+  origin: string;
   templateClave: string | null;
-  asunto: string | null;
-  cuerpo: string;
+  subject: string | null;
+  body: string;
   status: NotificationStatus;
   attempts: number;
   maxAttempts: number;
@@ -51,28 +51,28 @@ export interface NotificationItem {
 }
 
 export interface NotificationSendInput {
-  canal: NotificationChannel;
-  destinatario: string;
+  channel: NotificationChannel;
+  recipient: string;
   templateClave?: string;
-  asunto?: string | null;
-  cuerpo?: string | null;
+  subject?: string | null;
+  body?: string | null;
   payload?: Record<string, string | number>;
 }
 
 export interface NotificationPreference {
   id: string;
-  canal: NotificationChannel;
-  destinatario: string;
+  channel: NotificationChannel;
+  recipient: string;
   optOut: boolean;
-  motivo: string | null;
+  reason: string | null;
   updatedAt: string;
 }
 
 export interface NotificationPreferenceInput {
-  canal: NotificationChannel;
-  destinatario: string;
+  channel: NotificationChannel;
+  recipient: string;
   optOut: boolean;
-  motivo?: string | null;
+  reason?: string | null;
 }
 
 /** `GET /notifications/mine`: bandeja interna del usuario con no leídas. */

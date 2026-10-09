@@ -34,16 +34,16 @@ export const createMigrationRouter = (controller: MigrationController): Router =
     method: "post",
     path: "/migration/preview",
     tags: ["Migration"],
-    summary: "Simulación (`dry-run`) de importación (multipart `file` + `entidad`)",
+    summary: "Simulación (`dry-run`) de importación (multipart `file` + `entity`)",
     security: bearer,
-    request: { body: { required: true, content: { "multipart/form-data": { schema: { type: "object", properties: { entidad: { type: "string" }, file: { type: "string", format: "binary" } } } } } } },
+    request: { body: { required: true, content: { "multipart/form-data": { schema: { type: "object", properties: { entity: { type: "string" }, file: { type: "string", format: "binary" } } } } } } },
     responses: { 200: { description: "Reporte sin escribir", content: json(MigrationResultSchema) } },
   });
   registerPath({
     method: "post",
     path: "/migration/execute",
     tags: ["Migration"],
-    summary: "Importación real (multipart `file` + `entidad` + `checksum`; exige Idempotency-Key y respaldo reciente)",
+    summary: "Importación real (multipart `file` + `entity` + `checksum`; exige Idempotency-Key y respaldo reciente)",
     security: bearer,
     responses: {
       201: { description: "Lote ejecutado", content: json(MigrationResultSchema) },

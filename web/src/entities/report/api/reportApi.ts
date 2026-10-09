@@ -6,9 +6,9 @@ const clean = (filters: ReportFilters) =>
 
 export const reportApi = {
   catalog: () => api.get<ReportCatalogItem[]>("/reports"),
-  run: (tipo: ReportType, filters: ReportFilters) => api.get<ReportResult>(`/reports/${tipo}`, { params: clean(filters) }),
+  run: (type: ReportType, filters: ReportFilters) => api.get<ReportResult>(`/reports/${type}`, { params: clean(filters) }),
   /** Mismos filtros que la consulta en pantalla (M10 §4.7). */
-  export: (tipo: ReportType, filters: ReportFilters, format: "xlsx" | "pdf") =>
-    api.get<Blob>(`/reports/${tipo}`, { params: { ...clean(filters), format }, responseType: "blob" }),
+  export: (type: ReportType, filters: ReportFilters, format: "xlsx" | "pdf") =>
+    api.get<Blob>(`/reports/${type}`, { params: { ...clean(filters), format }, responseType: "blob" }),
   dashboard: () => api.get<Dashboard>("/dashboard"),
 };

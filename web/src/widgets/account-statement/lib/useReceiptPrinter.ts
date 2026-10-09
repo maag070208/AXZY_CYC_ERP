@@ -20,21 +20,21 @@ export const useReceiptPrinter = () => {
         const blob = await renderReceiptPdf(payment, school, {
           title: t("receipt.title"),
           folio: t("receipt.folio"),
-          fecha: t("receipt.fecha"),
-          alumno: t("receipt.alumno"),
-          matricula: t("receipt.matricula"),
-          concepto: t("receipt.concepto"),
-          metodo: t("receipt.metodo"),
-          referencia: t("receipt.referencia"),
-          monto: t("receipt.monto"),
-          saldo: t("receipt.saldo"),
-          cobro: t("receipt.cobro"),
-          cancelado: t("receipt.cancelado"),
-          metodoValue: t(`payments.methods.${payment.metodo}`),
+          date: t("receipt.fecha"),
+          student: t("receipt.alumno"),
+          studentNumber: t("receipt.matricula"),
+          concept: t("receipt.concepto"),
+          method: t("receipt.metodo"),
+          reference: t("receipt.referencia"),
+          amount: t("receipt.monto"),
+          balance: t("receipt.saldo"),
+          cashier: t("receipt.cobro"),
+          cancelled: t("receipt.cancelado"),
+          methodValue: t(`payments.methods.${payment.method}`),
           money: (v) => formatMoney(v, i18n.language),
-          date: (d) => formatDay(d, i18n.language),
+          formatDate: (d) => formatDay(d, i18n.language),
         });
-        saveAs(blob, `recibo-${payment.reciboFolio}.pdf`);
+        saveAs(blob, `recibo-${payment.receiptNumber}.pdf`);
       } catch (err) {
         notify.error(errorMessage(err, t("common:errors.load")));
       }

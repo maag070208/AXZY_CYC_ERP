@@ -43,10 +43,10 @@ const groupInput = (overrides: Record<string, unknown> = {}) => ({
   courseId,
   termId,
   teacherId: teacher.teacher.id,
-  nombre: `G${(groupSeq += 1)}`,
-  cupo: 30,
-  horario: [slot("MARTES", "07:00", "08:00")],
-  aula: "A-1",
+  name: `G${(groupSeq += 1)}`,
+  capacity: 30,
+  schedule: [slot("MARTES", "07:00", "08:00")],
+  classroom: "A-1",
   ...overrides,
 });
 
@@ -82,27 +82,27 @@ test.afterAll(async () => {
 });
 
 test.describe("cursos", () => {
-  test("alta con clave normalizada, duplicado 409 y bitácora", async () => {
-    const clave = `e2e-mat-${RUN}`;
-    const res = await admin.post("courses", { data: { clave, nombre: `E2E Álgebra ${RUN}`, descripcion: "" } });
+  test("alta con code normalizada, duplicado 409 y bitácora", async () => {
+    const code = `e2e-mat-${RUN}`;
+    const res = await admin.post("courses", { data: { code, name: `E2E Álgebra ${RUN}`, description: "" } });
     expect(res.status()).toBe(201);
     const course = await res.json();
-    expect(course).toMatchObject({ clave: clave.toUpperCase(), active: true, descripcion: null, groupsCount: 0 });
+    expect(course).toMatchObject({ code: code.toUpperCase(), active: true, description: null, groupsCount: 0 });
     expect((await lastAudit("COURSE_CREATED", adminId))?.entityId).toBe(course.id);
 
-    const dup = await admin.post("courses", { data: { clave: clave.toUpperCase(), nombre: "Otro" } });
+    const dup = await admin.post("courses", { data: { code: code.toUpperCase(), name: "Otro" } });
     expect(dup.status()).toBe(409);
     expect((await dup.json()).code).toBe("COURSE_CLAVE_TAKEN");
 
-    const list = await admin.post("courses/query", { data: { page: 1, limit: 10, filters: { clave: `MAT-${RUN}` } } });
+    const list = await admin.post("courses/query", { data: { page: 1, limit: 10, filters: { code: `MAT-${RUN}` } } });
     expect((await list.json()).data.map((c: { id: string }) => c.id)).toEqual([course.id]);
   });
 
   test("validación por campo y CONTROL_ESCOLAR sin courses.manage → 403", async () => {
-    const bad = await admin.post("courses", { data: { clave: "con espacios", nombre: "" } });
+    const bad = await admin.post("courses", { data: { code: "con espacios", name: "" } });
     expect(bad.status()).toBe(400);
-    expect(Object.keys((await bad.json()).details.fieldErrors).sort()).toEqual(["clave", "nombre"]);
-    const denied = await control.post("courses", { data: { clave: `E2E-X-${RUN}`, nombre: "x" } });
+    expect(Object.keys((await bad.json()).details.fieldErrors).sort()).toEqual(["code", "name"]);
+    const denied = await control.post("courses", { data: { code: `E2E-X-${RUN}`, name: "x" } });
     expect(denied.status()).toBe(403);
   });
 
@@ -119,53 +119,53 @@ test.describe("cursos", () => {
 });
 
 test.describe("grupos", () => {
-  test("alta con horario ordenado, KPIs de cupo y bitácora", async () => {
+  test("alta con schedule ordenado, KPIs de capacity y bitácora", async () => {
     const group = await newGroup({
-      cupo: 2,
-      horario: [slot("MIERCOLES", "10:00", "11:00"), slot("LUNES", "08:00", "09:00")],
+      capacity: 2,
+      schedule: [slot("MIERCOLES", "10:00", "11:00"), slot("LUNES", "08:00", "09:00")],
     });
-    expect(group).toMatchObject({ cupo: 2, inscritos: 0, disponibles: 2, teacherId: teacher.teacher.id, active: true });
-    expect(group.horario.map((s: { dia: string }) => s.dia)).toEqual(["LUNES", "MIERCOLES"]);
+    expect(group).toMatchObject({ capacity: 2, inscritos: 0, disponibles: 2, teacherId: teacher.teacher.id, active: true });
+    expect(group.schedule.map((s: { dia: string }) => s.dia)).toEqual(["LUNES", "MIERCOLES"]);
     expect((await lastAudit("GROUP_CREATED", controlId))?.entityId).toBe(group.id);
   });
 
-  test("horario inválido o empalmado consigo mismo → 400", async () => {
-    const reversed = await control.post("groups", { data: groupInput({ horario: [slot("LUNES", "10:00", "09:00")] }) });
+  test("schedule inválido o empalmado consigo mismo → 400", async () => {
+    const reversed = await control.post("groups", { data: groupInput({ schedule: [slot("LUNES", "10:00", "09:00")] }) });
     expect(reversed.status()).toBe(400);
     const overlap = await control.post("groups", {
-      data: groupInput({ horario: [slot("LUNES", "08:00", "10:00"), slot("LUNES", "09:30", "11:00")] }),
+      data: groupInput({ schedule: [slot("LUNES", "08:00", "10:00"), slot("LUNES", "09:30", "11:00")] }),
     });
     expect(overlap.status()).toBe(400);
-    const badTime = await control.post("groups", { data: groupInput({ horario: [slot("LUNES", "8:00", "25:00")] }) });
+    const badTime = await control.post("groups", { data: groupInput({ schedule: [slot("LUNES", "8:00", "25:00")] }) });
     expect(badTime.status()).toBe(400);
-    const empty = await control.post("groups", { data: groupInput({ horario: [], cupo: 0 }) });
-    expect(Object.keys((await empty.json()).details.fieldErrors).sort()).toEqual(["cupo", "horario"]);
+    const empty = await control.post("groups", { data: groupInput({ schedule: [], capacity: 0 }) });
+    expect(Object.keys((await empty.json()).details.fieldErrors).sort()).toEqual(["capacity", "schedule"]);
   });
 
-  test("nombre repetido en el mismo curso y ciclo → 409; profesor inactivo → 409", async () => {
+  test("name repetido en el mismo curso y ciclo → 409; profesor inactivo → 409", async () => {
     const group = await newGroup();
-    const dup = await control.post("groups", { data: groupInput({ nombre: group.nombre.toLowerCase() }) });
+    const dup = await control.post("groups", { data: groupInput({ name: group.name.toLowerCase() }) });
     expect(dup.status()).toBe(409);
     expect((await dup.json()).code).toBe("GROUP_NAME_TAKEN");
     // Otro ciclo: mismo nombre permitido.
-    expect((await control.post("groups", { data: groupInput({ nombre: group.nombre, termId: otherTermId }) })).status()).toBe(201);
+    expect((await control.post("groups", { data: groupInput({ name: group.name, termId: otherTermId }) })).status()).toBe(201);
 
-    await db.teacher.update({ where: { id: otherTeacher.teacher.id }, data: { status: "INACTIVO" } });
+    await db.teacher.update({ where: { id: otherTeacher.teacher.id }, data: { status: "INACTIVE" } });
     const inactive = await control.post("groups", { data: groupInput({ teacherId: otherTeacher.teacher.id }) });
     expect((await inactive.json()).code).toBe("TEACHER_INACTIVE");
-    await db.teacher.update({ where: { id: otherTeacher.teacher.id }, data: { status: "ACTIVO" } });
+    await db.teacher.update({ where: { id: otherTeacher.teacher.id }, data: { status: "ACTIVE" } });
   });
 
-  test("cupo menor que inscritos → 409; baja con inscritos → 409; sin inscritos se desactiva", async () => {
-    const group = await newGroup({ cupo: 3 });
+  test("capacity menor que inscritos → 409; baja con inscritos → 409; sin inscritos se desactiva", async () => {
+    const group = await newGroup({ capacity: 3 });
     const a = await makeStudent(RUN, "CupoA");
     const b = await makeStudent(RUN, "CupoB");
     expect((await enroll(group.id, a.id)).status()).toBe(201);
     expect((await enroll(group.id, b.id)).status()).toBe(201);
-    const below = await control.patch(`groups/${group.id}`, { data: { cupo: 1 } });
+    const below = await control.patch(`groups/${group.id}`, { data: { capacity: 1 } });
     expect(below.status()).toBe(409);
     expect((await below.json()).code).toBe("CUPO_BELOW_ENROLLED");
-    expect((await control.patch(`groups/${group.id}`, { data: { cupo: 2, aula: "B-2" } })).status()).toBe(200);
+    expect((await control.patch(`groups/${group.id}`, { data: { capacity: 2, classroom: "B-2" } })).status()).toBe(200);
     const busy = await control.delete(`groups/${group.id}`);
     expect((await busy.json()).code).toBe("GROUP_HAS_ENROLLMENTS");
 
@@ -179,13 +179,13 @@ test.describe("grupos", () => {
 });
 
 test.describe("inscripciones", () => {
-  test("inscribe, audita y cuenta para el cupo; doble inscripción → 409 ALREADY_ENROLLED", async () => {
-    const group = await newGroup({ cupo: 5 });
+  test("inscribe, audita y cuenta para el capacity; doble inscripción → 409 ALREADY_ENROLLED", async () => {
+    const group = await newGroup({ capacity: 5 });
     const student = await makeStudent(RUN, "Alta");
     const res = await enroll(group.id, student.id);
     expect(res.status()).toBe(201);
     const enrollment = await res.json();
-    expect(enrollment).toMatchObject({ studentId: student.id, groupId: group.id, status: "INSCRITO", finalGrade: null });
+    expect(enrollment).toMatchObject({ studentId: student.id, groupId: group.id, status: "ENROLLED", finalGrade: null });
     expect((await lastAudit("ENROLLMENT_CREATED", controlId))?.entityId).toBe(enrollment.id);
     expect((await (await control.get(`groups/${group.id}`)).json()).inscritos).toBe(1);
 
@@ -195,66 +195,66 @@ test.describe("inscripciones", () => {
   });
 
   test("grupo lleno → 409 GROUP_FULL", async () => {
-    const group = await newGroup({ cupo: 1 });
+    const group = await newGroup({ capacity: 1 });
     expect((await enroll(group.id, (await makeStudent(RUN, "Lleno1")).id)).status()).toBe(201);
     const full = await enroll(group.id, (await makeStudent(RUN, "Lleno2")).id);
     expect(full.status()).toBe(409);
     expect(await full.json()).toMatchObject({ code: "GROUP_FULL" });
   });
 
-  test("empalme de horario en el mismo ciclo → 409 SCHEDULE_CONFLICT; otro ciclo no choca", async () => {
+  test("empalme de schedule en el mismo ciclo → 409 SCHEDULE_CONFLICT; otro ciclo no choca", async () => {
     const student = await makeStudent(RUN, "Empalme");
-    const first = await newGroup({ horario: MON_8 });
+    const first = await newGroup({ schedule: MON_8 });
     expect((await enroll(first.id, student.id)).status()).toBe(201);
 
-    const clash = await newGroup({ horario: [slot("LUNES", "09:00", "11:00")] });
+    const clash = await newGroup({ schedule: [slot("LUNES", "09:00", "11:00")] });
     const res = await enroll(clash.id, student.id);
     expect(res.status()).toBe(409);
     const body = await res.json();
     expect(body.code).toBe("SCHEDULE_CONFLICT");
-    expect(body.message).toContain(first.nombre);
+    expect(body.message).toContain(first.name);
 
     // Bloques contiguos no se empalman ([08:00, 10:00) y [10:00, 11:00)).
-    const after = await newGroup({ horario: [slot("LUNES", "10:00", "11:00")] });
+    const after = await newGroup({ schedule: [slot("LUNES", "10:00", "11:00")] });
     expect((await enroll(after.id, student.id)).status()).toBe(201);
-    const nextTerm = await newGroup({ termId: otherTermId, horario: MON_8 });
+    const nextTerm = await newGroup({ termId: otherTermId, schedule: MON_8 });
     expect((await enroll(nextTerm.id, student.id)).status()).toBe(201);
   });
 
   test("alumno dado de baja → 409 STUDENT_INACTIVE", async () => {
     const student = await makeStudent(RUN, "Inactivo");
-    await db.student.update({ where: { id: student.id }, data: { status: "BAJA" } });
+    await db.student.update({ where: { id: student.id }, data: { status: "WITHDRAWN" } });
     const res = await enroll((await newGroup()).id, student.id);
     expect(res.status()).toBe(409);
     expect((await res.json()).code).toBe("STUDENT_INACTIVE");
   });
 
   test("concurrencia: dos inscripciones al último lugar → solo una pasa", async () => {
-    const group = await newGroup({ cupo: 1 });
+    const group = await newGroup({ capacity: 1 });
     const [a, b] = [await makeStudent(RUN, "Carrera1"), await makeStudent(RUN, "Carrera2")];
     const results = await Promise.all([enroll(group.id, a.id), enroll(group.id, b.id)]);
     const statuses = results.map((r) => r.status()).sort();
     expect(statuses).toEqual([201, 409]);
     const loser = results.find((r) => r.status() === 409)!;
     expect(["GROUP_FULL", "CONCURRENT_UPDATE"]).toContain((await loser.json()).code);
-    expect(await db.enrollment.count({ where: { groupId: group.id, status: { not: "BAJA" } } })).toBe(1);
+    expect(await db.enrollment.count({ where: { groupId: group.id, status: { not: "WITHDRAWN" } } })).toBe(1);
   });
 
   test("baja lógica de la inscripción; repetirla → 409; se puede volver a inscribir", async () => {
     const group = await newGroup();
     const student = await makeStudent(RUN, "BajaInsc");
     const enrollment = await (await enroll(group.id, student.id)).json();
-    const res = await control.delete(`enrollments/${enrollment.id}`, { data: { motivo: "Solicitud del alumno" } });
+    const res = await control.delete(`enrollments/${enrollment.id}`, { data: { reason: "Solicitud del alumno" } });
     expect(res.status()).toBe(200);
-    expect(await res.json()).toMatchObject({ status: "BAJA", bajaMotivo: "Solicitud del alumno" });
+    expect(await res.json()).toMatchObject({ status: "WITHDRAWN", withdrawalReason: "Solicitud del alumno" });
     expect((await lastAudit("ENROLLMENT_DELETED", controlId))?.entityId).toBe(enrollment.id);
     expect((await (await control.delete(`enrollments/${enrollment.id}`)).json()).code).toBe("ENROLLMENT_NOT_ACTIVE");
     expect((await enroll(group.id, student.id)).status()).toBe(201);
   });
 
-  test("cambio de grupo atómico: origen en BAJA apuntando al destino; otro curso → 400", async () => {
-    const from = await newGroup({ horario: [slot("JUEVES", "08:00", "09:00")] });
-    const to = await newGroup({ horario: [slot("JUEVES", "08:30", "09:30")] });
+  test("cambio de grupo atómico: origin en BAJA apuntando al destino; otro curso → 400", async () => {
+    const from = await newGroup({ schedule: [slot("JUEVES", "08:00", "09:00")] });
+    const to = await newGroup({ schedule: [slot("JUEVES", "08:30", "09:30")] });
     const student = await makeStudent(RUN, "Cambio");
     const enrollment = await (await enroll(from.id, student.id)).json();
 
@@ -262,9 +262,9 @@ test.describe("inscripciones", () => {
     const res = await control.post(`enrollments/${enrollment.id}/change-group`, { data: { toGroupId: to.id } });
     expect(res.status(), await res.text()).toBe(200);
     const moved = await res.json();
-    expect(moved).toMatchObject({ groupId: to.id, status: "INSCRITO" });
+    expect(moved).toMatchObject({ groupId: to.id, status: "ENROLLED" });
     const origin = await db.enrollment.findUniqueOrThrow({ where: { id: enrollment.id } });
-    expect(origin).toMatchObject({ status: "BAJA", transferredToId: moved.id, bajaMotivo: "Cambio de grupo" });
+    expect(origin).toMatchObject({ status: "WITHDRAWN", transferredToId: moved.id, withdrawalReason: "Cambio de grupo" });
     const log = await lastAudit("ENROLLMENT_GROUP_CHANGED", controlId);
     expect(log?.previousState).toMatchObject({ groupId: from.id });
     expect(log?.newState).toMatchObject({ groupId: to.id });
@@ -277,14 +277,14 @@ test.describe("inscripciones", () => {
 
   test("la baja del alumno (M05) cancela sus inscripciones vigentes", async () => {
     const student = await makeStudent(RUN, "BajaAlumno");
-    const g1 = await newGroup({ horario: [slot("VIERNES", "08:00", "09:00")] });
-    const g2 = await newGroup({ horario: [slot("VIERNES", "09:00", "10:00")] });
+    const g1 = await newGroup({ schedule: [slot("VIERNES", "08:00", "09:00")] });
+    const g2 = await newGroup({ schedule: [slot("VIERNES", "09:00", "10:00")] });
     await enroll(g1.id, student.id);
     await enroll(g2.id, student.id);
-    const res = await control.post(`students/${student.id}/baja`, { data: { motivo: "Cambio de escuela" } });
+    const res = await control.post(`students/${student.id}/baja`, { data: { reason: "Cambio de escuela" } });
     expect(res.status(), await res.text()).toBe(200);
     const rows = await db.enrollment.findMany({ where: { studentId: student.id } });
-    expect(rows.map((r) => r.status)).toEqual(["BAJA", "BAJA"]);
+    expect(rows.map((r) => r.status)).toEqual(["WITHDRAWN", "WITHDRAWN"]);
     expect((await (await control.get(`groups/${g1.id}`)).json()).inscritos).toBe(0);
   });
 });
@@ -306,7 +306,7 @@ test.describe("alcance", () => {
     expect((await api.get(`groups/${foreign.id}`)).status()).toBe(404);
 
     const students = await (
-      await api.post("students/query", { data: { page: 1, limit: 200, filters: { nombre: RUN } } })
+      await api.post("students/query", { data: { page: 1, limit: 200, filters: { name: RUN } } })
     ).json();
     const studentIds = students.data.map((s: { id: string }) => s.id);
     expect(studentIds).toContain(inMine.id);

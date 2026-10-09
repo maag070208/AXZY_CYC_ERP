@@ -53,7 +53,7 @@ export default function ChangeGroupDialog({ group, enrollment, onClose, onChange
             <ITAlert variant="info">{t("enrollments.noTargets")}</ITAlert>
           ) : (
             <ITSelect name="toGroupId" label={t("enrollments.toGroup")} value={toGroupId} placeholder="—"
-              options={targets.map((g) => ({ value: g.id, label: `${g.nombre} · ${g.inscritos}/${g.cupo} · ${g.teacherNombre ?? t("groups.noTeacher")}` }))}
+              options={targets.map((g) => ({ value: g.id, label: `${g.name} · ${g.inscritos}/${g.capacity} · ${g.teacherNombre ?? t("groups.noTeacher")}` }))}
               onChange={(e) => setToGroupId(e.target.value)} />
           )}
           <ITFlex justify="end" gap={2}>

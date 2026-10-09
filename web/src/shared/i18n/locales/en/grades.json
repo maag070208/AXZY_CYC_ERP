@@ -19,10 +19,10 @@
     "weightsOk": "Weights complete (100%)",
     "empty": "No assessments yet",
     "types": {
-      "PARCIAL": "Partial",
+      "PARTIAL": "Partial",
       "FINAL": "Final",
-      "TAREA": "Homework",
-      "OTRO": "Other"
+      "HOMEWORK": "Homework",
+      "OTHER": "Other"
     }
   },
   "gradebook": {
@@ -45,8 +45,8 @@
     "noAssessments": "Add assessments to capture grades",
     "outOfRange": "Between 0 and {{max}}",
     "results": {
-      "ACREDITADO": "Passed",
-      "REPROBADO": "Failed"
+      "PASSED": "Passed",
+      "FAILED": "Failed"
     },
     "student": "Student"
   }

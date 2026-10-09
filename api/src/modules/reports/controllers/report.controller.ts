@@ -32,7 +32,7 @@ export class ReportController {
     // Exportar exige además `reports.export` (M10 §4.10).
     if (format !== "json" && scopeOf(user, "reports.export") === "NONE") throw new HttpError(403, "INSUFFICIENT_PERMISSIONS");
     const { format: _ignored, ...query } = req.query as Record<string, unknown>;
-    const result = await this.reports.run(req.params.tipo, this.reports.parseFilters(query), user);
+    const result = await this.reports.run(req.params.type, this.reports.parseFilters(query), user);
     if (format === "json") {
       res.json(result);
       return;
@@ -43,7 +43,7 @@ export class ReportController {
       entityId: result.report,
       userId: user.id,
       userName: user.username,
-      metadata: { tipo: result.report, format, filters: JSON.parse(JSON.stringify(result.filters)), rows: result.rows.length },
+      metadata: { type: result.report, format, filters: JSON.parse(JSON.stringify(result.filters)), rows: result.rows.length },
     });
     const filename = `${result.report}-${new Date().toISOString().slice(0, 10)}.${format}`;
     res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);

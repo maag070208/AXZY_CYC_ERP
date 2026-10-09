@@ -18,26 +18,26 @@ export const makePupil = async (run: string, label: string, groupId: string): Pr
   const user = await createAuthUser({ username, name: `E2E Alumno ${label}`, roleKey: "STUDENT", password: E2E.password });
   const student = await makeStudent(run, label, user.id);
   const enrollment = await db.enrollment.create({
-    data: { studentId: student.id, groupId, fecha: new Date("2026-08-20T00:00:00Z") },
+    data: { studentId: student.id, groupId, date: new Date("2026-08-20T00:00:00Z") },
   });
   return { username, userId: user.id, studentId: student.id, enrollmentId: enrollment.id };
 };
 
 export const makeQuestion = async (
   courseId: string,
-  tipo: "OPCION_MULTIPLE" | "VERDADERO_FALSO" | "MULTIPLE_RESPUESTA" | "ABIERTA",
-  puntos: number,
+  type: "MULTIPLE_CHOICE" | "TRUE_FALSE" | "MULTIPLE_ANSWER" | "OPEN",
+  points: number,
   options: Array<[string, boolean]> = []
 ) =>
   db.question.create({
     data: {
       courseId,
-      tipo,
-      enunciado: `E2E ${tipo} ${Math.random().toString(36).slice(2, 7)}`,
-      puntos,
-      options: { create: options.map(([texto, esCorrecta], i) => ({ texto, esCorrecta, orden: i + 1 })) },
+      type,
+      text: `E2E ${type} ${Math.random().toString(36).slice(2, 7)}`,
+      points,
+      options: { create: options.map(([text, isCorrect], i) => ({ text, isCorrect, sortOrder: i + 1 })) },
     },
-    include: { options: { orderBy: { orden: "asc" } } },
+    include: { options: { orderBy: { sortOrder: "asc" } } },
   });
 
 export const setupExamWorld = async (run: string, tag: string) => {
@@ -46,19 +46,19 @@ export const setupExamWorld = async (run: string, tag: string) => {
   const teacher = await makeTeacher(run, `${tag}prof`);
   const group = await db.group.create({
     data: {
-      courseId: course.id, termId: term.id, teacherId: teacher.teacher.id, nombre: `X${tag}`, cupo: 30,
-      horario: [{ dia: "DOMINGO", horaInicio: "07:00", horaFin: "08:00" }],
+      courseId: course.id, termId: term.id, teacherId: teacher.teacher.id, name: `X${tag}`, capacity: 30,
+      schedule: [{ dia: "DOMINGO", horaInicio: "07:00", horaFin: "08:00" }],
     },
   });
-  const om = await makeQuestion(course.id, "OPCION_MULTIPLE", 2, [["4", true], ["5", false], ["6", false]]);
-  const vf = await makeQuestion(course.id, "VERDADERO_FALSO", 1, [["Verdadero", false], ["Falso", true]]);
-  const mr = await makeQuestion(course.id, "MULTIPLE_RESPUESTA", 3, [["Bujía", true], ["Pistón", true], ["Volante", false]]);
-  const ab = await makeQuestion(course.id, "ABIERTA", 4);
+  const om = await makeQuestion(course.id, "MULTIPLE_CHOICE", 2, [["4", true], ["5", false], ["6", false]]);
+  const vf = await makeQuestion(course.id, "TRUE_FALSE", 1, [["Verdadero", false], ["Falso", true]]);
+  const mr = await makeQuestion(course.id, "MULTIPLE_ANSWER", 3, [["Bujía", true], ["Pistón", true], ["Volante", false]]);
+  const ab = await makeQuestion(course.id, "OPEN", 4);
   return { term, course, teacher, group, questions: { om, vf, mr, ab } };
 };
 
 /** Ventana abierta ahora: desde hace 1 min hasta dentro de `hours` horas. */
 export const openWindow = (hours = 2) => ({
-  fechaApertura: new Date(Date.now() - 60_000).toISOString(),
-  fechaCierre: new Date(Date.now() + hours * 3_600_000).toISOString(),
+  opensAt: new Date(Date.now() - 60_000).toISOString(),
+  closesAt: new Date(Date.now() + hours * 3_600_000).toISOString(),
 });

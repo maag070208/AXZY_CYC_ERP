@@ -10,11 +10,11 @@ export const MigrationTotalsSchema = z.record(z.string(), z.number().int());
 export const MigrationBatchSchema = z
   .object({
     id: z.string(),
-    entidad: MigrationEntitySchema,
-    archivo: z.string(),
+    entity: MigrationEntitySchema,
+    file: z.string(),
     checksum: z.string(),
     mode: z.enum(["DRY_RUN", "EXECUTE"]),
-    status: z.enum(["EN_PROCESO", "COMPLETADO", "FALLIDO", "CANCELADO"]),
+    status: z.enum(["IN_PROGRESS", "COMPLETED", "FAILED", "CANCELLED"]),
     totals: MigrationTotalsSchema,
     createdBy: z.string(),
     executedAt: z.string().nullable(),
@@ -45,9 +45,9 @@ export type MigrationBatchDetailView = z.infer<typeof MigrationBatchDetailSchema
 export const MigrationResultSchema = z
   .object({
     batchId: z.string(),
-    entidad: MigrationEntitySchema,
+    entity: MigrationEntitySchema,
     mode: z.enum(["DRY_RUN", "EXECUTE"]),
-    status: z.enum(["EN_PROCESO", "COMPLETADO", "FALLIDO", "CANCELADO"]),
+    status: z.enum(["IN_PROGRESS", "COMPLETED", "FAILED", "CANCELLED"]),
     checksum: z.string(),
     totals: MigrationTotalsSchema,
     rejected: z.array(MigrationRejectionSchema),

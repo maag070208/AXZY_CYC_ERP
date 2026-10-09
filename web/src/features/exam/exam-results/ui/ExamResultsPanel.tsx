@@ -54,8 +54,8 @@ export default function ExamResultsPanel({ examId, canReview, reloadKey }: Props
               {results.rows.map((r) => (
                 <tr key={r.enrollmentId}>
                   <td className="py-2 pr-3">
-                    <ITText className="block font-bold text-slate-700">{r.nombre}</ITText>
-                    <ITText className="text-[10px] text-slate-400">{r.matricula}</ITText>
+                    <ITText className="block font-bold text-slate-700">{r.name}</ITText>
+                    <ITText className="text-[10px] text-slate-400">{r.studentNumber}</ITText>
                   </td>
                   <td className="py-2 pr-3 text-slate-600">
                     {r.intentos}
@@ -75,9 +75,9 @@ export default function ExamResultsPanel({ examId, canReview, reloadKey }: Props
                     <ITFlex gap={1} justify="end" wrap="wrap">
                       {r.attempts.map((a) => (
                         <ITButton key={a.attemptId} variant="text" color={a.pendingCount > 0 ? "warning" : "primary"} size="sm"
-                          ariaLabel={`${a.pendingCount > 0 ? t("results.revisar") : t("results.ver")} ${a.numero} ${r.nombre}`}
+                          ariaLabel={`${a.pendingCount > 0 ? t("results.revisar") : t("results.ver")} ${a.number} ${r.name}`}
                           onClick={() => setViewing(a.attemptId)}>
-                          <ITText className="text-[11px] font-bold">#{a.numero} {a.pendingCount > 0 ? t("results.revisar") : t("results.ver")}</ITText>
+                          <ITText className="text-[11px] font-bold">#{a.number} {a.pendingCount > 0 ? t("results.revisar") : t("results.ver")}</ITText>
                         </ITButton>
                       ))}
                     </ITFlex>

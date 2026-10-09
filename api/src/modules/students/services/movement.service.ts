@@ -11,11 +11,11 @@ import type { StudentService } from "./student.service";
 const toView = (row: MovementRow): MovementView => ({
   id: row.id,
   studentId: row.studentId,
-  tipo: row.tipo,
-  motivo: row.motivo,
+  type: row.type,
+  reason: row.reason,
   reasonId: row.reasonId,
-  fecha: fromDbDay(row.fecha),
-  observaciones: row.observaciones,
+  date: fromDbDay(row.date),
+  notes: row.notes,
   createdBy: row.createdBy,
   authorName: row.author?.name ?? null,
   createdAt: row.createdAt.toISOString(),
@@ -48,41 +48,41 @@ export class MovementService {
     const rows = await this.db.studentMovement.findMany({
       where: { studentId },
       include: { author: { select: { name: true } } },
-      orderBy: [{ fecha: "desc" }, { createdAt: "desc" }],
+      orderBy: [{ date: "desc" }, { createdAt: "desc" }],
     });
     return rows.map(toView);
   }
 
-  private async prepare(input: MovementInput): Promise<{ fecha: string }> {
+  private async prepare(input: MovementInput): Promise<{ date: string }> {
     const today = todayInBusinessZone();
-    const fecha = input.fecha ?? today;
-    if (fecha > today) throw new HttpError(400, "FUTURE_DATE", { field: "fecha" });
+    const date = input.date ?? today;
+    if (date > today) throw new HttpError(400, "FUTURE_DATE", { field: "date" });
     if (input.reasonId) {
       const reason = await this.db.cancellationReason.findFirst({ where: { id: input.reasonId, active: true } });
       if (!reason) throw new HttpError(400, "REASON_NOT_AVAILABLE");
     }
-    return { fecha };
+    return { date };
   }
 
   /** Baja: ACTIVO → BAJA. Repetirla responde `409 STUDENT_INACTIVE`. */
   async baja(studentId: string, input: MovementInput, actor: AuthenticatedUser, permission = "students.movements") {
     const student = await this.students.loadScoped(studentId, actor, permission);
-    if (student.status === "BAJA") throw new HttpError(409, "STUDENT_INACTIVE");
-    const { fecha } = await this.prepare(input);
+    if (student.status === "WITHDRAWN") throw new HttpError(409, "STUDENT_INACTIVE");
+    const { date } = await this.prepare(input);
 
     return this.db.$transaction(async (tx) => {
       // Guardia contra una baja concurrente: solo cambia si sigue ACTIVO.
-      const changed = await tx.student.updateMany({ where: { id: studentId, status: "ACTIVO" }, data: { status: "BAJA" } });
+      const changed = await tx.student.updateMany({ where: { id: studentId, status: "ACTIVE" }, data: { status: "WITHDRAWN" } });
       if (changed.count === 0) throw new HttpError(409, "STUDENT_INACTIVE");
       const cancelledEnrollments = await this.cancelEnrollments(studentId, tx);
       const movement = await tx.studentMovement.create({
         data: {
           studentId,
-          tipo: "BAJA",
-          motivo: input.motivo,
+          type: "WITHDRAWAL",
+          reason: input.reason,
           reasonId: input.reasonId ?? null,
-          fecha: toDbDay(fecha),
-          observaciones: input.observaciones ?? null,
+          date: toDbDay(date),
+          notes: input.notes ?? null,
           createdBy: actor.id,
         },
         include: { author: { select: { name: true } } },
@@ -94,33 +94,33 @@ export class MovementService {
           entityId: studentId,
           userId: actor.id,
           userName: actor.username,
-          previousState: { status: "ACTIVO" },
-          newState: { status: "BAJA" },
-          metadata: { motivo: input.motivo, fecha, movementId: movement.id, cancelledEnrollments },
+          previousState: { status: "ACTIVE" },
+          newState: { status: "WITHDRAWN" },
+          metadata: { reason: input.reason, date, movementId: movement.id, cancelledEnrollments },
         },
         tx
       );
-      return { studentId, status: "BAJA" as const, movement: toView(movement), cancelledEnrollments };
+      return { studentId, status: "WITHDRAWN" as const, movement: toView(movement), cancelledEnrollments };
     });
   }
 
   /** Reingreso: BAJA → ACTIVO; la matrícula se conserva. */
   async reingreso(studentId: string, input: MovementInput, actor: AuthenticatedUser) {
     const student = await this.students.loadScoped(studentId, actor, "students.movements");
-    if (student.status === "ACTIVO") throw new HttpError(409, "STUDENT_ALREADY_ACTIVE");
-    const { fecha } = await this.prepare(input);
+    if (student.status === "ACTIVE") throw new HttpError(409, "STUDENT_ALREADY_ACTIVE");
+    const { date } = await this.prepare(input);
 
     return this.db.$transaction(async (tx) => {
-      const changed = await tx.student.updateMany({ where: { id: studentId, status: "BAJA" }, data: { status: "ACTIVO" } });
+      const changed = await tx.student.updateMany({ where: { id: studentId, status: "WITHDRAWN" }, data: { status: "ACTIVE" } });
       if (changed.count === 0) throw new HttpError(409, "STUDENT_ALREADY_ACTIVE");
       const movement = await tx.studentMovement.create({
         data: {
           studentId,
-          tipo: "REINGRESO",
-          motivo: input.motivo,
+          type: "REENTRY",
+          reason: input.reason,
           reasonId: input.reasonId ?? null,
-          fecha: toDbDay(fecha),
-          observaciones: input.observaciones ?? null,
+          date: toDbDay(date),
+          notes: input.notes ?? null,
           createdBy: actor.id,
         },
         include: { author: { select: { name: true } } },
@@ -132,13 +132,13 @@ export class MovementService {
           entityId: studentId,
           userId: actor.id,
           userName: actor.username,
-          previousState: { status: "BAJA" },
-          newState: { status: "ACTIVO" },
-          metadata: { motivo: input.motivo, fecha, movementId: movement.id },
+          previousState: { status: "WITHDRAWN" },
+          newState: { status: "ACTIVE" },
+          metadata: { reason: input.reason, date, movementId: movement.id },
         },
         tx
       );
-      return { studentId, status: "ACTIVO" as const, movement: toView(movement), cancelledEnrollments: 0 };
+      return { studentId, status: "ACTIVE" as const, movement: toView(movement), cancelledEnrollments: 0 };
     });
   }
 }

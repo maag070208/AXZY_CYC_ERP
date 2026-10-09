@@ -16,17 +16,17 @@ export default function StudentsTable({ fx, onOpen }: Props) {
 
   const columns: Column<Student>[] = [
     {
-      key: "matricula",
-      label: t("table.matricula"),
+      key: "studentNumber",
+      label: t("table.studentNumber"),
       type: "string",
       width: 130,
       filter: true,
       sortable: false,
-      render: (s) => <ITText className="font-mono text-[12px] font-black text-slate-700">{s.matricula}</ITText>,
+      render: (s) => <ITText className="font-mono text-[12px] font-black text-slate-700">{s.studentNumber}</ITText>,
     },
     {
-      key: "nombre",
-      label: t("table.nombre"),
+      key: "name",
+      label: t("table.name"),
       type: "string",
       filter: true,
       sortable: false,
@@ -50,24 +50,24 @@ export default function StudentsTable({ fx, onOpen }: Props) {
       sortable: false,
       catalogOptions: {
         data: [
-          { id: "ACTIVO", name: t("status.ACTIVO") },
-          { id: "BAJA", name: t("status.BAJA") },
+          { id: "ACTIVE", name: t("status.ACTIVE") },
+          { id: "WITHDRAWN", name: t("status.WITHDRAWN") },
         ],
       },
       render: (s) => (
-        <ITBadget color={s.status === "ACTIVO" ? "success" : "danger"} size="sm">
+        <ITBadget color={s.status === "ACTIVE" ? "success" : "danger"} size="sm">
           {t(`status.${s.status}`)}
         </ITBadget>
       ),
     },
     {
-      key: "fechaIngreso",
-      label: t("table.fechaIngreso"),
+      key: "enrollmentDate",
+      label: t("table.enrollmentDate"),
       type: "date",
       width: 160,
       filter: "date-range",
       sortable: false,
-      render: (s) => <ITText className="text-[11px] text-slate-600">{formatDay(s.fechaIngreso, i18n.language)}</ITText>,
+      render: (s) => <ITText className="text-[11px] text-slate-600">{formatDay(s.enrollmentDate, i18n.language)}</ITText>,
     },
     {
       key: "actions",
@@ -79,7 +79,7 @@ export default function StudentsTable({ fx, onOpen }: Props) {
           variant="text"
           color="secondary"
           size="sm"
-          ariaLabel={`${t("table.view")} ${s.matricula}`}
+          ariaLabel={`${t("table.view")} ${s.studentNumber}`}
           onClick={() => onOpen(s)}
         >
           <FaFolderOpen size={13} />

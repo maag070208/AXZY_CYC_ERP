@@ -37,14 +37,14 @@ export default function AttemptResult({ attempt, expired }: { attempt: Attempt; 
             {attempt.questions.map((q) => (
               <li key={q.questionId} className="flex items-start justify-between gap-3 py-2">
                 <div>
-                  <ITText className="block text-[12px] text-slate-700">{q.orden}. {q.enunciado}</ITText>
-                  {q.comentario && <ITText className="text-[11px] italic text-slate-500">“{q.comentario}”</ITText>}
+                  <ITText className="block text-[12px] text-slate-700">{q.sortOrder}. {q.text}</ITText>
+                  {q.comment && <ITText className="text-[11px] italic text-slate-500">“{q.comment}”</ITText>}
                 </div>
-                {q.puntosObtenidos === null || q.puntosObtenidos === undefined ? (
+                {q.pointsEarned === null || q.pointsEarned === undefined ? (
                   <ITBadget color="warning" size="sm">{t("my.pending")}</ITBadget>
                 ) : (
-                  <ITBadget color={q.esCorrecta ? "success" : "danger"} size="sm">
-                    <ITFlex align="center" gap={1}>{q.esCorrecta ? <FaCheck size={8} /> : <FaTimes size={8} />}{q.puntosObtenidos} / {q.puntos}</ITFlex>
+                  <ITBadget color={q.isCorrect ? "success" : "danger"} size="sm">
+                    <ITFlex align="center" gap={1}>{q.isCorrect ? <FaCheck size={8} /> : <FaTimes size={8} />}{q.pointsEarned} / {q.points}</ITFlex>
                   </ITBadget>
                 )}
               </li>

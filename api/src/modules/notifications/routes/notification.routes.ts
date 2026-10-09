@@ -52,8 +52,8 @@ export const createNotificationRouters = (c: NotificationController) => {
   doc("get", "/notifications/mine", "Mi bandeja interna con no leídas (cualquier sesión)");
   doc("post", "/notifications/mine/read", "Marca como leídas (cualquier sesión, solo las propias)", { request: { body: { required: true, content: json(MarkReadDto) } } });
 
-  doc("post", "/notification-preferences/query", "Bajas por destinatario y canal (notifications.view)", table(PreferenceTableResponseSchema));
-  doc("put", "/notification-preferences", "Da de baja o reincorpora un destinatario (notifications.manage)", {
+  doc("post", "/notification-preferences/query", "Bajas por recipient y channel (notifications.view)", table(PreferenceTableResponseSchema));
+  doc("put", "/notification-preferences", "Da de baja o reincorpora un recipient (notifications.manage)", {
     request: { body: { required: true, content: json(PreferenceDto) } },
     responses: { 200: { description: "Preferencia", content: json(PreferenceSchema) } },
   });

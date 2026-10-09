@@ -29,25 +29,25 @@ let adminId: string;
 let pupilUserId: string;
 
 const tutor = (overrides: Record<string, unknown> = {}) => ({
-  nombre: "E2E Tutora",
-  parentesco: "Madre",
-  telefono: "5512345678",
+  name: "E2E Tutora",
+  relationship: "Madre",
+  phone: "5512345678",
   email: "tutora@e2e.local",
-  esResponsablePago: true,
+  isPaymentResponsible: true,
   ...overrides,
 });
 
 const minor = (label: string, overrides: Record<string, unknown> = {}) => {
   const birth = yearsAgo(15);
   return {
-    nombres: `E2E ${label} ${RUN}`,
-    apellidoPaterno: "Prueba",
-    apellidoMaterno: "Contrato",
+    firstNames: `E2E ${label} ${RUN}`,
+    paternalSurname: "Prueba",
+    maternalSurname: "Contrato",
     curp: makeCurp(birth),
-    fechaNacimiento: birth,
-    genero: "M",
+    birthDate: birth,
+    gender: "M",
     email: `${label.toLowerCase()}_${RUN}@e2e.local`,
-    telefono: "5511112222",
+    phone: "5511112222",
     guardians: [tutor()],
     ...overrides,
   };
@@ -70,23 +70,23 @@ test.afterAll(async () => {
 
 test.describe("alta", () => {
   test("genera la matrícula AAAA-NNNN del año de ingreso, guarda tutores y audita", async () => {
-    const input = { ...minor("Alta"), fechaIngreso: "2026-08-03" };
+    const input = { ...minor("Alta"), enrollmentDate: "2026-08-03" };
     const res = await control.post("students", { data: input });
     expect(res.status()).toBe(201);
     const student = await res.json();
-    expect(student.matricula).toMatch(/^2026-\d{4,}$/);
+    expect(student.studentNumber).toMatch(/^2026-\d{4,}$/);
     expect(student).toMatchObject({
-      status: "ACTIVO",
+      status: "ACTIVE",
       curp: input.curp,
-      fechaNacimiento: input.fechaNacimiento,
-      fechaIngreso: "2026-08-03",
-      nombreCompleto: `${input.nombres} Prueba Contrato`,
+      birthDate: input.birthDate,
+      enrollmentDate: "2026-08-03",
+      nombreCompleto: `${input.firstNames} Prueba Contrato`,
     });
     expect(student.guardians).toHaveLength(1);
-    expect(student.guardians[0]).toMatchObject({ nombre: "E2E Tutora", esResponsablePago: true });
+    expect(student.guardians[0]).toMatchObject({ name: "E2E Tutora", isPaymentResponsible: true });
 
     const log = await db.auditLog.findFirst({ where: { action: "STUDENT_CREATED", entityId: student.id } });
-    expect(log?.newState).toMatchObject({ matricula: student.matricula });
+    expect(log?.newState).toMatchObject({ studentNumber: student.studentNumber });
   });
 
   test("dos altas seguidas reciben consecutivos distintos", async () => {
@@ -96,14 +96,14 @@ test.describe("alta", () => {
     ]);
     expect(a.status()).toBe(201);
     expect(b.status()).toBe(201);
-    const [ma, mb] = [(await a.json()).matricula, (await b.json()).matricula];
+    const [ma, mb] = [(await a.json()).studentNumber, (await b.json()).studentNumber];
     expect(ma).not.toBe(mb);
   });
 
-  test("fechaIngreso por defecto es hoy", async () => {
+  test("enrollmentDate por defecto es hoy", async () => {
     const student = await (await control.post("students", { data: minor("Hoy") })).json();
     const today = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Mexico_City" }).format(new Date());
-    expect(student.fechaIngreso).toBe(today);
+    expect(student.enrollmentDate).toBe(today);
   });
 
   test("CURP inválida → 400 con detalle por campo; repetida → 409 DUPLICATE_CURP", async () => {
@@ -120,10 +120,10 @@ test.describe("alta", () => {
     expect((await dup.json()).code).toBe("DUPLICATE_CURP");
   });
 
-  test("mismo nombre y nacimiento → 409 DUPLICATE_STUDENT; con confirmación pasa", async () => {
+  test("mismo name y nacimiento → 409 DUPLICATE_STUDENT; con confirmación pasa", async () => {
     const first = minor("Homonimo");
     expect((await control.post("students", { data: first })).status()).toBe(201);
-    const twin = { ...first, curp: makeCurp(first.fechaNacimiento, "M") };
+    const twin = { ...first, curp: makeCurp(first.birthDate, "M") };
     const res = await control.post("students", { data: twin });
     expect(res.status()).toBe(409);
     const body = await res.json();
@@ -140,33 +140,33 @@ test.describe("alta", () => {
 
     const birth = yearsAgo(20);
     const adult = await control.post("students", {
-      data: minor("Adulto", { fechaNacimiento: birth, curp: makeCurp(birth), guardians: [] }),
+      data: minor("Adulto", { birthDate: birth, curp: makeCurp(birth), guardians: [] }),
     });
     expect(adult.status()).toBe(201);
   });
 
   test("dos responsables de pago → 400; nacimiento futuro → 400", async () => {
     const two = await control.post("students", {
-      data: minor("DosPagan", { guardians: [tutor(), tutor({ nombre: "E2E Tutor 2", parentesco: "Padre" })] }),
+      data: minor("DosPagan", { guardians: [tutor(), tutor({ name: "E2E Tutor 2", relationship: "Padre" })] }),
     });
     expect((await two.json()).code).toBe("MULTIPLE_PAYMENT_RESPONSIBLES");
 
     const future = "2099-01-01";
-    const res = await control.post("students", { data: minor("Futuro", { fechaNacimiento: future, curp: makeCurp("1999-01-01") }) });
+    const res = await control.post("students", { data: minor("Futuro", { birthDate: future, curp: makeCurp("1999-01-01") }) });
     expect(res.status()).toBe(400);
   });
 });
 
 test.describe("consulta, edición y alcance", () => {
-  test("/students/query busca por palabras del nombre, matrícula y estatus", async () => {
+  test("/students/query busca por palabras del name, matrícula y estatus", async () => {
     const created = await (await control.post("students", { data: minor("Buscable") })).json();
     const byName = await control.post("students/query", {
-      data: { page: 1, limit: 10, filters: { nombre: `buscable ${RUN} prueba` } },
+      data: { page: 1, limit: 10, filters: { name: `buscable ${RUN} prueba` } },
     });
     expect((await byName.json()).data.map((s: { id: string }) => s.id)).toEqual([created.id]);
 
     const byMatricula = await control.post("students/query", {
-      data: { page: 1, limit: 10, filters: { matricula: created.matricula, status: "ACTIVO" } },
+      data: { page: 1, limit: 10, filters: { studentNumber: created.studentNumber, status: "ACTIVE" } },
     });
     expect((await byMatricula.json()).total).toBe(1);
 
@@ -178,29 +178,29 @@ test.describe("consulta, edición y alcance", () => {
     const created = await (await control.post("students", { data: minor("Editar") })).json();
     const res = await control.patch(`students/${created.id}`, {
       data: {
-        telefono: "5599998888",
-        guardians: [tutor({ nombre: "E2E Abuela", parentesco: "Abuela" })],
-        matricula: "1999-0001",
+        phone: "5599998888",
+        guardians: [tutor({ name: "E2E Abuela", relationship: "Abuela" })],
+        studentNumber: "1999-0001",
       },
     });
     // `matricula` no es editable: la whitelist lo rechaza.
     expect(res.status()).toBe(400);
 
     const ok = await control.patch(`students/${created.id}`, {
-      data: { telefono: "5599998888", guardians: [tutor({ nombre: "E2E Abuela", parentesco: "Abuela" })] },
+      data: { phone: "5599998888", guardians: [tutor({ name: "E2E Abuela", relationship: "Abuela" })] },
     });
     expect(ok.status()).toBe(200);
     const student = await ok.json();
-    expect(student.matricula).toBe(created.matricula);
-    expect(student.telefono).toBe("5599998888");
-    expect(student.guardians.map((g: { nombre: string }) => g.nombre)).toEqual(["E2E Abuela"]);
+    expect(student.studentNumber).toBe(created.studentNumber);
+    expect(student.phone).toBe("5599998888");
+    expect(student.guardians.map((g: { name: string }) => g.name)).toEqual(["E2E Abuela"]);
 
     const log = await db.auditLog.findFirst({
       where: { action: "STUDENT_UPDATED", entityId: created.id },
       orderBy: { createdAt: "desc" },
     });
-    expect(log?.previousState).toMatchObject({ telefono: "5511112222" });
-    expect(log?.newState).toMatchObject({ telefono: "5599998888" });
+    expect(log?.previousState).toMatchObject({ phone: "5511112222" });
+    expect(log?.newState).toMatchObject({ phone: "5599998888" });
   });
 
   test("ALUMNO (OWN) solo ve su propio registro; PROFESOR (AREA, sin grupos aún) no ve nada", async () => {
@@ -227,7 +227,7 @@ test.describe("consulta, edición y alcance", () => {
   });
 
   test("exporta a Excel con los filtros vigentes", async () => {
-    const res = await control.post("students/export", { data: { filters: { nombre: RUN } } });
+    const res = await control.post("students/export", { data: { filters: { name: RUN } } });
     expect(res.status()).toBe(200);
     expect(res.headers()["content-type"]).toContain("spreadsheetml");
     const bytes = await res.body();
@@ -246,70 +246,70 @@ test.describe("consulta, edición y alcance", () => {
 });
 
 test.describe("bajas y reingresos (M05)", () => {
-  test("baja con motivo del catálogo → BAJA + movimiento + bitácora; repetirla → 409", async () => {
+  test("baja con reason del catálogo → BAJA + movimiento + bitácora; repetirla → 409", async () => {
     const student = await (await control.post("students", { data: minor("Baja") })).json();
     const reason = await db.cancellationReason.findFirst({ where: { active: true } });
 
     const res = await control.post(`students/${student.id}/baja`, {
-      data: { motivo: "Cambio de ciudad", reasonId: reason!.id, observaciones: "Se muda a Monterrey" },
+      data: { reason: "Cambio de ciudad", reasonId: reason!.id, notes: "Se muda a Monterrey" },
     });
     expect(res.status()).toBe(200);
     const body = await res.json();
-    expect(body).toMatchObject({ status: "BAJA", cancelledEnrollments: 0 });
-    expect(body.movement).toMatchObject({ tipo: "BAJA", motivo: "Cambio de ciudad", reasonId: reason!.id });
+    expect(body).toMatchObject({ status: "WITHDRAWN", cancelledEnrollments: 0 });
+    expect(body.movement).toMatchObject({ type: "WITHDRAWAL", reason: "Cambio de ciudad", reasonId: reason!.id });
 
     const log = await db.auditLog.findFirst({ where: { action: "STUDENT_DEACTIVATED", entityId: student.id } });
-    expect(log?.previousState).toEqual({ status: "ACTIVO" });
+    expect(log?.previousState).toEqual({ status: "ACTIVE" });
     expect(log?.metadata).toMatchObject({ movementId: body.movement.id });
 
-    const again = await control.post(`students/${student.id}/baja`, { data: { motivo: "Otra vez" } });
+    const again = await control.post(`students/${student.id}/baja`, { data: { reason: "Otra vez" } });
     expect(again.status()).toBe(409);
     expect((await again.json()).code).toBe("STUDENT_INACTIVE");
   });
 
-  test("reingreso conserva la matrícula; el historial queda en orden y es de solo lectura", async () => {
+  test("reingreso conserva la matrícula; el historial queda en sortOrder y es de solo lectura", async () => {
     const student = await (await control.post("students", { data: minor("Reingreso") })).json();
-    await control.post(`students/${student.id}/baja`, { data: { motivo: "Motivos económicos", fecha: "2026-01-15" } });
-    const back = await control.post(`students/${student.id}/reingreso`, { data: { motivo: "Regulariza pagos" } });
+    await control.post(`students/${student.id}/baja`, { data: { reason: "Motivos económicos", date: "2026-01-15" } });
+    const back = await control.post(`students/${student.id}/reingreso`, { data: { reason: "Regulariza pagos" } });
     expect(back.status()).toBe(200);
-    expect((await back.json()).status).toBe("ACTIVO");
+    expect((await back.json()).status).toBe("ACTIVE");
 
     const detail = await (await control.get(`students/${student.id}`)).json();
-    expect(detail).toMatchObject({ matricula: student.matricula, status: "ACTIVO" });
+    expect(detail).toMatchObject({ studentNumber: student.studentNumber, status: "ACTIVE" });
 
     const history = await (await control.get(`students/${student.id}/movements`)).json();
-    expect(history.map((m: { tipo: string }) => m.tipo)).toEqual(["REINGRESO", "BAJA"]);
-    expect(history[1]).toMatchObject({ fecha: "2026-01-15", authorName: CONTROL.name });
+    expect(history.map((m: { type: string }) => m.type)).toEqual(["REENTRY", "WITHDRAWAL"]);
+    expect(history[1]).toMatchObject({ date: "2026-01-15", authorName: CONTROL.name });
 
-    const twice = await control.post(`students/${student.id}/reingreso`, { data: { motivo: "Ya activo" } });
+    const twice = await control.post(`students/${student.id}/reingreso`, { data: { reason: "Ya activo" } });
     expect((await twice.json()).code).toBe("STUDENT_ALREADY_ACTIVE");
     expect((await lastAudit("STUDENT_REACTIVATED"))?.entityId).toBe(student.id);
   });
 
-  test("motivo obligatorio, fecha futura y motivo de catálogo inactivo → 400", async () => {
+  test("reason required, date futura y reason de catálogo inactivo → 400", async () => {
     const student = await (await control.post("students", { data: minor("Validar") })).json();
     expect((await (await control.post(`students/${student.id}/baja`, { data: {} })).json()).code).toBe("VALIDATION_ERROR");
-    const future = await control.post(`students/${student.id}/baja`, { data: { motivo: "Futuro", fecha: "2099-01-01" } });
+    const future = await control.post(`students/${student.id}/baja`, { data: { reason: "Futuro", date: "2099-01-01" } });
     expect((await future.json()).code).toBe("FUTURE_DATE");
     const ghost = await control.post(`students/${student.id}/baja`, {
-      data: { motivo: "Fantasma", reasonId: "00000000-0000-0000-0000-000000000000" },
+      data: { reason: "Fantasma", reasonId: "00000000-0000-0000-0000-000000000000" },
     });
     expect((await ghost.json()).code).toBe("REASON_NOT_AVAILABLE");
   });
 
-  test("DELETE /students/:id es la baja lógica de M03 (pide motivo y deja movimiento)", async () => {
+  test("DELETE /students/:id es la baja lógica de M03 (pide reason y deja movimiento)", async () => {
     const student = await (await admin.post("students", { data: minor("Delete") })).json();
-    const res = await admin.delete(`students/${student.id}`, { data: { motivo: "Duplicado en captura" } });
+    const res = await admin.delete(`students/${student.id}`, { data: { reason: "Duplicado en captura" } });
     expect(res.status()).toBe(200);
-    expect(await db.student.findUnique({ where: { id: student.id }, select: { status: true } })).toEqual({ status: "BAJA" });
-    expect(await db.studentMovement.count({ where: { studentId: student.id, tipo: "BAJA" } })).toBe(1);
+    expect(await db.student.findUnique({ where: { id: student.id }, select: { status: true } })).toEqual({ status: "WITHDRAWN" });
+    expect(await db.studentMovement.count({ where: { studentId: student.id, type: "WITHDRAWAL" } })).toBe(1);
     expect((await lastAudit("STUDENT_DEACTIVATED", adminId))?.entityId).toBe(student.id);
   });
 
   test("ALUMNO no registra movimientos → 403", async () => {
     const { api: pupil } = await loginAs(PUPIL.username);
     const own = await db.student.findFirst({ where: { userId: pupilUserId } });
-    expect((await pupil.post(`students/${own!.id}/baja`, { data: { motivo: "Me voy" } })).status()).toBe(403);
+    expect((await pupil.post(`students/${own!.id}/baja`, { data: { reason: "Me voy" } })).status()).toBe(403);
     await pupil.dispose();
   });
 });

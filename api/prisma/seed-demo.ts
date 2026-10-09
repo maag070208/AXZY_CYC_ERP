@@ -26,14 +26,14 @@ interface StaffSeed {
   name: string;
   roleKey: string;
   email: string;
-  teacher?: { nombres: string; apellidos: string };
+  teacher?: { firstNames: string; surnames: string };
 }
 
 const STAFF: StaffSeed[] = [
   { username: "admin", password: "admin123", name: "Administrador", roleKey: "ADMIN", email: "admin@axzy.dev" },
   { username: "aamaro", password: DEMO_PASSWORD, name: "A. Amaro", roleKey: "CONTROL_ESCOLAR", email: "aamaro@axzy.dev" },
-  { username: "marco", password: DEMO_PASSWORD, name: "Marco Demo", roleKey: "PROFESOR", email: "marco@axzy.dev", teacher: { nombres: "Marco", apellidos: "Demo" } },
-  { username: "martin", password: DEMO_PASSWORD, name: "Martín Demo", roleKey: "PROFESOR", email: "martin@axzy.dev", teacher: { nombres: "Martín", apellidos: "Demo" } },
+  { username: "marco", password: DEMO_PASSWORD, name: "Marco Demo", roleKey: "PROFESOR", email: "marco@axzy.dev", teacher: { firstNames: "Marco", surnames: "Demo" } },
+  { username: "martin", password: DEMO_PASSWORD, name: "Martín Demo", roleKey: "PROFESOR", email: "martin@axzy.dev", teacher: { firstNames: "Martín", surnames: "Demo" } },
 ];
 
 // --- utilidades CURP (deterministas y válidas) --------------------------------
@@ -52,19 +52,19 @@ const firstConsonant = (value: string): string => {
 };
 
 interface CurpParts {
-  nombres: string;
-  apellidoPaterno: string;
-  apellidoMaterno: string;
-  fecha: string;
+  firstNames: string;
+  paternalSurname: string;
+  maternalSurname: string;
+  date: string;
   sex: "H" | "M";
   state: string;
   homoclave: string;
 }
 
-const buildCurp = ({ nombres, apellidoPaterno, apellidoMaterno, fecha, sex, state, homoclave }: CurpParts): string => {
-  const initials = `${strip(apellidoPaterno)[0]}${firstVowel(apellidoPaterno)}${strip(apellidoMaterno)[0]}${strip(nombres)[0]}`;
-  const consonants = `${firstConsonant(apellidoPaterno)}${firstConsonant(apellidoMaterno)}${firstConsonant(nombres)}`;
-  const [year, month, day] = fecha.split("-");
+const buildCurp = ({ firstNames, paternalSurname, maternalSurname, date, sex, state, homoclave }: CurpParts): string => {
+  const initials = `${strip(paternalSurname)[0]}${firstVowel(paternalSurname)}${strip(maternalSurname)[0]}${strip(firstNames)[0]}`;
+  const consonants = `${firstConsonant(paternalSurname)}${firstConsonant(maternalSurname)}${firstConsonant(firstNames)}`;
+  const [year, month, day] = date.split("-");
   const first17 = `${initials}${year.slice(2)}${month}${day}${sex}${state}${consonants}${homoclave}`;
   return `${first17}${curpCheckDigit(first17)}`;
 };
@@ -130,8 +130,8 @@ async function main(): Promise<void> {
     if (seed.teacher) {
       await prisma.teacher.upsert({
         where: { email: seed.email },
-        create: { nombres: seed.teacher.nombres, apellidos: seed.teacher.apellidos, email: seed.email, userId },
-        update: { nombres: seed.teacher.nombres, apellidos: seed.teacher.apellidos, userId, status: "ACTIVO" },
+        create: { firstNames: seed.teacher.firstNames, surnames: seed.teacher.surnames, email: seed.email, userId },
+        update: { firstNames: seed.teacher.firstNames, surnames: seed.teacher.surnames, userId, status: "ACTIVE" },
       });
     }
     console.log(`staff: ${seed.username} (${seed.roleKey})`);
@@ -141,20 +141,20 @@ async function main(): Promise<void> {
   let created = 0;
   for (let i = 0; i < STUDENTS; i += 1) {
     const n = i + 1;
-    const nombres = NOMBRES[i % NOMBRES.length];
-    const apellidoPaterno = AP_PATERNO[i % AP_PATERNO.length];
-    const apellidoMaterno = AP_MATERNO[(i * 7 + 3) % AP_MATERNO.length];
+    const firstNames = NOMBRES[i % NOMBRES.length];
+    const paternalSurname = AP_PATERNO[i % AP_PATERNO.length];
+    const maternalSurname = AP_MATERNO[(i * 7 + 3) % AP_MATERNO.length];
     const year = 1998 + (i % 6);
     const month = (i % 12) + 1;
     const day = (i % 27) + 1;
-    const fecha = `${year}-${pad(month)}-${pad(day)}`;
+    const date = `${year}-${pad(month)}-${pad(day)}`;
     const masculino = i % 2 === 0;
-    const genero = masculino ? "M" : "F";
+    const gender = masculino ? "M" : "F";
     const curp = buildCurp({
-      nombres,
-      apellidoPaterno,
-      apellidoMaterno,
-      fecha,
+      firstNames,
+      paternalSurname,
+      maternalSurname,
+      date,
       sex: masculino ? "H" : "M",
       state: STATES[i % STATES.length],
       homoclave: HOMOCLAVE[i % HOMOCLAVE.length],
@@ -163,25 +163,25 @@ async function main(): Promise<void> {
 
     const username = `alumno${pad(n)}`;
     const email = `${username}@demo.axzy.dev`;
-    const fullName = `${nombres} ${apellidoPaterno} ${apellidoMaterno}`;
+    const fullName = `${firstNames} ${paternalSurname} ${maternalSurname}`;
     const userId = await upsertUser({ username, password: STUDENT_PASSWORD, name: fullName, roleKey: "ALUMNO", email });
-    const matricula = `2026-${pad(n, 4)}`;
+    const studentNumber = `2026-${pad(n, 4)}`;
 
     await prisma.student.upsert({
       where: { curp },
       create: {
-        matricula,
-        nombres,
-        apellidoPaterno,
-        apellidoMaterno,
+        studentNumber,
+        firstNames,
+        paternalSurname,
+        maternalSurname,
         curp,
-        fechaNacimiento: new Date(`${fecha}T00:00:00.000Z`),
-        genero,
+        birthDate: new Date(`${date}T00:00:00.000Z`),
+        gender,
         email,
-        fechaIngreso: new Date("2026-08-01T00:00:00.000Z"),
+        enrollmentDate: new Date("2026-08-01T00:00:00.000Z"),
         userId,
       },
-      update: { nombres, apellidoPaterno, apellidoMaterno, genero, email, userId },
+      update: { firstNames, paternalSurname, maternalSurname, gender, email, userId },
     });
     created += 1;
   }

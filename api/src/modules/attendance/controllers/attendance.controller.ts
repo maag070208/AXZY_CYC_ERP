@@ -32,8 +32,8 @@ export class AttendanceController {
     res.json(await this.attendance.saveRoll(req.params.id, RollCallDto.parse(req.body), actor(req)));
   };
   annul = async (req: Request, res: Response) => {
-    const { motivo } = AnnulDto.parse(req.body ?? {});
-    res.json(await this.attendance.annul(req.params.id, motivo, actor(req)));
+    const { reason } = AnnulDto.parse(req.body ?? {});
+    res.json(await this.attendance.annul(req.params.id, reason, actor(req)));
   };
   studentSummary = async (req: Request, res: Response) => {
     res.json(await this.attendance.studentSummary(req.params.studentId, actor(req)));

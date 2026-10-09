@@ -18,35 +18,35 @@ import { parseSchedule, sortSchedule } from "../models/entity/schedule";
 import { CURRENT_ENROLLMENT, groupScope } from "./academic-scope";
 
 export const groupInclude = {
-  course: { select: { clave: true, nombre: true, active: true } },
+  course: { select: { code: true, name: true, active: true } },
   term: { select: { name: true, active: true } },
-  teacher: { select: { nombres: true, apellidos: true } },
+  teacher: { select: { firstNames: true, surnames: true } },
   _count: { select: { enrollments: { where: CURRENT_ENROLLMENT } } },
 } satisfies Prisma.GroupInclude;
 
 export type GroupRow = Group & {
-  course: { clave: string; nombre: string; active: boolean };
+  course: { code: string; name: string; active: boolean };
   term: { name: string; active: boolean };
-  teacher: { nombres: string; apellidos: string } | null;
+  teacher: { firstNames: string; surnames: string } | null;
   _count: { enrollments: number };
 };
 
 export const toGroupView = (row: GroupRow): GroupView => ({
   id: row.id,
-  nombre: row.nombre,
+  name: row.name,
   courseId: row.courseId,
-  courseClave: row.course.clave,
-  courseNombre: row.course.nombre,
+  courseClave: row.course.code,
+  courseNombre: row.course.name,
   termId: row.termId,
   termNombre: row.term.name,
   termActivo: row.term.active,
   teacherId: row.teacherId,
-  teacherNombre: row.teacher ? `${row.teacher.nombres} ${row.teacher.apellidos}` : null,
-  cupo: row.cupo,
+  teacherNombre: row.teacher ? `${row.teacher.firstNames} ${row.teacher.surnames}` : null,
+  capacity: row.capacity,
   inscritos: row._count.enrollments,
-  disponibles: Math.max(0, row.cupo - row._count.enrollments),
-  horario: sortSchedule(parseSchedule(row.horario)),
-  aula: row.aula,
+  disponibles: Math.max(0, row.capacity - row._count.enrollments),
+  schedule: sortSchedule(parseSchedule(row.schedule)),
+  classroom: row.classroom,
   active: row.active,
   closedAt: row.closedAt?.toISOString() ?? null,
   createdAt: row.createdAt.toISOString(),
@@ -54,13 +54,13 @@ export const toGroupView = (row: GroupRow): GroupView => ({
 });
 
 const stateOf = (view: GroupView): Prisma.InputJsonObject => ({
-  nombre: view.nombre,
+  name: view.name,
   courseId: view.courseId,
   termId: view.termId,
   teacherId: view.teacherId,
-  cupo: view.cupo,
-  horario: view.horario,
-  aula: view.aula,
+  capacity: view.capacity,
+  schedule: view.schedule,
+  classroom: view.classroom,
   active: view.active,
 });
 
@@ -89,28 +89,28 @@ export class GroupService {
     if (!teacherId) return;
     const teacher = await this.db.teacher.findUnique({ where: { id: teacherId }, select: { status: true } });
     if (!teacher) throw new HttpError(400, "TEACHER_NOT_FOUND");
-    if (teacher.status !== "ACTIVO") throw new HttpError(409, "TEACHER_INACTIVE");
+    if (teacher.status !== "ACTIVE") throw new HttpError(409, "TEACHER_INACTIVE");
   }
 
-  private async assertNameFree(courseId: string, termId: string, nombre: string, exceptId?: string): Promise<void> {
+  private async assertNameFree(courseId: string, termId: string, name: string, exceptId?: string): Promise<void> {
     const taken = await this.db.group.findFirst({
       where: {
         courseId,
         termId,
-        nombre: { equals: nombre, mode: "insensitive" },
+        name: { equals: name, mode: "insensitive" },
         ...(exceptId ? { NOT: { id: exceptId } } : {}),
       },
     });
-    if (taken) throw new HttpError(409, "GROUP_NAME_TAKEN", { nombre });
+    if (taken) throw new HttpError(409, "GROUP_NAME_TAKEN", { name });
   }
 
   async table(params: ITDataTableFetchParams, user: UserPermissions): Promise<ITDataTableResponse<GroupView>> {
     const { filters } = params;
     const and: Prisma.GroupWhereInput[] = [];
-    const nombre = filterText(filters, "nombre");
-    if (nombre) and.push({ nombre });
+    const name = filterText(filters, "name");
+    if (name) and.push({ name });
     const course = filterText(filters, "course");
-    if (course) and.push({ OR: [{ course: { nombre: course } }, { course: { clave: course } }] });
+    if (course) and.push({ OR: [{ course: { name: course } }, { course: { code: course } }] });
     for (const key of ["courseId", "termId", "teacherId"] as const) {
       const value = filterId(filters, key);
       if (value) and.push({ [key]: value });
@@ -124,13 +124,13 @@ export class GroupService {
     const orderBy = orderByOf(
       params.sort,
       {
-        nombre: "nombre",
-        course: (direction) => ({ course: { nombre: direction } }),
+        name: "name",
+        course: (direction) => ({ course: { name: direction } }),
         term: (direction) => ({ term: { fechaInicio: direction } }),
-        cupo: "cupo",
+        capacity: "capacity",
         createdAt: "createdAt",
       },
-      [{ term: { fechaInicio: "desc" } }, { course: { nombre: "asc" } }, { nombre: "asc" }]
+      [{ term: { fechaInicio: "desc" } }, { course: { name: "asc" } }, { name: "asc" }]
     );
     const result = await paginatedQuery<GroupRow>({
       model: this.db.group,
@@ -156,7 +156,7 @@ export class GroupService {
         ],
       },
       include: groupInclude,
-      orderBy: [{ course: { nombre: "asc" } }, { nombre: "asc" }],
+      orderBy: [{ course: { name: "asc" } }, { name: "asc" }],
       take: 200,
     });
     return rows.map(toGroupView);
@@ -175,17 +175,17 @@ export class GroupService {
     if (!course.active) throw new HttpError(409, "COURSE_INACTIVE");
     if (!term) throw new HttpError(400, "TERM_NOT_FOUND");
     await this.assertTeacher(input.teacherId);
-    await this.assertNameFree(input.courseId, input.termId, input.nombre);
+    await this.assertNameFree(input.courseId, input.termId, input.name);
     return this.db.$transaction(async (tx) => {
       const row = await tx.group.create({
         data: {
           courseId: input.courseId,
           termId: input.termId,
           teacherId: input.teacherId ?? null,
-          nombre: input.nombre,
-          cupo: input.cupo,
-          horario: sortSchedule(input.horario) as unknown as Prisma.InputJsonArray,
-          aula: input.aula ?? null,
+          name: input.name,
+          capacity: input.capacity,
+          schedule: sortSchedule(input.schedule) as unknown as Prisma.InputJsonArray,
+          classroom: input.classroom ?? null,
         },
         include: groupInclude,
       });
@@ -204,21 +204,21 @@ export class GroupService {
     if (previous.closedAt) throw new HttpError(409, "GROUP_CLOSED");
     const before = toGroupView(previous);
     if (input.teacherId !== undefined && input.teacherId !== previous.teacherId) await this.assertTeacher(input.teacherId);
-    if (input.nombre && input.nombre !== previous.nombre) {
-      await this.assertNameFree(previous.courseId, previous.termId, input.nombre, id);
+    if (input.name && input.name !== previous.name) {
+      await this.assertNameFree(previous.courseId, previous.termId, input.name, id);
     }
-    if (input.cupo !== undefined && input.cupo < before.inscritos) {
-      throw new HttpError(409, "CUPO_BELOW_ENROLLED", { cupo: input.cupo, inscritos: before.inscritos });
+    if (input.capacity !== undefined && input.capacity < before.inscritos) {
+      throw new HttpError(409, "CUPO_BELOW_ENROLLED", { capacity: input.capacity, inscritos: before.inscritos });
     }
     return this.db.$transaction(async (tx) => {
       const row = await tx.group.update({
         where: { id },
         data: {
-          ...(input.nombre !== undefined && { nombre: input.nombre }),
+          ...(input.name !== undefined && { name: input.name }),
           ...(input.teacherId !== undefined && { teacherId: input.teacherId }),
-          ...(input.cupo !== undefined && { cupo: input.cupo }),
-          ...(input.horario !== undefined && { horario: sortSchedule(input.horario) as unknown as Prisma.InputJsonArray }),
-          ...(input.aula !== undefined && { aula: input.aula }),
+          ...(input.capacity !== undefined && { capacity: input.capacity }),
+          ...(input.schedule !== undefined && { schedule: sortSchedule(input.schedule) as unknown as Prisma.InputJsonArray }),
+          ...(input.classroom !== undefined && { classroom: input.classroom }),
         },
         include: groupInclude,
       });
@@ -237,7 +237,7 @@ export class GroupService {
     const previous = await this.load(id, null);
     if (previous.active === active) throw new HttpError(409, active ? "GROUP_ALREADY_ACTIVE" : "GROUP_INACTIVE");
     if (!active) {
-      const count = await this.db.enrollment.count({ where: { groupId: id, status: "INSCRITO" } });
+      const count = await this.db.enrollment.count({ where: { groupId: id, status: "ENROLLED" } });
       if (count > 0) throw new HttpError(409, "GROUP_HAS_ENROLLMENTS", { count });
     }
     if (active && !previous.course.active) throw new HttpError(409, "COURSE_INACTIVE");

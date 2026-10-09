@@ -19,10 +19,10 @@
     "weightsOk": "Ponderaciones completas (100%)",
     "empty": "Aún no hay instrumentos de evaluación",
     "types": {
-      "PARCIAL": "Parcial",
+      "PARTIAL": "Parcial",
       "FINAL": "Final",
-      "TAREA": "Tarea",
-      "OTRO": "Otro"
+      "HOMEWORK": "Tarea",
+      "OTHER": "Otro"
     }
   },
   "gradebook": {
@@ -45,8 +45,8 @@
     "noAssessments": "Agrega instrumentos de evaluación para capturar calificaciones",
     "outOfRange": "Entre 0 y {{max}}",
     "results": {
-      "ACREDITADO": "Acreditado",
-      "REPROBADO": "Reprobado"
+      "PASSED": "Acreditado",
+      "FAILED": "Reprobado"
     },
     "student": "Alumno"
   }

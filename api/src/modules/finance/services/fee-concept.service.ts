@@ -21,20 +21,20 @@ import {
 
 const toView = (row: FeeConcept): FeeConceptView => ({
   id: row.id,
-  nombre: row.nombre,
-  descripcion: row.descripcion,
-  monto: Number(row.monto),
-  tipo: row.tipo,
+  name: row.name,
+  description: row.description,
+  amount: Number(row.amount),
+  type: row.type,
   active: row.active,
   createdAt: row.createdAt.toISOString(),
   updatedAt: row.updatedAt.toISOString(),
 });
 
 const stateOf = (v: FeeConceptView): Prisma.InputJsonObject => ({
-  nombre: v.nombre,
-  descripcion: v.descripcion,
-  monto: v.monto,
-  tipo: v.tipo,
+  name: v.name,
+  description: v.description,
+  amount: v.amount,
+  type: v.type,
   active: v.active,
 });
 
@@ -51,26 +51,26 @@ export class FeeConceptService {
     return row;
   }
 
-  private async assertNameFree(nombre: string, exceptId?: string): Promise<void> {
+  private async assertNameFree(name: string, exceptId?: string): Promise<void> {
     const taken = await this.db.feeConcept.findFirst({
-      where: { nombre: { equals: nombre, mode: "insensitive" }, ...(exceptId ? { NOT: { id: exceptId } } : {}) },
+      where: { name: { equals: name, mode: "insensitive" }, ...(exceptId ? { NOT: { id: exceptId } } : {}) },
     });
-    if (taken) throw new HttpError(409, "FEE_CONCEPT_NAME_TAKEN", { nombre });
+    if (taken) throw new HttpError(409, "FEE_CONCEPT_NAME_TAKEN", { name });
   }
 
   async table(params: ITDataTableFetchParams): Promise<ITDataTableResponse<FeeConceptView>> {
     const { filters } = params;
     const where: Prisma.FeeConceptWhereInput = {};
-    const nombre = filterText(filters, "nombre");
-    if (nombre) where.nombre = nombre;
-    const tipo = filterEnum(filters, "tipo", FEE_CONCEPT_TYPES);
-    if (tipo) where.tipo = tipo;
+    const name = filterText(filters, "name");
+    if (name) where.name = name;
+    const type = filterEnum(filters, "type", FEE_CONCEPT_TYPES);
+    if (type) where.type = type;
     const active = filterBool(filters, "active");
     if (active !== undefined) where.active = active;
     const result = await paginatedQuery<FeeConcept>({
       model: this.db.feeConcept,
       where: where as Record<string, unknown>,
-      orderBy: orderByOf(params.sort, { nombre: "nombre", monto: "monto", tipo: "tipo", active: "active" }, [{ nombre: "asc" }]),
+      orderBy: orderByOf(params.sort, { name: "name", amount: "amount", type: "type", active: "active" }, [{ name: "asc" }]),
       page: params.page,
       limit: params.limit,
     });
@@ -80,17 +80,17 @@ export class FeeConceptService {
   /** Conceptos activos y capturables a mano (sin RECARGO). */
   async options(): Promise<FeeConceptView[]> {
     const rows = await this.db.feeConcept.findMany({
-      where: { active: true, tipo: { not: "RECARGO" } },
-      orderBy: { nombre: "asc" },
+      where: { active: true, type: { not: "LATE_FEE" } },
+      orderBy: { name: "asc" },
     });
     return rows.map(toView);
   }
 
   async create(input: FeeConceptCreateInput, actor: AuthenticatedUser): Promise<FeeConceptView> {
-    await this.assertNameFree(input.nombre);
+    await this.assertNameFree(input.name);
     return this.db.$transaction(async (tx) => {
       const row = await tx.feeConcept.create({
-        data: { nombre: input.nombre, descripcion: input.descripcion ?? null, monto: input.monto, tipo: input.tipo },
+        data: { name: input.name, description: input.description ?? null, amount: input.amount, type: input.type },
       });
       const view = toView(row);
       await this.audit?.(
@@ -104,17 +104,17 @@ export class FeeConceptService {
 
   async update(id: string, input: FeeConceptUpdateInput, actor: AuthenticatedUser): Promise<FeeConceptView> {
     const previous = await this.load(id);
-    if (previous.tipo === "RECARGO") throw new HttpError(409, "FEE_CONCEPT_RESERVED");
-    if (input.nombre && input.nombre !== previous.nombre) await this.assertNameFree(input.nombre, id);
+    if (previous.type === "LATE_FEE") throw new HttpError(409, "FEE_CONCEPT_RESERVED");
+    if (input.name && input.name !== previous.name) await this.assertNameFree(input.name, id);
     const before = toView(previous);
     return this.db.$transaction(async (tx) => {
       const row = await tx.feeConcept.update({
         where: { id },
         data: {
-          ...(input.nombre !== undefined && { nombre: input.nombre }),
-          ...(input.descripcion !== undefined && { descripcion: input.descripcion }),
-          ...(input.monto !== undefined && { monto: input.monto }),
-          ...(input.tipo !== undefined && { tipo: input.tipo }),
+          ...(input.name !== undefined && { name: input.name }),
+          ...(input.description !== undefined && { description: input.description }),
+          ...(input.amount !== undefined && { amount: input.amount }),
+          ...(input.type !== undefined && { type: input.type }),
         },
       });
       const after = toView(row);
@@ -130,7 +130,7 @@ export class FeeConceptService {
   /** Baja lógica: los cargos ya emitidos no cambian. */
   async setActive(id: string, active: boolean, actor: AuthenticatedUser): Promise<FeeConceptView> {
     const previous = await this.load(id);
-    if (previous.tipo === "RECARGO") throw new HttpError(409, "FEE_CONCEPT_RESERVED");
+    if (previous.type === "LATE_FEE") throw new HttpError(409, "FEE_CONCEPT_RESERVED");
     if (previous.active === active) throw new HttpError(409, active ? "FEE_CONCEPT_ALREADY_ACTIVE" : "FEE_CONCEPT_INACTIVE");
     return this.db.$transaction(async (tx) => {
       const row = await tx.feeConcept.update({ where: { id }, data: { active } });

@@ -79,13 +79,13 @@ export const clearNotificationsE2E = async (): Promise<number> => {
       OR: [
         { userId: { in: ids } },
         { createdBy: { in: ids } },
-        { destinatario: { contains: "e2e", mode: "insensitive" } },
-        { template: { clave: { startsWith: E2E_ROLE_PREFIX } } },
+        { recipient: { contains: "e2e", mode: "insensitive" } },
+        { template: { code: { startsWith: E2E_ROLE_PREFIX } } },
       ],
     },
   });
-  await db.notificationTemplate.deleteMany({ where: { clave: { startsWith: E2E_ROLE_PREFIX } } });
-  await db.notificationPreference.deleteMany({ where: { destinatario: { contains: "e2e", mode: "insensitive" } } });
+  await db.notificationTemplate.deleteMany({ where: { code: { startsWith: E2E_ROLE_PREFIX } } });
+  await db.notificationPreference.deleteMany({ where: { recipient: { contains: "e2e", mode: "insensitive" } } });
   return result.count;
 };
 
@@ -104,7 +104,7 @@ export const clearAccessE2E = async (): Promise<{ roles: number; policies: numbe
 /** Borra los registros de catálogos M11 creados por las suites. */
 export const clearCatalogsE2E = async (): Promise<number> => {
   await clearAcademicE2E();
-  const where = { nombre: { startsWith: E2E_CATALOG_PREFIX } };
+  const where = { name: { startsWith: E2E_CATALOG_PREFIX } };
   const counts = await Promise.all([
     db.level.deleteMany({ where }),
     db.term.deleteMany({ where }),
@@ -154,7 +154,7 @@ export const lastAudit = async (action: string, userId?: string) =>
 /** Borra los alumnos de prueba (`nombres` con prefijo `E2E`) y lo que cuelga de ellos. */
 export const clearStudentsE2E = async (): Promise<number> => {
   const students = await db.student.findMany({
-    where: { nombres: { startsWith: E2E_CATALOG_PREFIX } },
+    where: { firstNames: { startsWith: E2E_CATALOG_PREFIX } },
     select: { id: true },
   });
   const ids = students.map((s) => s.id);
@@ -184,9 +184,9 @@ const clearCharges = async (where: Prisma.ChargeWhereInput): Promise<void> => {
 
 /** Finanzas de prueba (M09): conceptos `E2E…`, sus cargos y las claves de idempotencia `e2e…`. */
 export const clearFinanceE2E = async (): Promise<number> => {
-  await clearCharges({ concept: { nombre: { startsWith: E2E_CATALOG_PREFIX } } });
+  await clearCharges({ concept: { name: { startsWith: E2E_CATALOG_PREFIX } } });
   await db.idempotencyRecord.deleteMany({ where: { key: { startsWith: "e2e" } } });
-  const result = await db.feeConcept.deleteMany({ where: { nombre: { startsWith: E2E_CATALOG_PREFIX } } });
+  const result = await db.feeConcept.deleteMany({ where: { name: { startsWith: E2E_CATALOG_PREFIX } } });
   return result.count;
 };
 
@@ -207,8 +207,8 @@ export const clearAcademicE2E = async (): Promise<number> => {
   const groups = await db.group.findMany({
     where: {
       OR: [
-        { course: { clave: { startsWith: E2E_CATALOG_PREFIX } } },
-        { term: { nombre: { startsWith: E2E_CATALOG_PREFIX } } },
+        { course: { code: { startsWith: E2E_CATALOG_PREFIX } } },
+        { term: { name: { startsWith: E2E_CATALOG_PREFIX } } },
         { teacher: { email: { startsWith: E2E_PREFIX } } },
       ],
     },
@@ -218,7 +218,7 @@ export const clearAcademicE2E = async (): Promise<number> => {
   // Examen en línea (M14–M17): intentos (respuestas en cascada), exámenes y reactivos.
   await db.examAttempt.deleteMany({ where: { exam: { groupId: { in: groupIds } } } });
   await db.onlineExam.deleteMany({ where: { groupId: { in: groupIds } } });
-  const e2eCourse = { course: { clave: { startsWith: E2E_CATALOG_PREFIX } } };
+  const e2eCourse = { course: { code: { startsWith: E2E_CATALOG_PREFIX } } };
   await db.attemptAnswer.deleteMany({ where: { question: e2eCourse } });
   await db.onlineExamQuestion.deleteMany({ where: { question: e2eCourse } });
   await db.question.deleteMany({ where: e2eCourse });
@@ -230,7 +230,7 @@ export const clearAcademicE2E = async (): Promise<number> => {
   await db.grade.deleteMany({ where: { assessment: { groupId: { in: groupIds } } } });
   await db.assessment.deleteMany({ where: { groupId: { in: groupIds } } });
   const deleted = await db.group.deleteMany({ where: { id: { in: groupIds } } });
-  const courses = await db.course.deleteMany({ where: { clave: { startsWith: E2E_CATALOG_PREFIX } } });
+  const courses = await db.course.deleteMany({ where: { code: { startsWith: E2E_CATALOG_PREFIX } } });
   return deleted.count + courses.count;
 };
 
@@ -246,7 +246,7 @@ export const clearMigrationE2E = async (): Promise<number> => {
   const users = await db.user.findMany({ where: { username: { startsWith: E2E_PREFIX } }, select: { id: true } });
   const ids = users.map((u) => u.id);
   const result = await db.migrationBatch.deleteMany({
-    where: { OR: [{ createdBy: { in: ids } }, { archivo: { startsWith: E2E_PREFIX } }] },
+    where: { OR: [{ createdBy: { in: ids } }, { file: { startsWith: E2E_PREFIX } }] },
   });
   return result.count;
 };
@@ -259,7 +259,7 @@ export const clearMigrationE2E = async (): Promise<number> => {
 export const clearProgramsE2E = async (): Promise<number> => {
   const users = await db.user.findMany({ where: { username: { startsWith: E2E_PREFIX } }, select: { id: true } });
   const ids = users.map((u) => u.id);
-  const students = await db.student.findMany({ where: { nombres: { startsWith: E2E_CATALOG_PREFIX } }, select: { id: true } });
+  const students = await db.student.findMany({ where: { firstNames: { startsWith: E2E_CATALOG_PREFIX } }, select: { id: true } });
   const studentIds = students.map((s) => s.id);
   await db.studentPlan.deleteMany({
     where: {

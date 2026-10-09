@@ -10,7 +10,7 @@ import {
 /** Reglas puras de M22: meses por periodo, calendario de cargos y descuentos. */
 
 test.describe("meses por periodo", () => {
-  test("mapea el tipo de periodo y respeta el override", () => {
+  test("mapea el type de periodo y respeta el override", () => {
     expect(monthsPerPeriod("BIMONTHLY")).toBe(2);
     expect(monthsPerPeriod("TRIMESTER")).toBe(3);
     expect(monthsPerPeriod("QUADRIMESTER")).toBe(4);
@@ -45,7 +45,7 @@ test.describe("calendario de cargos", () => {
 });
 
 test.describe("descuentos", () => {
-  test("porcentaje, monto y porcentaje-gana; nunca negativo", () => {
+  test("porcentaje, amount y porcentaje-gana; nunca negativo", () => {
     expect(applyDiscount(1500, { percent: 20 })).toBe(1200);
     expect(applyDiscount(1000, { amount: 500 })).toBe(500);
     expect(applyDiscount(1000, { percent: 10, amount: 999 })).toBe(900);

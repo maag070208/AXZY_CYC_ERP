@@ -62,9 +62,9 @@
     "noRows": "No rejected rows."
   },
   "status": {
-    "EN_PROCESO": "In progress",
-    "COMPLETADO": "Completed",
-    "FALLIDO": "Failed",
-    "CANCELADO": "Cancelled"
+    "IN_PROGRESS": "In progress",
+    "COMPLETED": "Completed",
+    "FAILED": "Failed",
+    "CANCELLED": "Cancelled"
   }
 }

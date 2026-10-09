@@ -20,11 +20,11 @@ let control: APIRequestContext;
 let adminId: string;
 
 const teacher = (label: string, overrides: Record<string, unknown> = {}) => ({
-  nombres: `E2E ${label}`,
-  apellidos: `Docente ${RUN}`,
+  firstNames: `E2E ${label}`,
+  surnames: `Docente ${RUN}`,
   email: `${E2E_PREFIX}t${label.toLowerCase()}_${RUN}@e2e.local`,
-  telefono: "5512312312",
-  especialidad: "Motores",
+  phone: "5512312312",
+  specialty: "Motores",
   ...overrides,
 });
 
@@ -48,9 +48,9 @@ test("alta: crea profesor, su cuenta PROFESOR pendiente y la invitación, todo a
   const body = await res.json();
   expect(body).toMatchObject({
     email: input.email,
-    status: "ACTIVO",
+    status: "ACTIVE",
     invitationQueued: true,
-    nombreCompleto: `${input.nombres} ${input.apellidos}`,
+    nombreCompleto: `${input.firstNames} ${input.surnames}`,
   });
   expect(body.account).toMatchObject({ active: true, pendingInvitation: true, username: input.email.split("@")[0] });
 
@@ -87,9 +87,9 @@ test("correo repetido (profesor o cuenta) → 409; validaciones → 400", async 
   const userEmail = await admin.post("teachers", { data: teacher("Dup3", { email: `${ADMIN.username}@e2e.local` }) });
   expect((await userEmail.json()).code).toBe("TEACHER_EMAIL_TAKEN");
 
-  const invalid = await admin.post("teachers", { data: { nombres: "", apellidos: "X", email: "no-es" } });
+  const invalid = await admin.post("teachers", { data: { firstNames: "", surnames: "X", email: "no-es" } });
   expect(invalid.status()).toBe(400);
-  expect(Object.keys((await invalid.json()).details.fieldErrors).sort()).toEqual(["email", "nombres"]);
+  expect(Object.keys((await invalid.json()).details.fieldErrors).sort()).toEqual(["email", "firstNames"]);
 });
 
 test("username derivado del correo: si está ocupado se numera", async () => {
@@ -99,18 +99,18 @@ test("username derivado del correo: si está ocupado se numera", async () => {
   expect(b.account.username).toBe(`${E2E_PREFIX}mismo_${RUN}2`.toLowerCase());
 });
 
-test("edición: actualiza el profesor y sincroniza nombre/correo de su cuenta", async () => {
+test("edición: actualiza el profesor y sincroniza name/correo de su cuenta", async () => {
   const created = await (await admin.post("teachers", { data: teacher("Edita") })).json();
   const email = `${E2E_PREFIX}teditado_${RUN}@e2e.local`;
-  const res = await control.patch(`teachers/${created.id}`, { data: { apellidos: "Nuevo Apellido", email } });
+  const res = await control.patch(`teachers/${created.id}`, { data: { surnames: "Nuevo Apellido", email } });
   expect(res.status()).toBe(200);
   const user = await db.user.findUnique({ where: { id: created.account.userId } });
   expect(user).toMatchObject({ email, name: "E2E Edita Nuevo Apellido" });
   const log = await db.auditLog.findFirst({ where: { action: "TEACHER_UPDATED", entityId: created.id } });
-  expect(log?.newState).toMatchObject({ email, apellidos: "Nuevo Apellido" });
+  expect(log?.newState).toMatchObject({ email, surnames: "Nuevo Apellido" });
 });
 
-test("baja: profesor INACTIVO, cuenta sin acceso y sesiones cerradas; reactivar lo devuelve", async () => {
+test("baja: profesor INACTIVE, cuenta sin acceso y sesiones cerradas; reactivar lo devuelve", async () => {
   const created = await (await admin.post("teachers", { data: teacher("Baja") })).json();
   await db.user.update({
     where: { id: created.account.userId },
@@ -120,7 +120,7 @@ test("baja: profesor INACTIVO, cuenta sin acceso y sesiones cerradas; reactivar 
 
   const off = await control.post(`teachers/${created.id}/deactivate`, { data: { reason: "Fin de contrato" } });
   expect(off.status()).toBe(200);
-  expect(await off.json()).toMatchObject({ status: "INACTIVO", account: { active: false } });
+  expect(await off.json()).toMatchObject({ status: "INACTIVE", account: { active: false } });
   const guest = await anon();
   expect((await guest.post("auth/refresh", { data: { refreshToken: session.refreshToken } })).status()).toBe(401);
   const denied = await guest.post("auth/login", { data: { username: created.account.username, password: E2E.password } });
@@ -128,7 +128,7 @@ test("baja: profesor INACTIVO, cuenta sin acceso y sesiones cerradas; reactivar 
   expect((await control.post(`teachers/${created.id}/deactivate`)).status()).toBe(409);
 
   const on = await control.post(`teachers/${created.id}/reactivate`);
-  expect(await on.json()).toMatchObject({ status: "ACTIVO", account: { active: true } });
+  expect(await on.json()).toMatchObject({ status: "ACTIVE", account: { active: true } });
   expect((await guest.post("auth/login", { data: { username: created.account.username, password: E2E.password } })).status()).toBe(200);
   await guest.dispose();
   expect((await lastAudit("TEACHER_REACTIVATED"))?.entityId).toBe(created.id);
@@ -160,8 +160,8 @@ test("PROFESOR (OWN) ve y edita solo su perfil; no da de alta ni de baja", async
   const list = await (await prof.post("teachers/query", { data: {} })).json();
   expect(list.data.map((t: { id: string }) => t.id)).toEqual([mine.id]);
   expect((await prof.get(`teachers/${other.id}`)).status()).toBe(404);
-  expect((await prof.patch(`teachers/${mine.id}`, { data: { especialidad: "Transmisiones" } })).status()).toBe(200);
-  expect((await prof.patch(`teachers/${other.id}`, { data: { especialidad: "X" } })).status()).toBe(404);
+  expect((await prof.patch(`teachers/${mine.id}`, { data: { specialty: "Transmisiones" } })).status()).toBe(200);
+  expect((await prof.patch(`teachers/${other.id}`, { data: { specialty: "X" } })).status()).toBe(404);
   expect((await prof.post("teachers", { data: teacher("NoPuede") })).status()).toBe(403);
   expect((await prof.post(`teachers/${mine.id}/deactivate`)).status()).toBe(403);
   await prof.dispose();
@@ -171,10 +171,10 @@ test("CONTROL_ESCOLAR no da de alta profesores (sin teachers.create) → 403", a
   expect((await control.post("teachers", { data: teacher("SinPermiso") })).status()).toBe(403);
 });
 
-test("/teachers/query filtra por nombre, especialidad y estatus", async () => {
-  await admin.post("teachers", { data: teacher("Filtro", { especialidad: "Electricidad automotriz" }) });
+test("/teachers/query filtra por name, specialty y estatus", async () => {
+  await admin.post("teachers", { data: teacher("Filtro", { specialty: "Electricidad automotriz" }) });
   const res = await admin.post("teachers/query", {
-    data: { filters: { nombre: `filtro docente ${RUN}`, especialidad: "electricidad", status: "ACTIVO" } },
+    data: { filters: { name: `filtro docente ${RUN}`, specialty: "electricidad", status: "ACTIVE" } },
   });
   expect((await res.json()).total).toBe(1);
 });

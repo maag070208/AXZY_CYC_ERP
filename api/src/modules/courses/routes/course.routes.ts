@@ -86,11 +86,11 @@ export const createGroupRouter = (controller: GroupController): Router => {
     request: { body: { required: true, content: json(GroupCreateDto) } },
     responses: { 201: { description: "Grupo", content: json(GroupSchema) }, 409: { description: "GROUP_NAME_TAKEN · COURSE_INACTIVE · TEACHER_INACTIVE" } },
   });
-  doc("get", "/groups/{id}", "Detalle con cupo e inscritos (groups.view)", {
+  doc("get", "/groups/{id}", "Detalle con capacity e inscritos (groups.view)", {
     parameters: [idParam],
     responses: { 200: { description: "Grupo", content: json(GroupSchema) } },
   });
-  doc("patch", "/groups/{id}", "Edición: profesor, cupo, horario, aula (groups.manage)", {
+  doc("patch", "/groups/{id}", "Edición: profesor, capacity, schedule, classroom (groups.manage)", {
     parameters: [idParam],
     request: { body: { required: true, content: json(GroupUpdateDto) } },
     responses: { 200: { description: "Grupo", content: json(GroupSchema) }, 409: { description: "CUPO_BELOW_ENROLLED · GROUP_CLOSED" } },

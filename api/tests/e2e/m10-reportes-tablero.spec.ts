@@ -32,13 +32,13 @@ let controlId: string;
 let termId: string;
 let mine: { id: string };
 let foreign: { id: string };
-const students: Array<{ id: string; matricula: string }> = [];
+const students: Array<{ id: string; studentNumber: string }> = [];
 let teacher: Awaited<ReturnType<typeof makeTeacher>>;
 let paidFolio = "";
 let cancelledFolio = "";
 
-const report = (api: APIRequestContext, tipo: string, query: Record<string, string> = {}) =>
-  api.get(`reports/${tipo}?${new URLSearchParams(query).toString()}`);
+const report = (api: APIRequestContext, type: string, query: Record<string, string> = {}) =>
+  api.get(`reports/${type}?${new URLSearchParams(query).toString()}`);
 const today = () =>
   new Intl.DateTimeFormat("en-CA", { timeZone: "America/Mexico_City", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
 
@@ -60,29 +60,29 @@ test.beforeAll(async () => {
   teacher = await makeTeacher(RUN, "rprof");
   const other = await makeTeacher(RUN, "rprof2");
   prof = (await loginAs(teacher.username)).api;
-  const group = async (nombre: string, teacherId: string, cupo: number) =>
+  const group = async (name: string, teacherId: string, capacity: number) =>
     (await control.post("groups", {
-      data: { courseId: course.id, termId, teacherId, nombre, cupo, horario: [slot("MARTES", "07:00", "08:00")] },
+      data: { courseId: course.id, termId, teacherId, name, capacity, schedule: [slot("MARTES", "07:00", "08:00")] },
     })).json();
   mine = await group("R1", teacher.teacher.id, 4);
   foreign = await group("R2", other.teacher.id, 10);
   for (const [label, g] of [["RepA", mine], ["RepB", mine], ["RepC", foreign]] as const) {
     const s = await makeStudent(RUN, label);
-    students.push({ id: s.id, matricula: s.matricula });
+    students.push({ id: s.id, studentNumber: s.studentNumber });
     await control.post(`groups/${g.id}/enroll`, { data: { studentId: s.id } });
   }
 
-  const concept = await (await control.post("fee-concepts", { data: { nombre: `E2E Reporte ${RUN}`, monto: 1000, tipo: "COLEGIATURA" } })).json();
-  const charge = async (studentId: string, fechaVencimiento: string) =>
-    (await control.post("charges", { data: { studentId, conceptId: concept.id, termId, fechaVencimiento } })).json();
+  const concept = await (await control.post("fee-concepts", { data: { name: `E2E Reporte ${RUN}`, amount: 1000, type: "TUITION" } })).json();
+  const charge = async (studentId: string, dueDate: string) =>
+    (await control.post("charges", { data: { studentId, conceptId: concept.id, termId, dueDate } })).json();
   const c1 = await charge(students[0].id, "2026-01-10");
   const c2 = await charge(students[1].id, "2099-01-10");
-  paidFolio = (await (await control.post("payments", { data: { chargeId: c1.id, monto: 300, metodo: "EFECTIVO" } })).json()).reciboFolio;
-  const toCancel = await (await control.post("payments", { data: { chargeId: c2.id, monto: 200, metodo: "TRANSFERENCIA" } })).json();
-  cancelledFolio = toCancel.reciboFolio;
-  await control.delete(`payments/${toCancel.id}`, { data: { motivo: "Prueba de reporte" } });
+  paidFolio = (await (await control.post("payments", { data: { chargeId: c1.id, amount: 300, method: "CASH" } })).json()).receiptNumber;
+  const toCancel = await (await control.post("payments", { data: { chargeId: c2.id, amount: 200, method: "TRANSFER" } })).json();
+  cancelledFolio = toCancel.receiptNumber;
+  await control.delete(`payments/${toCancel.id}`, { data: { reason: "Prueba de reporte" } });
   const cancelledCharge = await charge(students[2].id, "2026-01-10");
-  await control.delete(`charges/${cancelledCharge.id}`, { data: { motivo: "Prueba de reporte" } });
+  await control.delete(`charges/${cancelledCharge.id}`, { data: { reason: "Prueba de reporte" } });
 });
 
 test.afterAll(async () => {
@@ -98,18 +98,18 @@ test.afterAll(async () => {
 
 test("catálogo: el profesor no ve reportes con montos; el alumno no entra", async () => {
   const all = await (await control.get("reports")).json();
-  expect(all.map((r: { tipo: string }) => r.tipo)).toEqual([
+  expect(all.map((r: { type: string }) => r.type)).toEqual([
     "students-active", "students-inactive", "enrollments-by-group", "grades-by-group", "attendance-by-group", "payments-period", "debts",
   ]);
   const area = await (await prof.get("reports")).json();
-  expect(area.map((r: { tipo: string }) => r.tipo)).not.toContain("debts");
+  expect(area.map((r: { type: string }) => r.type)).not.toContain("debts");
   const { api } = await loginAs(PUPIL.username);
   expect((await api.get("reports")).status()).toBe(403);
   expect((await api.get("dashboard")).status()).toBe(403);
   await api.dispose();
 });
 
-test("validaciones: tipo desconocido 404, formato inválido, rango invertido y fecha inválida 400", async () => {
+test("validaciones: type desconocido 404, formato inválido, rango invertido y date inválida 400", async () => {
   const unknown = await report(control, "attendance-list");
   expect(unknown.status()).toBe(404);
   expect((await unknown.json()).code).toBe("REPORT_NOT_FOUND");
@@ -122,8 +122,8 @@ test("inscripciones por grupo: ocupación y alcance AREA del profesor", async ()
   const res = await (await report(control, "enrollments-by-group", { termId })).json();
   expect(res.filters.termNombre).toContain("Reportes");
   const r1 = res.rows.find((r: { grupo: string }) => r.grupo === "R1");
-  expect(r1).toMatchObject({ cupo: 4, inscritos: 2, disponibles: 2, ocupacion: 50 });
-  expect(res.totals).toMatchObject({ rows: 2, cupo: 14, inscritos: 3 });
+  expect(r1).toMatchObject({ capacity: 4, inscritos: 2, disponibles: 2, ocupacion: 50 });
+  expect(res.totals).toMatchObject({ rows: 2, capacity: 14, inscritos: 3 });
   expect(res.columns.find((c: { key: string }) => c.key === "ocupacion").type).toBe("percent");
 
   const area = await (await report(prof, "enrollments-by-group", { termId })).json();
@@ -135,12 +135,12 @@ test("inscripciones por grupo: ocupación y alcance AREA del profesor", async ()
 
 test("alumnos activos y calificaciones: el profesor solo ve a sus alumnos", async () => {
   const active = await (await report(prof, "students-active")).json();
-  const matriculas = active.rows.map((r: { matricula: string }) => r.matricula);
-  expect(matriculas).toEqual(expect.arrayContaining([students[0].matricula, students[1].matricula]));
-  expect(matriculas).not.toContain(students[2].matricula);
+  const matriculas = active.rows.map((r: { studentNumber: string }) => r.studentNumber);
+  expect(matriculas).toEqual(expect.arrayContaining([students[0].studentNumber, students[1].studentNumber]));
+  expect(matriculas).not.toContain(students[2].studentNumber);
   const grades = await (await report(prof, "grades-by-group", { termId })).json();
   expect(grades.rows).toHaveLength(2);
-  expect(grades.rows.every((r: { grupo: string; estatus: string }) => r.grupo === "R1" && r.estatus === "INSCRITO")).toBe(true);
+  expect(grades.rows.every((r: { grupo: string; estatus: string }) => r.grupo === "R1" && r.estatus === "ENROLLED")).toBe(true);
 });
 
 test("pagos del periodo y adeudos: excluyen cancelados; el profesor → 403", async () => {
@@ -149,11 +149,11 @@ test("pagos del periodo y adeudos: excluyen cancelados; el profesor → 403", as
   expect(folios).toContain(paidFolio);
   expect(folios).not.toContain(cancelledFolio);
   expect(payments.filters.from).toBe(`${today().slice(0, 7)}-01`);
-  expect(payments.totals).toMatchObject({ rows: 1, monto: 300, EFECTIVO: 300 });
+  expect(payments.totals).toMatchObject({ rows: 1, amount: 300, CASH: 300 });
 
   const debts = await (await report(control, "debts", { termId })).json();
   expect(debts.rows).toHaveLength(2);
-  const overdue = debts.rows.find((r: { matricula: string }) => r.matricula === students[0].matricula);
+  const overdue = debts.rows.find((r: { studentNumber: string }) => r.studentNumber === students[0].studentNumber);
   expect(overdue).toMatchObject({ total: 1000, pagado: 300, saldo: 700 });
   expect(overdue.diasVencido).toBeGreaterThan(0);
   expect(debts.totals).toMatchObject({ saldo: 1700, vencido: 700 });
@@ -168,7 +168,7 @@ test("exportación xlsx y pdf con los mismos filtros, auditada; sin reports.expo
   expect(xlsx.status()).toBe(200);
   expect(xlsx.headers()["content-type"]).toContain("spreadsheetml");
   expect((await xlsx.body()).subarray(0, 2).toString()).toBe("PK");
-  expect((await lastAudit("REPORT_EXPORTED", controlId))?.metadata).toMatchObject({ tipo: "debts", format: "xlsx", rows: 2 });
+  expect((await lastAudit("REPORT_EXPORTED", controlId))?.metadata).toMatchObject({ type: "debts", format: "xlsx", rows: 2 });
 
   const pdf = await report(control, "enrollments-by-group", { termId, format: "pdf" });
   expect(pdf.status()).toBe(200);

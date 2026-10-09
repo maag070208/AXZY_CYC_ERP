@@ -27,12 +27,12 @@ export default function PaymentsTable({ reloadKey, onAction }: Props) {
 
   const columns: Column<Payment>[] = [
     {
-      key: "reciboFolio", label: t("payments.folio"), type: "string", width: 160, filter: true, sortable: false,
-      render: (row) => <ITText className="font-mono text-[12px] font-bold text-slate-700">{row.reciboFolio}</ITText>,
+      key: "receiptNumber", label: t("payments.folio"), type: "string", width: 160, filter: true, sortable: false,
+      render: (row) => <ITText className="font-mono text-[12px] font-bold text-slate-700">{row.receiptNumber}</ITText>,
     },
     {
-      key: "fecha", label: t("payments.fecha"), type: "string", width: 120, sortable: false,
-      render: (row) => <ITText className="text-[12px] text-slate-600">{formatDay(row.fecha, i18n.language)}</ITText>,
+      key: "date", label: t("payments.fecha"), type: "string", width: 120, sortable: false,
+      render: (row) => <ITText className="text-[12px] text-slate-600">{formatDay(row.date, i18n.language)}</ITText>,
     },
     {
       key: "studentNombre", label: t("payments.alumno"), type: "string", filter: true,
@@ -44,15 +44,15 @@ export default function PaymentsTable({ reloadKey, onAction }: Props) {
       ),
     },
     {
-      key: "metodo", label: t("payments.metodo"), type: "catalog", width: 140, filter: "catalog",
+      key: "method", label: t("payments.metodo"), type: "catalog", width: 140, filter: "catalog",
       catalogOptions: { data: PAYMENT_METHODS.map((m) => ({ id: m, name: t(`payments.methods.${m}`) })) },
-      render: (row) => <ITText className="text-[12px] text-slate-600">{t(`payments.methods.${row.metodo}`)}</ITText>,
+      render: (row) => <ITText className="text-[12px] text-slate-600">{t(`payments.methods.${row.method}`)}</ITText>,
     },
     {
-      key: "monto", label: t("payments.monto"), type: "number", width: 130, sortable: false,
+      key: "amount", label: t("payments.monto"), type: "number", width: 130, sortable: false,
       render: (row) => (
         <ITText className={`text-[12px] font-black ${row.cancelledAt ? "text-slate-400 line-through" : "text-slate-800"}`}>
-          {formatMoney(row.monto, i18n.language)}
+          {formatMoney(row.amount, i18n.language)}
         </ITText>
       ),
     },
@@ -70,12 +70,12 @@ export default function PaymentsTable({ reloadKey, onAction }: Props) {
       actions: (row) => (
         <ITFlex gap={1}>
           <ITButton variant="text" color="primary" size="sm" title={t("payments.receiptPdf")}
-            ariaLabel={`${t("payments.receiptPdf")} ${row.reciboFolio}`} onClick={() => onAction("receipt", row)}>
+            ariaLabel={`${t("payments.receiptPdf")} ${row.receiptNumber}`} onClick={() => onAction("receipt", row)}>
             <FaReceipt size={12} />
           </ITButton>
           {canCancel && !row.cancelledAt && (
             <ITButton variant="text" color="danger" size="sm" title={t("payments.cancel")}
-              ariaLabel={`${t("payments.cancel")} ${row.reciboFolio}`} onClick={() => onAction("cancel", row)}>
+              ariaLabel={`${t("payments.cancel")} ${row.receiptNumber}`} onClick={() => onAction("cancel", row)}>
               <FaBan size={12} />
             </ITButton>
           )}

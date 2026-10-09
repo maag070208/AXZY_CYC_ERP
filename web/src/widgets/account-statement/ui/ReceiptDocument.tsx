@@ -18,19 +18,19 @@ const styles = StyleSheet.create({
 export interface ReceiptLabels {
   title: string;
   folio: string;
-  fecha: string;
-  alumno: string;
-  matricula: string;
-  concepto: string;
-  metodo: string;
-  referencia: string;
-  monto: string;
-  saldo: string;
-  cobro: string;
-  cancelado: string;
-  metodoValue: string;
+  date: string;
+  student: string;
+  studentNumber: string;
+  concept: string;
+  method: string;
+  reference: string;
+  amount: string;
+  balance: string;
+  cashier: string;
+  cancelled: string;
+  methodValue: string;
   money: (value: number) => string;
-  date: (day: string) => string;
+  formatDate: (day: string) => string;
 }
 
 /** Recibo de pago (media carta) armado en el navegador con los datos del pago. */
@@ -39,7 +39,7 @@ export default function ReceiptDocument({ payment, school, labels }: { payment: 
     <View style={styles.row}><Text style={styles.label}>{label}</Text><Text>{value}</Text></View>
   );
   return (
-    <Document title={`${labels.title} ${payment.reciboFolio}`} author={school}>
+    <Document title={`${labels.title} ${payment.receiptNumber}`} author={school}>
       <Page size={[612, 396]} style={styles.page}>
         <View style={styles.header}>
           <View>
@@ -48,24 +48,24 @@ export default function ReceiptDocument({ payment, school, labels }: { payment: 
           </View>
           <View>
             <Text style={{ color: "#64748b", textAlign: "right" }}>{labels.folio}</Text>
-            <Text style={styles.folio}>{payment.reciboFolio}</Text>
+            <Text style={styles.folio}>{payment.receiptNumber}</Text>
           </View>
         </View>
-        {row(labels.fecha, labels.date(payment.fecha))}
-        {row(labels.alumno, payment.studentNombre)}
-        {row(labels.matricula, payment.matricula)}
-        {row(labels.concepto, payment.chargeDescripcion ?? payment.conceptNombre)}
-        {row(labels.metodo, labels.metodoValue)}
-        {payment.referencia ? row(labels.referencia, payment.referencia) : null}
+        {row(labels.date, labels.formatDate(payment.date))}
+        {row(labels.student, payment.studentNombre)}
+        {row(labels.studentNumber, payment.studentNumber)}
+        {row(labels.concept, payment.chargeDescripcion ?? payment.conceptNombre)}
+        {row(labels.method, labels.methodValue)}
+        {payment.reference ? row(labels.reference, payment.reference) : null}
         <View style={styles.amountBox}>
-          <Text>{labels.monto}</Text>
-          <Text style={styles.amount}>{labels.money(payment.monto)}</Text>
+          <Text>{labels.amount}</Text>
+          <Text style={styles.amount}>{labels.money(payment.amount)}</Text>
         </View>
         <View style={[styles.row, { marginTop: 6 }]}>
-          <Text style={styles.label}>{labels.saldo}</Text><Text>{labels.money(payment.chargeSaldo)}</Text>
+          <Text style={styles.label}>{labels.balance}</Text><Text>{labels.money(payment.chargeSaldo)}</Text>
         </View>
-        {payment.cancelledAt ? <Text style={styles.cancelled}>{labels.cancelado}</Text> : null}
-        <Text style={styles.sign}>{`${labels.cobro}: ${payment.registeredByName}`}</Text>
+        {payment.cancelledAt ? <Text style={styles.cancelled}>{labels.cancelled}</Text> : null}
+        <Text style={styles.sign}>{`${labels.cashier}: ${payment.registeredByName}`}</Text>
       </Page>
     </Document>
   );

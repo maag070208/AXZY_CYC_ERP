@@ -12,23 +12,23 @@ interface Props {
   onSaved: (teacher: Teacher, created: boolean) => void;
 }
 
-type Field = "nombres" | "apellidos" | "email" | "telefono" | "especialidad";
+type Field = "firstNames" | "surnames" | "email" | "phone" | "specialty";
 
 /** Alta (crea cuenta + invitación) y edición de un profesor. */
 export default function TeacherFormDialog({ isOpen, teacher, onClose, onSaved }: Props) {
   const { t } = useTranslation(["teachers", "common"]);
-  const [values, setValues] = useState<Record<Field, string>>({ nombres: "", apellidos: "", email: "", telefono: "", especialidad: "" });
+  const [values, setValues] = useState<Record<Field, string>>({ firstNames: "", surnames: "", email: "", phone: "", specialty: "" });
   const [errors, setErrors] = useState<Partial<Record<Field, string>>>({});
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     setValues({
-      nombres: teacher?.nombres ?? "",
-      apellidos: teacher?.apellidos ?? "",
+      firstNames: teacher?.firstNames ?? "",
+      surnames: teacher?.surnames ?? "",
       email: teacher?.email ?? "",
-      telefono: teacher?.telefono ?? "",
-      especialidad: teacher?.especialidad ?? "",
+      phone: teacher?.phone ?? "",
+      specialty: teacher?.specialty ?? "",
     });
     setErrors({});
     setError(null);
@@ -38,10 +38,10 @@ export default function TeacherFormDialog({ isOpen, teacher, onClose, onSaved }:
 
   const save = async () => {
     const next: Partial<Record<Field, string>> = {
-      nombres: validateRequired(values.nombres, t("form.nombres")) ?? undefined,
-      apellidos: validateRequired(values.apellidos, t("form.apellidos")) ?? undefined,
+      firstNames: validateRequired(values.firstNames, t("form.firstNames")) ?? undefined,
+      surnames: validateRequired(values.surnames, t("form.surnames")) ?? undefined,
       email: validateRequired(values.email, t("form.email")) ?? validateEmail(values.email) ?? undefined,
-      telefono: validatePhone(values.telefono) ?? undefined,
+      phone: validatePhone(values.phone) ?? undefined,
     };
     for (const key of Object.keys(next) as Field[]) if (!next[key]) delete next[key];
     setErrors(next);
@@ -50,11 +50,11 @@ export default function TeacherFormDialog({ isOpen, teacher, onClose, onSaved }:
     setSaving(true);
     setError(null);
     const data = {
-      nombres: values.nombres.trim(),
-      apellidos: values.apellidos.trim(),
+      firstNames: values.firstNames.trim(),
+      surnames: values.surnames.trim(),
       email: values.email.trim(),
-      telefono: values.telefono.trim() || null,
-      especialidad: values.especialidad.trim() || null,
+      phone: values.phone.trim() || null,
+      specialty: values.specialty.trim() || null,
     };
     try {
       if (teacher) onSaved(await teacherApi.update(teacher.id, data), false);
@@ -79,11 +79,11 @@ export default function TeacherFormDialog({ isOpen, teacher, onClose, onSaved }:
           {error && <ITAlert variant="error">{error}</ITAlert>}
           {!teacher && <ITText className="text-[12px] text-slate-500">{t("form.newHint")}</ITText>}
           <ITGrid container columns={12} spacing={4}>
-            <ITGrid item xs={12} md={6}>{input("nombres", true)}</ITGrid>
-            <ITGrid item xs={12} md={6}>{input("apellidos", true)}</ITGrid>
+            <ITGrid item xs={12} md={6}>{input("firstNames", true)}</ITGrid>
+            <ITGrid item xs={12} md={6}>{input("surnames", true)}</ITGrid>
             <ITGrid item xs={12} md={6}>{input("email", true, "email")}</ITGrid>
-            <ITGrid item xs={12} md={6}>{input("telefono")}</ITGrid>
-            <ITGrid item xs={12}>{input("especialidad")}</ITGrid>
+            <ITGrid item xs={12} md={6}>{input("phone")}</ITGrid>
+            <ITGrid item xs={12}>{input("specialty")}</ITGrid>
           </ITGrid>
           <ITFlex justify="end" gap={2}>
             <ITButton variant="outlined" color="secondary" onClick={onClose}>{t("common:actions.cancel")}</ITButton>
