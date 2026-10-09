@@ -15,7 +15,7 @@ export interface NotificationTemplate {
   variables: string[];
   required: boolean;
   active: boolean;
-  enviadas: number;
+  sentCount: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -36,7 +36,7 @@ export interface NotificationItem {
   recipient: string;
   userId: string | null;
   origin: string;
-  templateClave: string | null;
+  templateCode: string | null;
   subject: string | null;
   body: string;
   status: NotificationStatus;
@@ -53,7 +53,7 @@ export interface NotificationItem {
 export interface NotificationSendInput {
   channel: NotificationChannel;
   recipient: string;
-  templateClave?: string;
+  templateCode?: string;
   subject?: string | null;
   body?: string | null;
   payload?: Record<string, string | number>;

@@ -11,7 +11,7 @@ export interface Assessment {
   date: string | null;
   maxScore: number;
   active: boolean;
-  capturadas: number;
+  capturedCount: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -51,9 +51,9 @@ export interface Gradebook {
   group: {
     id: string;
     name: string;
-    courseNombre: string;
-    termNombre: string;
-    teacherNombre: string | null;
+    courseName: string;
+    termName: string;
+    teacherName: string | null;
     closedAt: string | null;
   };
   assessments: Array<Pick<Assessment, "id" | "name" | "type" | "weight" | "maxScore">>;

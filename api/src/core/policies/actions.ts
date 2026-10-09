@@ -83,11 +83,11 @@ export const POLICY_ACTIONS: readonly PolicyActionDef[] = [
     module: "Cobranza",
     description: "Alta de cargos (individual o masiva): permite topar descuentos",
     fields: [
-      { path: "monto", type: "number", description: "Monto del cargo" },
-      { path: "descuento", type: "number", description: "Descuento aplicado" },
-      { path: "porcentajeDescuento", type: "number", description: "Descuento como % del monto (0–100)" },
-      { path: "conceptTipo", type: "string", description: "Tipo del concepto (INSCRIPCION, COLEGIATURA…)" },
-      { path: "masivo", type: "boolean", description: "Generación masiva (grupo o ciclo)" },
+      { path: "amount", type: "number", description: "Monto del cargo" },
+      { path: "discount", type: "number", description: "Descuento aplicado" },
+      { path: "discountPercent", type: "number", description: "Descuento como % del monto (0–100)" },
+      { path: "conceptType", type: "string", description: "Tipo del concepto (INSCRIPCION, COLEGIATURA…)" },
+      { path: "bulk", type: "boolean", description: "Generación masiva (grupo o ciclo)" },
     ],
   },
   {
@@ -95,9 +95,9 @@ export const POLICY_ACTIONS: readonly PolicyActionDef[] = [
     module: "Cobranza",
     description: "Cancelación de un pago registrado",
     fields: [
-      { path: "monto", type: "number", description: "Monto del pago" },
-      { path: "metodo", type: "string", description: "Método de pago" },
-      { path: "diasDesdeRegistro", type: "number", description: "Días desde que se registró el pago" },
+      { path: "amount", type: "number", description: "Monto del pago" },
+      { path: "method", type: "string", description: "Método de pago" },
+      { path: "daysSinceRegistered", type: "number", description: "Días desde que se registró el pago" },
     ],
   },
   {

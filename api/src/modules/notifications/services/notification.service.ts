@@ -59,7 +59,7 @@ const toTemplateView = (row: TemplateRow): TemplateView => ({
   variables: declared(row.variables),
   required: row.required,
   active: row.active,
-  enviadas: row._count.notifications,
+  sentCount: row._count.notifications,
   createdAt: row.createdAt.toISOString(),
   updatedAt: row.updatedAt.toISOString(),
 });
@@ -70,7 +70,7 @@ export const toNotificationView = (row: NotificationRow): NotificationView => ({
   recipient: row.recipient,
   userId: row.userId,
   origin: row.origin,
-  templateClave: row.template?.code ?? null,
+  templateCode: row.template?.code ?? null,
   subject: row.subject,
   body: row.body,
   status: row.status,
@@ -323,15 +323,15 @@ export class NotificationService {
     if (!recipient) throw new HttpError(400, "NOTIFICATION_RECIPIENT_INVALID", { channel: input.channel });
 
     let template: Prisma.NotificationTemplateGetPayload<object> | null = null;
-    if (input.templateClave) {
-      template = await this.db.notificationTemplate.findUnique({ where: { code_channel: { code: input.templateClave, channel: input.channel } } });
+    if (input.templateCode) {
+      template = await this.db.notificationTemplate.findUnique({ where: { code_channel: { code: input.templateCode, channel: input.channel } } });
       if (!template) throw new HttpError(404, "TEMPLATE_NOT_FOUND");
       if (!template.active) throw new HttpError(409, "TEMPLATE_INACTIVE");
     }
-    const asuntoText = template ? template.subject : (input.subject ?? null);
-    const cuerpoText = template ? template.body : (input.body as string);
-    if (input.channel === "EMAIL" && !asuntoText) throw new HttpError(400, "VALIDATION_ERROR", {}, { subject: ["REQUIRED_FIELD"] });
-    const missing = missingVariables(requiredVariables(template ? declared(template.variables) : [], asuntoText, cuerpoText), input.payload);
+    const subjectText = template ? template.subject : (input.subject ?? null);
+    const bodyText = template ? template.body : (input.body as string);
+    if (input.channel === "EMAIL" && !subjectText) throw new HttpError(400, "VALIDATION_ERROR", {}, { subject: ["REQUIRED_FIELD"] });
+    const missing = missingVariables(requiredVariables(template ? declared(template.variables) : [], subjectText, bodyText), input.payload);
     if (missing.length) throw new HttpError(400, "NOTIFICATION_VARIABLES_MISSING", { variables: missing.join(", ") }, { variables: missing });
 
     const { result } = await this.db.$transaction(async (tx) =>
@@ -342,15 +342,15 @@ export class NotificationService {
           userId,
           templateId: template?.id ?? null,
           required: template?.required ?? false,
-          subject: asuntoText ? render(asuntoText, input.payload) : null,
-          body: render(cuerpoText, input.payload),
+          subject: subjectText ? render(subjectText, input.payload) : null,
+          body: render(bodyText, input.payload),
           payload: input.payload,
           origin: "MANUAL",
           createdBy: actor.id,
         });
         await this.audit?.(
           { action: "NOTIFICATION_QUEUED", entityType: "Notification", entityId: row.id, userId: actor.id, userName: actor.username,
-            newState: { channel: row.channel, recipient: row.recipient, templateClave: template?.code ?? null, status: row.status } },
+            newState: { channel: row.channel, recipient: row.recipient, templateCode: template?.code ?? null, status: row.status } },
           tx
         );
         return toNotificationView(row);

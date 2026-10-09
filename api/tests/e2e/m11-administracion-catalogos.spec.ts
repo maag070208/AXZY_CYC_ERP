@@ -77,7 +77,7 @@ test.describe("parámetros generales", () => {
     expect((await res.json()).code).toBe("INSUFFICIENT_PERMISSIONS");
   });
 
-  test("PUT /settings actualiza por code y audita SYS_CONFIG_UPDATED con antes/después", async () => {
+  test("PUT /settings actualiza por clave y audita SYS_CONFIG_UPDATED con antes/después", async () => {
     const before = (await db.setting.findUnique({ where: { key: "MIN_PASSING_GRADE" } }))?.value;
     const next = before === 75 ? 72 : 75;
     const res = await admin.put("settings", {
@@ -98,7 +98,7 @@ test.describe("parámetros generales", () => {
     expect(log?.newState).toEqual({ value: next });
   });
 
-  test("code desconocida o valor inválido → 400 sin escribir nada", async () => {
+  test("clave desconocida o valor inválido → 400 sin escribir nada", async () => {
     const unknown = await admin.put("settings", { data: { NO_EXISTE: 1 } });
     expect(unknown.status()).toBe(400);
     expect((await unknown.json()).code).toBe("SETTING_UNKNOWN");
@@ -151,7 +151,7 @@ test.describe("niveles educativos", () => {
     expect(all.some((o) => o.id === level.id)).toBe(true);
   });
 
-  test("name duplicado → 409 DUPLICATE_RECORD; sin name → 400", async () => {
+  test("nombre duplicado → 409 DUPLICATE_RECORD; sin nombre → 400", async () => {
     await admin.post("levels", { data: { name: NAME("Dup") } });
     const dup = await admin.post("levels", { data: { name: NAME("Dup") } });
     expect(dup.status()).toBe(409);
@@ -183,7 +183,7 @@ test.describe("ciclos escolares", () => {
     expect((await res.json()).code).toBe("TERM_DATES_INVALID");
   });
 
-  test("solo un ciclo active: activar uno desactiva el anterior y se audita", async () => {
+  test("solo un ciclo activo: activar uno desactiva el anterior y se audita", async () => {
     const a = await (
       await admin.post("terms", { data: { name: NAME("2026-A"), startDate: "2026-01-15", endDate: "2026-06-30" } })
     ).json();
@@ -231,7 +231,7 @@ test.describe("motivos de baja y tipos de documento", () => {
     expect((await teacher.post("cancellation-reasons/query", { data: { page: 1, limit: 5 } })).status()).toBe(403);
   });
 
-  test("tipos de documento: bandera required filtrable y reactivación por PATCH", async () => {
+  test("tipos de documento: bandera obligatorio filtrable y reactivación por PATCH", async () => {
     const doc = await (
       await admin.post("document-types", { data: { name: NAME("Constancia"), required: true } })
     ).json();

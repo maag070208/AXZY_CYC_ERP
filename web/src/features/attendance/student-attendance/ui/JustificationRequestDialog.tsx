@@ -23,7 +23,7 @@ const ACCEPTED = ["application/pdf", "image/jpeg", "image/png"];
 export default function JustificationRequestDialog({ isOpen, attendanceId, studentName, onClose, onSaved }: Props) {
   const { t } = useTranslation(["attendance", "common"]);
   const notify = useNotify();
-  const [reason, setMotivo] = useState("");
+  const [reason, setReason] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [errors, setErrors] = useState<Errors>({});
   const [error, setError] = useState<string | null>(null);
@@ -31,7 +31,7 @@ export default function JustificationRequestDialog({ isOpen, attendanceId, stude
 
   useEffect(() => {
     if (!isOpen) return;
-    setMotivo("");
+    setReason("");
     setFile(null);
     setErrors({});
     setError(null);
@@ -39,7 +39,7 @@ export default function JustificationRequestDialog({ isOpen, attendanceId, stude
 
   const save = async () => {
     const next: Errors = {
-      reason: validateRequired(reason, t("justifications.motivo")) ?? validateMinLength(reason, 5, t("justifications.motivo")) ?? undefined,
+      reason: validateRequired(reason, t("justifications.reason")) ?? validateMinLength(reason, 5, t("justifications.reason")) ?? undefined,
     };
     setErrors(next);
     if (next.reason) return;
@@ -64,9 +64,9 @@ export default function JustificationRequestDialog({ isOpen, attendanceId, stude
         <ITFlex direction="column" gap={4}>
           {error && <ITAlert variant="error">{error}</ITAlert>}
           <ITText className="text-[12px] text-slate-500">{t("justifications.requestHint")}</ITText>
-          <ITTextarea name="reason" label={t("justifications.motivo")} value={reason} onChange={setMotivo} rows={3} maxLength={1000} error={errors.reason} />
+          <ITTextarea name="reason" label={t("justifications.reason")} value={reason} onChange={setReason} rows={3} maxLength={1000} error={errors.reason} />
           <label className="flex flex-col gap-1 text-[12px] font-bold text-slate-600">
-            {t("justifications.archivo")}
+            {t("justifications.file")}
             <input
               type="file"
               name="file"

@@ -19,7 +19,7 @@ let studentId: string;
 test.beforeAll(async () => {
   control = await apiAs(E2E.control.username);
   const res = await control.post("students", {
-    data: { nombres: `E2E Expediente ${RUN}`, apellidoPaterno: "Web", curp: makeCurp("2000-01-15"), fechaNacimiento: "2000-01-15" },
+    data: { firstNames: `E2E Expediente ${RUN}`, paternalSurname: "Web", curp: makeCurp("2000-01-15"), birthDate: "2000-01-15" },
   });
   expect(res.status()).toBe(201);
   studentId = (await res.json()).id;

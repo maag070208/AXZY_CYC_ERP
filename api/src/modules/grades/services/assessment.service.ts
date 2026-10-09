@@ -38,7 +38,7 @@ const toView = (row: AssessmentRow): AssessmentView => ({
   date: row.date ? fromDbDay(row.date) : null,
   maxScore: Number(row.maxScore),
   active: row.active,
-  capturadas: row._count.grades,
+  capturedCount: row._count.grades,
   createdAt: row.createdAt.toISOString(),
   updatedAt: row.updatedAt.toISOString(),
 });

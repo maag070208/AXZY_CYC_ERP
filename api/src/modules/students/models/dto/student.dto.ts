@@ -90,7 +90,7 @@ export const StudentSchema = z
     firstNames: z.string(),
     paternalSurname: z.string(),
     maternalSurname: z.string().nullable(),
-    nombreCompleto: z.string(),
+    fullName: z.string(),
     curp: z.string(),
     birthDate: z.string(),
     gender: z.string().nullable(),

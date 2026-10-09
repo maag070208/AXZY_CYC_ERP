@@ -30,8 +30,8 @@ export default function GenerateChargesDialog({ isOpen, onClose, onDone }: Props
   const [scope, setScope] = useState<"group" | "term">("group");
   const [termId, setTermId] = useState("");
   const [groupId, setGroupId] = useState("");
-  const [description, setDescripcion] = useState("");
-  const [vence, setVence] = useState("");
+  const [description, setDescription] = useState("");
+  const [dueDate, setDueDate] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const idempotencyKey = useMemo(() => (isOpen ? newKey() : ""), [isOpen]);
@@ -41,8 +41,8 @@ export default function GenerateChargesDialog({ isOpen, onClose, onDone }: Props
     setConceptId("");
     setScope("group");
     setGroupId("");
-    setDescripcion("");
-    setVence("");
+    setDescription("");
+    setDueDate("");
     setError(null);
     feeConceptApi.options().then(setConcepts).catch(() => setConcepts([]));
     termsApi.options().then((list) => {
@@ -57,15 +57,15 @@ export default function GenerateChargesDialog({ isOpen, onClose, onDone }: Props
   }, [isOpen, termId]);
 
   const save = async () => {
-    if (!conceptId || !vence || (scope === "group" ? !groupId : !termId)) {
-      setError(t("common:validation.required", { label: !conceptId ? t("charges.concepto") : !vence ? t("charges.vencimiento") : t("charges.grupo") }));
+    if (!conceptId || !dueDate || (scope === "group" ? !groupId : !termId)) {
+      setError(t("common:validation.required", { label: !conceptId ? t("charges.concept") : !dueDate ? t("charges.dueDate") : t("charges.groupName") }));
       return;
     }
     setSaving(true);
     setError(null);
     try {
       onDone(await chargeApi.generate({
-        conceptId, scope, dueDate: vence, description: description.trim() || null,
+        conceptId, scope, dueDate: dueDate, description: description.trim() || null,
         ...(scope === "group" ? { groupId } : { termId }),
       }, idempotencyKey));
     } catch (err) {
@@ -84,7 +84,7 @@ export default function GenerateChargesDialog({ isOpen, onClose, onDone }: Props
           <ITText className="text-[12px] text-slate-500">{t("charges.generateHint")}</ITText>
           <ITGrid container columns={12} spacing={4}>
             <ITGrid item xs={12}>
-              <ITSelect name="conceptId" label={t("charges.concepto")} value={conceptId} placeholder="—"
+              <ITSelect name="conceptId" label={t("charges.concept")} value={conceptId} placeholder="—"
                 options={concepts.map((c) => ({ value: c.id, label: `${c.name} · ${formatMoney(c.amount, i18n.language)}` }))}
                 onChange={(e) => setConceptId(e.target.value)} />
             </ITGrid>
@@ -94,22 +94,22 @@ export default function GenerateChargesDialog({ isOpen, onClose, onDone }: Props
                 onChange={(e) => setScope(e.target.value as "group" | "term")} />
             </ITGrid>
             <ITGrid item xs={12} md={6}>
-              <ITSelect name="termId" label={t("charges.ciclo")} value={termId}
+              <ITSelect name="termId" label={t("charges.termName")} value={termId}
                 options={terms.map((x) => ({ value: x.id, label: x.name }))} onChange={(e) => { setTermId(e.target.value); setGroupId(""); }} />
             </ITGrid>
             {scope === "group" && (
               <ITGrid item xs={12}>
-                <ITSelect name="groupId" label={t("charges.grupo")} value={groupId} placeholder="—"
-                  options={groups.map((g) => ({ value: g.id, label: `${g.courseNombre} · ${g.name} (${g.inscritos})` }))}
+                <ITSelect name="groupId" label={t("charges.groupName")} value={groupId} placeholder="—"
+                  options={groups.map((g) => ({ value: g.id, label: `${g.courseName} · ${g.name} (${g.enrolledCount})` }))}
                   onChange={(e) => setGroupId(e.target.value)} />
               </ITGrid>
             )}
             <ITGrid item xs={12} md={7}>
-              <ITInput name="description" label={t("charges.descripcion")} value={description} onChange={(e) => setDescripcion(e.target.value)} />
+              <ITInput name="description" label={t("charges.description")} value={description} onChange={(e) => setDescription(e.target.value)} />
             </ITGrid>
             <ITGrid item xs={12} md={5}>
-              <ITDatePicker name="dueDate" label={t("charges.vencimiento")} required value={vence ? fromDay(vence) : undefined}
-                onChange={(e) => setVence(pickDay(e.target.value))} />
+              <ITDatePicker name="dueDate" label={t("charges.dueDate")} required value={dueDate ? fromDay(dueDate) : undefined}
+                onChange={(e) => setDueDate(pickDay(e.target.value))} />
             </ITGrid>
           </ITGrid>
           <ITFlex justify="end" gap={2}>

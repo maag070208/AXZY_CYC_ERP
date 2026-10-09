@@ -23,6 +23,7 @@ import type {
   StudentView,
 } from "../models/dto/student.dto";
 import type { StudentRow } from "../models/entity/student.entity";
+import { t } from "@core/i18n";
 
 const ADULT_AGE = 18;
 const STATUSES = ["ACTIVE", "WITHDRAWN"] as const;
@@ -37,7 +38,7 @@ export const toStudentView = (row: StudentRow): StudentView => ({
   firstNames: row.firstNames,
   paternalSurname: row.paternalSurname,
   maternalSurname: row.maternalSurname,
-  nombreCompleto: fullName(row),
+  fullName: fullName(row),
   curp: row.curp,
   birthDate: fromDbDay(row.birthDate),
   gender: row.gender,
@@ -61,7 +62,7 @@ export const toStudentView = (row: StudentRow): StudentView => ({
 
 /** Estado auditable del alumno (incluye tutores; sin ids internos). */
 const auditState = (view: StudentView): Prisma.InputJsonObject => {
-  const { id: _id, createdAt: _c, updatedAt: _u, nombreCompleto: _n, ...rest } = view;
+  const { id: _id, createdAt: _c, updatedAt: _u, fullName: _n, ...rest } = view;
   return {
     ...rest,
     guardians: view.guardians.map(({ id: _gid, ...g }) => g),
@@ -69,7 +70,7 @@ const auditState = (view: StudentView): Prisma.InputJsonObject => {
 };
 
 /** Matrícula `AAAA-NNNN` (el consecutivo crece si pasa de 9999). */
-export const formatMatricula = (year: number, consecutive: number): string =>
+export const formatStudentNumber = (year: number, consecutive: number): string =>
   `${year}-${String(consecutive).padStart(4, "0")}`;
 
 /**
@@ -133,8 +134,8 @@ export class StudentService {
     if (curp) and.push({ curp });
     const status = filterEnum(filters, "status", STATUSES);
     if (status) and.push({ status });
-    const ingreso = filterDayRange(filters, "enrollmentDate");
-    if (ingreso) and.push({ enrollmentDate: ingreso });
+    const enrollmentDate = filterDayRange(filters, "enrollmentDate");
+    if (enrollmentDate) and.push({ enrollmentDate: enrollmentDate });
     const scoped = await this.scope(user);
     if (scoped) and.push(scoped);
     return and.length > 0 ? { AND: and } : {};
@@ -168,13 +169,13 @@ export class StudentService {
   }
 
   /** Totales por estatus dentro del alcance (KPIs del listado). */
-  async summary(user: UserPermissions): Promise<{ total: number; activos: number; bajas: number }> {
+  async summary(user: UserPermissions): Promise<{ total: number; active: number; withdrawn: number }> {
     const scoped = (await this.scope(user)) ?? {};
-    const [activos, bajas] = await Promise.all([
+    const [active, withdrawn] = await Promise.all([
       this.db.student.count({ where: { AND: [scoped, { status: "ACTIVE" }] } }),
       this.db.student.count({ where: { AND: [scoped, { status: "WITHDRAWN" }] } }),
     ]);
-    return { total: activos + bajas, activos, bajas };
+    return { total: active + withdrawn, active, withdrawn };
   }
 
   /** Detalle dentro del alcance; fuera de él responde 404 (no revela existencia). */
@@ -253,9 +254,9 @@ export class StudentService {
         create: { year, last: 1 },
         update: { last: { increment: 1 } },
       });
-      const studentNumber = formatMatricula(year, sequence.last);
+      const studentNumber = formatStudentNumber(year, sequence.last);
       const taken = await tx.student.findUnique({ where: { studentNumber }, select: { id: true } });
-      if (taken) throw new HttpError(409, "DUPLICATE_MATRICULA", { studentNumber });
+      if (taken) throw new HttpError(409, "DUPLICATE_STUDENT_NUMBER", { studentNumber });
 
       const row = await tx.student.create({
         data: {
@@ -381,22 +382,22 @@ export class StudentService {
       rows.map((row) => {
         const payer = row.guardians.find((g) => g.isPaymentResponsible) ?? row.guardians[0];
         return {
-          Matrícula: row.studentNumber,
-          Nombre: fullName(row),
-          CURP: row.curp,
-          "Fecha de nacimiento": fromDbDay(row.birthDate),
-          Género: row.gender ?? "",
-          Correo: row.email ?? "",
-          Teléfono: row.phone ?? "",
-          Estatus: row.status,
-          "Fecha de ingreso": fromDbDay(row.enrollmentDate),
-          Tutor: payer?.name ?? "",
-          "Teléfono del tutor": payer?.phone ?? "",
+          [t("exports.studentNumber")]: row.studentNumber,
+          [t("exports.name")]: fullName(row),
+          [t("exports.curp")]: row.curp,
+          [t("exports.birthDate")]: fromDbDay(row.birthDate),
+          [t("exports.gender")]: row.gender ?? "",
+          [t("exports.email")]: row.email ?? "",
+          [t("exports.phone")]: row.phone ?? "",
+          [t("exports.status")]: row.status,
+          [t("exports.enrollmentDate")]: fromDbDay(row.enrollmentDate),
+          [t("exports.guardian")]: payer?.name ?? "",
+          [t("exports.guardianPhone")]: payer?.phone ?? "",
         };
       })
     );
     const book = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(book, sheet, "Alumnos");
+    XLSX.utils.book_append_sheet(book, sheet, t("exports.studentsSheet"));
     await this.audit?.({
       action: "STUDENTS_EXPORTED",
       entityType: "Student",

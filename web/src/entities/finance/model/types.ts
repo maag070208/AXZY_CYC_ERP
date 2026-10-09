@@ -36,20 +36,20 @@ export interface Charge {
   id: string;
   studentId: string;
   studentNumber: string;
-  studentNombre: string;
+  studentName: string;
   conceptId: string;
-  conceptNombre: string;
-  conceptTipo: FeeConceptType;
+  conceptName: string;
+  conceptType: FeeConceptType;
   termId: string | null;
-  termNombre: string | null;
+  termName: string | null;
   description: string | null;
   amount: number;
   discount: number;
   total: number;
-  pagado: number;
-  saldo: number;
+  paid: number;
+  balance: number;
   dueDate: string;
-  vencido: boolean;
+  overdue: boolean;
   status: ChargeStatus;
   parentChargeId: string | null;
   cancelledAt: string | null;
@@ -83,9 +83,9 @@ export interface Payment {
   chargeId: string;
   studentId: string;
   studentNumber: string;
-  studentNombre: string;
-  conceptNombre: string;
-  chargeDescripcion: string | null;
+  studentName: string;
+  conceptName: string;
+  chargeDescription: string | null;
   amount: number;
   date: string;
   method: PaymentMethod;
@@ -97,7 +97,7 @@ export interface Payment {
   cancelReason: string | null;
   createdAt: string;
   chargeStatus: ChargeStatus;
-  chargeSaldo: number;
+  chargeBalance: number;
 }
 
 export interface PaymentInput {
@@ -110,8 +110,8 @@ export interface PaymentInput {
 
 export interface AccountStatement {
   student: { id: string; studentNumber: string; name: string; status: "ACTIVE" | "WITHDRAWN" };
-  escuela: { name: string; address: string; phone: string; email: string };
+  school: { name: string; address: string; phone: string; email: string };
   charges: Array<Charge & { payments: Array<{ id: string; receiptNumber: string; date: string; amount: number; method: PaymentMethod }> }>;
-  totals: { cargos: number; descuentos: number; pagado: number; saldo: number; vencido: number };
-  generadoEn: string;
+  totals: { charges: number; discounts: number; paid: number; balance: number; overdue: number };
+  generatedAt: string;
 }

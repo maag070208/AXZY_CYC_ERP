@@ -17,7 +17,7 @@ export interface Student {
   firstNames: string;
   paternalSurname: string;
   maternalSurname: string | null;
-  nombreCompleto: string;
+  fullName: string;
   curp: string;
   birthDate: string;
   gender: Gender | null;
@@ -50,8 +50,8 @@ export interface StudentInput {
 
 export interface StudentSummary {
   total: number;
-  activos: number;
-  bajas: number;
+  active: number;
+  withdrawn: number;
 }
 
 export type MovementType = "WITHDRAWAL" | "REENTRY";

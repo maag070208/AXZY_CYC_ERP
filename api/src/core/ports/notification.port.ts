@@ -14,7 +14,7 @@ export interface NotificationRecipient {
 }
 
 export interface NotifyInput {
-  /** Evento/plantilla, p. ej. `ALERTA_INASISTENCIA`. */
+  /** Evento/plantilla, p. ej. `ABSENCE_ALERT`. */
   code: string;
   recipients: NotificationRecipient[];
   /** Variables de la plantilla (texto ya formateado para mostrar). */

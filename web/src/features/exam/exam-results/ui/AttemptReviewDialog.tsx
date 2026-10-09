@@ -23,15 +23,15 @@ const answerText = (q: AttemptQuestion, empty: string): string => {
 function OpenReview({ attemptId, question, onDone }: { attemptId: string; question: AttemptQuestion; onDone: () => void }) {
   const { t } = useTranslation(["exams", "common"]);
   const notify = useNotify();
-  const [points, setPuntos] = useState(question.pointsEarned === null || question.pointsEarned === undefined ? "" : String(question.pointsEarned));
-  const [comment, setComentario] = useState(question.comment ?? "");
+  const [points, setPoints] = useState(question.pointsEarned === null || question.pointsEarned === undefined ? "" : String(question.pointsEarned));
+  const [comment, setComment] = useState(question.comment ?? "");
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
   const save = async () => {
     const value = Number(points);
     if (points === "" || value < 0 || value > question.points) {
-      setError(t("review.puntos", { max: question.points }));
+      setError(t("review.points", { max: question.points }));
       return;
     }
     setSaving(true);
@@ -51,9 +51,9 @@ function OpenReview({ attemptId, question, onDone }: { attemptId: string; questi
     <div data-role="open-review" className="mt-2 rounded-xl border border-amber-200 bg-amber-50/60 p-3">
       {error && <div className="mb-2"><ITAlert variant="error">{error}</ITAlert></div>}
       <div className="grid grid-cols-1 gap-2 md:grid-cols-[8rem_1fr_auto] md:items-end">
-        <ITInput name={`review-points-${question.sortOrder}`} type="number" decimals={2} label={t("review.puntos", { max: question.points })} value={points} onChange={(e) => setPuntos(e.target.value)} />
-        <ITTextarea name={`review-comment-${question.sortOrder}`} label={t("review.comentario")} value={comment} onChange={setComentario} rows={1} maxLength={1000} />
-        <ITButton variant="filled" color="primary" disabled={saving} onClick={() => void save()}>{t("review.calificar")}</ITButton>
+        <ITInput name={`review-points-${question.sortOrder}`} type="number" decimals={2} label={t("review.points", { max: question.points })} value={points} onChange={(e) => setPoints(e.target.value)} />
+        <ITTextarea name={`review-comment-${question.sortOrder}`} label={t("review.comment")} value={comment} onChange={setComment} rows={1} maxLength={1000} />
+        <ITButton variant="filled" color="primary" disabled={saving} onClick={() => void save()}>{t("review.gradeAction")}</ITButton>
       </div>
     </div>
   );
@@ -91,7 +91,7 @@ export default function AttemptReviewDialog({ attemptId, canReview, onClose, onC
     }
   };
 
-  const title = attempt ? t("review.title", { number: attempt.number, name: attempt.student.name }) : t("results.ver");
+  const title = attempt ? t("review.title", { number: attempt.number, name: attempt.student.name }) : t("results.viewAction");
   const finished = !!attempt && attempt.status !== "IN_PROGRESS";
   return (
     <ITDialog isOpen={!!attemptId} onClose={onClose} title={title} className="w-full max-w-3xl">
@@ -104,11 +104,11 @@ export default function AttemptReviewDialog({ attemptId, canReview, onClose, onC
                 <ITBadget color={attempt.status === "IN_PROGRESS" ? "warning" : "secondary"} size="sm">{t(`runner.statuses.${attempt.status}`)}</ITBadget>
                 {attempt.result && (
                   <ITText className="text-[13px] font-bold text-slate-700">
-                    {t("review.score", { score: attempt.result.score, total: attempt.result.totalPuntos })}
+                    {t("review.score", { score: attempt.result.score, total: attempt.result.totalPoints })}
                   </ITText>
                 )}
                 {!!attempt.result?.pendingCount && <ITBadget color="warning" size="sm">{t("review.pending", { count: attempt.result.pendingCount })}</ITBadget>}
-                {attempt.focusLosses > 0 && <ITBadget color="danger" size="sm">{t("results.pestanas", { count: attempt.focusLosses })}</ITBadget>}
+                {attempt.focusLosses > 0 && <ITBadget color="danger" size="sm">{t("results.tabSwitches", { count: attempt.focusLosses })}</ITBadget>}
               </ITFlex>
               {canReview && finished && (
                 <ITButton variant="outlined" color="secondary" size="sm" onClick={() => void regrade()}>
@@ -125,7 +125,7 @@ export default function AttemptReviewDialog({ attemptId, canReview, onClose, onC
                       <ITText className="text-[12px] font-bold text-slate-700">{q.sortOrder}. {q.text}</ITText>
                       <span className="shrink-0">
                         {pending ? (
-                          <ITBadget color="warning" size="sm">{t("review.pendiente")}</ITBadget>
+                          <ITBadget color="warning" size="sm">{t("review.pendingItem")}</ITBadget>
                         ) : (
                           <ITBadget color={q.isCorrect ? "success" : "danger"} size="sm">
                             <ITFlex align="center" gap={1}>{q.isCorrect ? <FaCheck size={8} /> : <FaTimes size={8} />}{q.pointsEarned ?? 0} / {q.points}</ITFlex>
@@ -134,11 +134,11 @@ export default function AttemptReviewDialog({ attemptId, canReview, onClose, onC
                       </span>
                     </ITFlex>
                     <ITText className="mt-1 block text-[12px] text-slate-600">
-                      <b>{t("review.respuesta")}:</b> {answerText(q, t("review.sinRespuesta"))}
+                      <b>{t("review.answer")}:</b> {answerText(q, t("review.noAnswer"))}
                     </ITText>
                     {q.type !== "OPEN" && (
                       <ITText className="block text-[11px] text-emerald-700">
-                        {t("review.correcta")}: {q.options.filter((o) => o.isCorrect).map((o) => o.text).join(", ")}
+                        {t("review.correctOption")}: {q.options.filter((o) => o.isCorrect).map((o) => o.text).join(", ")}
                       </ITText>
                     )}
                     {q.comment && <ITText className="block text-[11px] italic text-slate-500">“{q.comment}”</ITText>}

@@ -94,7 +94,7 @@ export default function StudentDetailPage() {
                     {g.relationship} · {g.phone}{g.email ? ` · ${g.email}` : ""}
                   </ITText>
                 </div>
-                {g.isPaymentResponsible && <ITBadget color="warning" size="sm">{t("form.responsablePago")}</ITBadget>}
+                {g.isPaymentResponsible && <ITBadget color="warning" size="sm">{t("form.paymentResponsible")}</ITBadget>}
               </ITFlex>
             ))}
           </ITFlex>
@@ -105,7 +105,7 @@ export default function StudentDetailPage() {
 
   return (
     <ITPage
-      title={s?.nombreCompleto ?? t("list.title")}
+      title={s?.fullName ?? t("list.title")}
       description={s ? `${t("detail.studentNumber")} ${s.studentNumber}` : undefined}
       icon={<FaUserGraduate size={20} />}
       loading={!s && !error}
@@ -122,12 +122,12 @@ export default function StudentDetailPage() {
             )}
             {canMove && s.status === "ACTIVE" && (
               <ITButton variant="outlined" color="danger" onClick={() => setMovement("WITHDRAWAL")}>
-                <ITFlex align="center" gap={1}><FaUserSlash size={11} /><ITText className="text-[11px] font-bold">{t("detail.baja")}</ITText></ITFlex>
+                <ITFlex align="center" gap={1}><FaUserSlash size={11} /><ITText className="text-[11px] font-bold">{t("detail.withdraw")}</ITText></ITFlex>
               </ITButton>
             )}
             {canMove && s.status === "WITHDRAWN" && (
               <ITButton variant="outlined" color="success" onClick={() => setMovement("REENTRY")}>
-                <ITFlex align="center" gap={1}><FaUndo size={11} /><ITText className="text-[11px] font-bold">{t("detail.reingreso")}</ITText></ITFlex>
+                <ITFlex align="center" gap={1}><FaUndo size={11} /><ITText className="text-[11px] font-bold">{t("detail.reenter")}</ITText></ITFlex>
               </ITButton>
             )}
           </ITFlex>
@@ -148,10 +148,10 @@ export default function StudentDetailPage() {
               ? [{ id: "enrollments", label: t("detail.tabs.enrollments"), content: <EnrollmentsTable filter={{ studentId: s.id }} reloadKey={reloadKey} /> }]
               : []),
             ...(canAttendance
-              ? [{ id: "attendance", label: t("detail.tabs.attendance"), content: <StudentAttendancePanel studentId={s.id} studentName={s.nombreCompleto} readOnly={s.status === "WITHDRAWN"} /> }]
+              ? [{ id: "attendance", label: t("detail.tabs.attendance"), content: <StudentAttendancePanel studentId={s.id} studentName={s.fullName} readOnly={s.status === "WITHDRAWN"} /> }]
               : []),
             ...(canPlans
-              ? [{ id: "plans", label: t("detail.tabs.plans"), content: <StudentPlansPanel studentId={s.id} studentName={s.nombreCompleto} readOnly={s.status === "WITHDRAWN"} /> }]
+              ? [{ id: "plans", label: t("detail.tabs.plans"), content: <StudentPlansPanel studentId={s.id} studentName={s.fullName} readOnly={s.status === "WITHDRAWN"} /> }]
               : []),
             ...(canAccount
               ? [{ id: "account", label: t("detail.tabs.account"), content: <AccountStatementView key={reloadKey} studentId={s.id} /> }]
@@ -169,7 +169,7 @@ export default function StudentDetailPage() {
           onClose={() => setMovement(null)}
           onDone={(result) => {
             setMovement(null);
-            notify.success(result.status === "WITHDRAWN" ? t("movements.bajaDone") : t("movements.reingresoDone"));
+            notify.success(result.status === "WITHDRAWN" ? t("movements.withdrawalDone") : t("movements.reentryDone"));
             setReloadKey((k) => k + 1);
           }}
         />

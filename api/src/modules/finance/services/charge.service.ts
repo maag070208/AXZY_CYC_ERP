@@ -42,7 +42,7 @@ const percentOf = (discount: number, amount: number) => (amount > 0 ? money((dis
 /**
  * Cargos (M09): alta individual, generación masiva idempotente por grupo o
  * ciclo, cancelación con motivo, recargos por mora y estado de cuenta. El
- * estatus (`PENDIENTE → PARTIAL → PAGADO`) lo recalculan los pagos.
+ * estatus (`PENDING → PARTIAL → PAID`) lo recalculan los pagos.
  */
 export class ChargeService {
   private notifier?: Notifier;
@@ -75,13 +75,13 @@ export class ChargeService {
       const contacts = await studentContacts(this.db, charge.studentId, "payer");
       if (!contacts) continue;
       const total = Number(charge.amount) - Number(charge.discount);
-      const saldo = money(total) - money(sumOf(charge.payments.map((p) => p.amount)));
+      const balance = money(total) - money(sumOf(charge.payments.map((p) => p.amount)));
       const date = fromDbDay(charge.dueDate);
       queued += await this.notifier({
-        code: "PAGO_POR_VENCER",
+        code: "PAYMENT_DUE_SOON",
         recipients: contacts.recipients,
-        payload: { name: contacts.name, concepto: charge.concept.name, saldo: formatMoney(saldo), date: formatDay(date) },
-        idempotencyKey: `PAGO_POR_VENCER:${charge.id}:${date}`,
+        payload: { name: contacts.name, concept: charge.concept.name, balance: formatMoney(balance), date: formatDay(date) },
+        idempotencyKey: `PAYMENT_DUE_SOON:${charge.id}:${date}`,
       });
     }
     return { charges: charges.length, queued };
@@ -103,24 +103,24 @@ export class ChargeService {
     }
     const status = filterEnum(filters, "status", CHARGE_STATUSES);
     if (status) and.push({ status });
-    const type = filterEnum(filters, "conceptTipo", FEE_CONCEPT_TYPES);
+    const type = filterEnum(filters, "conceptType", FEE_CONCEPT_TYPES);
     if (type) and.push({ concept: { type } });
     const studentNumber = filterText(filters, "studentNumber");
     if (studentNumber) and.push({ student: { studentNumber } });
-    const name = filterText(filters, "studentNombre");
+    const name = filterText(filters, "studentName");
     if (name) {
       for (const word of name.contains.split(/\s+/).filter(Boolean)) {
         const contains = { contains: word, mode: "insensitive" as const };
         and.push({ student: { OR: [{ firstNames: contains }, { paternalSurname: contains }, { maternalSurname: contains }] } });
       }
     }
-    const vence = filterDayRange(filters, "dueDate");
-    if (vence) and.push({ dueDate: vence });
-    const vencido = filterBool(filters, "vencido");
-    if (vencido !== undefined) {
+    const dueDate = filterDayRange(filters, "dueDate");
+    if (dueDate) and.push({ dueDate: dueDate });
+    const overdue = filterBool(filters, "overdue");
+    if (overdue !== undefined) {
       const today = toDbDay(todayInBusinessZone());
       and.push(
-        vencido
+        overdue
           ? { status: { in: ["PENDING", "PARTIAL"] }, dueDate: { lt: today } }
           : { NOT: { status: { in: ["PENDING", "PARTIAL"] }, dueDate: { lt: today } } }
       );
@@ -134,7 +134,7 @@ export class ChargeService {
         amount: "amount",
         status: "status",
         createdAt: "createdAt",
-        studentNombre: (direction) => ({ student: { paternalSurname: direction } }),
+        studentName: (direction) => ({ student: { paternalSurname: direction } }),
       },
       [{ dueDate: "desc" }, { createdAt: "desc" }]
     );
@@ -174,7 +174,7 @@ export class ChargeService {
     const concept = await this.concept(input.conceptId);
     const { amount, discount } = this.amounts(input, concept.amount);
     enforcePolicy("charges.create", actor, {
-      amount, discount, porcentajeDescuento: percentOf(discount, amount), conceptTipo: concept.type, masivo: false,
+      amount, discount, discountPercent: percentOf(discount, amount), conceptType: concept.type, bulk: false,
     });
     const student = await this.db.student.findUnique({ where: { id: input.studentId }, select: { id: true } });
     if (!student) throw new HttpError(400, "STUDENT_NOT_FOUND");
@@ -198,7 +198,7 @@ export class ChargeService {
       const view = toChargeView(row);
       await this.audit?.(
         { action: "CHARGE_CREATED", entityType: "Charge", entityId: row.id, userId: actor.id, userName: actor.username,
-          newState: { studentId: view.studentId, concepto: view.conceptNombre, amount, discount, dueDate: view.dueDate } },
+          newState: { studentId: view.studentId, concept: view.conceptName, amount, discount, dueDate: view.dueDate } },
         tx
       );
       return view;
@@ -215,7 +215,7 @@ export class ChargeService {
     const concept = await this.concept(input.conceptId);
     const { amount, discount } = this.amounts(input, concept.amount);
     enforcePolicy("charges.create", actor, {
-      amount, discount, porcentajeDescuento: percentOf(discount, amount), conceptTipo: concept.type, masivo: true,
+      amount, discount, discountPercent: percentOf(discount, amount), conceptType: concept.type, bulk: true,
     });
     let termId = input.termId;
     let enrollmentWhere: Prisma.EnrollmentWhereInput;
@@ -266,7 +266,7 @@ export class ChargeService {
         }
         await this.audit?.(
           { action: "CHARGE_GENERATED", entityType: "Charge", userId: actor.id, userName: actor.username,
-            metadata: { conceptId: concept.id, concepto: concept.name, scope: input.scope, groupId: input.groupId ?? null,
+            metadata: { conceptId: concept.id, concept: concept.name, scope: input.scope, groupId: input.groupId ?? null,
               termId: termId ?? null, dueDate: input.dueDate, amount, discount,
               created: created.length, skipped: already.size, idempotencyKey: idempotencyKey ?? null } },
           tx
@@ -328,7 +328,7 @@ export class ChargeService {
     await this.db.$transaction(async (tx) => {
       for (const charge of overdue) {
         const view = toChargeView(charge, today);
-        const fee = lateFeeOf(view.saldo, view.dueDate, today, rule);
+        const fee = lateFeeOf(view.balance, view.dueDate, today, rule);
         if (fee <= 0) {
           skipped += 1;
           continue;
@@ -387,7 +387,7 @@ export class ChargeService {
     }));
     return {
       student: { id: student.id, studentNumber: student.studentNumber, name: fullName(student), status: student.status },
-      escuela: {
+      school: {
         name: setting.get("SCHOOL_NAME") || "CYC",
         address: setting.get("SCHOOL_ADDRESS") ?? "",
         phone: setting.get("SCHOOL_PHONE") ?? "",
@@ -395,13 +395,13 @@ export class ChargeService {
       },
       charges,
       totals: {
-        cargos: sumOf(charges.map((c) => c.amount)),
-        descuentos: sumOf(charges.map((c) => c.discount)),
-        pagado: sumOf(charges.map((c) => c.pagado)),
-        saldo: sumOf(charges.map((c) => c.saldo)),
-        vencido: sumOf(charges.filter((c) => c.vencido).map((c) => c.saldo)),
+        charges: sumOf(charges.map((c) => c.amount)),
+        discounts: sumOf(charges.map((c) => c.discount)),
+        paid: sumOf(charges.map((c) => c.paid)),
+        balance: sumOf(charges.map((c) => c.balance)),
+        overdue: sumOf(charges.filter((c) => c.overdue).map((c) => c.balance)),
       },
-      generadoEn: new Date().toISOString(),
+      generatedAt: new Date().toISOString(),
     };
   }
 }

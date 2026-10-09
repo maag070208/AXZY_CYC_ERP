@@ -94,11 +94,11 @@ test.describe("conceptos", () => {
     expect((await dup.json()).code).toBe("FEE_CONCEPT_NAME_TAKEN");
     expect((await lastAudit("FEE_CONCEPT_CREATED", controlId))?.entityId).toBe(conceptId);
 
-    const recargo = await db.feeConcept.findFirstOrThrow({ where: { type: "LATE_FEE" } });
-    const reserved = await control.patch(`fee-concepts/${recargo.id}`, { data: { amount: 10 } });
+    const lateFee = await db.feeConcept.findFirstOrThrow({ where: { type: "LATE_FEE" } });
+    const reserved = await control.patch(`fee-concepts/${lateFee.id}`, { data: { amount: 10 } });
     expect((await reserved.json()).code).toBe("FEE_CONCEPT_RESERVED");
-    const asRecargo = await control.post("fee-concepts", { data: { name: `E2E R ${RUN}`, amount: 1, type: "LATE_FEE" } });
-    expect(asRecargo.status()).toBe(400);
+    const asLateFee = await control.post("fee-concepts", { data: { name: `E2E R ${RUN}`, amount: 1, type: "LATE_FEE" } });
+    expect(asLateFee.status()).toBe(400);
     const options = await (await control.get("fee-concepts/options")).json();
     expect(options.some((c: { type: string }) => c.type === "LATE_FEE")).toBe(false);
 
@@ -109,10 +109,10 @@ test.describe("conceptos", () => {
 });
 
 test.describe("cargos y pagos", () => {
-  test("cargo con el amount del concepto; discount mayor al amount → 400", async () => {
+  test("cargo con el monto del concepto; descuento mayor al monto → 400", async () => {
     const student = await makeStudent(RUN, "Cargo");
     const charge = await newCharge(student.id, { discount: 500, description: "Colegiatura septiembre" });
-    expect(charge).toMatchObject({ amount: 2500, discount: 500, total: 2000, pagado: 0, saldo: 2000, status: "PENDING" });
+    expect(charge).toMatchObject({ amount: 2500, discount: 500, total: 2000, paid: 0, balance: 2000, status: "PENDING" });
     expect((await lastAudit("CHARGE_CREATED", controlId))?.entityId).toBe(charge.id);
     const bad = await control.post("charges", {
       data: { studentId: student.id, conceptId, amount: 100, discount: 150, dueDate: "2026-12-10" },
@@ -126,7 +126,7 @@ test.describe("cargos y pagos", () => {
     const first = await pay(control, charge.id, 1000, {}, { reference: "Caja 1" });
     expect(first.status(), await first.text()).toBe(201);
     const p1 = await first.json();
-    expect(p1).toMatchObject({ amount: 1000, chargeStatus: "PARTIAL", chargeSaldo: 1500, registeredByName: CONTROL.name });
+    expect(p1).toMatchObject({ amount: 1000, chargeStatus: "PARTIAL", chargeBalance: 1500, registeredByName: CONTROL.name });
     expect(p1.receiptNumber).toMatch(/^REC-\d{4}-\d{6}$/);
     expect((await lastAudit("PAYMENT_REGISTERED", controlId))?.entityId).toBe(p1.id);
 
@@ -137,8 +137,8 @@ test.describe("cargos y pagos", () => {
     expect((await future.json()).code).toBe("FUTURE_DATE");
 
     const p2 = await (await pay(control, charge.id, 1500)).json();
-    expect(p2).toMatchObject({ chargeStatus: "PAID", chargeSaldo: 0 });
-    const n = (folio: string) => Number(folio.split("-")[2]);
+    expect(p2).toMatchObject({ chargeStatus: "PAID", chargeBalance: 0 });
+    const n = (receiptNumber: string) => Number(receiptNumber.split("-")[2]);
     expect(n(p2.receiptNumber)).toBeGreaterThan(n(p1.receiptNumber));
 
     const paid = await pay(control, charge.id, 1);
@@ -156,7 +156,7 @@ test.describe("cargos y pagos", () => {
     expect(noReason.status()).toBe(400);
     const res = await control.delete(`payments/${payment.id}`, { data: { reason: "Billete falso" } });
     expect(res.status()).toBe(200);
-    expect(await res.json()).toMatchObject({ receiptNumber: payment.receiptNumber, cancelReason: "Billete falso", chargeStatus: "PENDING", chargeSaldo: 800 });
+    expect(await res.json()).toMatchObject({ receiptNumber: payment.receiptNumber, cancelReason: "Billete falso", chargeStatus: "PENDING", chargeBalance: 800 });
     const log = await lastAudit("PAYMENT_CANCELLED", controlId);
     expect(log?.previousState).toMatchObject({ chargeStatus: "PAID" });
     expect(log?.newState).toMatchObject({ chargeStatus: "PENDING" });
@@ -173,7 +173,7 @@ test.describe("cargos y pagos", () => {
     expect((await blocked.json()).code).toBe("CHARGE_HAS_PAYMENTS");
     await control.delete(`payments/${payment.id}`, { data: { reason: "Se cancela el cargo" } });
     const ok = await control.delete(`charges/${charge.id}`, { data: { reason: "Error de captura" } });
-    expect(await ok.json()).toMatchObject({ status: "CANCELLED", saldo: 0, cancelReason: "Error de captura" });
+    expect(await ok.json()).toMatchObject({ status: "CANCELLED", balance: 0, cancelReason: "Error de captura" });
     expect((await lastAudit("CHARGE_CANCELLED", controlId))?.entityId).toBe(charge.id);
     expect((await (await pay(control, charge.id, 10)).json()).code).toBe("CHARGE_ALREADY_PAID");
   });
@@ -206,17 +206,17 @@ test.describe("cargos y pagos", () => {
     expect(await db.payment.count({ where: { chargeId: charge.id, cancelledAt: null } })).toBe(1);
   });
 
-  test("política ABAC: discount mayor a 50 % → 403 POLICY_DENIED", async () => {
+  test("política ABAC: descuento mayor a 50 % → 403 POLICY_DENIED", async () => {
     const student = await makeStudent(RUN, "Politica");
     const policy = await (
       await admin.post("permissions/policies", {
         data: {
           key: `${E2E_PREFIX}tope_descuento_${RUN}`,
-          name: "Tope de discount",
+          name: "Tope de descuento",
           action: "charges.create",
           effect: "DENY",
           priority: 10,
-          conditions: [{ field: "porcentajeDescuento", operator: "gt", value: 50 }],
+          conditions: [{ field: "discountPercent", operator: "gt", value: 50 }],
         },
       })
     ).json();
@@ -233,11 +233,11 @@ test.describe("cargos y pagos", () => {
 });
 
 test.describe("generación masiva", () => {
-  test("por grupo: solo inscritos vigentes y activos; idempotente con y sin code", async () => {
+  test("por grupo: solo inscritos vigentes y activos; idempotente con y sin clave", async () => {
     const course = await makeCourse(RUN, "Cobranza");
     const group = await (
       await control.post("groups", {
-        data: { courseId: course.id, termId, name: "F1", capacity: 10, schedule: [slot("LUNES", "07:00", "08:00")] },
+        data: { courseId: course.id, termId, name: "F1", capacity: 10, schedule: [slot("MONDAY", "07:00", "08:00")] },
       })
     ).json();
     const [a, b, c, d] = await Promise.all(["GenA", "GenB", "GenC", "GenD"].map((l) => makeStudent(RUN, l)));
@@ -306,7 +306,7 @@ test.describe("recargos y estado de cuenta", () => {
 
     const statement = await (await control.get(`students/${own.id}/account-statement`)).json();
     expect(statement.charges).toHaveLength(2);
-    expect(statement.totals).toEqual({ cargos: 1500, descuentos: 100, pagado: 400, saldo: 1000, vencido: 500 });
+    expect(statement.totals).toEqual({ charges: 1500, discounts: 100, paid: 400, balance: 1000, overdue: 500 });
     expect(statement.charges[0].payments).toHaveLength(1);
 
     const { api } = await loginAs(PUPIL.username);

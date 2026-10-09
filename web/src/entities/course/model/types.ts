@@ -4,7 +4,7 @@ export interface Course {
   code: string;
   name: string;
   levelId: string | null;
-  levelNombre: string | null;
+  levelName: string | null;
   description: string | null;
   active: boolean;
   groupsCount: number;

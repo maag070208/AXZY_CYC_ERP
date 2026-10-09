@@ -12,7 +12,7 @@ import { formatMoney } from "@shared/lib/money";
 interface Props {
   isOpen: boolean;
   /** Alumno ya elegido (desde su estado de cuenta). */
-  student?: Pick<Student, "id" | "nombreCompleto" | "studentNumber"> | null;
+  student?: Pick<Student, "id" | "fullName" | "studentNumber"> | null;
   onClose: () => void;
   onSaved: (charge: Charge) => void;
 }
@@ -22,15 +22,15 @@ const pickDay = (value: unknown): string => (value instanceof Date && !Number.is
 /** Cargo individual: alumno, concepto, ciclo, monto/descuento y vencimiento. */
 export default function ChargeFormDialog({ isOpen, student: fixed, onClose, onSaved }: Props) {
   const { t, i18n } = useTranslation(["finance", "courses", "common"]);
-  const [student, setStudent] = useState<Pick<Student, "id" | "nombreCompleto" | "studentNumber"> | null>(null);
+  const [student, setStudent] = useState<Pick<Student, "id" | "fullName" | "studentNumber"> | null>(null);
   const [concepts, setConcepts] = useState<FeeConcept[]>([]);
   const [terms, setTerms] = useState<Term[]>([]);
   const [conceptId, setConceptId] = useState("");
   const [termId, setTermId] = useState("");
-  const [description, setDescripcion] = useState("");
-  const [amount, setMonto] = useState("");
-  const [discount, setDescuento] = useState("");
-  const [vence, setVence] = useState("");
+  const [description, setDescription] = useState("");
+  const [amount, setAmount] = useState("");
+  const [discount, setDiscount] = useState("");
+  const [dueDate, setDueDate] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -38,10 +38,10 @@ export default function ChargeFormDialog({ isOpen, student: fixed, onClose, onSa
     if (!isOpen) return;
     setStudent(fixed ?? null);
     setConceptId("");
-    setDescripcion("");
-    setMonto("");
-    setDescuento("");
-    setVence("");
+    setDescription("");
+    setAmount("");
+    setDiscount("");
+    setDueDate("");
     setError(null);
     feeConceptApi.options().then(setConcepts).catch(() => setConcepts([]));
     termsApi.options().then((list) => {
@@ -53,8 +53,8 @@ export default function ChargeFormDialog({ isOpen, student: fixed, onClose, onSa
   const concept = concepts.find((c) => c.id === conceptId);
 
   const save = async () => {
-    if (!student || !conceptId || !vence) {
-      setError(t("common:validation.required", { label: !student ? t("charges.alumno") : !conceptId ? t("charges.concepto") : t("charges.vencimiento") }));
+    if (!student || !conceptId || !dueDate) {
+      setError(t("common:validation.required", { label: !student ? t("charges.student") : !conceptId ? t("charges.concept") : t("charges.dueDate") }));
       return;
     }
     setSaving(true);
@@ -67,7 +67,7 @@ export default function ChargeFormDialog({ isOpen, student: fixed, onClose, onSa
         description: description.trim() || null,
         ...(amount !== "" && { amount: Number(amount) }),
         ...(discount !== "" && { discount: Number(discount) }),
-        dueDate: vence,
+        dueDate: dueDate,
       }));
     } catch (err) {
       setError(errorMessage(err, t("common:errors.save")));
@@ -85,7 +85,7 @@ export default function ChargeFormDialog({ isOpen, student: fixed, onClose, onSa
           {student ? (
             <ITFlex justify="between" align="center" className="rounded-xl border border-slate-200 px-3 py-2">
               <div>
-                <ITText className="block text-[12px] font-bold text-slate-700">{student.nombreCompleto}</ITText>
+                <ITText className="block text-[12px] font-bold text-slate-700">{student.fullName}</ITText>
                 <ITText className="font-mono text-[11px] text-slate-400">{student.studentNumber}</ITText>
               </div>
               {!fixed && (
@@ -95,33 +95,33 @@ export default function ChargeFormDialog({ isOpen, student: fixed, onClose, onSa
               )}
             </ITFlex>
           ) : (
-            <StudentSearch label={t("charges.alumnoSearch")} hint={t("courses:enrollments.searchHint")} emptyText={t("courses:enrollments.noResults")}
+            <StudentSearch label={t("charges.studentSearch")} hint={t("courses:enrollments.searchHint")} emptyText={t("courses:enrollments.noResults")}
               actionLabel={t("charges.selectStudent")} onSelect={setStudent} activeOnly={false} />
           )}
           <ITGrid container columns={12} spacing={4}>
             <ITGrid item xs={12} md={7}>
-              <ITSelect name="conceptId" label={t("charges.concepto")} value={conceptId} placeholder="—"
+              <ITSelect name="conceptId" label={t("charges.concept")} value={conceptId} placeholder="—"
                 options={concepts.map((c) => ({ value: c.id, label: `${c.name} · ${formatMoney(c.amount, i18n.language)}` }))}
                 onChange={(e) => setConceptId(e.target.value)} />
             </ITGrid>
             <ITGrid item xs={12} md={5}>
-              <ITSelect name="termId" label={t("charges.ciclo")} value={termId} placeholder="—"
+              <ITSelect name="termId" label={t("charges.termName")} value={termId} placeholder="—"
                 options={terms.map((x) => ({ value: x.id, label: x.name }))} onChange={(e) => setTermId(e.target.value)} />
             </ITGrid>
             <ITGrid item xs={12}>
-              <ITInput name="description" label={t("charges.descripcion")} value={description} onChange={(e) => setDescripcion(e.target.value)} />
+              <ITInput name="description" label={t("charges.description")} value={description} onChange={(e) => setDescription(e.target.value)} />
             </ITGrid>
             <ITGrid item xs={12} md={4}>
-              <ITInput name="amount" type="number" label={t("charges.monto")} value={amount}
-                placeholder={concept ? String(concept.amount) : undefined} onChange={(e) => setMonto(e.target.value)} />
-              <ITText className="text-[10px] text-slate-400">{t("charges.montoHint")}</ITText>
+              <ITInput name="amount" type="number" label={t("charges.amount")} value={amount}
+                placeholder={concept ? String(concept.amount) : undefined} onChange={(e) => setAmount(e.target.value)} />
+              <ITText className="text-[10px] text-slate-400">{t("charges.amountHint")}</ITText>
             </ITGrid>
             <ITGrid item xs={12} md={4}>
-              <ITInput name="discount" type="number" label={t("charges.descuento")} value={discount} onChange={(e) => setDescuento(e.target.value)} />
+              <ITInput name="discount" type="number" label={t("charges.discount")} value={discount} onChange={(e) => setDiscount(e.target.value)} />
             </ITGrid>
             <ITGrid item xs={12} md={4}>
-              <ITDatePicker name="dueDate" label={t("charges.vencimiento")} required value={vence ? fromDay(vence) : undefined}
-                onChange={(e) => setVence(pickDay(e.target.value))} />
+              <ITDatePicker name="dueDate" label={t("charges.dueDate")} required value={dueDate ? fromDay(dueDate) : undefined}
+                onChange={(e) => setDueDate(pickDay(e.target.value))} />
             </ITGrid>
           </ITGrid>
           <ITFlex justify="end" gap={2}>

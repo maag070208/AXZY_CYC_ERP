@@ -24,7 +24,7 @@ export interface ReportResult {
   report: string;
   title: string;
   generatedAt: string;
-  filters: ReportFilters & { termNombre?: string | null };
+  filters: ReportFilters & { termName?: string | null };
   columns: ReportColumn[];
   rows: ReportRow[];
   totals: Record<string, number>;

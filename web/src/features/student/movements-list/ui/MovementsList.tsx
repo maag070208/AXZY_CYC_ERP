@@ -19,7 +19,7 @@ export default function MovementsList({ studentId, reloadKey }: Props) {
   const columns: Column<StudentMovement>[] = [
     {
       key: "type",
-      label: t("movements.tipo"),
+      label: t("movements.type"),
       type: "string",
       width: 120,
       render: (m) => (
@@ -28,15 +28,15 @@ export default function MovementsList({ studentId, reloadKey }: Props) {
         </ITBadget>
       ),
     },
-    { key: "date", label: t("movements.fecha"), type: "string", width: 140, render: (m) => formatDay(m.date, i18n.language) },
-    { key: "reason", label: t("movements.motivo"), type: "string" },
+    { key: "date", label: t("movements.date"), type: "string", width: 140, render: (m) => formatDay(m.date, i18n.language) },
+    { key: "reason", label: t("movements.reasonField"), type: "string" },
     {
       key: "notes",
-      label: t("movements.observaciones"),
+      label: t("movements.notes"),
       type: "string",
       render: (m) => <ITText className="text-[11px] text-slate-500">{m.notes ?? "—"}</ITText>,
     },
-    { key: "authorName", label: t("movements.autor"), type: "string", width: 180 },
+    { key: "authorName", label: t("movements.author"), type: "string", width: 180 },
   ];
 
   return (

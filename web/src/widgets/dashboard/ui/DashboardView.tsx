@@ -37,7 +37,7 @@ export default function DashboardView() {
         <KpiTile label={t("dashboard.activeStudents")} value={data.activeStudents} icon={<FaUserGraduate size={16} />} tone="sky"
           hint={t("dashboard.inactiveStudents", { count: data.inactiveStudents })} />
         <KpiTile label={t("dashboard.occupancy")} value={`${Math.round(data.groupOccupancy.average * 100)}%`} icon={<FaChartPie size={16} />} tone="violet"
-          hint={data.termNombre ? t("dashboard.groups", { count: data.groupOccupancy.groups.length, term: data.termNombre }) : t("dashboard.noTerm")} />
+          hint={data.termName ? t("dashboard.groups", { count: data.groupOccupancy.groups.length, term: data.termName }) : t("dashboard.noTerm")} />
         {finance && (
           <KpiTile label={t("dashboard.monthIncome")} value={money(data.monthIncome)} icon={<FaMoneyBillWave size={16} />} tone="emerald" />
         )}
@@ -67,8 +67,8 @@ export default function DashboardView() {
             <ProgressList
               items={data.groupOccupancy.groups.map((g) => ({
                 id: g.groupId,
-                label: `${g.curso} · ${g.name}`,
-                hint: `${g.inscritos}/${g.capacity}`,
+                label: `${g.courseName} · ${g.name}`,
+                hint: `${g.enrolledCount}/${g.capacity}`,
                 ratio: g.ratio,
               }))}
             />

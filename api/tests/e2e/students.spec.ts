@@ -80,7 +80,7 @@ test.describe("alta", () => {
       curp: input.curp,
       birthDate: input.birthDate,
       enrollmentDate: "2026-08-03",
-      nombreCompleto: `${input.firstNames} Prueba Contrato`,
+      fullName: `${input.firstNames} Prueba Contrato`,
     });
     expect(student.guardians).toHaveLength(1);
     expect(student.guardians[0]).toMatchObject({ name: "E2E Tutora", isPaymentResponsible: true });
@@ -120,7 +120,7 @@ test.describe("alta", () => {
     expect((await dup.json()).code).toBe("DUPLICATE_CURP");
   });
 
-  test("mismo name y nacimiento → 409 DUPLICATE_STUDENT; con confirmación pasa", async () => {
+  test("mismo nombre y nacimiento → 409 DUPLICATE_STUDENT; con confirmación pasa", async () => {
     const first = minor("Homonimo");
     expect((await control.post("students", { data: first })).status()).toBe(201);
     const twin = { ...first, curp: makeCurp(first.birthDate, "M") };
@@ -158,17 +158,17 @@ test.describe("alta", () => {
 });
 
 test.describe("consulta, edición y alcance", () => {
-  test("/students/query busca por palabras del name, matrícula y estatus", async () => {
+  test("/students/query busca por palabras del nombre, matrícula y estatus", async () => {
     const created = await (await control.post("students", { data: minor("Buscable") })).json();
     const byName = await control.post("students/query", {
       data: { page: 1, limit: 10, filters: { name: `buscable ${RUN} prueba` } },
     });
     expect((await byName.json()).data.map((s: { id: string }) => s.id)).toEqual([created.id]);
 
-    const byMatricula = await control.post("students/query", {
+    const byStudentNumber = await control.post("students/query", {
       data: { page: 1, limit: 10, filters: { studentNumber: created.studentNumber, status: "ACTIVE" } },
     });
-    expect((await byMatricula.json()).total).toBe(1);
+    expect((await byStudentNumber.json()).total).toBe(1);
 
     const badStatus = await control.post("students/query", { data: { filters: { status: "PERDIDO" } } });
     expect((await badStatus.json()).code).toBe("INVALID_FILTER");
@@ -246,11 +246,11 @@ test.describe("consulta, edición y alcance", () => {
 });
 
 test.describe("bajas y reingresos (M05)", () => {
-  test("baja con reason del catálogo → BAJA + movimiento + bitácora; repetirla → 409", async () => {
+  test("baja con motivo del catálogo → BAJA + movimiento + bitácora; repetirla → 409", async () => {
     const student = await (await control.post("students", { data: minor("Baja") })).json();
     const reason = await db.cancellationReason.findFirst({ where: { active: true } });
 
-    const res = await control.post(`students/${student.id}/baja`, {
+    const res = await control.post(`students/${student.id}/withdrawal`, {
       data: { reason: "Cambio de ciudad", reasonId: reason!.id, notes: "Se muda a Monterrey" },
     });
     expect(res.status()).toBe(200);
@@ -262,15 +262,15 @@ test.describe("bajas y reingresos (M05)", () => {
     expect(log?.previousState).toEqual({ status: "ACTIVE" });
     expect(log?.metadata).toMatchObject({ movementId: body.movement.id });
 
-    const again = await control.post(`students/${student.id}/baja`, { data: { reason: "Otra vez" } });
+    const again = await control.post(`students/${student.id}/withdrawal`, { data: { reason: "Otra vez" } });
     expect(again.status()).toBe(409);
     expect((await again.json()).code).toBe("STUDENT_INACTIVE");
   });
 
-  test("reingreso conserva la matrícula; el historial queda en sortOrder y es de solo lectura", async () => {
+  test("reingreso conserva la matrícula; el historial queda en orden y es de solo lectura", async () => {
     const student = await (await control.post("students", { data: minor("Reingreso") })).json();
-    await control.post(`students/${student.id}/baja`, { data: { reason: "Motivos económicos", date: "2026-01-15" } });
-    const back = await control.post(`students/${student.id}/reingreso`, { data: { reason: "Regulariza pagos" } });
+    await control.post(`students/${student.id}/withdrawal`, { data: { reason: "Motivos económicos", date: "2026-01-15" } });
+    const back = await control.post(`students/${student.id}/reentry`, { data: { reason: "Regulariza pagos" } });
     expect(back.status()).toBe(200);
     expect((await back.json()).status).toBe("ACTIVE");
 
@@ -281,23 +281,23 @@ test.describe("bajas y reingresos (M05)", () => {
     expect(history.map((m: { type: string }) => m.type)).toEqual(["REENTRY", "WITHDRAWAL"]);
     expect(history[1]).toMatchObject({ date: "2026-01-15", authorName: CONTROL.name });
 
-    const twice = await control.post(`students/${student.id}/reingreso`, { data: { reason: "Ya activo" } });
+    const twice = await control.post(`students/${student.id}/reentry`, { data: { reason: "Ya activo" } });
     expect((await twice.json()).code).toBe("STUDENT_ALREADY_ACTIVE");
     expect((await lastAudit("STUDENT_REACTIVATED"))?.entityId).toBe(student.id);
   });
 
-  test("reason required, date futura y reason de catálogo inactivo → 400", async () => {
+  test("motivo obligatorio, fecha futura y motivo de catálogo inactivo → 400", async () => {
     const student = await (await control.post("students", { data: minor("Validar") })).json();
-    expect((await (await control.post(`students/${student.id}/baja`, { data: {} })).json()).code).toBe("VALIDATION_ERROR");
-    const future = await control.post(`students/${student.id}/baja`, { data: { reason: "Futuro", date: "2099-01-01" } });
+    expect((await (await control.post(`students/${student.id}/withdrawal`, { data: {} })).json()).code).toBe("VALIDATION_ERROR");
+    const future = await control.post(`students/${student.id}/withdrawal`, { data: { reason: "Futuro", date: "2099-01-01" } });
     expect((await future.json()).code).toBe("FUTURE_DATE");
-    const ghost = await control.post(`students/${student.id}/baja`, {
+    const ghost = await control.post(`students/${student.id}/withdrawal`, {
       data: { reason: "Fantasma", reasonId: "00000000-0000-0000-0000-000000000000" },
     });
     expect((await ghost.json()).code).toBe("REASON_NOT_AVAILABLE");
   });
 
-  test("DELETE /students/:id es la baja lógica de M03 (pide reason y deja movimiento)", async () => {
+  test("DELETE /students/:id es la baja lógica de M03 (pide motivo y deja movimiento)", async () => {
     const student = await (await admin.post("students", { data: minor("Delete") })).json();
     const res = await admin.delete(`students/${student.id}`, { data: { reason: "Duplicado en captura" } });
     expect(res.status()).toBe(200);
@@ -309,7 +309,7 @@ test.describe("bajas y reingresos (M05)", () => {
   test("ALUMNO no registra movimientos → 403", async () => {
     const { api: pupil } = await loginAs(PUPIL.username);
     const own = await db.student.findFirst({ where: { userId: pupilUserId } });
-    expect((await pupil.post(`students/${own!.id}/baja`, { data: { reason: "Me voy" } })).status()).toBe(403);
+    expect((await pupil.post(`students/${own!.id}/withdrawal`, { data: { reason: "Me voy" } })).status()).toBe(403);
     await pupil.dispose();
   });
 });

@@ -24,8 +24,8 @@ const courseFields = {
     .toUpperCase()
     .min(1, "REQUIRED_FIELD")
     .max(30)
-    .regex(/^[A-Z0-9][A-Z0-9._-]*$/, "CLAVE_FORMAT"),
-  name: z.string().trim().min(1, "NOMBRE_REQUIRED").max(150),
+    .regex(/^[A-Z0-9][A-Z0-9._-]*$/, "CODE_FORMAT"),
+  name: z.string().trim().min(1, "NAME_REQUIRED").max(150),
   levelId: uuid.nullable().optional(),
   description: optionalText(1000),
 };
@@ -49,7 +49,7 @@ export const CourseSchema = z
     code: z.string(),
     name: z.string(),
     levelId: z.string().nullable(),
-    levelNombre: z.string().nullable(),
+    levelName: z.string().nullable(),
     description: z.string().nullable(),
     active: z.boolean(),
     groupsCount: z.number().int(),
@@ -65,12 +65,12 @@ export const CourseTableResponseSchema = paginatedTableResponseSchema(CourseSche
 
 export const ScheduleSlotSchema = z
   .object({
-    dia: z.enum(WEEK_DAYS),
-    horaInicio: z.string().regex(TIME_PATTERN, "INVALID_TIME"),
-    horaFin: z.string().regex(TIME_PATTERN, "INVALID_TIME"),
+    day: z.enum(WEEK_DAYS),
+    startTime: z.string().regex(TIME_PATTERN, "INVALID_TIME"),
+    endTime: z.string().regex(TIME_PATTERN, "INVALID_TIME"),
   })
   .strict()
-  .refine((s) => minutesOf(s.horaInicio) < minutesOf(s.horaFin), { message: "SCHEDULE_RANGE", path: ["horaFin"] })
+  .refine((s) => minutesOf(s.startTime) < minutesOf(s.endTime), { message: "SCHEDULE_RANGE", path: ["endTime"] })
   .openapi("ScheduleSlot");
 
 const schedule = z
@@ -83,7 +83,7 @@ const groupFields = {
   courseId: uuid,
   termId: uuid,
   teacherId: uuid.nullable().optional(),
-  name: z.string().trim().min(1, "NOMBRE_REQUIRED").max(60),
+  name: z.string().trim().min(1, "NAME_REQUIRED").max(60),
   capacity: z.number().int().min(1).max(500),
   schedule: schedule,
   classroom: optionalText(60),
@@ -109,16 +109,16 @@ export const GroupSchema = z
     id: z.string(),
     name: z.string(),
     courseId: z.string(),
-    courseClave: z.string(),
-    courseNombre: z.string(),
+    courseCode: z.string(),
+    courseName: z.string(),
     termId: z.string(),
-    termNombre: z.string(),
-    termActivo: z.boolean(),
+    termName: z.string(),
+    activeTerm: z.boolean(),
     teacherId: z.string().nullable(),
-    teacherNombre: z.string().nullable(),
+    teacherName: z.string().nullable(),
     capacity: z.number().int(),
-    inscritos: z.number().int(),
-    disponibles: z.number().int(),
+    enrolledCount: z.number().int(),
+    available: z.number().int(),
     schedule: z.array(ScheduleSlotSchema),
     classroom: z.string().nullable(),
     active: z.boolean(),
@@ -156,12 +156,12 @@ export const EnrollmentSchema = z
     id: z.string(),
     studentId: z.string(),
     studentNumber: z.string(),
-    studentNombre: z.string(),
+    studentName: z.string(),
     studentStatus: z.enum(["ACTIVE", "WITHDRAWN"]),
     groupId: z.string(),
-    groupNombre: z.string(),
-    courseNombre: z.string(),
-    termNombre: z.string(),
+    groupName: z.string(),
+    courseName: z.string(),
+    termName: z.string(),
     date: z.string(),
     status: z.enum(ENROLLMENT_STATUSES),
     finalGrade: z.number().nullable(),

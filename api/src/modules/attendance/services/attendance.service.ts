@@ -47,8 +47,8 @@ const toSessionView = (row: SessionRow): SessionView => ({
   date: fromDbDay(row.date),
   time: row.time,
   topic: row.topic,
-  registrados: row.records.length,
-  faltas: row.records.filter((r) => r.status === "ABSENT").length,
+  recordedCount: row.records.length,
+  absences: row.records.filter((r) => r.status === "ABSENT").length,
   annulled: !!row.deletedAt,
   deleteReason: row.deleteReason,
   createdAt: row.createdAt.toISOString(),
@@ -164,8 +164,8 @@ export class AttendanceService {
       group: {
         id: session.group.id,
         name: session.group.name,
-        courseNombre: session.group.course.name,
-        termNombre: session.group.term.name,
+        courseName: session.group.course.name,
+        termName: session.group.term.name,
         closed: !!session.group.closedAt || !session.group.active,
       },
       rows,
@@ -271,19 +271,19 @@ export class AttendanceService {
     counts: AttendanceCounts,
     threshold: number
   ): SummaryRow {
-    const porcentaje = attendancePct(counts);
+    const percentage = attendancePct(counts);
     return {
       enrollmentId: e.id,
       studentId: e.student.id,
       studentNumber: e.student.studentNumber,
       name: studentName(e.student),
-      sesiones: totalOf(counts),
+      sessions: totalOf(counts),
       presentes: counts.PRESENT,
-      retardos: counts.LATE,
-      faltas: counts.ABSENT,
-      justificadas: counts.JUSTIFIED,
-      porcentaje,
-      alerta: belowThreshold(porcentaje, threshold),
+      lates: counts.LATE,
+      absences: counts.ABSENT,
+      justified: counts.JUSTIFIED,
+      percentage,
+      alert: belowThreshold(percentage, threshold),
     };
   }
 
@@ -295,19 +295,19 @@ export class AttendanceService {
       where: { groupId, status: { not: "WITHDRAWN" }, ...(own ? { student: { userId: (user as { id: string }).id } } : {}) },
       select: { id: true, attendanceAlertAt: true, student: { select: studentSelect } },
     });
-    const [threshold, counts, sesiones] = await Promise.all([
+    const [threshold, counts, sessions] = await Promise.all([
       this.threshold(),
       this.countsFor(enrollments.map((e) => e.id)),
       this.db.attendanceSession.count({ where: { groupId, deletedAt: null } }),
     ]);
     const rows = enrollments.map((e) => this.summaryOf(e, counts.get(e.id)!, threshold)).sort(byName);
-    const pcts = rows.map((r) => r.porcentaje).filter((p): p is number => p !== null);
+    const pcts = rows.map((r) => r.percentage).filter((p): p is number => p !== null);
     return {
       groupId,
       threshold,
-      sesiones,
-      promedio: pcts.length ? Math.round((pcts.reduce((s, p) => s + p, 0) / pcts.length) * 100) / 100 : null,
-      enAlerta: rows.filter((r) => r.alerta).length,
+      sessions,
+      average: pcts.length ? Math.round((pcts.reduce((s, p) => s + p, 0) / pcts.length) * 100) / 100 : null,
+      inAlert: rows.filter((r) => r.alert).length,
       rows,
     };
   }
@@ -343,9 +343,9 @@ export class AttendanceService {
         return {
           ...row,
           groupId: e.group.id,
-          grupo: e.group.name,
-          curso: e.group.course.name,
-          ciclo: e.group.term.name,
+          groupName: e.group.name,
+          courseName: e.group.course.name,
+          termName: e.group.term.name,
           records: e.attendance.map((a) => ({
             attendanceId: a.id,
             sessionId: a.session.id,
@@ -382,7 +382,7 @@ export class AttendanceService {
         await client.enrollment.update({ where: { id: e.id }, data: { attendanceAlertAt: null } });
         await this.audit?.(
           { action: "ATTENDANCE_ALERT_CLEARED", entityType: "Enrollment", entityId: e.id, ...SYSTEM,
-            previousState: { alerta: true }, newState: { alerta: false, porcentaje: pct, umbral: threshold } },
+            previousState: { alert: true }, newState: { alert: false, percentage: pct, threshold: threshold } },
           client as Prisma.TransactionClient
         );
         continue;
@@ -391,7 +391,7 @@ export class AttendanceService {
       await client.enrollment.update({ where: { id: e.id }, data: { attendanceAlertAt: at } });
       await this.audit?.(
         { action: "ATTENDANCE_ALERT_TRIGGERED", entityType: "Enrollment", entityId: e.id, ...SYSTEM,
-          previousState: { alerta: false }, newState: { alerta: true, porcentaje: pct, umbral: threshold }, metadata: { studentId: e.studentId } },
+          previousState: { alert: false }, newState: { alert: true, percentage: pct, threshold: threshold }, metadata: { studentId: e.studentId } },
         client as Prisma.TransactionClient
       );
       triggered++;
@@ -400,10 +400,10 @@ export class AttendanceService {
         if (contacts) {
           await this.notifier(
             {
-              code: "ALERTA_INASISTENCIA",
+              code: "ABSENCE_ALERT",
               recipients: contacts.recipients,
-              payload: { name: contacts.name, curso: e.group.course.name, grupo: e.group.name, porcentaje: pct ?? 0, umbral: threshold },
-              idempotencyKey: `ALERTA_INASISTENCIA:${e.id}:${at.getTime()}`,
+              payload: { name: contacts.name, courseName: e.group.course.name, groupName: e.group.name, percentage: pct ?? 0, threshold: threshold },
+              idempotencyKey: `ABSENCE_ALERT:${e.id}:${at.getTime()}`,
             },
             client as Prisma.TransactionClient
           );

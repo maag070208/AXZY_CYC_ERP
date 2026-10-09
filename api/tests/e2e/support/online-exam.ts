@@ -47,7 +47,7 @@ export const setupExamWorld = async (run: string, tag: string) => {
   const group = await db.group.create({
     data: {
       courseId: course.id, termId: term.id, teacherId: teacher.teacher.id, name: `X${tag}`, capacity: 30,
-      schedule: [{ dia: "DOMINGO", horaInicio: "07:00", horaFin: "08:00" }],
+      schedule: [{ day: "SUNDAY", startTime: "07:00", endTime: "08:00" }],
     },
   });
   const om = await makeQuestion(course.id, "MULTIPLE_CHOICE", 2, [["4", true], ["5", false], ["6", false]]);

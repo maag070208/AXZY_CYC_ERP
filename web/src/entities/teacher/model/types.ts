@@ -13,7 +13,7 @@ export interface Teacher {
   id: string;
   firstNames: string;
   surnames: string;
-  nombreCompleto: string;
+  fullName: string;
   email: string;
   phone: string | null;
   specialty: string | null;

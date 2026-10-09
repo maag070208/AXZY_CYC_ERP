@@ -41,8 +41,8 @@ export const QuestionSchema = z
   .object({
     id: z.string(),
     courseId: z.string(),
-    courseClave: z.string(),
-    courseNombre: z.string(),
+    courseCode: z.string(),
+    courseName: z.string(),
     topic: z.string().nullable(),
     type: z.enum(QUESTION_TYPES),
     text: z.string(),
@@ -69,7 +69,7 @@ export const ImportResultSchema = z
     valid: z.number().int(),
     created: z.number().int(),
     rejected: z.array(z.object({ row: z.number().int(), code: z.string(), message: z.string() })),
-    sample: z.array(z.object({ row: z.number().int(), curso: z.string(), type: z.string(), text: z.string(), points: z.number(), opciones: z.number().int() })),
+    sample: z.array(z.object({ row: z.number().int(), courseName: z.string(), type: z.string(), text: z.string(), points: z.number(), optionCount: z.number().int() })),
   })
   .openapi("QuestionImportResult");
 registry.register("QuestionImportResult", ImportResultSchema);

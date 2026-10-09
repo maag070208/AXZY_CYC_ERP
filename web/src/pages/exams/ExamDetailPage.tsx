@@ -66,29 +66,29 @@ export default function ExamDetailPage() {
   };
 
   const e = exam;
-  const builderReadOnly = !e || !canManage || e.status === "CLOSED" || e.intentos > 0;
+  const builderReadOnly = !e || !canManage || e.status === "CLOSED" || e.attemptCount > 0;
   const config = e && (
     <PanelCard>
       <ITGrid container columns={12} spacing={4}>
-        <ITGrid item xs={12} md={4}><Field label={t("exams.grupo")} value={`${e.courseNombre} · ${e.groupNombre}`} /></ITGrid>
-        <ITGrid item xs={12} md={4}><Field label={t("exams.apertura")} value={formatInstant(e.opensAt, i18n.language)} /></ITGrid>
-        <ITGrid item xs={12} md={4}><Field label={t("exams.cierre")} value={formatInstant(e.closesAt, i18n.language)} /></ITGrid>
-        <ITGrid item xs={6} md={3}><Field label={t("exams.duracion")} value={e.durationMin} /></ITGrid>
-        <ITGrid item xs={6} md={3}><Field label={t("exams.intentosMax")} value={e.maxAttempts} /></ITGrid>
-        <ITGrid item xs={6} md={3}><Field label={t("exams.aprobatorio")} value={`${e.passingScore} / ${e.totalPuntos}`} /></ITGrid>
-        <ITGrid item xs={6} md={3}><Field label={t("exams.criterio")} value={t(`exams.criterios.${e.attemptCriterion}`)} /></ITGrid>
-        <ITGrid item xs={12} md={6}><Field label={t("exams.evaluacion")} value={e.assessmentNombre ?? t("exams.sinEvaluacion")} /></ITGrid>
+        <ITGrid item xs={12} md={4}><Field label={t("exams.groupName")} value={`${e.courseName} · ${e.groupName}`} /></ITGrid>
+        <ITGrid item xs={12} md={4}><Field label={t("exams.opensAt")} value={formatInstant(e.opensAt, i18n.language)} /></ITGrid>
+        <ITGrid item xs={12} md={4}><Field label={t("exams.closesAt")} value={formatInstant(e.closesAt, i18n.language)} /></ITGrid>
+        <ITGrid item xs={6} md={3}><Field label={t("exams.duration")} value={e.durationMin} /></ITGrid>
+        <ITGrid item xs={6} md={3}><Field label={t("exams.maxAttempts")} value={e.maxAttempts} /></ITGrid>
+        <ITGrid item xs={6} md={3}><Field label={t("exams.passingScore")} value={`${e.passingScore} / ${e.totalPoints}`} /></ITGrid>
+        <ITGrid item xs={6} md={3}><Field label={t("exams.criterion")} value={t(`exams.criteria.${e.attemptCriterion}`)} /></ITGrid>
+        <ITGrid item xs={12} md={6}><Field label={t("exams.assessment")} value={e.assessmentName ?? t("exams.noAssessment")} /></ITGrid>
         <ITGrid item xs={12} md={6}>
           <Field
-            label={t("exams.opciones")}
+            label={t("exams.optionCount")}
             value={[
-              e.shuffleQuestions && t("exams.aleatorizarPreguntas"),
-              e.shuffleOptions && t("exams.aleatorizarOpciones"),
-              e.showResult && t("exams.mostrarResultado"),
+              e.shuffleQuestions && t("exams.shuffleQuestions"),
+              e.shuffleOptions && t("exams.shuffleOptions"),
+              e.showResult && t("exams.showResult"),
             ].filter(Boolean).join(" · ") || "—"}
           />
         </ITGrid>
-        {e.instructions && <ITGrid item xs={12}><Field label={t("exams.instrucciones")} value={<span className="whitespace-pre-line">{e.instructions}</span>} /></ITGrid>}
+        {e.instructions && <ITGrid item xs={12}><Field label={t("exams.instructions")} value={<span className="whitespace-pre-line">{e.instructions}</span>} /></ITGrid>}
       </ITGrid>
     </PanelCard>
   );
@@ -103,7 +103,7 @@ export default function ExamDetailPage() {
   return (
     <ITPage
       title={e ? e.title : t("exams.title")}
-      description={e ? `${e.courseNombre} · ${e.groupNombre} · ${e.termNombre}` : undefined}
+      description={e ? `${e.courseName} · ${e.groupName} · ${e.termName}` : undefined}
       icon={<FaClipboardCheck size={20} />}
       loading={!e && !error}
       error={error}
@@ -123,7 +123,7 @@ export default function ExamDetailPage() {
               </ITButton>
             )}
             {canPublish && e.status === "DRAFT" && (
-              <ITButton variant="filled" color="primary" disabled={e.preguntas === 0} onClick={() => setPending("publish")}>
+              <ITButton variant="filled" color="primary" disabled={e.questionCount === 0} onClick={() => setPending("publish")}>
                 <ITFlex align="center" gap={1}><FaPaperPlane size={11} /><ITText className="text-[11px] font-bold">{t("exams.publish")}</ITText></ITFlex>
               </ITButton>
             )}
@@ -142,7 +142,7 @@ export default function ExamDetailPage() {
             { id: "config", label: t("exams.tabs.config"), content: config },
             {
               id: "questions",
-              label: `${t("exams.tabs.questions")} (${e.preguntas})`,
+              label: `${t("exams.tabs.questions")} (${e.questionCount})`,
               content: <ExamQuestionsBuilder exam={e} readOnly={builderReadOnly} onSaved={setExam} />,
             },
             ...(canResults && e.status !== "DRAFT"

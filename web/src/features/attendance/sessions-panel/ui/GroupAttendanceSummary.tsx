@@ -38,7 +38,7 @@ export default function GroupAttendanceSummary({ groupId, reloadKey }: Props) {
 
   const columns: Column<AttendanceSummaryRow>[] = [
     {
-      key: "name", label: t("summary.alumno"), type: "string",
+      key: "name", label: t("summary.student"), type: "string",
       render: (r) => (
         <div>
           <ITText className="block text-[12px] font-bold text-slate-700">{r.name}</ITText>
@@ -46,26 +46,26 @@ export default function GroupAttendanceSummary({ groupId, reloadKey }: Props) {
         </div>
       ),
     },
-    { key: "sesiones", label: t("summary.sesiones"), type: "number", width: 90 },
-    { key: "faltas", label: t("summary.faltas"), type: "number", width: 90 },
-    { key: "justificadas", label: t("summary.justificadas"), type: "number", width: 110 },
+    { key: "sessions", label: t("summary.sessions"), type: "number", width: 90 },
+    { key: "absences", label: t("summary.absences"), type: "number", width: 90 },
+    { key: "justified", label: t("summary.justified"), type: "number", width: 110 },
     {
-      key: "porcentaje", label: t("summary.porcentaje"), type: "number", width: 160, sortable: false,
+      key: "percentage", label: t("summary.percentage"), type: "number", width: 160, sortable: false,
       render: (r) => (
         <ITFlex align="center" gap={2}>
           <div className="h-1.5 w-16 overflow-hidden rounded-full bg-slate-100">
             <div
-              className={`h-full rounded-full ${r.alerta ? "bg-rose-500" : "bg-emerald-500"}`}
-              style={{ width: `${Math.max(0, Math.min(100, r.porcentaje ?? 0))}%` }}
+              className={`h-full rounded-full ${r.alert ? "bg-rose-500" : "bg-emerald-500"}`}
+              style={{ width: `${Math.max(0, Math.min(100, r.percentage ?? 0))}%` }}
             />
           </div>
-          <ITText className="text-[12px] tabular-nums text-slate-600">{r.porcentaje === null ? "—" : `${r.porcentaje}%`}</ITText>
+          <ITText className="text-[12px] tabular-nums text-slate-600">{r.percentage === null ? "—" : `${r.percentage}%`}</ITText>
         </ITFlex>
       ),
     },
     {
-      key: "alerta", label: t("summary.alerta"), type: "string", width: 120,
-      render: (r) => (r.alerta ? <ITBadget color="danger" size="sm">{t("summary.enAlerta")}</ITBadget> : <ITBadget color="success" size="sm">{t("summary.ok")}</ITBadget>),
+      key: "alert", label: t("summary.alert"), type: "string", width: 120,
+      render: (r) => (r.alert ? <ITBadget color="danger" size="sm">{t("summary.inAlert")}</ITBadget> : <ITBadget color="success" size="sm">{t("summary.ok")}</ITBadget>),
     },
   ];
 
@@ -76,12 +76,12 @@ export default function GroupAttendanceSummary({ groupId, reloadKey }: Props) {
       {data && (
         <ITFlex direction="column" gap={4}>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <KpiTile label={t("summary.kpiSesiones")} value={data.sesiones} icon={<FaCheckCircle size={16} />} tone="sky" />
-            <KpiTile label={t("summary.kpiPromedio")} value={data.promedio === null ? "—" : `${data.promedio}%`} icon={<FaPercent size={16} />} tone="emerald" />
-            <KpiTile label={t("summary.kpiUmbral")} value={`${data.threshold}%`} icon={<FaUserClock size={16} />} tone="violet" />
-            <KpiTile label={t("summary.kpiAlerta")} value={data.enAlerta} icon={<FaExclamationTriangle size={16} />} tone={data.enAlerta > 0 ? "rose" : "neutral"} />
+            <KpiTile label={t("summary.kpiSessions")} value={data.sessions} icon={<FaCheckCircle size={16} />} tone="sky" />
+            <KpiTile label={t("summary.kpiAverage")} value={data.average === null ? "—" : `${data.average}%`} icon={<FaPercent size={16} />} tone="emerald" />
+            <KpiTile label={t("summary.kpiThreshold")} value={`${data.threshold}%`} icon={<FaUserClock size={16} />} tone="violet" />
+            <KpiTile label={t("summary.kpiAlert")} value={data.inAlert} icon={<FaExclamationTriangle size={16} />} tone={data.inAlert > 0 ? "rose" : "neutral"} />
           </div>
-          {data.enAlerta > 0 && <ITAlert variant="warning">{t("summary.alertHint", { count: data.enAlerta })}</ITAlert>}
+          {data.inAlert > 0 && <ITAlert variant="warning">{t("summary.alertHint", { count: data.inAlert })}</ITAlert>}
           {data.rows.length === 0 ? (
             <ITText className="block text-[12px] text-slate-500">{t("summary.empty")}</ITText>
           ) : (

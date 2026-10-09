@@ -100,7 +100,7 @@ export default function GradebookGrid({ groupId, reloadKey, onClosed }: Props) {
   const exportExcel = async () => {
     try {
       const blob = await gradeApi.export(groupId);
-      saveAs(blob, `calificaciones-${book?.group.courseNombre ?? "grupo"}-${book?.group.name ?? ""}.xlsx`);
+      saveAs(blob, `calificaciones-${book?.group.courseName ?? "groupName"}-${book?.group.name ?? ""}.xlsx`);
     } catch (err) {
       notify.error(errorMessage(err, t("common:errors.load")));
     }
@@ -227,7 +227,7 @@ export default function GradebookGrid({ groupId, reloadKey, onClosed }: Props) {
         isOpen={confirmClose}
         onClose={() => setConfirmClose(false)}
         onConfirm={() => void close()}
-        title={t("gradebook.closeTitle", { name: `${book.group.courseNombre} ${book.group.name}` })}
+        title={t("gradebook.closeTitle", { name: `${book.group.courseName} ${book.group.name}` })}
         message={t("gradebook.closeMessage")}
         confirmLabel={t("gradebook.close")}
         cancelLabel={t("common:actions.cancel")}

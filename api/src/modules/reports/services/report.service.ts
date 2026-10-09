@@ -31,12 +31,12 @@ const studentSelect = { studentNumber: true, firstNames: true, paternalSurname: 
 
 export interface Dashboard {
   termId: string | null;
-  termNombre: string | null;
+  termName: string | null;
   activeStudents: number;
   inactiveStudents: number;
   groupOccupancy: {
     average: number;
-    groups: Array<{ groupId: string; name: string; curso: string; inscritos: number; capacity: number; ratio: number }>;
+    groups: Array<{ groupId: string; name: string; courseName: string; enrolledCount: number; capacity: number; ratio: number }>;
   };
   /** Solo con alcance institucional (ALL); `null` para el profesor. */
   monthIncome: number | null;
@@ -152,12 +152,12 @@ export class ReportService {
     const mapped = rows
       .map((s) => {
         const last = (s as typeof s & { movements?: Array<{ date: Date; reason: string }> }).movements?.[0];
-        return { studentNumber: s.studentNumber, name: fullName(s), fechaBaja: last ? fromDbDay(last.date) : null, reason: last?.reason ?? null };
+        return { studentNumber: s.studentNumber, name: fullName(s), withdrawalDate: last ? fromDbDay(last.date) : null, reason: last?.reason ?? null };
       })
-      .filter((r) => (!filters.from && !filters.to) || inRange(r.fechaBaja));
+      .filter((r) => (!filters.from && !filters.to) || inRange(r.withdrawalDate));
     return {
       filters: { from: filters.from, to: filters.to },
-      columns: [col("studentNumber"), col("name"), col("fechaBaja", "date"), col("reason")],
+      columns: [col("studentNumber"), col("name"), col("withdrawalDate", "date"), col("reason")],
       rows: mapped,
       totals: { rows: mapped.length },
     };
@@ -188,22 +188,22 @@ export class ReportService {
   private async enrollmentsByGroup(user: UserPermissions, filters: ReportFilters) {
     const { term, groups } = await this.scopedGroups(user, filters);
     const rows: ReportRow[] = groups.map((g) => ({
-      curso: g.course.name,
-      grupo: g.name,
-      profesor: g.teacher ? `${g.teacher.firstNames} ${g.teacher.surnames}` : null,
+      courseName: g.course.name,
+      groupName: g.name,
+      teacherName: g.teacher ? `${g.teacher.firstNames} ${g.teacher.surnames}` : null,
       capacity: g.capacity,
-      inscritos: g._count.enrollments,
-      disponibles: Math.max(0, g.capacity - g._count.enrollments),
-      ocupacion: g.capacity ? Math.round((g._count.enrollments / g.capacity) * 1000) / 10 : 0,
+      enrolledCount: g._count.enrollments,
+      available: Math.max(0, g.capacity - g._count.enrollments),
+      occupancy: g.capacity ? Math.round((g._count.enrollments / g.capacity) * 1000) / 10 : 0,
     }));
     const capacity = groups.reduce((s, g) => s + g.capacity, 0);
-    const inscritos = groups.reduce((s, g) => s + g._count.enrollments, 0);
+    const enrolledCount = groups.reduce((s, g) => s + g._count.enrollments, 0);
     return {
-      filters: { termId: term?.id, termNombre: term?.name ?? null, groupId: filters.groupId },
-      columns: [col("curso"), col("grupo"), col("profesor"), col("capacity", "number"), col("inscritos", "number"),
-        col("disponibles", "number"), col("ocupacion", "percent")],
+      filters: { termId: term?.id, termName: term?.name ?? null, groupId: filters.groupId },
+      columns: [col("courseName"), col("groupName"), col("teacherName"), col("capacity", "number"), col("enrolledCount", "number"),
+        col("available", "number"), col("occupancy", "percent")],
       rows,
-      totals: { rows: rows.length, capacity, inscritos, ocupacion: capacity ? Math.round((inscritos / capacity) * 1000) / 10 : 0 },
+      totals: { rows: rows.length, capacity, enrolledCount, occupancy: capacity ? Math.round((enrolledCount / capacity) * 1000) / 10 : 0 },
     };
   }
 
@@ -225,17 +225,17 @@ export class ReportService {
     });
     const finals = rows.filter((r) => r.finalGrade !== null).map((r) => Number(r.finalGrade));
     return {
-      filters: { termId: term?.id, termNombre: term?.name ?? null, groupId: filters.groupId, status: filters.status },
-      columns: [col("curso"), col("grupo"), col("studentNumber"), col("name"), col("final", "number"), col("estatus")],
+      filters: { termId: term?.id, termName: term?.name ?? null, groupId: filters.groupId, status: filters.status },
+      columns: [col("courseName"), col("groupName"), col("studentNumber"), col("name"), col("final", "number"), col("status")],
       rows: rows.map((r) => ({
-        curso: r.group.course.name, grupo: r.group.name, studentNumber: r.student.studentNumber, name: fullName(r.student),
-        final: r.finalGrade === null ? null : Number(r.finalGrade), estatus: r.status,
+        courseName: r.group.course.name, groupName: r.group.name, studentNumber: r.student.studentNumber, name: fullName(r.student),
+        final: r.finalGrade === null ? null : Number(r.finalGrade), status: r.status,
       })),
       totals: {
         rows: rows.length,
-        acreditados: rows.filter((r) => r.status === "PASSED").length,
-        reprobados: rows.filter((r) => r.status === "FAILED").length,
-        promedio: finals.length ? money(finals.reduce((a, b) => a + b, 0) / finals.length) : 0,
+        passedCount: rows.filter((r) => r.status === "PASSED").length,
+        failedCount: rows.filter((r) => r.status === "FAILED").length,
+        average: finals.length ? money(finals.reduce((a, b) => a + b, 0) / finals.length) : 0,
       },
     };
   }
@@ -274,21 +274,21 @@ export class ReportService {
     const threshold = Number(thresholdRow?.value ?? 80);
     const rows: ReportRow[] = enrollments.map((e) => {
       const of = (status: string) => counts.find((c) => c.enrollmentId === e.id && c.status === status)?._count._all ?? 0;
-      const faltas = of("ABSENT");
-      const sesiones = faltas + of("PRESENT") + of("LATE") + of("JUSTIFIED");
-      const porcentaje = sesiones ? Math.round(((sesiones - faltas) / sesiones) * 1000) / 10 : null;
+      const absences = of("ABSENT");
+      const sessions = absences + of("PRESENT") + of("LATE") + of("JUSTIFIED");
+      const percentage = sessions ? Math.round(((sessions - absences) / sessions) * 1000) / 10 : null;
       return {
-        curso: e.group.course.name, grupo: e.group.name, studentNumber: e.student.studentNumber, name: fullName(e.student),
-        sesiones, faltas, retardos: of("LATE"), justificadas: of("JUSTIFIED"), porcentaje,
-        alerta: porcentaje !== null && porcentaje < threshold ? "Sí" : null,
+        courseName: e.group.course.name, groupName: e.group.name, studentNumber: e.student.studentNumber, name: fullName(e.student),
+        sessions, absences, lates: of("LATE"), justified: of("JUSTIFIED"), percentage,
+        alert: percentage !== null && percentage < threshold ? t("exports.yes") : null,
       };
     });
     return {
-      filters: { termId: term?.id, termNombre: term?.name ?? null, groupId: filters.groupId, from: filters.from, to: filters.to },
-      columns: [col("curso"), col("grupo"), col("studentNumber"), col("name"), col("sesiones", "number"), col("faltas", "number"),
-        col("retardos", "number"), col("justificadas", "number"), col("porcentaje", "percent"), col("alerta")],
+      filters: { termId: term?.id, termName: term?.name ?? null, groupId: filters.groupId, from: filters.from, to: filters.to },
+      columns: [col("courseName"), col("groupName"), col("studentNumber"), col("name"), col("sessions", "number"), col("absences", "number"),
+        col("lates", "number"), col("justified", "number"), col("percentage", "percent"), col("alert")],
       rows,
-      totals: { rows: rows.length, enAlerta: rows.filter((r) => r.alerta).length, umbral: threshold },
+      totals: { rows: rows.length, inAlert: rows.filter((r) => r.alert).length, threshold: threshold },
     };
   }
 
@@ -309,10 +309,10 @@ export class ReportService {
     for (const p of rows) byMethod[p.method] = sumOf([byMethod[p.method] ?? 0, p.amount]);
     return {
       filters: { from, to, termId: filters.termId },
-      columns: [col("folio"), col("date", "date"), col("studentNumber"), col("name"), col("concepto"), col("method"), col("amount", "money")],
+      columns: [col("receiptNumber"), col("date", "date"), col("studentNumber"), col("name"), col("concept"), col("method"), col("amount", "money")],
       rows: rows.map((p) => ({
-        folio: p.receiptNumber, date: fromDbDay(p.date), studentNumber: p.charge.student.studentNumber, name: fullName(p.charge.student),
-        concepto: p.charge.description ?? p.charge.concept.name, method: p.method, amount: Number(p.amount),
+        receiptNumber: p.receiptNumber, date: fromDbDay(p.date), studentNumber: p.charge.student.studentNumber, name: fullName(p.charge.student),
+        concept: p.charge.description ?? p.charge.concept.name, method: p.method, amount: Number(p.amount),
       })),
       totals: { rows: rows.length, amount: sumOf(rows.map((p) => p.amount)), ...byMethod },
     };
@@ -336,23 +336,23 @@ export class ReportService {
     const rows = charges
       .map((c) => {
         const total = chargeTotal(c.amount, c.discount);
-        const pagado = sumOf(c.payments.map((p) => p.amount));
-        const vencimiento = fromDbDay(c.dueDate);
+        const paid = sumOf(c.payments.map((p) => p.amount));
+        const dueDate = fromDbDay(c.dueDate);
         return {
-          studentNumber: c.student.studentNumber, name: fullName(c.student), concepto: c.description ?? c.concept.name,
-          vencimiento, total, pagado, saldo: balanceOf(total, pagado), diasVencido: Math.max(0, daysBetween(vencimiento, today)),
+          studentNumber: c.student.studentNumber, name: fullName(c.student), concept: c.description ?? c.concept.name,
+          dueDate, total, paid, balance: balanceOf(total, paid), daysOverdue: Math.max(0, daysBetween(dueDate, today)),
         };
       })
-      .filter((r) => r.saldo > 0);
+      .filter((r) => r.balance > 0);
     return {
       filters: { termId: filters.termId, to: filters.to },
-      columns: [col("studentNumber"), col("name"), col("concepto"), col("vencimiento", "date"), col("total", "money"),
-        col("pagado", "money"), col("saldo", "money"), col("diasVencido", "number")],
+      columns: [col("studentNumber"), col("name"), col("concept"), col("dueDate", "date"), col("total", "money"),
+        col("paid", "money"), col("balance", "money"), col("daysOverdue", "number")],
       rows,
       totals: {
         rows: rows.length,
-        saldo: sumOf(rows.map((r) => r.saldo)),
-        vencido: sumOf(rows.filter((r) => r.diasVencido > 0).map((r) => r.saldo)),
+        balance: sumOf(rows.map((r) => r.balance)),
+        overdue: sumOf(rows.filter((r) => r.daysOverdue > 0).map((r) => r.balance)),
       },
     };
   }
@@ -368,7 +368,7 @@ export class ReportService {
       this.scopedGroups(user, {}),
     ]);
     const occupancy = groups.map((g) => ({
-      groupId: g.id, name: g.name, curso: g.course.name, inscritos: g._count.enrollments, capacity: g.capacity,
+      groupId: g.id, name: g.name, courseName: g.course.name, enrolledCount: g._count.enrollments, capacity: g.capacity,
       ratio: g.capacity ? Math.round((g._count.enrollments / g.capacity) * 1000) / 1000 : 0,
     }));
     const average = occupancy.length ? Math.round((occupancy.reduce((s, g) => s + g.ratio, 0) / occupancy.length) * 1000) / 1000 : 0;
@@ -389,14 +389,14 @@ export class ReportService {
       const incomeByMonth = months.map((month) => ({ month, total: sumOf(byMonth.get(month) ?? []) }));
       finance = {
         monthIncome: incomeByMonth[incomeByMonth.length - 1].total,
-        totalDebt: debts.totals.saldo,
-        overdueDebt: debts.totals.vencido,
+        totalDebt: debts.totals.balance,
+        overdueDebt: debts.totals.overdue,
         incomeByMonth,
       };
     }
     return {
       termId: term?.id ?? null,
-      termNombre: term?.name ?? null,
+      termName: term?.name ?? null,
       activeStudents,
       inactiveStudents,
       groupOccupancy: { average, groups: occupancy },

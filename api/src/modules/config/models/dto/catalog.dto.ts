@@ -1,7 +1,7 @@
 import { z, registry } from "@core/swagger/registry";
 import { paginatedTableResponseSchema } from "@core/swagger/table.dto";
 
-const name = z.string().trim().min(1, "NOMBRE_REQUIRED").max(120);
+const name = z.string().trim().min(1, "NAME_REQUIRED").max(120);
 const isoDay = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "INVALID_DATE");
 
 // --- Niveles ------------------------------------------------------------------

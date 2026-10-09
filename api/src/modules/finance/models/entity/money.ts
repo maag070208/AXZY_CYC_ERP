@@ -48,14 +48,14 @@ export interface LateFeeRule {
  * redondeado a centavos. 0 si está desactivado, si no hay saldo o si aún está
  * dentro de los días de gracia.
  */
-export const lateFeeOf = (saldo: Num, dueDay: string, asOf: string, rule: LateFeeRule): number => {
-  if (!rule.enabled || rule.dailyRate <= 0 || D(saldo).lessThanOrEqualTo(0)) return 0;
+export const lateFeeOf = (balance: Num, dueDay: string, asOf: string, rule: LateFeeRule): number => {
+  if (!rule.enabled || rule.dailyRate <= 0 || D(balance).lessThanOrEqualTo(0)) return 0;
   const days = daysBetween(dueDay, asOf) - rule.graceDays;
   if (days <= 0) return 0;
-  return money(D(saldo).times(D(rule.dailyRate)).times(days));
+  return money(D(balance).times(D(rule.dailyRate)).times(days));
 };
 
 /** `REC-AAAA-NNNNNN`. */
-export const formatFolio = (year: number, sequence: number): string => `REC-${year}-${String(sequence).padStart(6, "0")}`;
+export const formatReceiptNumber = (year: number, sequence: number): string => `REC-${year}-${String(sequence).padStart(6, "0")}`;
 
 export const IDEMPOTENCY_KEY_PATTERN = /^[A-Za-z0-9_-]{8,100}$/;

@@ -11,7 +11,7 @@ export const ASSESSMENT_TYPES = ["PARTIAL", "FINAL", "HOMEWORK", "OTHER"] as con
 // --- Instrumentos de evaluación -------------------------------------------------
 
 const assessmentFields = {
-  name: z.string().trim().min(1, "NOMBRE_REQUIRED").max(120),
+  name: z.string().trim().min(1, "NAME_REQUIRED").max(120),
   type: z.enum(ASSESSMENT_TYPES),
   /** Porcentaje de la final: `> 0` y `<= 100`. */
   weight: decimal.pipe(z.number().gt(0).max(100)),
@@ -45,7 +45,7 @@ export const AssessmentSchema = z
     date: z.string().nullable(),
     maxScore: z.number(),
     active: z.boolean(),
-    capturadas: z.number().int(),
+    capturedCount: z.number().int(),
     createdAt: z.string(),
     updatedAt: z.string(),
   })
@@ -84,11 +84,11 @@ export const GradeSchema = z
   .object({
     id: z.string(),
     assessmentId: z.string(),
-    assessmentNombre: z.string(),
+    assessmentName: z.string(),
     enrollmentId: z.string(),
     studentId: z.string(),
     studentNumber: z.string(),
-    studentNombre: z.string(),
+    studentName: z.string(),
     score: z.number().nullable(),
     notes: z.string().nullable(),
     capturedBy: z.string().nullable(),
@@ -106,9 +106,9 @@ export const GradebookSchema = z
     group: z.object({
       id: z.string(),
       name: z.string(),
-      courseNombre: z.string(),
-      termNombre: z.string(),
-      teacherNombre: z.string().nullable(),
+      courseName: z.string(),
+      termName: z.string(),
+      teacherName: z.string().nullable(),
       closedAt: z.string().nullable(),
     }),
     assessments: z.array(

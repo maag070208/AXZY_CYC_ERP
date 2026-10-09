@@ -19,7 +19,7 @@ export default function UploadCard({ onUpload, onDone }: Props) {
   const { t } = useTranslation(["documents", "common"]);
   const [types, setTypes] = useState<CatalogItem[]>([]);
   const [typeId, setTypeId] = useState("");
-  const [notes, setNotas] = useState("");
+  const [notes, setNotes] = useState("");
   const [status, setStatus] = useState<UploadStatus>(UploadStatus.PENDING);
   const [error, setError] = useState<string | null>(null);
   const [resetKey, setResetKey] = useState(0);
@@ -37,7 +37,7 @@ export default function UploadCard({ onUpload, onDone }: Props) {
     try {
       await onUpload(file, typeId, notes.trim() || undefined);
       setStatus(UploadStatus.PENDING);
-      setNotas("");
+      setNotes("");
       setResetKey((k) => k + 1);
       onDone();
     } catch (err) {
@@ -53,7 +53,7 @@ export default function UploadCard({ onUpload, onDone }: Props) {
         <ITSelect name="documentTypeId" label={t("upload.type")} value={typeId} required
           options={types.map((type) => ({ value: type.id, label: type.required ? `${type.name} *` : type.name }))}
           onChange={(e) => setTypeId(e.target.value)} />
-        <ITInput name="notes" label={t("upload.notas")} value={notes} onChange={(e) => setNotas(e.target.value)} />
+        <ITInput name="notes" label={t("upload.notes")} value={notes} onChange={(e) => setNotes(e.target.value)} />
         <ITDropfile key={resetKey} onFileSelect={() => setError(null)} onSubmit={(file) => void submit(file)}
           uploadStatus={status} showStatusBadge
           acceptedFileTypes={[FileTypeEnum.PDF, FileTypeEnum.JPEG, FileTypeEnum.JPG, FileTypeEnum.PNG]} />

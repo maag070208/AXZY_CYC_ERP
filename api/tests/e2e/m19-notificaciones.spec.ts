@@ -60,28 +60,28 @@ test.afterAll(async () => {
   await clearAuthE2E();
 });
 
-test("plantillas: alta con variables detectadas, code+channel única, subject required en correo y bitácora", async () => {
+test("plantillas: alta con variables detectadas, clave+canal única, asunto obligatorio en correo y bitácora", async () => {
   const created = await admin.post("notification-templates", {
-    data: { code: CLAVE, name: "E2E Aviso", channel: "EMAIL", subject: "Aviso {{curso}}", body: "Hola {{name}}, revisa {{curso}}.", variables: ["name"] },
+    data: { code: CLAVE, name: "E2E Aviso", channel: "EMAIL", subject: "Aviso {{courseName}}", body: "Hola {{name}}, revisa {{courseName}}.", variables: ["name"] },
   });
   expect(created.status(), await created.text()).toBe(201);
   const template = await created.json();
   templateId = template.id;
-  expect(template.variables).toEqual(["name", "curso"]);
+  expect(template.variables).toEqual(["name", "courseName"]);
   expect((await lastAudit("NOTIFICATION_TEMPLATE_CREATED", adminId))?.entityId).toBe(templateId);
 
   const dup = await admin.post("notification-templates", { data: { code: CLAVE, name: "Otra", channel: "EMAIL", subject: "x", body: "y" } });
   expect(dup.status()).toBe(409);
   expect((await dup.json()).code).toBe("TEMPLATE_DUPLICATE");
-  const noSubject = await admin.post("notification-templates", { data: { code: `${CLAVE}_B`.slice(0, 60), name: "Sin subject", channel: "EMAIL", body: "y" } });
+  const noSubject = await admin.post("notification-templates", { data: { code: `${CLAVE}_B`.slice(0, 60), name: "Sin asunto", channel: "EMAIL", body: "y" } });
   expect(noSubject.status()).toBe(400);
   // Misma clave en otro canal sí se permite (una plantilla por canal).
-  const internal = await admin.post("notification-templates", { data: { code: CLAVE, name: "E2E Aviso interno", channel: "IN_APP", body: "Revisa {{curso}}" } });
+  const internal = await admin.post("notification-templates", { data: { code: CLAVE, name: "E2E Aviso interno", channel: "IN_APP", body: "Revisa {{courseName}}" } });
   expect(internal.status()).toBe(201);
 
-  const edited = await admin.patch(`notification-templates/${templateId}`, { data: { body: "Hola {{name}}: revisa {{curso}} antes del {{date}}." } });
-  expect((await edited.json()).variables).toEqual(["name", "curso", "date"]);
-  expect((await lastAudit("NOTIFICATION_TEMPLATE_UPDATED", adminId))?.previousState).toMatchObject({ body: "Hola {{name}}, revisa {{curso}}." });
+  const edited = await admin.patch(`notification-templates/${templateId}`, { data: { body: "Hola {{name}}: revisa {{courseName}} antes del {{date}}." } });
+  expect((await edited.json()).variables).toEqual(["name", "courseName", "date"]);
+  expect((await lastAudit("NOTIFICATION_TEMPLATE_UPDATED", adminId))?.previousState).toMatchObject({ body: "Hola {{name}}, revisa {{courseName}}." });
 });
 
 test("permisos: control escolar consulta pero no administra; el alumno no entra a la consola", async () => {
@@ -91,16 +91,16 @@ test("permisos: control escolar consulta pero no administra; el alumno no entra 
   expect((await pupilApi.post("notifications/query", { data: { page: 1, limit: 10, filters: {} } })).status()).toBe(403);
 });
 
-test("envío manual: variables faltantes y recipient inválido → 400; Idempotency-Key no duplica", async () => {
-  const missing = await admin.post("notifications/send", { data: { channel: "EMAIL", recipient: MAIL, templateClave: CLAVE, payload: { name: "Ana" } } });
+test("envío manual: variables faltantes y destinatario inválido → 400; Idempotency-Key no duplica", async () => {
+  const missing = await admin.post("notifications/send", { data: { channel: "EMAIL", recipient: MAIL, templateCode: CLAVE, payload: { name: "Ana" } } });
   expect(missing.status()).toBe(400);
   const body = await missing.json();
   expect(body.code).toBe("NOTIFICATION_VARIABLES_MISSING");
-  expect(body.details.variables).toEqual(["curso", "date"]);
-  const badMail = await admin.post("notifications/send", { data: { channel: "EMAIL", recipient: "no-es-correo", templateClave: CLAVE, payload: {} } });
+  expect(body.details.variables).toEqual(["courseName", "date"]);
+  const badMail = await admin.post("notifications/send", { data: { channel: "EMAIL", recipient: "no-es-correo", templateCode: CLAVE, payload: {} } });
   expect((await badMail.json()).code).toBe("NOTIFICATION_RECIPIENT_INVALID");
 
-  const data = { channel: "EMAIL", recipient: MAIL.toUpperCase(), templateClave: CLAVE, payload: { name: "Ana", curso: "Química", date: "15 oct" } };
+  const data = { channel: "EMAIL", recipient: MAIL.toUpperCase(), templateCode: CLAVE, payload: { name: "Ana", courseName: "Química", date: "15 oct" } };
   const first = await admin.post("notifications/send", { data, headers: { "Idempotency-Key": key("send") } });
   expect(first.status(), await first.text()).toBe(201);
   const sent = await first.json();
@@ -138,10 +138,10 @@ test("baja (opt-out): el aviso queda SKIPPED; una plantilla obligatoria se enví
   expect(skipped).toMatchObject({ status: "SKIPPED", error: "OPT_OUT" });
 
   const mandatory = await admin.post("notification-templates", {
-    data: { code: `${CLAVE}_OB`.slice(0, 60), name: "E2E Obligatoria", channel: "EMAIL", subject: "Estado de cuenta", body: "Tu saldo es {{saldo}}", required: true },
+    data: { code: `${CLAVE}_OB`.slice(0, 60), name: "E2E Obligatoria", channel: "EMAIL", subject: "Estado de cuenta", body: "Tu saldo es {{balance}}", required: true },
   });
   expect(mandatory.status()).toBe(201);
-  const forced = await (await admin.post("notifications/send", { data: { channel: "EMAIL", recipient: MAIL, templateClave: `${CLAVE}_OB`.slice(0, 60), payload: { saldo: "$100.00" } } })).json();
+  const forced = await (await admin.post("notifications/send", { data: { channel: "EMAIL", recipient: MAIL, templateCode: `${CLAVE}_OB`.slice(0, 60), payload: { balance: "$100.00" } } })).json();
   expect(forced.status).toBe("QUEUED");
 
   await admin.put("notification-preferences", { data: { channel: "EMAIL", recipient: MAIL, optOut: false } });
@@ -149,7 +149,7 @@ test("baja (opt-out): el aviso queda SKIPPED; una plantilla obligatoria se enví
 });
 
 test("bandeja interna: se entrega al encolar, solo la ve su dueño y se marca leída", async () => {
-  const sent = await (await admin.post("notifications/send", { data: { channel: "IN_APP", recipient: pupil.username, templateClave: CLAVE, payload: { curso: "Química" } } })).json();
+  const sent = await (await admin.post("notifications/send", { data: { channel: "IN_APP", recipient: pupil.username, templateCode: CLAVE, payload: { courseName: "Química" } } })).json();
   expect(sent).toMatchObject({ status: "SENT", userId: pupil.userId, recipient: `user:${pupil.userId}`, body: "Revisa Química" });
 
   const inbox = await (await pupilApi.get("notifications/mine")).json();
@@ -169,7 +169,7 @@ test("bandeja interna: se entrega al encolar, solo la ve su dueño y se marca le
 test("plantilla inactiva: el envío manual responde 409 y el disparador la omite", async () => {
   expect((await admin.delete(`notification-templates/${templateId}`)).status()).toBe(200);
   expect((await admin.delete(`notification-templates/${templateId}`)).status()).toBe(409);
-  const res = await admin.post("notifications/send", { data: { channel: "EMAIL", recipient: MAIL, templateClave: CLAVE, payload: { name: "A", curso: "B", date: "C" } } });
+  const res = await admin.post("notifications/send", { data: { channel: "EMAIL", recipient: MAIL, templateCode: CLAVE, payload: { name: "A", courseName: "B", date: "C" } } });
   expect(res.status()).toBe(409);
   expect((await res.json()).code).toBe("TEMPLATE_INACTIVE");
   expect((await (await admin.post(`notification-templates/${templateId}/reactivate`)).json()).active).toBe(true);
@@ -182,7 +182,7 @@ test("disparadores: examen publicado (M15), pago recibido y pago por vencer (M09
   await prof.post(`online-exams/${exam.id}/questions`, { data: { questions: [{ questionId: world.questions.om.id }] } });
   expect((await prof.post(`online-exams/${exam.id}/publish`)).status()).toBe(200);
   await prof.dispose();
-  const published = await notificationsFor({ origin: "EXAMEN_PUBLICADO", userId: pupil.userId });
+  const published = await notificationsFor({ origin: "EXAM_PUBLISHED", userId: pupil.userId });
   expect(published.map((n) => n.channel).sort()).toEqual(["EMAIL", "IN_APP"]);
   expect(published.find((n) => n.channel === "IN_APP")?.body).toContain("E2E Parcial Avisos");
 
@@ -191,7 +191,7 @@ test("disparadores: examen publicado (M15), pago recibido y pago por vencer (M09
   const soon = new Date(Date.now() + 2 * 86_400_000).toISOString().slice(0, 10);
   const charge = await (await admin.post("charges", { data: { studentId: pupil.studentId, conceptId: concept.id, dueDate: soon } })).json();
   const payment = await (await admin.post("payments", { data: { chargeId: charge.id, amount: 400, method: "CASH" } })).json();
-  const receipts = await notificationsFor({ origin: "PAGO_RECIBIDO", userId: pupil.userId });
+  const receipts = await notificationsFor({ origin: "PAYMENT_RECEIVED", userId: pupil.userId });
   expect(receipts).toHaveLength(2);
   expect(receipts.find((n) => n.channel === "EMAIL")?.body).toContain(payment.receiptNumber);
   expect(receipts.find((n) => n.channel === "EMAIL")?.body).toContain("$600.00");
@@ -199,7 +199,7 @@ test("disparadores: examen publicado (M15), pago recibido y pago por vencer (M09
   // Pago por vencer: idempotente por cargo y vencimiento (el barrido puede repetirse).
   expect((await admin.post("charges/reminders", { data: { days: 3 } })).status()).toBe(200);
   await admin.post("charges/reminders", { data: { days: 3 } });
-  const reminders = await notificationsFor({ origin: "PAGO_POR_VENCER", userId: pupil.userId });
+  const reminders = await notificationsFor({ origin: "PAYMENT_DUE_SOON", userId: pupil.userId });
   expect(reminders).toHaveLength(2);
   expect(reminders[0].body).toContain("$600.00");
 });

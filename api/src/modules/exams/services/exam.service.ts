@@ -45,10 +45,10 @@ export const totalOf = (row: { questions: Array<{ points: Prisma.Decimal }> }): 
 export const toExamView = (row: ExamRow): ExamView => ({
   id: row.id,
   groupId: row.groupId,
-  groupNombre: row.group.name,
+  groupName: row.group.name,
   courseId: row.group.courseId,
-  courseNombre: row.group.course.name,
-  termNombre: row.group.term.name,
+  courseName: row.group.course.name,
+  termName: row.group.term.name,
   title: row.title,
   instructions: row.instructions,
   durationMin: row.durationMin,
@@ -61,11 +61,11 @@ export const toExamView = (row: ExamRow): ExamView => ({
   passingScore: Number(row.passingScore),
   attemptCriterion: row.attemptCriterion,
   assessmentId: row.assessmentId,
-  assessmentNombre: row.assessment?.name ?? null,
+  assessmentName: row.assessment?.name ?? null,
   status: row.status,
-  totalPuntos: totalOf(row),
-  preguntas: row.questions.length,
-  intentos: row._count.attempts,
+  totalPoints: totalOf(row),
+  questionCount: row.questions.length,
+  attemptCount: row._count.attempts,
   publishedAt: row.publishedAt?.toISOString() ?? null,
   closedAt: row.closedAt?.toISOString() ?? null,
   createdAt: row.createdAt.toISOString(),
@@ -222,14 +222,14 @@ export class ExamService {
     if (previous._count.attempts > 0 && Object.keys(input).some((key) => !EDITABLE_WITH_ATTEMPTS.has(key))) {
       throw new HttpError(409, "EXAM_PUBLISHED_LOCKED");
     }
-    const apertura = input.opensAt ? new Date(input.opensAt) : previous.opensAt;
-    const cierre = input.closesAt ? new Date(input.closesAt) : previous.closesAt;
-    if (apertura >= cierre) throw new HttpError(400, "INVALID_RANGE");
+    const opensAt = input.opensAt ? new Date(input.opensAt) : previous.opensAt;
+    const closesAt = input.closesAt ? new Date(input.closesAt) : previous.closesAt;
+    if (opensAt >= closesAt) throw new HttpError(400, "INVALID_RANGE");
     if (input.assessmentId !== undefined) await this.assertAssessment(input.assessmentId, previous.groupId, id);
     const total = totalOf(previous);
-    const aprobatorio = input.passingScore ?? Number(previous.passingScore);
-    if (previous.status === "PUBLISHED" && aprobatorio > total) {
-      throw new HttpError(400, "EXAM_SCORE_INVALID", { aprobatorio, total });
+    const passingScore = input.passingScore ?? Number(previous.passingScore);
+    if (previous.status === "PUBLISHED" && passingScore > total) {
+      throw new HttpError(400, "EXAM_SCORE_INVALID", { passingScore, total });
     }
     const before = toExamView(previous);
     return this.db.$transaction(async (tx) => {
@@ -237,8 +237,8 @@ export class ExamService {
         where: { id },
         data: {
           ...input,
-          ...(input.opensAt && { opensAt: apertura }),
-          ...(input.closesAt && { closesAt: cierre }),
+          ...(input.opensAt && { opensAt: opensAt }),
+          ...(input.closesAt && { closesAt: closesAt }),
         },
         include: examInclude,
       });
@@ -302,14 +302,14 @@ export class ExamService {
     if (exam.questions.length === 0) throw new HttpError(409, "EXAM_NO_QUESTIONS");
     if (exam.questions.some((q) => q.question.status !== "ACTIVE")) throw new HttpError(409, "EXAM_QUESTION_INVALID");
     const total = totalOf(exam);
-    const aprobatorio = Number(exam.passingScore);
-    if (aprobatorio > total) throw new HttpError(400, "EXAM_SCORE_INVALID", { aprobatorio, total });
+    const passingScore = Number(exam.passingScore);
+    if (passingScore > total) throw new HttpError(400, "EXAM_SCORE_INVALID", { passingScore, total });
     if (exam.closesAt <= new Date()) throw new HttpError(400, "INVALID_RANGE");
     return this.db.$transaction(async (tx) => {
       const row = await tx.onlineExam.update({ where: { id }, data: { status: "PUBLISHED", publishedAt: new Date() }, include: examInclude });
       await this.audit?.(
         { action: "EXAM_PUBLISHED", entityType: "OnlineExam", entityId: id, userId: actor.id, userName: actor.username,
-          previousState: { status: "DRAFT" }, newState: { status: "PUBLISHED", total, preguntas: row.questions.length } },
+          previousState: { status: "DRAFT" }, newState: { status: "PUBLISHED", total, questionCount: row.questions.length } },
         tx
       );
       if (this.notifier) {
@@ -319,16 +319,16 @@ export class ExamService {
           if (!contacts) continue;
           await this.notifier(
             {
-              code: "EXAMEN_PUBLICADO",
+              code: "EXAM_PUBLISHED",
               recipients: contacts.recipients,
               payload: {
                 name: contacts.name,
-                examen: row.title,
-                curso: row.group.course.name,
-                apertura: formatInstant(row.opensAt),
-                cierre: formatInstant(row.closesAt),
+                exam: row.title,
+                courseName: row.group.course.name,
+                opensAt: formatInstant(row.opensAt),
+                closesAt: formatInstant(row.closesAt),
               },
-              idempotencyKey: `EXAMEN_PUBLICADO:${row.id}:${studentId}`,
+              idempotencyKey: `EXAM_PUBLISHED:${row.id}:${studentId}`,
             },
             tx
           );

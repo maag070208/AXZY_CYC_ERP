@@ -30,7 +30,7 @@ export const createStudentRouter = (controller: StudentController): Router => {
     responses: { 200: { description: "Página", content: json(StudentTableResponseSchema) } },
   });
   doc("get", "/students/summary", "Totales activos/baja dentro del alcance", {
-    responses: { 200: { description: "Totales", content: json(z.object({ total: z.number(), activos: z.number(), bajas: z.number() })) } },
+    responses: { 200: { description: "Totales", content: json(z.object({ total: z.number(), active: z.number(), withdrawn: z.number() })) } },
   });
   doc("post", "/students/export", "Exporta a Excel con los filtros vigentes (students.export)", {
     request: { body: { required: true, content: json(TableQuerySchema) } },
@@ -52,17 +52,17 @@ export const createStudentRouter = (controller: StudentController): Router => {
     request: { body: { required: true, content: json(StudentUpdateDto) } },
     responses: { 200: { description: "Alumno", content: json(StudentSchema) } },
   });
-  doc("delete", "/students/{id}", "Baja lógica con reason (students.delete); registra el movimiento", {
+  doc("delete", "/students/{id}", "Baja lógica con motivo (students.delete); registra el movimiento", {
     parameters: [idParam],
     request: { body: { required: true, content: json(MovementInputDto) } },
     responses: { 200: { description: "Baja registrada", content: json(MovementResultSchema) } },
   });
-  doc("post", "/students/{id}/baja", "Baja con reason (students.movements)", {
+  doc("post", "/students/{id}/withdrawal", "Baja con motivo (students.movements)", {
     parameters: [idParam],
     request: { body: { required: true, content: json(MovementInputDto) } },
     responses: { 200: { description: "Baja registrada", content: json(MovementResultSchema) }, 409: { description: "STUDENT_INACTIVE" } },
   });
-  doc("post", "/students/{id}/reingreso", "Reingreso con reason; conserva la matrícula (students.movements)", {
+  doc("post", "/students/{id}/reentry", "Reingreso con motivo; conserva la matrícula (students.movements)", {
     parameters: [idParam],
     request: { body: { required: true, content: json(MovementInputDto) } },
     responses: { 200: { description: "Reingreso registrado", content: json(MovementResultSchema) }, 409: { description: "STUDENT_ALREADY_ACTIVE" } },
@@ -80,8 +80,8 @@ export const createStudentRouter = (controller: StudentController): Router => {
   router.get("/:id", requiresPermission("students.view"), asyncHandler(controller.getById));
   router.patch("/:id", requiresPermission("students.edit"), asyncHandler(controller.update));
   router.delete("/:id", requiresPermission("students.delete"), asyncHandler(controller.remove));
-  router.post("/:id/baja", requiresPermission("students.movements"), asyncHandler(controller.baja));
-  router.post("/:id/reingreso", requiresPermission("students.movements"), asyncHandler(controller.reingreso));
+  router.post("/:id/withdrawal", requiresPermission("students.movements"), asyncHandler(controller.withdraw));
+  router.post("/:id/reentry", requiresPermission("students.movements"), asyncHandler(controller.reenter));
   router.get("/:id/movements", requiresPermission("students.movements"), asyncHandler(controller.listMovements));
   return router;
 };

@@ -26,32 +26,32 @@ export default function QuestionsTable({ reloadKey, onTotal, onAction }: Props) 
 
   const columns: Column<Question>[] = [
     {
-      key: "text", label: t("questions.enunciado"), type: "string", filter: true,
+      key: "text", label: t("questions.text"), type: "string", filter: true,
       render: (row) => (
         <div>
           <ITText className="block text-[12px] font-bold text-slate-700">{row.text.length > 110 ? `${row.text.slice(0, 110)}…` : row.text}</ITText>
-          <ITText className="text-[10px] text-slate-400">{row.courseClave}{row.topic ? ` · ${row.topic}` : ""}</ITText>
+          <ITText className="text-[10px] text-slate-400">{row.courseCode}{row.topic ? ` · ${row.topic}` : ""}</ITText>
         </div>
       ),
     },
     {
-      key: "type", label: t("questions.tipo"), type: "catalog", width: 160, filter: "catalog", sortable: false,
+      key: "type", label: t("questions.type"), type: "catalog", width: 160, filter: "catalog", sortable: false,
       catalogOptions: { data: QUESTION_TYPES.map((x) => ({ id: x, name: t(`questions.types.${x}`) })) },
       render: (row) => <ITText className="text-[12px] text-slate-600">{t(`questions.types.${row.type}`)}</ITText>,
     },
     {
-      key: "difficulty", label: t("questions.dificultad"), type: "catalog", width: 120, filter: "catalog", sortable: false,
+      key: "difficulty", label: t("questions.difficulty"), type: "catalog", width: 120, filter: "catalog", sortable: false,
       catalogOptions: { data: DIFFICULTIES.map((x) => ({ id: x, name: t(`questions.difficulties.${x}`) })) },
       render: (row) => <ITText className="text-[12px] text-slate-600">{row.difficulty ? t(`questions.difficulties.${row.difficulty}`) : "—"}</ITText>,
     },
-    { key: "points", label: t("questions.puntos"), type: "number", width: 90, sortable: false },
+    { key: "points", label: t("questions.points"), type: "number", width: 90, sortable: false },
     {
       key: "status", label: t("questions.status"), type: "catalog", width: 150, filter: "catalog", sortable: false,
-      catalogOptions: { data: [{ id: "ACTIVE", name: t("questions.activa") }, { id: "INACTIVE", name: t("questions.inactiva") }] },
+      catalogOptions: { data: [{ id: "ACTIVE", name: t("questions.active") }, { id: "INACTIVE", name: t("questions.inactive") }] },
       render: (row) => (
         <ITFlex gap={1} align="center">
-          <ITBadget color={row.status === "ACTIVE" ? "success" : "danger"} size="sm">{row.status === "ACTIVE" ? t("questions.activa") : t("questions.inactiva")}</ITBadget>
-          {row.locked && <ITBadget color="secondary" size="sm">{t("questions.enUso")}</ITBadget>}
+          <ITBadget color={row.status === "ACTIVE" ? "success" : "danger"} size="sm">{row.status === "ACTIVE" ? t("questions.active") : t("questions.inactive")}</ITBadget>
+          {row.locked && <ITBadget color="secondary" size="sm">{t("questions.inUse")}</ITBadget>}
         </ITFlex>
       ),
     },

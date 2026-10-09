@@ -16,20 +16,20 @@ const BIRTH = "2011-04-20";
 const CURP = makeCurp(BIRTH);
 
 async function fillStudent(page: Page, curp: string): Promise<void> {
-  await page.locator('input[name="nombres"]').fill(NOMBRES);
-  await page.locator('input[name="apellidoPaterno"]').fill("Navegador");
-  await page.locator('input[name="apellidoMaterno"]').fill("Prueba");
+  await page.locator('input[name="firstNames"]').fill(NOMBRES);
+  await page.locator('input[name="paternalSurname"]').fill("Navegador");
+  await page.locator('input[name="maternalSurname"]').fill("Prueba");
   await page.locator('input[name="curp"]').fill(curp.toLowerCase());
-  await page.locator('input[name="fechaNacimiento"]').fill(typedDate(BIRTH));
-  await page.locator('select[name="genero"]').selectOption("F");
+  await page.locator('input[name="birthDate"]').fill(typedDate(BIRTH));
+  await page.locator('select[name="gender"]').selectOption("F");
   await page.locator('input[name="email"]').fill(`web_${RUN.toLowerCase()}@e2e.local`);
 }
 
 async function addTutor(page: Page): Promise<void> {
   await page.getByRole("button", { name: "Agregar tutor" }).click();
-  await page.locator('input[name="guardian-0-nombre"]').fill("E2E Tutora Web");
-  await page.locator('input[name="guardian-0-parentesco"]').fill("Madre");
-  await page.locator('input[name="guardian-0-telefono"]').fill("5512345678");
+  await page.locator('input[name="guardian-0-name"]').fill("E2E Tutora Web");
+  await page.locator('input[name="guardian-0-relationship"]').fill("Madre");
+  await page.locator('input[name="guardian-0-phone"]').fill("5512345678");
 }
 
 test.describe.serial("expediente de un alumno", () => {
@@ -78,7 +78,7 @@ test.describe.serial("expediente de un alumno", () => {
     await page.locator("tbody tr", { hasText: CURP }).click();
     await page.getByRole("button", { name: "Editar" }).click();
     await expect(page.locator('input[name="curp"]')).toHaveValue(CURP);
-    await page.locator('input[name="telefono"]').fill("5587654321");
+    await page.locator('input[name="phone"]').fill("5587654321");
     await page.getByRole("button", { name: "Guardar" }).click();
     await expect(page.getByText("Alumno actualizado")).toBeVisible();
     await expect(page.getByText("5587654321")).toBeVisible();
@@ -91,17 +91,17 @@ test.describe.serial("expediente de un alumno", () => {
     await page.locator("tbody tr", { hasText: CURP }).click();
 
     await page.getByRole("button", { name: "Dar de baja" }).click();
-    const baja = page.getByRole("dialog");
-    await baja.locator('select[name="reasonId"]').selectOption({ label: "Cambio de domicilio" });
-    await expect(baja.locator('input[name="motivo"]')).toHaveValue("Cambio de domicilio");
-    await baja.locator('textarea[name="observaciones"]').fill("Se muda a Puebla");
-    await baja.getByRole("button", { name: "Dar de baja" }).click();
+    const withdraw = page.getByRole("dialog");
+    await withdraw.locator('select[name="reasonId"]').selectOption({ label: "Cambio de domicilio" });
+    await expect(withdraw.locator('input[name="reason"]')).toHaveValue("Cambio de domicilio");
+    await withdraw.locator('textarea[name="notes"]').fill("Se muda a Puebla");
+    await withdraw.getByRole("button", { name: "Dar de baja" }).click();
     await expect(page.getByText("Baja registrada")).toBeVisible();
     await expect(page.getByText("Baja", { exact: true }).first()).toBeVisible();
 
     await page.getByRole("button", { name: "Reingresar" }).click();
     const back = page.getByRole("dialog");
-    await back.locator('input[name="motivo"]').fill("Regresa a la ciudad");
+    await back.locator('input[name="reason"]').fill("Regresa a la ciudad");
     await back.getByRole("button", { name: "Reingresar" }).click();
     await expect(page.getByText("Reingreso registrado")).toBeVisible();
 

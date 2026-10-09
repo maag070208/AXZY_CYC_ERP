@@ -15,8 +15,8 @@
     "title": "Import historical data",
     "description": "Preview the CSV (dry-run) and confirm the idempotent batch import.",
     "backupHint": "The real import requires a recent database backup (settings); the idempotency header is generated automatically.",
-    "entidad": "Entity",
-    "archivo": "CSV file",
+    "entity": "Entity",
+    "file": "CSV file",
     "preview": "Preview",
     "previewed": "Previewed: {{rejected}} row(s) rejected",
     "dryRun": "Dry-run",
@@ -29,7 +29,7 @@
     "reason": "Reason",
     "value": "Value",
     "confirmTitle": "Confirm import",
-    "confirmMessage": "Valid records of {{entidad}} will be imported. This never deletes existing data; re-running does not duplicate."
+    "confirmMessage": "Valid records of {{entity}} will be imported. This never deletes existing data; re-running does not duplicate."
   },
   "totals": {
     "read": "Read",
@@ -48,17 +48,17 @@
     "GUARDIAN_REQUIRED": "Missing guardian (minor)",
     "DUPLICATE_CURP": "Duplicate CURP",
     "DUPLICATE_EMAIL": "Duplicate email",
-    "DUPLICATE_MATRICULA": "Duplicate enrollment no.",
+    "DUPLICATE_STUDENT_NUMBER": "Duplicate enrollment no.",
     "REJECTED": "Rejected"
   },
   "batches": {
-    "archivo": "File",
+    "file": "File",
     "mode": "Mode",
     "status": "Status",
     "totals": "Totals",
-    "fecha": "Date",
+    "date": "Date",
     "view": "View detail",
-    "detailTitle": "Batch {{archivo}}",
+    "detailTitle": "Batch {{file}}",
     "noRows": "No rejected rows."
   },
   "status": {

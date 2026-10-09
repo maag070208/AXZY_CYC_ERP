@@ -15,9 +15,9 @@ test("reconoce PDF, PNG y JPG por su firma y rechaza lo demás", () => {
 });
 
 test("el promedio del kardex solo cuenta cursos cerrados con calificación final", () => {
-  const entry = (estatus: "PASSED" | "FAILED" | "IN_PROGRESS" | "WITHDRAWN", calificacionFinal: number | null) => ({
-    termId: "t", termNombre: "2026-A", courseId: "c", courseNombre: "Motores", grupo: "A",
-    calificaciones: [], ponderaciones: [], calificacionFinal, estatus,
+  const entry = (status: "PASSED" | "FAILED" | "IN_PROGRESS" | "WITHDRAWN", finalGrade: number | null) => ({
+    termId: "t", termName: "2026-A", courseId: "c", courseName: "Motores", groupName: "A",
+    grades: [], weights: [], finalGrade, status,
   });
   expect(averageOf([])).toBeNull();
   expect(averageOf([entry("IN_PROGRESS", 90), entry("WITHDRAWN", null)])).toBeNull();

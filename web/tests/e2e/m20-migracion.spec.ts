@@ -36,7 +36,7 @@ test("M20 previsualiza, importa por lotes y lo deja en el historial", async ({ p
   await signIn(page, E2E.admin.username);
   await page.goto(route("/migration"));
 
-  await page.locator('select[name="entidad"]').selectOption("Student");
+  await page.locator('select[name="entity"]').selectOption("Student");
   await page.locator('input[name="file"]').setInputFiles({ name: FILE, mimeType: "text/csv", buffer: Buffer.from(CSV, "utf-8") });
   await page.getByRole("button", { name: "Previsualizar" }).click();
 

@@ -29,7 +29,7 @@ export default function StudentFormPage() {
   return (
     <ITPage
       title={id ? t("form.titleEdit") : t("form.titleNew")}
-      description={student ? `${student.studentNumber} · ${student.nombreCompleto}` : undefined}
+      description={student ? `${student.studentNumber} · ${student.fullName}` : undefined}
       icon={<FaUserGraduate size={20} />}
       loading={loading}
       error={error}

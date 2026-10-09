@@ -60,7 +60,7 @@ export const createAttendanceRouters = (c: AttendanceController) => {
     request: { body: { required: true, content: json(RollCallDto) } },
     responses: { 200: { description: "{ sessionId, saved, skipped }" }, 400: { description: "ATTENDANCE_INCOMPLETE / INVALID_REFERENCE" } },
   });
-  doc("delete", "/attendance-sessions/{id}", "Anula la sesión con reason (attendance.manage)", {
+  doc("delete", "/attendance-sessions/{id}", "Anula la sesión con motivo (attendance.manage)", {
     parameters: [param("id")],
     request: { body: { required: true, content: json(AnnulDto) } },
   });
@@ -68,7 +68,7 @@ export const createAttendanceRouters = (c: AttendanceController) => {
     parameters: [param("studentId")],
     responses: { 200: { description: "Asistencia", content: json(StudentAttendanceSchema) } },
   });
-  doc("post", "/justifications", "Solicita un justificante: multipart attendanceId, reason y file opcional (attendance.justify)", {
+  doc("post", "/justifications", "Solicita un justificante: multipart `attendanceId`, `reason` y `file` opcional (attendance.justify)", {
     responses: { 201: { description: "Justificante", content: json(JustificationSchema) }, 409: { description: "JUSTIFICATION_ONLY_ABSENCE / JUSTIFICATION_EXISTS" } },
   });
   doc("post", "/justifications/query", "Bandeja de justificantes (attendance.justify; OWN = los propios)", {
@@ -80,7 +80,7 @@ export const createAttendanceRouters = (c: AttendanceController) => {
     request: { body: { required: true, content: json(ResolveDto) } },
     responses: { 200: { description: "Justificante", content: json(JustificationSchema) }, 409: { description: "JUSTIFICATION_ALREADY_RESOLVED" } },
   });
-  doc("get", "/justifications/{id}/file", "Descarga el file (attendance.view)", { parameters: [param("id")] });
+  doc("get", "/justifications/{id}/file", "Descarga el archivo (attendance.view)", { parameters: [param("id")] });
 
   // Montado en `/groups/:groupId` junto a otros routers: autentica por ruta.
   const group = Router({ mergeParams: true });

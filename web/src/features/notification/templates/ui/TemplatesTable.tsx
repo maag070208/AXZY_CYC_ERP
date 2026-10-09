@@ -39,7 +39,7 @@ export default function TemplatesTable({ reloadKey, onTotal, onEdit, onChanged }
 
   const columns: Column<NotificationTemplate>[] = [
     {
-      key: "name", label: t("templates.nombre"), type: "string", filter: true, sortable: false,
+      key: "name", label: t("templates.name"), type: "string", filter: true, sortable: false,
       render: (r) => (
         <div>
           <ITText className="block text-[12px] font-bold text-slate-700">{r.name}</ITText>
@@ -48,17 +48,17 @@ export default function TemplatesTable({ reloadKey, onTotal, onEdit, onChanged }
       ),
     },
     {
-      key: "channel", label: t("templates.canal"), type: "catalog", width: 120, filter: "catalog", sortable: false,
+      key: "channel", label: t("templates.channel"), type: "catalog", width: 120, filter: "catalog", sortable: false,
       catalogOptions: { data: (["EMAIL", "SMS", "WHATSAPP", "IN_APP"] as const).map((c) => ({ id: c, name: t(`channels.${c}`) })) },
       render: (r) => <ITBadget color="secondary" size="sm">{t(`channels.${r.channel}`)}</ITBadget>,
     },
-    { key: "enviadas", label: t("templates.enviadas"), type: "number", width: 100 },
+    { key: "sentCount", label: t("templates.sentCount"), type: "number", width: 100 },
     {
-      key: "required", label: t("templates.obligatorio"), type: "string", width: 110,
+      key: "required", label: t("templates.required"), type: "string", width: 110,
       render: (r) => <ITText className="text-[11px] text-slate-500">{r.required ? t("common:labels.yes") : t("common:labels.no")}</ITText>,
     },
     {
-      key: "active", label: t("templates.estado"), type: "string", width: 110,
+      key: "active", label: t("templates.state"), type: "string", width: 110,
       render: (r) => <ITBadget color={r.active ? "success" : "danger"} size="sm">{r.active ? t("common.active") : t("common.inactive")}</ITBadget>,
     },
     {

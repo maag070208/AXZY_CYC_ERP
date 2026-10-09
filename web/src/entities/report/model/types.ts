@@ -30,7 +30,7 @@ export interface ReportResult {
   report: ReportType;
   title: string;
   generatedAt: string;
-  filters: ReportFilters & { termNombre?: string | null };
+  filters: ReportFilters & { termName?: string | null };
   columns: ReportColumn[];
   rows: Array<Record<string, string | number | null>>;
   totals: Record<string, number>;
@@ -38,12 +38,12 @@ export interface ReportResult {
 
 export interface Dashboard {
   termId: string | null;
-  termNombre: string | null;
+  termName: string | null;
   activeStudents: number;
   inactiveStudents: number;
   groupOccupancy: {
     average: number;
-    groups: Array<{ groupId: string; name: string; curso: string; inscritos: number; capacity: number; ratio: number }>;
+    groups: Array<{ groupId: string; name: string; courseName: string; enrolledCount: number; capacity: number; ratio: number }>;
   };
   monthIncome: number | null;
   totalDebt: number | null;

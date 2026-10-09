@@ -11,7 +11,7 @@
   "upload": {
     "title": "Subir documento",
     "type": "Tipo de documento",
-    "notas": "Notas (opcional)",
+    "notes": "Notas (opcional)",
     "submit": "Subir",
     "hint": "PDF, JPG o PNG de hasta 5 MB.",
     "done": "Documento subido",
@@ -21,13 +21,13 @@
     "badType": "Solo PDF, JPG o PNG"
   },
   "table": {
-    "tipo": "Tipo",
-    "archivo": "Archivo",
+    "type": "Tipo",
+    "file": "Archivo",
     "status": "Estado",
     "size": "Tamaño",
-    "subio": "Subió",
-    "reviso": "Revisó",
-    "fecha": "Fecha",
+    "uploadedBy": "Subió",
+    "reviewedBy": "Revisó",
+    "date": "Fecha",
     "empty": "Sin documentos."
   },
   "status": {
@@ -44,7 +44,7 @@
   "review": {
     "validateTitle": "Validar «{{name}}»",
     "rejectTitle": "Rechazar «{{name}}»",
-    "notas": "Notas",
+    "notes": "Notas",
     "rejectHint": "Explica qué debe corregirse; el documento podrá reemplazarse.",
     "validated": "Documento validado",
     "rejected": "Documento rechazado"
@@ -57,19 +57,19 @@
   "kardex": {
     "title": "Kardex",
     "generated": "Generado {{date}}",
-    "promedio": "Promedio general",
-    "creditos": "Cursos acreditados",
-    "minimo": "Mínima aprobatoria",
+    "average": "Promedio general",
+    "credits": "Cursos acreditados",
+    "minimum": "Mínima aprobatoria",
     "empty": "Aún no hay cursos ni calificaciones registrados (se alimenta de inscripciones y calificaciones, F3).",
-    "ciclo": "Ciclo",
-    "curso": "Curso",
-    "grupo": "Grupo",
+    "termName": "Ciclo",
+    "courseName": "Curso",
+    "groupName": "Grupo",
     "final": "Final",
-    "estatus": "Estatus",
+    "status": "Estatus",
     "pdf": "Exportar PDF",
-    "faltantes": "Documentos faltantes",
-    "ninguno": "Ninguno",
-    "estatusValues": {
+    "missing": "Documentos faltantes",
+    "noneOption": "Ninguno",
+    "statusValues": {
       "PASSED": "Acreditado",
       "FAILED": "Reprobado",
       "IN_PROGRESS": "En curso",

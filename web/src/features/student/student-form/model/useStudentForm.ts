@@ -120,7 +120,7 @@ export const useStudentForm = (student: Student | null, onSaved: (student: Stude
     const rows: FormErrors["guardianRows"] = {};
     form.guardians.forEach((g, index) => {
       const row: Partial<Record<keyof GuardianDraft, string>> = {};
-      if (!g.name.trim()) row.name = i18n.t("students:form.required", { label: label("guardianNombre") });
+      if (!g.name.trim()) row.name = i18n.t("students:form.required", { label: label("guardianName") });
       if (!g.relationship.trim()) row.relationship = i18n.t("students:form.required", { label: label("relationship") });
       row.phone =
         validateRequired(g.phone, label("phone")) ?? validatePhone(g.phone) ?? undefined;

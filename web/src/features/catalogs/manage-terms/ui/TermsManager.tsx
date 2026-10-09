@@ -57,17 +57,17 @@ export default function TermsManager({ canManage }: Props) {
   const columns: Column<Term>[] = [
     {
       key: "name",
-      label: t("terms.nombre"),
+      label: t("terms.name"),
       type: "string",
       filter: true,
       sortable: false,
       render: (row) => <ITText className="text-[12px] font-bold text-slate-700">{row.name}</ITText>,
     },
-    { key: "startDate", label: t("terms.fechaInicio"), type: "string", width: 150, sortable: false, render: (row) => day(row.startDate) },
-    { key: "endDate", label: t("terms.fechaFin"), type: "string", width: 150, sortable: false, render: (row) => day(row.endDate) },
+    { key: "startDate", label: t("terms.startDate"), type: "string", width: 150, sortable: false, render: (row) => day(row.startDate) },
+    { key: "endDate", label: t("terms.endDate"), type: "string", width: 150, sortable: false, render: (row) => day(row.endDate) },
     {
       key: "active",
-      label: t("terms.activo"),
+      label: t("terms.active"),
       type: "boolean",
       width: 110,
       filter: true,
@@ -75,7 +75,7 @@ export default function TermsManager({ canManage }: Props) {
       render: (row) =>
         row.active ? (
           <ITBadget color="success" size="sm">
-            {t("terms.activo")}
+            {t("terms.active")}
           </ITBadget>
         ) : (
           <ITText className="text-[11px] text-slate-400">—</ITText>

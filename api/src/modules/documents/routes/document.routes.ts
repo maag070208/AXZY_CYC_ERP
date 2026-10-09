@@ -43,7 +43,7 @@ export const createStudentDocumentsRouter = (controller: DocumentController): Ro
   });
   registerPath({
     method: "post", path: "/students/{studentId}/documents", tags: ["Documents"], security: bearer,
-    summary: "Sube un documento (multipart: file, documentTypeId, notes?) — PDF/JPG/PNG ≤ 5 MB (documents.upload)",
+    summary: "Sube un documento (multipart: `file`, `documentTypeId`, `notes?`) — PDF/JPG/PNG ≤ 5 MB (documents.upload)",
     parameters: [studentParam],
     request: {
       body: {
@@ -91,7 +91,7 @@ export const createDocumentsRouter = (controller: DocumentController): Router =>
 
   registerPath({
     method: "get", path: "/documents/{id}/download", tags: ["Documents"], security: bearer,
-    summary: "Descarga autorizada del file privado (documents.view, con alcance)",
+    summary: "Descarga autorizada del archivo privado (documents.view, con alcance)",
     parameters: [idParam],
     responses: { 200: { description: "Archivo" }, 404: { description: "Inexistente o fuera de alcance" } },
   });

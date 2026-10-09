@@ -4,7 +4,7 @@ import { isOriginAllowed, parseCorsOrigins } from "../../src/core/config/cors";
 /** Reglas puras de CORS (`WEB_ORIGIN`): lista separada por comas y comodines. */
 
 test.describe("parseCorsOrigins", () => {
-  test("`*` o vacío permiten cualquier origin", () => {
+  test("`*` o vacío permiten cualquier origen", () => {
     expect(parseCorsOrigins("*")).toEqual({ allowAny: true, patterns: [] });
     expect(parseCorsOrigins("")).toEqual({ allowAny: true, patterns: [] });
     expect(parseCorsOrigins(undefined)).toEqual({ allowAny: true, patterns: [] });
@@ -20,7 +20,7 @@ test.describe("parseCorsOrigins", () => {
 });
 
 test.describe("isOriginAllowed", () => {
-  test("sin Origin (curl/mismo origin) siempre pasa", () => {
+  test("sin Origin (curl/mismo origen) siempre pasa", () => {
     expect(isOriginAllowed(undefined, parseCorsOrigins("https://cyc.axzy.dev"))).toBe(true);
   });
 

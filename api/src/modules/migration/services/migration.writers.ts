@@ -1,7 +1,7 @@
 import type { Prisma } from "@prisma/client";
 import { toDbDay } from "@core/utils/day";
 import { hashPassword, randomToken } from "@core/utils/security";
-import { formatMatricula } from "@modules/students";
+import { formatStudentNumber } from "@modules/students";
 import { usernameBase } from "@modules/teachers";
 
 type Tx = Prisma.TransactionClient;
@@ -68,7 +68,7 @@ export const applyStudent = async (tx: Tx, raw: Record<string, unknown>): Promis
       create: { year, last: 1 },
       update: { last: { increment: 1 } },
     });
-    studentNumber = formatMatricula(year, sequence.last);
+    studentNumber = formatStudentNumber(year, sequence.last);
   }
 
   await tx.student.create({

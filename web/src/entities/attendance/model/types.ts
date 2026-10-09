@@ -14,8 +14,8 @@ export interface AttendanceSession {
   date: string;
   time: string | null;
   topic: string | null;
-  registrados: number;
-  faltas: number;
+  recordedCount: number;
+  absences: number;
   annulled: boolean;
   deleteReason: string | null;
   createdAt: string;
@@ -41,7 +41,7 @@ export interface AttendanceRollRow {
 
 /** Pase de lista completo de una sesión (`GET /attendance-sessions/{id}`). */
 export interface AttendanceRoll extends AttendanceSession {
-  group: { id: string; name: string; courseNombre: string; termNombre: string; closed: boolean };
+  group: { id: string; name: string; courseName: string; termName: string; closed: boolean };
   rows: AttendanceRollRow[];
 }
 
@@ -56,21 +56,21 @@ export interface AttendanceSummaryRow {
   studentId: string;
   studentNumber: string;
   name: string;
-  sesiones: number;
+  sessions: number;
   presentes: number;
-  retardos: number;
-  faltas: number;
-  justificadas: number;
-  porcentaje: number | null;
-  alerta: boolean;
+  lates: number;
+  absences: number;
+  justified: number;
+  percentage: number | null;
+  alert: boolean;
 }
 
 export interface GroupAttendanceSummary {
   groupId: string;
   threshold: number;
-  sesiones: number;
-  promedio: number | null;
-  enAlerta: number;
+  sessions: number;
+  average: number | null;
+  inAlert: number;
   rows: AttendanceSummaryRow[];
 }
 
@@ -85,9 +85,9 @@ export interface StudentAttendanceRecord {
 
 export interface StudentAttendanceGroup extends Omit<AttendanceSummaryRow, "studentId" | "studentNumber" | "name"> {
   groupId: string;
-  grupo: string;
-  curso: string;
-  ciclo: string;
+  groupName: string;
+  courseName: string;
+  termName: string;
   records: StudentAttendanceRecord[];
 }
 
@@ -109,8 +109,8 @@ export interface Justification {
   date: string;
   time: string | null;
   groupId: string;
-  grupo: string;
-  curso: string;
+  groupName: string;
+  courseName: string;
   studentId: string;
   studentNumber: string;
   name: string;

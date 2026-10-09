@@ -7,7 +7,7 @@ export default function ScheduleSummary({ slots }: { slots: ScheduleSlot[] }) {
   const { t } = useTranslation(["courses"]);
   return (
     <ITText className="text-[11px] text-slate-600">
-      {slots.map((s) => `${t(`daysShort.${s.dia}`)} ${s.horaInicio}–${s.horaFin}`).join(" · ") || "—"}
+      {slots.map((s) => `${t(`daysShort.${s.day}`)} ${s.startTime}–${s.endTime}`).join(" · ") || "—"}
     </ITText>
   );
 }

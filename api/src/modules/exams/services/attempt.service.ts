@@ -146,9 +146,9 @@ export class AttemptService {
       result: showResult
         ? {
             score: Number(row.score ?? 0),
-            totalPuntos: total,
+            totalPoints: total,
             pendingCount: row.pendingCount,
-            aprobado: row.pendingCount > 0 ? null : Number(row.score ?? 0) >= Number(row.exam.passingScore),
+            passed: row.pendingCount > 0 ? null : Number(row.score ?? 0) >= Number(row.exam.passingScore),
           }
         : null,
     };
@@ -177,14 +177,14 @@ export class AttemptService {
       return {
         examId: exam.id,
         title: exam.title,
-        curso: exam.group.course.name,
-        grupo: exam.group.name,
+        courseName: exam.group.course.name,
+        groupName: exam.group.name,
         opensAt: exam.opensAt.toISOString(),
         closesAt: exam.closesAt.toISOString(),
         durationMin: exam.durationMin,
         maxAttempts: exam.maxAttempts,
-        intentosUsados: used,
-        totalPuntos: totalOf(exam),
+        attemptsUsed: used,
+        totalPoints: totalOf(exam),
         state,
         inProgressAttemptId: open?.id ?? null,
         canStart: !open && state === "OPEN" && used < exam.maxAttempts && student.status === "ACTIVE",
@@ -421,14 +421,14 @@ export class AttemptService {
     const grade = await tx.grade.upsert({
       where: key,
       create: { assessmentId: exam.assessment.id, enrollmentId: enrollment.id, score, capturedBy: actor.userId, capturedAt: new Date(),
-        notes: `Examen en línea: ${exam.title}` },
+        notes: t("grades.onlineExamNote", { title: exam.title }) },
       update: { score, capturedBy: actor.userId, capturedAt: new Date() },
     });
     await this.audit?.(
       { action: previous ? "GRADE_UPDATED" : "GRADE_CAPTURED", entityType: "Grade", entityId: grade.id, ...actor,
         previousState: previous ? { score: previous.score === null ? null : Number(previous.score) } : undefined,
         newState: { score },
-        metadata: { source: "online-exam", examId, attemptId: chosen.id, criterio: exam.attemptCriterion } },
+        metadata: { source: "online-exam", examId, attemptId: chosen.id, criterion: exam.attemptCriterion } },
       tx
     );
     return { assessmentId: exam.assessment.id, enrollmentId: enrollment.id, score };
@@ -492,7 +492,7 @@ export class AttemptService {
       this.db.examAttempt.findMany({ where: { examId }, orderBy: { number: "asc" } }),
     ]);
     const total = totalOf(exam);
-    const aprobatorio = Number(exam.passingScore);
+    const passingScore = Number(exam.passingScore);
     const rows = enrollments.map((e) => {
       const mine = attempts.filter((a) => a.studentId === e.studentId);
       const finished = mine.filter((a) => a.status !== "IN_PROGRESS");
@@ -505,11 +505,11 @@ export class AttemptService {
         studentId: e.studentId,
         studentNumber: e.student.studentNumber,
         name: fullName(e.student),
-        intentos: mine.length,
-        enCurso: mine.some((a) => a.status === "IN_PROGRESS"),
-        pendientes: finished.reduce((s, a) => s + a.pendingCount, 0),
-        calificacion: chosen ? chosen.score : null,
-        aprobado: chosen ? chosen.score >= aprobatorio : null,
+        attemptCount: mine.length,
+        inProgress: mine.some((a) => a.status === "IN_PROGRESS"),
+        pending: finished.reduce((s, a) => s + a.pendingCount, 0),
+        grade: chosen ? chosen.score : null,
+        passed: chosen ? chosen.score >= passingScore : null,
         attempts: mine.map((a) => ({
           attemptId: a.id,
           number: a.number,
@@ -522,16 +522,16 @@ export class AttemptService {
         })),
       };
     });
-    const graded = rows.filter((r) => r.calificacion !== null);
+    const graded = rows.filter((r) => r.grade !== null);
     return {
       exam: this.exams.detail(exam),
       kpis: {
-        inscritos: rows.length,
-        presentaron: rows.filter((r) => r.intentos > 0).length,
-        promedio: graded.length ? round2(graded.reduce((s, r) => s + (r.calificacion as number), 0) / graded.length) : null,
-        aprobados: graded.filter((r) => r.aprobado).length,
-        pendientesRevision: rows.reduce((s, r) => s + r.pendientes, 0),
-        totalPuntos: total,
+        enrolledCount: rows.length,
+        submittedCount: rows.filter((r) => r.attemptCount > 0).length,
+        average: graded.length ? round2(graded.reduce((s, r) => s + (r.grade as number), 0) / graded.length) : null,
+        passedCount: graded.filter((r) => r.passed).length,
+        pendingReview: rows.reduce((s, r) => s + r.pending, 0),
+        totalPoints: total,
       },
       rows,
     };

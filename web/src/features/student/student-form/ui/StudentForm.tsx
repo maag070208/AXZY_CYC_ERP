@@ -76,7 +76,7 @@ export default function StudentForm({ student, onSaved, onCancel }: Props) {
                 <ITDatePicker name="enrollmentDate" label={t("form.enrollmentDate")}
                   value={f.enrollmentDate ? fromDay(f.enrollmentDate) : undefined}
                   onChange={(ev) => fx.set("enrollmentDate", pickDay(ev.target.value))} />
-                <ITText className="mt-1 block text-[11px] text-slate-400">{t("form.fechaIngresoHint")}</ITText>
+                <ITText className="mt-1 block text-[11px] text-slate-400">{t("form.enrollmentDateHint")}</ITText>
               </ITGrid>
             )}
           </ITGrid>
@@ -126,7 +126,7 @@ export default function StudentForm({ student, onSaved, onCancel }: Props) {
                   <div key={index} className="rounded-xl border border-slate-200 p-3" data-guardian={index}>
                     <ITGrid container columns={12} spacing={3}>
                       <ITGrid item xs={12} md={4}>
-                        <ITInput name={`guardian-${index}-name`} label={t("form.guardianNombre")} value={g.name}
+                        <ITInput name={`guardian-${index}-name`} label={t("form.guardianName")} value={g.name}
                           required error={rowErrors.name}
                           onChange={(ev) => fx.setGuardian(index, { name: ev.target.value })} />
                       </ITGrid>
@@ -147,7 +147,7 @@ export default function StudentForm({ student, onSaved, onCancel }: Props) {
                       </ITGrid>
                     </ITGrid>
                     <ITFlex justify="between" align="center" className="mt-2">
-                      <ITCheckbox name={`guardian-${index}-payer`} label={t("form.responsablePago")}
+                      <ITCheckbox name={`guardian-${index}-payer`} label={t("form.paymentResponsible")}
                         checked={g.isPaymentResponsible}
                         onChange={(checked) => fx.setGuardian(index, { isPaymentResponsible: checked })} />
                       <ITButton variant="text" color="danger" size="sm" ariaLabel={`${t("form.removeGuardian")} ${index + 1}`}
@@ -180,7 +180,7 @@ export default function StudentForm({ student, onSaved, onCancel }: Props) {
         onClose={fx.cancelDuplicate}
         onConfirm={fx.confirmDuplicate}
         title={t("form.duplicateTitle")}
-        message={t("form.duplicateMessage", { matriculas: (fx.duplicates ?? []).join(", ") })}
+        message={t("form.duplicateMessage", { studentNumbers: (fx.duplicates ?? []).join(", ") })}
         confirmLabel={t("form.duplicateConfirm")}
         cancelLabel={t("common:actions.cancel")}
         variant="warning"

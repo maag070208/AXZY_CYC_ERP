@@ -44,7 +44,7 @@ export default function GroupDetailPage() {
   const [enrollOpen, setEnrollOpen] = useState(false);
   const [changing, setChanging] = useState<Enrollment | null>(null);
   const [dropping, setDropping] = useState<Enrollment | null>(null);
-  const [reason, setMotivo] = useState("");
+  const [reason, setReason] = useState("");
 
   const load = useCallback(() => {
     if (!id) return;
@@ -65,7 +65,7 @@ export default function GroupDetailPage() {
   const onAction = (action: EnrollmentAction, enrollment: Enrollment) => {
     if (action === "change") setChanging(enrollment);
     else {
-      setMotivo("");
+      setReason("");
       setDropping(enrollment);
     }
   };
@@ -86,7 +86,7 @@ export default function GroupDetailPage() {
     <ITFlex direction="column" gap={3}>
       {canEnroll && open && (
         <ITFlex justify="end">
-          <ITButton variant="filled" color="primary" disabled={g.disponibles === 0} onClick={() => setEnrollOpen(true)}>
+          <ITButton variant="filled" color="primary" disabled={g.available === 0} onClick={() => setEnrollOpen(true)}>
             <ITFlex align="center" gap={1}><FaUserPlus size={11} /><ITText className="text-[11px] font-bold">{t("enrollments.enroll")}</ITText></ITFlex>
           </ITButton>
         </ITFlex>
@@ -115,11 +115,11 @@ export default function GroupDetailPage() {
     </ITFlex>
   );
 
-  const dropTitle = t("enrollments.dropTitle", { name: dropping?.studentNombre ?? "" });
+  const dropTitle = t("enrollments.dropTitle", { name: dropping?.studentName ?? "" });
   return (
     <ITPage
-      title={g ? t("groups.detailTitle", { course: g.courseNombre, name: g.name }) : t("groups.title")}
-      description={g ? `${g.courseClave} · ${g.termNombre}` : undefined}
+      title={g ? t("groups.detailTitle", { course: g.courseName, name: g.name }) : t("groups.title")}
+      description={g ? `${g.courseCode} · ${g.termName}` : undefined}
       icon={<FaLayerGroup size={20} />}
       loading={!g && !error}
       error={error}
@@ -140,15 +140,15 @@ export default function GroupDetailPage() {
       {g && (
         <ITFlex direction="column" gap={4}>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            <ITStatCard label={t("groups.kpis.cupo")} value={g.capacity} icon={<FaChair size={16} />} />
-            <ITStatCard label={t("groups.kpis.inscritos")} value={g.inscritos} icon={<FaUsers size={16} />} />
-            <ITStatCard label={t("groups.kpis.disponibles")} value={g.disponibles} icon={<FaUserPlus size={16} />} />
+            <ITStatCard label={t("groups.kpis.capacity")} value={g.capacity} icon={<FaChair size={16} />} />
+            <ITStatCard label={t("groups.kpis.enrolledCount")} value={g.enrolledCount} icon={<FaUsers size={16} />} />
+            <ITStatCard label={t("groups.kpis.available")} value={g.available} icon={<FaUserPlus size={16} />} />
           </div>
           <PanelCard>
             <ITGrid container columns={12} spacing={4}>
-              <ITGrid item xs={12} md={4}><Field label={t("groups.profesor")} value={g.teacherNombre ?? t("groups.noTeacher")} /></ITGrid>
-              <ITGrid item xs={12} md={5}><Field label={t("groups.horario")} value={<ScheduleSummary slots={g.schedule} />} /></ITGrid>
-              <ITGrid item xs={12} md={3}><Field label={t("groups.aula")} value={g.classroom} /></ITGrid>
+              <ITGrid item xs={12} md={4}><Field label={t("groups.teacherName")} value={g.teacherName ?? t("groups.noTeacher")} /></ITGrid>
+              <ITGrid item xs={12} md={5}><Field label={t("groups.schedule")} value={<ScheduleSummary slots={g.schedule} />} /></ITGrid>
+              <ITGrid item xs={12} md={3}><Field label={t("groups.classroom")} value={g.classroom} /></ITGrid>
             </ITGrid>
           </PanelCard>
           <ITTabs
@@ -177,7 +177,7 @@ export default function GroupDetailPage() {
             onClose={() => setEnrollOpen(false)}
             onEnrolled={(enrollment) => {
               setEnrollOpen(false);
-              notify.success(t("enrollments.enrolled", { name: enrollment.studentNombre }));
+              notify.success(t("enrollments.enrolled", { name: enrollment.studentName }));
               refresh();
             }}
           />
@@ -194,7 +194,7 @@ export default function GroupDetailPage() {
           <ITDialog isOpen={!!dropping} onClose={() => setDropping(null)} title={dropTitle} className="w-full max-w-lg">
             <div role="dialog" aria-label={dropTitle}>
               <ITFlex direction="column" gap={4}>
-                <ITTextarea name="reason" label={t("enrollments.dropMotivo")} value={reason} onChange={setMotivo} rows={3} maxLength={500} />
+                <ITTextarea name="reason" label={t("enrollments.dropReason")} value={reason} onChange={setReason} rows={3} maxLength={500} />
                 <ITFlex justify="end" gap={2}>
                   <ITButton variant="outlined" color="secondary" onClick={() => setDropping(null)}>{t("common:actions.cancel")}</ITButton>
                   <ITButton variant="filled" color="danger" onClick={() => void drop()}>{t("enrollments.drop")}</ITButton>

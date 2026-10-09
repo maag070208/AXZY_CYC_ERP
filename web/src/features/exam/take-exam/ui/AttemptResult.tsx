@@ -15,14 +15,14 @@ export default function AttemptResult({ attempt, expired }: { attempt: Attempt; 
         <ITFlex direction="column" gap={2}>
           <ITFlex gap={2} align="center">
             <ITBadget color="secondary" size="sm">{t(`runner.statuses.${attempt.status}`)}</ITBadget>
-            {result?.aprobado !== null && result?.aprobado !== undefined && result.pendingCount === 0 && (
-              <ITBadget color={result.aprobado ? "success" : "danger"} size="sm">{result.aprobado ? t("results.aprobado") : t("results.reprobado")}</ITBadget>
+            {result?.passed !== null && result?.passed !== undefined && result.pendingCount === 0 && (
+              <ITBadget color={result.passed ? "success" : "danger"} size="sm">{result.passed ? t("results.passed") : t("results.failed")}</ITBadget>
             )}
           </ITFlex>
           {result ? (
             <>
               <ITText data-role="attempt-score" className="text-[28px] font-black text-slate-800">
-                {result.score} <span className="text-[16px] text-slate-400">/ {result.totalPuntos}</span>
+                {result.score} <span className="text-[16px] text-slate-400">/ {result.totalPoints}</span>
               </ITText>
               {result.pendingCount > 0 && <ITAlert variant="info">{t("runner.waitingReview")}</ITAlert>}
             </>

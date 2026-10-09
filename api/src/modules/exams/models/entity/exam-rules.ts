@@ -19,10 +19,10 @@ export const endsAtOf = (startedAt: Date, durationMin: number, closesAt: Date): 
 export type WindowState = "NOT_PUBLISHED" | "NOT_OPEN" | "CLOSED" | "OPEN";
 
 /** ¿Se puede iniciar ahora? (publicado y `apertura ≤ ahora ≤ cierre`). */
-export const windowState = (status: string, apertura: Date, cierre: Date, now: Date = new Date()): WindowState => {
+export const windowState = (status: string, opensAt: Date, closesAt: Date, now: Date = new Date()): WindowState => {
   if (status !== "PUBLISHED") return status === "CLOSED" ? "CLOSED" : "NOT_PUBLISHED";
-  if (now < apertura) return "NOT_OPEN";
-  if (now > cierre) return "CLOSED";
+  if (now < opensAt) return "NOT_OPEN";
+  if (now > closesAt) return "CLOSED";
   return "OPEN";
 };
 

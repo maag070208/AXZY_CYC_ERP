@@ -45,25 +45,25 @@ export default function OutboxTable({ reloadKey, onTotal, onChanged }: Props) {
 
   const columns: Column<NotificationItem>[] = [
     {
-      key: "recipient", label: t("outbox.destinatario"), type: "string", filter: true, sortable: false,
+      key: "recipient", label: t("outbox.recipient"), type: "string", filter: true, sortable: false,
       render: (r) => (
         <div>
           <ITText className="block text-[12px] font-bold text-slate-700">{r.recipient}</ITText>
-          <ITText className="text-[10px] text-slate-400">{r.origin}{r.templateClave ? ` · ${r.templateClave}` : ""}</ITText>
+          <ITText className="text-[10px] text-slate-400">{r.origin}{r.templateCode ? ` · ${r.templateCode}` : ""}</ITText>
         </div>
       ),
     },
     {
-      key: "channel", label: t("outbox.canal"), type: "catalog", width: 110, filter: "catalog", sortable: false,
+      key: "channel", label: t("outbox.channel"), type: "catalog", width: 110, filter: "catalog", sortable: false,
       catalogOptions: { data: (["EMAIL", "SMS", "WHATSAPP", "IN_APP"] as const).map((c) => ({ id: c, name: t(`channels.${c}`) })) },
       render: (r) => <ITBadget color="secondary" size="sm">{t(`channels.${r.channel}`)}</ITBadget>,
     },
     {
-      key: "subject", label: t("outbox.asunto"), type: "string",
+      key: "subject", label: t("outbox.subject"), type: "string",
       render: (r) => <ITText className="line-clamp-2 text-[12px] text-slate-600">{r.subject ? `${r.subject} — ` : ""}{r.body}</ITText>,
     },
     {
-      key: "status", label: t("outbox.estado"), type: "catalog", width: 120, filter: "catalog", sortable: false,
+      key: "status", label: t("outbox.state"), type: "catalog", width: 120, filter: "catalog", sortable: false,
       catalogOptions: { data: (["QUEUED", "SENT", "FAILED", "SKIPPED"] as const).map((s) => ({ id: s, name: t(`status.${s}`) })) },
       render: (r) => (
         <ITFlex direction="column" gap={1}>
@@ -74,7 +74,7 @@ export default function OutboxTable({ reloadKey, onTotal, onChanged }: Props) {
       ),
     },
     {
-      key: "createdAt", label: t("outbox.fecha"), type: "date", width: 170, sortable: false,
+      key: "createdAt", label: t("outbox.date"), type: "date", width: 170, sortable: false,
       render: (r) => <ITText className="text-[11px] text-slate-500">{formatInstant(r.sentAt ?? r.createdAt, i18n.language)}</ITText>,
     },
     {

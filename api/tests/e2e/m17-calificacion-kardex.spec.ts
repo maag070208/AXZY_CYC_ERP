@@ -74,7 +74,7 @@ test("califica cerradas todo o nada y deja la abierta pendiente; sin Grade hasta
   // OM correcta (2), VF incorrecta (0), MR parcial = 0, abierta contestada → pendiente.
   const result = await take(api, examId, { om: 0, vf: 0, mr: [0], ab: "Revisar compresión de cada cilindro" });
   expect(result.status).toBe("SUBMITTED");
-  expect(result.result).toEqual({ score: 2, totalPuntos: 10, pendingCount: 1, aprobado: null });
+  expect(result.result).toEqual({ score: 2, totalPoints: 10, pendingCount: 1, passed: null });
   const marks = Object.fromEntries(result.questions.map((q: { type: string; isCorrect: boolean | null; pointsEarned: number | null }) => [q.type, [q.isCorrect, q.pointsEarned]]));
   expect(marks).toEqual({
     MULTIPLE_CHOICE: [true, 2],
@@ -103,7 +103,7 @@ test("califica cerradas todo o nada y deja la abierta pendiente; sin Grade hasta
 
   // El alumno ve su comentario y ya no hay pendientes.
   const mine = await (await api.get(`attempts/${result.attemptId}`)).json();
-  expect(mine.result).toMatchObject({ score: 5, pendingCount: 0, aprobado: false });
+  expect(mine.result).toMatchObject({ score: 5, pendingCount: 0, passed: false });
   expect(mine.questions.find((q: { type: string }) => q.type === "OPEN").comment).toBe("Faltó la prueba de chispa");
   await api.dispose();
 });
@@ -138,13 +138,13 @@ test("showResult = false: el alumno no ve puntaje ni claves; resultados para el 
 
   const res = await (await prof.get(`online-exams/${examId}/results`)).json();
   const row = res.rows.find((r: { studentId: string }) => r.studentId === pupil.studentId);
-  expect(row).toMatchObject({ intentos: 1, calificacion: 6, aprobado: true, pendientes: 0 });
-  expect(res.kpis).toMatchObject({ presentaron: 1, aprobados: 1, totalPuntos: 10 });
+  expect(row).toMatchObject({ attemptCount: 1, grade: 6, passed: true, pending: 0 });
+  expect(res.kpis).toMatchObject({ submittedCount: 1, passedCount: 1, totalPoints: 10 });
   const staffView = await (await prof.get(`attempts/${row.attempts[0].attemptId}`)).json();
-  expect(staffView.result).toMatchObject({ score: 6, aprobado: true });
+  expect(staffView.result).toMatchObject({ score: 6, passed: true });
 });
 
-test("recalificar tras corregir la code reescribe el Grade; repetirlo no cambia nada", async () => {
+test("recalificar tras corregir la clave reescribe el Grade; repetirlo no cambia nada", async () => {
   const { examId, assessmentId } = await makeExam({ title: "E2E Regrade" }, 10);
   const pupil = await makePupil(RUN, "g4", world.group.id);
   const { api } = await loginAs(pupil.username);
@@ -165,7 +165,7 @@ test("recalificar tras corregir la code reescribe el Grade; repetirlo no cambia 
   await db.questionOption.update({ where: { id: world.questions.om.options[0].id }, data: { isCorrect: true } });
 
   // El reactivo ya respondido quedó bloqueado para edición.
-  const locked = await prof.patch(`questions/${world.questions.om.id}`, { data: { text: "Otro text" } });
+  const locked = await prof.patch(`questions/${world.questions.om.id}`, { data: { text: "Otro texto" } });
   expect((await locked.json()).code).toBe("QUESTION_IN_USE");
 });
 

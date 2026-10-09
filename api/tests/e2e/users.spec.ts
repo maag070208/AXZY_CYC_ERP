@@ -147,7 +147,7 @@ test.describe("edición", () => {
 
 test.describe("baja, reactivación y desbloqueo", () => {
   test("baja lógica: cierra sesiones, bloquea el login; reactivar lo devuelve", async () => {
-    const input = newUser("baja");
+    const input = newUser("withdraw");
     const created = await (await admin.post("users", { data: input })).json();
     const session = await login(input.username);
 

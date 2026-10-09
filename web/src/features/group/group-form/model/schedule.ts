@@ -14,12 +14,12 @@ const toMinutes = (time: string) => {
 /** Mismas reglas que la API: inicio < fin y sin empalmes `[inicio, fin)` el mismo día. */
 export const scheduleError = (slots: ScheduleSlot[]): "slotRequired" | "slotRange" | "slotOverlap" | null => {
   if (slots.length === 0) return "slotRequired";
-  if (slots.some((s) => toMinutes(s.horaInicio) >= toMinutes(s.horaFin))) return "slotRange";
+  if (slots.some((s) => toMinutes(s.startTime) >= toMinutes(s.endTime))) return "slotRange";
   for (let i = 0; i < slots.length; i++) {
     for (let j = i + 1; j < slots.length; j++) {
       const a = slots[i];
       const b = slots[j];
-      if (a.dia === b.dia && toMinutes(a.horaInicio) < toMinutes(b.horaFin) && toMinutes(b.horaInicio) < toMinutes(a.horaFin)) {
+      if (a.day === b.day && toMinutes(a.startTime) < toMinutes(b.endTime) && toMinutes(b.startTime) < toMinutes(a.endTime)) {
         return "slotOverlap";
       }
     }

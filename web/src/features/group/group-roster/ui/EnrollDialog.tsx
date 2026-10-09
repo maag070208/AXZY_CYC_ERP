@@ -39,9 +39,9 @@ export default function EnrollDialog({ group, onClose, onEnrolled }: Props) {
       return;
     }
     const handle = setTimeout(() => {
-      const byMatricula = /^\d/.test(term);
+      const byStudentNumber = /^\d/.test(term);
       studentApi
-        .table({ page: 1, limit: 10, filters: { status: "ACTIVE", ...(byMatricula ? { studentNumber: term } : { name: term }) } })
+        .table({ page: 1, limit: 10, filters: { status: "ACTIVE", ...(byStudentNumber ? { studentNumber: term } : { name: term }) } })
         .then((res) => setResults(res.data))
         .catch(() => setResults([]));
     }, 250);
@@ -61,7 +61,7 @@ export default function EnrollDialog({ group, onClose, onEnrolled }: Props) {
     }
   };
 
-  const title = t("enrollments.enrollTitle", { group: group ? `${group.courseNombre} ${group.name}` : "" });
+  const title = t("enrollments.enrollTitle", { group: group ? `${group.courseName} ${group.name}` : "" });
   return (
     <ITDialog isOpen={!!group} onClose={onClose} title={title} className="w-full max-w-xl">
       <div role="dialog" aria-label={title}>
@@ -77,14 +77,14 @@ export default function EnrollDialog({ group, onClose, onEnrolled }: Props) {
               {results.map((s) => (
                 <li key={s.id} className="flex items-center justify-between gap-3 px-3 py-2">
                   <div>
-                    <ITText className="block text-[12px] font-bold text-slate-700">{s.nombreCompleto}</ITText>
+                    <ITText className="block text-[12px] font-bold text-slate-700">{s.fullName}</ITText>
                     <ITText className="font-mono text-[11px] text-slate-400">{s.studentNumber}</ITText>
                   </div>
                   {enrolled.has(s.id) ? (
                     <ITText className="text-[11px] font-bold text-slate-400">{t("enrollments.alreadyEnrolled")}</ITText>
                   ) : (
                     <ITButton variant="filled" color="primary" size="sm" disabled={busy !== null}
-                      ariaLabel={`${t("enrollments.enrollAction")} ${s.nombreCompleto}`} onClick={() => void enroll(s)}>
+                      ariaLabel={`${t("enrollments.enrollAction")} ${s.fullName}`} onClick={() => void enroll(s)}>
                       {t("enrollments.enrollAction")}
                     </ITButton>
                   )}

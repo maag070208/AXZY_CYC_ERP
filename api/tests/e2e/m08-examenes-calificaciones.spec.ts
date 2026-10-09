@@ -38,7 +38,7 @@ let seq = 0;
 /** Grupo del profesor con `n` alumnos inscritos. */
 const groupWith = async (labels: string[], teacherId = teacher.teacher.id, userIds: (string | undefined)[] = []) => {
   const res = await control.post("groups", {
-    data: { courseId, termId, teacherId, name: `C${(seq += 1)}`, capacity: 30, schedule: [slot("SABADO", `0${seq % 9}:00`, `0${seq % 9}:30`)] },
+    data: { courseId, termId, teacherId, name: `C${(seq += 1)}`, capacity: 30, schedule: [slot("SATURDAY", `0${seq % 9}:00`, `0${seq % 9}:30`)] },
   });
   expect(res.status(), await res.text()).toBe(201);
   const group = await res.json();
@@ -98,7 +98,7 @@ test.describe("instrumentos", () => {
     const { group } = await groupWith([]);
     const p1 = await assessment(prof, group.id, { name: "Parcial 1", weight: 60, date: "2026-09-15" });
     expect(p1.status(), await p1.text()).toBe(201);
-    expect(await p1.json()).toMatchObject({ weight: 60, maxScore: 100, active: true, capturadas: 0 });
+    expect(await p1.json()).toMatchObject({ weight: 60, maxScore: 100, active: true, capturedCount: 0 });
     expect((await lastAudit("ASSESSMENT_CREATED", profUserId))?.entityId).toBe((await p1.json()).id);
 
     const over = await assessment(prof, group.id, { name: "Final", type: "FINAL", weight: 40.01 });
@@ -107,7 +107,7 @@ test.describe("instrumentos", () => {
     expect((await assessment(prof, group.id, { name: "Final", type: "FINAL", weight: 40 })).status()).toBe(201);
   });
 
-  test("ponderación ≤ 0, > 2 decimales o type inválido → 400", async () => {
+  test("ponderación ≤ 0, > 2 decimales o tipo inválido → 400", async () => {
     const { group } = await groupWith([]);
     const res = await assessment(prof, group.id, { name: "", weight: 0, type: "QUIZ", maxScore: 10.123 });
     expect(res.status()).toBe(400);
@@ -271,13 +271,13 @@ test.describe("libro, cierre y kardex", () => {
       ["PASSED", 72.99],
     ]);
     const log = await lastAudit("GROUP_CLOSED", profUserId);
-    expect(log?.metadata).toMatchObject({ alumnos: 3, acreditados: 2, reprobados: 1, umbral: 70 });
+    expect(log?.metadata).toMatchObject({ students: 3, passedCount: 2, failedCount: 1, threshold: 70 });
 
     // Kardex (M06) del alumno: renglón con la final y el estatus.
     const kardex = await (await pupil.get(`students/${enrollments[2].studentId}/kardex`)).json();
-    const entry = kardex.entries.find((e: { grupo: string }) => e.grupo === group.name);
-    expect(entry).toMatchObject({ calificacionFinal: 72.99, estatus: "PASSED", ponderaciones: [30, 60, 10] });
-    expect(entry.calificaciones).toEqual([70, 69.99, 100]);
+    const entry = kardex.entries.find((e: { groupName: string }) => e.groupName === group.name);
+    expect(entry).toMatchObject({ finalGrade: 72.99, status: "PASSED", weights: [30, 60, 10] });
+    expect(entry.grades).toEqual([70, 69.99, 100]);
     await pupil.dispose();
 
     // Cerrado: ni captura, ni instrumentos, ni inscripciones, ni segundo cierre.

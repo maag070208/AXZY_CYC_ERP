@@ -45,7 +45,7 @@ test.afterAll(async () => {
 });
 
 test.describe("roles", () => {
-  test("crear rol duplicando otro copia su matriz; code y duplicado validados", async () => {
+  test("crear rol duplicando otro copia su matriz; clave y duplicado validados", async () => {
     const res = await admin.post("permissions/roles", {
       data: { key: ROLE_KEY, name: "E2E Rol", module: "Pruebas", copyFrom: "SCHOOL_CONTROL" },
     });
@@ -275,7 +275,7 @@ test.describe("políticas ABAC", () => {
     expect((await admin.patch(`users/${memberId}`, { data: { name: "E2E Ajeno" } })).status()).toBe(200);
   });
 
-  test("code duplicada → 409 POLICY_KEY_TAKEN", async () => {
+  test("clave duplicada → 409 POLICY_KEY_TAKEN", async () => {
     const data = { key: policyKey("dup"), name: "Dup", action: "settings.update", effect: "ALLOW" };
     const first = await (await admin.post("permissions/policies", { data })).json();
     const again = await admin.post("permissions/policies", { data });

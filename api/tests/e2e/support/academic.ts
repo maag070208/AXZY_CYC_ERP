@@ -50,4 +50,4 @@ export const makeTeacher = async (run: string, label: string) => {
   return { username, userId: user.id, teacher };
 };
 
-export const slot = (dia: string, horaInicio: string, horaFin: string) => ({ dia, horaInicio, horaFin });
+export const slot = (day: string, startTime: string, endTime: string) => ({ day, startTime, endTime });

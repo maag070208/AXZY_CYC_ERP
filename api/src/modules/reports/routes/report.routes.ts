@@ -29,7 +29,7 @@ export const createReportRouters = (controller: ReportController) => {
       query("status", "Estatus (según el reporte)"),
     ],
     responses: {
-      200: { description: "{ report, title, generatedAt, filters, columns, rows, totals } o file" },
+      200: { description: "{ report, title, generatedAt, filters, columns, rows, totals } o archivo" },
       403: { description: "REPORT_REQUIRES_FULL_SCOPE (reportes con montos) · INSUFFICIENT_PERMISSIONS" },
       404: { description: "REPORT_NOT_FOUND" },
     },

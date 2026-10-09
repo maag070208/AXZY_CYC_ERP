@@ -72,19 +72,19 @@ export default function CatalogItemDialog({ resource, isOpen, item, onClose, onS
           {error && <ITAlert variant="error">{error}</ITAlert>}
           <ITInput
             name="name"
-            label={t("catalogs.nombre")}
+            label={t("catalogs.name")}
             value={name}
             onChange={(e) => setName(e.target.value)}
             onBlur={() => setTouched(true)}
             required
             autoFocus
-            error={touched && missing ? t("catalogs.nombreRequired") : undefined}
+            error={touched && missing ? t("catalogs.nameRequired") : undefined}
           />
           {resource === "levels" && (
             <ITInput
               name="sortOrder"
               type="number"
-              label={t("catalogs.orden")}
+              label={t("catalogs.sortOrder")}
               value={sortOrder}
               onChange={(e) => setSortOrder(String(e.target.value ?? ""))}
             />
@@ -92,7 +92,7 @@ export default function CatalogItemDialog({ resource, isOpen, item, onClose, onS
           {resource === "document-types" && (
             <ITCheckbox
               name="required"
-              label={t("catalogs.obligatorio")}
+              label={t("catalogs.required")}
               checked={required}
               onChange={setRequired}
             />

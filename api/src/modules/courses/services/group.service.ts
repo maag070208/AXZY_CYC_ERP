@@ -35,16 +35,16 @@ export const toGroupView = (row: GroupRow): GroupView => ({
   id: row.id,
   name: row.name,
   courseId: row.courseId,
-  courseClave: row.course.code,
-  courseNombre: row.course.name,
+  courseCode: row.course.code,
+  courseName: row.course.name,
   termId: row.termId,
-  termNombre: row.term.name,
-  termActivo: row.term.active,
+  termName: row.term.name,
+  activeTerm: row.term.active,
   teacherId: row.teacherId,
-  teacherNombre: row.teacher ? `${row.teacher.firstNames} ${row.teacher.surnames}` : null,
+  teacherName: row.teacher ? `${row.teacher.firstNames} ${row.teacher.surnames}` : null,
   capacity: row.capacity,
-  inscritos: row._count.enrollments,
-  disponibles: Math.max(0, row.capacity - row._count.enrollments),
+  enrolledCount: row._count.enrollments,
+  available: Math.max(0, row.capacity - row._count.enrollments),
   schedule: sortSchedule(parseSchedule(row.schedule)),
   classroom: row.classroom,
   active: row.active,
@@ -126,11 +126,11 @@ export class GroupService {
       {
         name: "name",
         course: (direction) => ({ course: { name: direction } }),
-        term: (direction) => ({ term: { fechaInicio: direction } }),
+        term: (direction) => ({ term: { startDate: direction } }),
         capacity: "capacity",
         createdAt: "createdAt",
       },
-      [{ term: { fechaInicio: "desc" } }, { course: { name: "asc" } }, { name: "asc" }]
+      [{ term: { startDate: "desc" } }, { course: { name: "asc" } }, { name: "asc" }]
     );
     const result = await paginatedQuery<GroupRow>({
       model: this.db.group,
@@ -207,8 +207,8 @@ export class GroupService {
     if (input.name && input.name !== previous.name) {
       await this.assertNameFree(previous.courseId, previous.termId, input.name, id);
     }
-    if (input.capacity !== undefined && input.capacity < before.inscritos) {
-      throw new HttpError(409, "CUPO_BELOW_ENROLLED", { capacity: input.capacity, inscritos: before.inscritos });
+    if (input.capacity !== undefined && input.capacity < before.enrolledCount) {
+      throw new HttpError(409, "CAPACITY_BELOW_ENROLLED", { capacity: input.capacity, enrolledCount: before.enrolledCount });
     }
     return this.db.$transaction(async (tx) => {
       const row = await tx.group.update({

@@ -23,7 +23,7 @@ export const studentApi = {
       { responseType: "blob" }
     ),
   // --- M05 ---
-  baja: (id: string, data: MovementInput) => api.post<MovementResult>(`/students/${id}/baja`, data),
-  reingreso: (id: string, data: MovementInput) => api.post<MovementResult>(`/students/${id}/reingreso`, data),
+  withdraw: (id: string, data: MovementInput) => api.post<MovementResult>(`/students/${id}/withdrawal`, data),
+  reenter: (id: string, data: MovementInput) => api.post<MovementResult>(`/students/${id}/reentry`, data),
   movements: (id: string) => api.get<StudentMovement[]>(`/students/${id}/movements`),
 };

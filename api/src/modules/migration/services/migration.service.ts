@@ -94,18 +94,18 @@ export class MigrationService {
     const planned = planRows(entity, table, todayInBusinessZone());
     const accepted: ParsedRecord[] = [];
     const rejected: RowRejection[] = [];
-    const seenMatriculas = new Set<string>();
+    const seenStudentNumbers = new Set<string>();
 
     for (const row of planned) {
       if (row.record) {
         const studentNumber = row.record.data.studentNumber as string | null;
         if (entity === "Student" && studentNumber) {
           const taken = await client.student.findUnique({ where: { studentNumber }, select: { curp: true } });
-          if (seenMatriculas.has(studentNumber) || (taken && taken.curp !== row.record.data.curp)) {
-            rejected.push({ rowNumber: row.rowNumber, entity, naturalKey: row.naturalKey, reason: "DUPLICATE_MATRICULA", value: studentNumber });
+          if (seenStudentNumbers.has(studentNumber) || (taken && taken.curp !== row.record.data.curp)) {
+            rejected.push({ rowNumber: row.rowNumber, entity, naturalKey: row.naturalKey, reason: "DUPLICATE_STUDENT_NUMBER", value: studentNumber });
             continue;
           }
-          seenMatriculas.add(studentNumber);
+          seenStudentNumbers.add(studentNumber);
         }
         accepted.push(row.record);
       } else if (row.problem) {

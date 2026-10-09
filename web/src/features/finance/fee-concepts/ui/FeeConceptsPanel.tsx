@@ -35,14 +35,14 @@ export default function FeeConceptsPanel() {
   };
 
   const columns: Column<FeeConcept>[] = [
-    { key: "name", label: t("concepts.nombre"), type: "string", filter: true, sortable: false },
+    { key: "name", label: t("concepts.name"), type: "string", filter: true, sortable: false },
     {
-      key: "type", label: t("concepts.tipo"), type: "catalog", width: 150, filter: "catalog", sortable: false,
+      key: "type", label: t("concepts.type"), type: "catalog", width: 150, filter: "catalog", sortable: false,
       catalogOptions: { data: [...EDITABLE_FEE_TYPES, "LATE_FEE" as const].map((x) => ({ id: x, name: t(`concepts.types.${x}`) })) },
       render: (row) => <ITText className="text-[12px] text-slate-600">{t(`concepts.types.${row.type}`)}</ITText>,
     },
     {
-      key: "amount", label: t("concepts.monto"), type: "number", width: 140, sortable: false,
+      key: "amount", label: t("concepts.amount"), type: "number", width: 140, sortable: false,
       render: (row) => <ITText className="text-[12px] font-bold text-slate-700">{formatMoney(row.amount, i18n.language)}</ITText>,
     },
     {

@@ -29,18 +29,18 @@ export default function MovementDialog({ kind, student, onClose, onDone }: Props
   const { t } = useTranslation(["students", "common"]);
   const [reasons, setReasons] = useState<CatalogItem[]>([]);
   const [reasonId, setReasonId] = useState("");
-  const [reason, setMotivo] = useState("");
-  const [date, setFecha] = useState(toDay(new Date()));
-  const [notes, setObservaciones] = useState("");
+  const [reason, setReason] = useState("");
+  const [date, setDate] = useState(toDay(new Date()));
+  const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!kind) return;
     setReasonId("");
-    setMotivo("");
-    setFecha(toDay(new Date()));
-    setObservaciones("");
+    setReason("");
+    setDate(toDay(new Date()));
+    setNotes("");
     setError(null);
     if (kind === "WITHDRAWAL") {
       catalogApi.options("cancellation-reasons").then(setReasons).catch(() => setReasons([]));
@@ -49,12 +49,12 @@ export default function MovementDialog({ kind, student, onClose, onDone }: Props
 
   const title =
     kind === "WITHDRAWAL"
-      ? t("movements.bajaTitle", { name: student.nombreCompleto })
-      : t("movements.reingresoTitle", { name: student.nombreCompleto });
+      ? t("movements.withdrawalTitle", { name: student.fullName })
+      : t("movements.reentryTitle", { name: student.fullName });
 
   const confirm = async () => {
     if (!kind) return;
-    if (reason.trim().length < 3) return setError(t("movements.motivoRequired"));
+    if (reason.trim().length < 3) return setError(t("movements.reasonRequired"));
     setSaving(true);
     setError(null);
     const data = {
@@ -64,7 +64,7 @@ export default function MovementDialog({ kind, student, onClose, onDone }: Props
       notes: notes.trim() || null,
     };
     try {
-      onDone(kind === "WITHDRAWAL" ? await studentApi.baja(student.id, data) : await studentApi.reingreso(student.id, data));
+      onDone(kind === "WITHDRAWAL" ? await studentApi.withdraw(student.id, data) : await studentApi.reenter(student.id, data));
     } catch (err) {
       setError(errorMessage(err, t("common:errors.save")));
     } finally {
@@ -78,7 +78,7 @@ export default function MovementDialog({ kind, student, onClose, onDone }: Props
         <ITFlex direction="column" gap={4}>
           {error && <ITAlert variant="error">{error}</ITAlert>}
           <ITText className="text-[12px] text-slate-600">
-            {kind === "WITHDRAWAL" ? t("movements.bajaMessage") : t("movements.reingresoMessage")}
+            {kind === "WITHDRAWAL" ? t("movements.withdrawalMessage") : t("movements.reentryMessage")}
           </ITText>
           {kind === "WITHDRAWAL" && reasons.length > 0 && (
             <ITSelect
@@ -90,26 +90,26 @@ export default function MovementDialog({ kind, student, onClose, onDone }: Props
               onChange={(e) => {
                 setReasonId(e.target.value);
                 const reason = reasons.find((r) => r.id === e.target.value);
-                if (reason) setMotivo(reason.name);
+                if (reason) setReason(reason.name);
               }}
             />
           )}
-          <ITInput name="reason" label={t("movements.motivo")} value={reason} required
-            onChange={(e) => setMotivo(e.target.value)} />
-          <ITDatePicker name="date" label={t("movements.fecha")} value={fromDay(date)} maxDate={new Date()}
+          <ITInput name="reason" label={t("movements.reasonField")} value={reason} required
+            onChange={(e) => setReason(e.target.value)} />
+          <ITDatePicker name="date" label={t("movements.date")} value={fromDay(date)} maxDate={new Date()}
             onChange={(e) => {
               const value = e.target.value;
-              if (value instanceof Date && !Number.isNaN(value.getTime())) setFecha(toDay(value));
+              if (value instanceof Date && !Number.isNaN(value.getTime())) setDate(toDay(value));
             }} />
-          <ITTextarea name="notes" label={t("movements.observaciones")} value={notes}
-            onChange={setObservaciones} rows={3} maxLength={1000} />
+          <ITTextarea name="notes" label={t("movements.notes")} value={notes}
+            onChange={setNotes} rows={3} maxLength={1000} />
           <ITFlex justify="end" gap={2}>
             <ITButton variant="outlined" color="secondary" onClick={onClose}>
               {t("common:actions.cancel")}
             </ITButton>
             <ITButton variant="filled" color={kind === "WITHDRAWAL" ? "danger" : "success"} disabled={saving}
               onClick={() => void confirm()}>
-              {kind === "WITHDRAWAL" ? t("movements.confirmBaja") : t("movements.confirmReingreso")}
+              {kind === "WITHDRAWAL" ? t("movements.confirmWithdrawal") : t("movements.confirmReentry")}
             </ITButton>
           </ITFlex>
         </ITFlex>

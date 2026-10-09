@@ -46,11 +46,11 @@ export default function StudentAttendancePanel({ studentId, studentName, readOnl
 
   const columns: Column<StudentAttendanceRecord>[] = [
     {
-      key: "date", label: t("student.fecha"), type: "string", width: 170,
+      key: "date", label: t("student.date"), type: "string", width: 170,
       render: (r) => <ITText className="text-[12px] text-slate-600">{formatDay(r.date, i18n.language)}{r.time ? ` · ${r.time}` : ""}</ITText>,
     },
     {
-      key: "status", label: t("student.estado"), type: "string", width: 130,
+      key: "status", label: t("student.state"), type: "string", width: 130,
       render: (r) => (
         <ITBadget color={r.status === "ABSENT" ? "danger" : r.status === "LATE" ? "warning" : "success"} size="sm">
           {t(`status.${r.status}`)}
@@ -58,7 +58,7 @@ export default function StudentAttendancePanel({ studentId, studentName, readOnl
       ),
     },
     {
-      key: "justification", label: t("student.justificante"), type: "string", width: 200,
+      key: "justification", label: t("student.justification"), type: "string", width: 200,
       render: (r) => (
         <ITFlex direction="column" gap={1}>
           {r.justification ? (
@@ -66,7 +66,7 @@ export default function StudentAttendancePanel({ studentId, studentName, readOnl
               {t(`justificationStatus.${r.justification.status}`)}
             </ITBadget>
           ) : (
-            <ITText className="text-[11px] text-slate-400">{r.status === "ABSENT" ? t("student.sinJustificar") : "—"}</ITText>
+            <ITText className="text-[11px] text-slate-400">{r.status === "ABSENT" ? t("student.unjustified") : "—"}</ITText>
           )}
         </ITFlex>
       ),
@@ -89,15 +89,15 @@ export default function StudentAttendancePanel({ studentId, studentName, readOnl
       {!data && !error && <ITLoader />}
       {data && data.groups.length === 0 && <ITAlert variant="info">{t("student.empty")}</ITAlert>}
       {data?.groups.map((group) => (
-        <PanelCard key={group.groupId} title={`${group.curso} · ${group.grupo}`} description={group.ciclo}>
+        <PanelCard key={group.groupId} title={`${group.courseName} · ${group.groupName}`} description={group.termName}>
           <ITFlex direction="column" gap={4}>
             <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-              <KpiTile label={t("student.porcentaje")} value={group.porcentaje === null ? "—" : `${group.porcentaje}%`} icon={<FaCheck size={16} />} tone={group.alerta ? "rose" : "emerald"} />
-              <KpiTile label={t("student.faltas")} value={group.faltas} icon={<FaExclamationTriangle size={16} />} tone={group.faltas > 0 ? "amber" : "neutral"} />
-              <KpiTile label={t("student.retardos")} value={group.retardos} icon={<FaCheck size={16} />} tone="violet" />
-              <KpiTile label={t("summary.kpiUmbral")} value={`${data.threshold}%`} icon={<FaCheck size={16} />} tone="sky" />
+              <KpiTile label={t("student.percentage")} value={group.percentage === null ? "—" : `${group.percentage}%`} icon={<FaCheck size={16} />} tone={group.alert ? "rose" : "emerald"} />
+              <KpiTile label={t("student.absences")} value={group.absences} icon={<FaExclamationTriangle size={16} />} tone={group.absences > 0 ? "amber" : "neutral"} />
+              <KpiTile label={t("student.lates")} value={group.lates} icon={<FaCheck size={16} />} tone="violet" />
+              <KpiTile label={t("summary.kpiThreshold")} value={`${data.threshold}%`} icon={<FaCheck size={16} />} tone="sky" />
             </div>
-            {group.alerta && <ITAlert variant="warning">{t("student.alert")}</ITAlert>}
+            {group.alert && <ITAlert variant="warning">{t("student.alert")}</ITAlert>}
             <ITTable
               columns={columns as unknown as Column<Record<string, unknown>>[]}
               data={group.records as unknown as Record<string, unknown>[]}

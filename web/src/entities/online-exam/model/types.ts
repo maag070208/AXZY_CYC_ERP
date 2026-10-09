@@ -6,10 +6,10 @@ export type Criterion = "BEST" | "LAST";
 export interface OnlineExam {
   id: string;
   groupId: string;
-  groupNombre: string;
+  groupName: string;
   courseId: string;
-  courseNombre: string;
-  termNombre: string;
+  courseName: string;
+  termName: string;
   title: string;
   instructions: string | null;
   durationMin: number;
@@ -22,11 +22,11 @@ export interface OnlineExam {
   passingScore: number;
   attemptCriterion: Criterion;
   assessmentId: string | null;
-  assessmentNombre: string | null;
+  assessmentName: string | null;
   status: ExamStatus;
-  totalPuntos: number;
-  preguntas: number;
-  intentos: number;
+  totalPoints: number;
+  questionCount: number;
+  attemptCount: number;
   publishedAt: string | null;
   closedAt: string | null;
   createdAt: string;
@@ -56,14 +56,14 @@ export interface OnlineExamInput {
 export interface AvailableExam {
   examId: string;
   title: string;
-  curso: string;
-  grupo: string;
+  courseName: string;
+  groupName: string;
   opensAt: string;
   closesAt: string;
   durationMin: number;
   maxAttempts: number;
-  intentosUsados: number;
-  totalPuntos: number;
+  attemptsUsed: number;
+  totalPoints: number;
   state: "NOT_PUBLISHED" | "NOT_OPEN" | "CLOSED" | "OPEN";
   inProgressAttemptId: string | null;
   canStart: boolean;
@@ -100,22 +100,22 @@ export interface Attempt {
   serverTime: string;
   focusLosses: number;
   questions: AttemptQuestion[];
-  result: { score: number; totalPuntos: number; pendingCount: number; aprobado: boolean | null } | null;
+  result: { score: number; totalPoints: number; pendingCount: number; passed: boolean | null } | null;
 }
 
 export interface ExamResults {
   exam: OnlineExamDetail;
-  kpis: { inscritos: number; presentaron: number; promedio: number | null; aprobados: number; pendientesRevision: number; totalPuntos: number };
+  kpis: { enrolledCount: number; submittedCount: number; average: number | null; passedCount: number; pendingReview: number; totalPoints: number };
   rows: Array<{
     enrollmentId: string;
     studentId: string;
     studentNumber: string;
     name: string;
-    intentos: number;
-    enCurso: boolean;
-    pendientes: number;
-    calificacion: number | null;
-    aprobado: boolean | null;
+    attemptCount: number;
+    inProgress: boolean;
+    pending: number;
+    grade: number | null;
+    passed: boolean | null;
     attempts: Array<{ attemptId: string; number: number; status: AttemptStatus; score: number | null; pendingCount: number; focusLosses: number; startedAt: string; finishedAt: string | null }>;
   }>;
 }

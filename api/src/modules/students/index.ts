@@ -6,7 +6,7 @@ import { StudentController } from "./controllers/student.controller";
 import { createStudentRouter } from "./routes/student.routes";
 
 export { StudentService } from "./services/student.service";
-export { formatMatricula } from "./services/student.service";
+export { formatStudentNumber } from "./services/student.service";
 export { MovementService } from "./services/movement.service";
 export { studentContacts } from "./services/contacts";
 

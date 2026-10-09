@@ -30,7 +30,7 @@ export default function StudentsTable({ fx, onOpen }: Props) {
       type: "string",
       filter: true,
       sortable: false,
-      render: (s) => <ITText className="text-[12px] text-slate-800">{s.nombreCompleto}</ITText>,
+      render: (s) => <ITText className="text-[12px] text-slate-800">{s.fullName}</ITText>,
     },
     {
       key: "curp",

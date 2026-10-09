@@ -16,7 +16,7 @@ import {
 const o = (isCorrect: boolean, text = "x") => ({ text, isCorrect });
 
 test.describe("reactivos (M14)", () => {
-  test("una regla por type", () => {
+  test("una regla por tipo", () => {
     expect(optionRuleError("MULTIPLE_CHOICE", [o(true), o(false)])).toBeNull();
     expect(optionRuleError("MULTIPLE_CHOICE", [o(true), o(true)])).toBe("QUESTION_MULTIPLE_CORRECT");
     expect(optionRuleError("MULTIPLE_CHOICE", [o(true)])).toBe("QUESTION_OPTION_COUNT_INVALID");
@@ -35,7 +35,7 @@ test.describe("reactivos (M14)", () => {
     const header = "curso;topic;type;text;points;difficulty;opciones;correctas";
     const { rows, rejected, total } = readQuestionsCsv(`﻿${header}\nmot-101;;Verdadero falso;¿El aceite lubrica?;1,5;;;1\nMOT-101;;MULTIPLE_CHOICE;Sin correcta;1;;a|b;`);
     expect(total).toBe(2);
-    expect(rows[0]).toMatchObject({ cursoClave: "MOT-101", type: "TRUE_FALSE", points: 1.5 });
+    expect(rows[0]).toMatchObject({ courseCode: "MOT-101", type: "TRUE_FALSE", points: 1.5 });
     expect(rows[0].options.map((x) => x.text)).toEqual(["Verdadero", "Falso"]);
     expect(rejected).toEqual([{ row: 3, code: "QUESTION_OPTION_REQUIRED", message: expect.any(String) }]);
     expect(() => readQuestionsCsv("curso,type\nA,OPEN")).toThrow(/faltan columnas/);
@@ -44,17 +44,17 @@ test.describe("reactivos (M14)", () => {
 
 test.describe("aplicación (M16)", () => {
   test("ventana y fin del intento calculados en el servidor", () => {
-    const apertura = new Date("2026-06-01T15:00:00Z");
-    const cierre = new Date("2026-06-01T17:00:00Z");
-    expect(windowState("PUBLISHED", apertura, cierre, new Date("2026-06-01T14:59:59Z"))).toBe("NOT_OPEN");
-    expect(windowState("PUBLISHED", apertura, cierre, new Date("2026-06-01T16:00:00Z"))).toBe("OPEN");
-    expect(windowState("PUBLISHED", apertura, cierre, new Date("2026-06-01T17:00:01Z"))).toBe("CLOSED");
-    expect(windowState("DRAFT", apertura, cierre)).toBe("NOT_PUBLISHED");
-    expect(endsAtOf(new Date("2026-06-01T15:00:00Z"), 60, cierre).toISOString()).toBe("2026-06-01T16:00:00.000Z");
-    expect(endsAtOf(new Date("2026-06-01T16:30:00Z"), 60, cierre).toISOString()).toBe("2026-06-01T17:00:00.000Z");
+    const opensAt = new Date("2026-06-01T15:00:00Z");
+    const closesAt = new Date("2026-06-01T17:00:00Z");
+    expect(windowState("PUBLISHED", opensAt, closesAt, new Date("2026-06-01T14:59:59Z"))).toBe("NOT_OPEN");
+    expect(windowState("PUBLISHED", opensAt, closesAt, new Date("2026-06-01T16:00:00Z"))).toBe("OPEN");
+    expect(windowState("PUBLISHED", opensAt, closesAt, new Date("2026-06-01T17:00:01Z"))).toBe("CLOSED");
+    expect(windowState("DRAFT", opensAt, closesAt)).toBe("NOT_PUBLISHED");
+    expect(endsAtOf(new Date("2026-06-01T15:00:00Z"), 60, closesAt).toISOString()).toBe("2026-06-01T16:00:00.000Z");
+    expect(endsAtOf(new Date("2026-06-01T16:30:00Z"), 60, closesAt).toISOString()).toBe("2026-06-01T17:00:00.000Z");
   });
 
-  test("forma de la answer por type", () => {
+  test("forma de la respuesta por tipo", () => {
     const ids = ["a", "b", "c"];
     expect(isValidAnswer("MULTIPLE_CHOICE", "b", ids)).toBe(true);
     expect(isValidAnswer("MULTIPLE_CHOICE", "z", ids)).toBe(false);

@@ -51,14 +51,14 @@ registry.register("StudentDocuments", StudentDocumentsSchema);
 
 export const KardexEntrySchema = z.object({
   termId: z.string(),
-  termNombre: z.string(),
+  termName: z.string(),
   courseId: z.string(),
-  courseNombre: z.string(),
-  grupo: z.string(),
-  calificaciones: z.array(z.number()),
-  ponderaciones: z.array(z.number()),
-  calificacionFinal: z.number().nullable(),
-  estatus: z.enum(["PASSED", "FAILED", "IN_PROGRESS", "WITHDRAWN"]),
+  courseName: z.string(),
+  groupName: z.string(),
+  grades: z.array(z.number()),
+  weights: z.array(z.number()),
+  finalGrade: z.number().nullable(),
+  status: z.enum(["PASSED", "FAILED", "IN_PROGRESS", "WITHDRAWN"]),
 });
 
 export const KardexSchema = z
@@ -69,12 +69,12 @@ export const KardexSchema = z
     status: z.enum(["ACTIVE", "WITHDRAWN"]),
     enrollmentDate: z.string(),
     entries: z.array(KardexEntrySchema),
-    promedioGeneral: z.number().nullable(),
-    creditosAcreditados: z.number().int(),
-    documentosFaltantes: z.array(z.string()),
+    overallAverage: z.number().nullable(),
+    passedCredits: z.number().int(),
+    missingDocuments: z.array(z.string()),
     minPassingGrade: z.number(),
-    escuela: z.string(),
-    generadoEn: z.string(),
+    school: z.string(),
+    generatedAt: z.string(),
   })
   .openapi("Kardex");
 registry.register("Kardex", KardexSchema);

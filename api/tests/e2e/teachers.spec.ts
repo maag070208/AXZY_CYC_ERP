@@ -50,7 +50,7 @@ test("alta: crea profesor, su cuenta PROFESOR pendiente y la invitación, todo a
     email: input.email,
     status: "ACTIVE",
     invitationQueued: true,
-    nombreCompleto: `${input.firstNames} ${input.surnames}`,
+    fullName: `${input.firstNames} ${input.surnames}`,
   });
   expect(body.account).toMatchObject({ active: true, pendingInvitation: true, username: input.email.split("@")[0] });
 
@@ -99,7 +99,7 @@ test("username derivado del correo: si está ocupado se numera", async () => {
   expect(b.account.username).toBe(`${E2E_PREFIX}mismo_${RUN}2`.toLowerCase());
 });
 
-test("edición: actualiza el profesor y sincroniza name/correo de su cuenta", async () => {
+test("edición: actualiza el profesor y sincroniza nombre/correo de su cuenta", async () => {
   const created = await (await admin.post("teachers", { data: teacher("Edita") })).json();
   const email = `${E2E_PREFIX}teditado_${RUN}@e2e.local`;
   const res = await control.patch(`teachers/${created.id}`, { data: { surnames: "Nuevo Apellido", email } });
@@ -171,7 +171,7 @@ test("CONTROL_ESCOLAR no da de alta profesores (sin teachers.create) → 403", a
   expect((await control.post("teachers", { data: teacher("SinPermiso") })).status()).toBe(403);
 });
 
-test("/teachers/query filtra por name, specialty y estatus", async () => {
+test("/teachers/query filtra por nombre, especialidad y estatus", async () => {
   await admin.post("teachers", { data: teacher("Filtro", { specialty: "Electricidad automotriz" }) });
   const res = await admin.post("teachers/query", {
     data: { filters: { name: `filtro docente ${RUN}`, specialty: "electricidad", status: "ACTIVE" } },

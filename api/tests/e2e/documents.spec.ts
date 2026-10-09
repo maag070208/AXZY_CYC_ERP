@@ -57,7 +57,7 @@ test.afterAll(async () => {
   await clearAuthE2E();
 });
 
-test("sube un PDF: queda PENDING con name aleatorio privado y se descarga idéntico", async () => {
+test("sube un PDF: queda PENDING con nombre aleatorio privado y se descarga idéntico", async () => {
   const student = await newStudent("Sube");
   const res = await upload(student.id, PDF, "curp alumno.pdf", curpType.id);
   expect(res.status()).toBe(201);
@@ -79,7 +79,7 @@ test("sube un PDF: queda PENDING con name aleatorio privado y se descarga idént
   expect(JSON.stringify(log)).not.toContain(PDF.toString("base64"));
 });
 
-test("el type se decide por el contenido: PNG/JPG sí; un .exe disfrazado de PDF no", async () => {
+test("el tipo se decide por el contenido: PNG/JPG sí; un .exe disfrazado de PDF no", async () => {
   const student = await newStudent("Firmas");
   expect((await (await upload(student.id, PNG, "foto.png", actaType.id, "image/png")).json()).mimeType).toBe("image/png");
   // Declarado como PNG pero es JPG: manda el contenido.
@@ -90,7 +90,7 @@ test("el type se decide por el contenido: PNG/JPG sí; un .exe disfrazado de PDF
   expect((await fake.json()).code).toBe("FILE_TYPE_NOT_ALLOWED");
 });
 
-test("más de 5 MB → 400 FILE_TOO_LARGE; sin file o sin type → 400", async () => {
+test("más de 5 MB → 400 FILE_TOO_LARGE; sin archivo o sin tipo → 400", async () => {
   const student = await newStudent("Limites");
   const big = await upload(student.id, TOO_BIG, "grande.pdf", curpType.id);
   expect(big.status()).toBe(400);
@@ -142,8 +142,8 @@ test("documentos faltantes: obligatorios activos sin uno VALIDATED; el kardex lo
   expect(list.missing.map((m: { name: string }) => m.name)).not.toContain("CURP");
 
   const kardex = await (await control.get(`students/${student.id}/kardex`)).json();
-  expect(kardex).toMatchObject({ studentId: student.id, studentNumber: student.studentNumber, entries: [], promedioGeneral: null });
-  expect(kardex.documentosFaltantes).not.toContain("CURP");
+  expect(kardex).toMatchObject({ studentId: student.id, studentNumber: student.studentNumber, entries: [], overallAverage: null });
+  expect(kardex.missingDocuments).not.toContain("CURP");
   expect(kardex.minPassingGrade).toEqual(expect.any(Number));
 });
 
@@ -160,7 +160,7 @@ test("baja lógica del documento: desaparece del expediente y ya no se descarga"
 test("alumno en BAJA: expediente de solo lectura (no sube, no valida, no borra)", async () => {
   const student = await newStudent("EnBaja");
   const doc = await (await upload(student.id, PDF, "curp.pdf", curpType.id)).json();
-  await control.post(`students/${student.id}/baja`, { data: { reason: "Prueba de solo lectura" } });
+  await control.post(`students/${student.id}/withdrawal`, { data: { reason: "Prueba de solo lectura" } });
   expect((await (await upload(student.id, PDF, "otro.pdf", curpType.id)).json()).code).toBe("STUDENT_INACTIVE");
   expect((await (await control.patch(`documents/${doc.id}/validate`, { data: { status: "VALIDATED" } })).json()).code).toBe("STUDENT_INACTIVE");
   expect((await control.get(`documents/${doc.id}/download`)).status()).toBe(200);

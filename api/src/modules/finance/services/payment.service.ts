@@ -23,7 +23,7 @@ import {
 import type { AuditLogger } from "@modules/audit";
 import { fullName } from "@modules/students/services/student.service";
 import { PAYMENT_METHODS, type PaymentCreateInput, type PaymentView } from "../models/dto/finance.dto";
-import { balanceOf, chargeStatusOf, chargeTotal, daysBetween, formatFolio, sumOf } from "../models/entity/money";
+import { balanceOf, chargeStatusOf, chargeTotal, daysBetween, formatReceiptNumber, sumOf } from "../models/entity/money";
 
 type Tx = Prisma.TransactionClient;
 
@@ -48,9 +48,9 @@ const toView = (row: PaymentRow): PaymentView => {
     chargeId: row.chargeId,
     studentId: row.charge.studentId,
     studentNumber: row.charge.student.studentNumber,
-    studentNombre: fullName(row.charge.student),
-    conceptNombre: row.charge.concept.name,
-    chargeDescripcion: row.charge.description,
+    studentName: fullName(row.charge.student),
+    conceptName: row.charge.concept.name,
+    chargeDescription: row.charge.description,
     amount: Number(row.amount),
     date: fromDbDay(row.date),
     method: row.method,
@@ -62,7 +62,7 @@ const toView = (row: PaymentRow): PaymentView => {
     cancelReason: row.cancelReason,
     createdAt: row.createdAt.toISOString(),
     chargeStatus: row.charge.status,
-    chargeSaldo: row.charge.status === "CANCELLED" ? 0 : balanceOf(total, paid),
+    chargeBalance: row.charge.status === "CANCELLED" ? 0 : balanceOf(total, paid),
   };
 };
 
@@ -120,15 +120,15 @@ export class PaymentService {
     if (chargeId) and.push({ chargeId });
     const studentId = filterId(filters, "studentId");
     if (studentId) and.push({ charge: { studentId } });
-    const folio = filterText(filters, "receiptNumber");
-    if (folio) and.push({ receiptNumber: folio });
+    const receiptNumber = filterText(filters, "receiptNumber");
+    if (receiptNumber) and.push({ receiptNumber: receiptNumber });
     const method = filterEnum(filters, "method", PAYMENT_METHODS);
     if (method) and.push({ method });
     const date = filterDayRange(filters, "date");
     if (date) and.push({ date });
     const cancelled = filterBool(filters, "cancelled");
     if (cancelled !== undefined) and.push({ cancelledAt: cancelled ? { not: null } : null });
-    const name = filterText(filters, "studentNombre");
+    const name = filterText(filters, "studentName");
     if (name) {
       for (const word of name.contains.split(/\s+/).filter(Boolean)) {
         const contains = { contains: word, mode: "insensitive" as const };
@@ -187,9 +187,9 @@ export class PaymentService {
         });
         if (!charge) throw new HttpError(404, "CHARGE_NOT_FOUND");
         if (charge.status === "PAID" || charge.status === "CANCELLED") throw new HttpError(409, "CHARGE_ALREADY_PAID");
-        const saldo = balanceOf(chargeTotal(charge.amount, charge.discount), sumOf(charge.payments.map((p) => p.amount)));
-        if (new Prisma.Decimal(input.amount).greaterThan(saldo)) {
-          throw new HttpError(400, "PAYMENT_EXCEEDS_BALANCE", { saldo: saldo.toFixed(2) }, { saldo });
+        const balance = balanceOf(chargeTotal(charge.amount, charge.discount), sumOf(charge.payments.map((p) => p.amount)));
+        if (new Prisma.Decimal(input.amount).greaterThan(balance)) {
+          throw new HttpError(400, "PAYMENT_EXCEEDS_BALANCE", { balance: balance.toFixed(2) }, { balance });
         }
         // Consecutivo por año: el UPDATE … +1 bloquea la fila hasta el commit.
         const sequence = await tx.receiptSequence.upsert({
@@ -204,7 +204,7 @@ export class PaymentService {
             date: toDbDay(date),
             method: input.method,
             reference: input.reference ?? null,
-            receiptNumber: formatFolio(year, sequence.last),
+            receiptNumber: formatReceiptNumber(year, sequence.last),
             registeredBy: actor.id,
             registeredByName: registrar?.name ?? actor.username,
             idempotencyKey: idempotencyKey ?? null,
@@ -217,16 +217,16 @@ export class PaymentService {
           if (contacts) {
             await this.notifier(
               {
-                code: "PAGO_RECIBIDO",
+                code: "PAYMENT_RECEIVED",
                 recipients: contacts.recipients,
                 payload: {
                   name: contacts.name,
                   amount: formatMoney(input.amount),
-                  concepto: concept?.name ?? "",
-                  folio: payment.receiptNumber,
-                  saldo: formatMoney(new Prisma.Decimal(saldo).minus(input.amount)),
+                  concept: concept?.name ?? "",
+                  receiptNumber: payment.receiptNumber,
+                  balance: formatMoney(new Prisma.Decimal(balance).minus(input.amount)),
                 },
-                idempotencyKey: `PAGO_RECIBIDO:${payment.id}`,
+                idempotencyKey: `PAYMENT_RECEIVED:${payment.id}`,
               },
               tx
             );
@@ -259,7 +259,7 @@ export class PaymentService {
     enforcePolicy("payments.cancel", actor, {
       amount: Number(previous.amount),
       method: previous.method,
-      diasDesdeRegistro: daysBetween(previous.createdAt.toISOString().slice(0, 10), todayInBusinessZone()),
+      daysSinceRegistered: daysBetween(previous.createdAt.toISOString().slice(0, 10), todayInBusinessZone()),
     });
     await this.db.$transaction(async (tx) => {
       const changed = await tx.payment.updateMany({

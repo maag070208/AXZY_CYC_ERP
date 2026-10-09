@@ -98,7 +98,7 @@ export const createChargeRouter = (c: FinanceController): Router => {
     parameters: [param("id")],
     responses: { 200: { description: "Cargo", content: json(ChargeSchema) } },
   });
-  doc("delete", "/charges/{id}", "Cancela el cargo con reason (charges.cancel)", {
+  doc("delete", "/charges/{id}", "Cancela el cargo con motivo (charges.cancel)", {
     parameters: [param("id")],
     request: { body: { required: true, content: json(CancelDto) } },
     responses: { 200: { description: "Cargo cancelado", content: json(ChargeSchema) }, 409: { description: "CHARGE_HAS_PAYMENTS" } },
@@ -134,7 +134,7 @@ export const createPaymentRouter = (c: FinanceController): Router => {
     parameters: [param("id")],
     responses: { 200: { description: "Pago", content: json(PaymentSchema) } },
   });
-  doc("delete", "/payments/{id}", "Cancela el pago con reason (payments.cancel)", {
+  doc("delete", "/payments/{id}", "Cancela el pago con motivo (payments.cancel)", {
     parameters: [param("id")],
     request: { body: { required: true, content: json(CancelDto) } },
     responses: { 200: { description: "Pago cancelado", content: json(PaymentSchema) } },

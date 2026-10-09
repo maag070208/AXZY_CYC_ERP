@@ -79,7 +79,7 @@ const ensureProgram = async (p: (typeof PROGRAMS)[number]): Promise<string> => {
 const ensureGroup = async (courseId: string, termId: string, teacherId: string | null, name: string): Promise<string> => {
   const row = await prisma.group.upsert({
     where: { courseId_termId_name: { courseId, termId, name } },
-    create: { courseId, termId, teacherId, name, capacity: 30, schedule: [{ dia: "LUNES", horaInicio: "08:00", horaFin: "10:00" }, { dia: "MIERCOLES", horaInicio: "08:00", horaFin: "10:00" }] },
+    create: { courseId, termId, teacherId, name, capacity: 30, schedule: [{ day: "MONDAY", startTime: "08:00", endTime: "10:00" }, { day: "WEDNESDAY", startTime: "08:00", endTime: "10:00" }] },
     update: { teacherId, active: true },
     select: { id: true },
   });
@@ -92,7 +92,7 @@ const ensureEnrollment = async (studentId: string, groupId: string, actorId: str
   await prisma.enrollment.create({ data: { studentId, groupId, date: new Date(`${RUN_YEAR}-08-15T00:00:00.000Z`), createdBy: actorId } });
 };
 
-const nextFolio = async (tx: Prisma.TransactionClient): Promise<string> => {
+const nextReceiptNumber = async (tx: Prisma.TransactionClient): Promise<string> => {
   const seq = await tx.receiptSequence.upsert({ where: { year: RUN_YEAR }, create: { year: RUN_YEAR, last: 1 }, update: { last: { increment: 1 } } });
   return `REC-${RUN_YEAR}-${pad(seq.last, 6)}`;
 };
@@ -134,7 +134,7 @@ const ensurePlan = async (studentId: string, programId: string, termId: string, 
     if (paid >= payCount) break;
     if (charge.payments.length > 0) { paid += 1; continue; }
     await prisma.$transaction(async (tx) => {
-      await tx.payment.create({ data: { chargeId: charge.id, amount: charge.amount, date: new Date(`${day(new Date())}T00:00:00.000Z`), method: "CASH", receiptNumber: await nextFolio(tx), registeredBy: actor.id, registeredByName: actor.name } });
+      await tx.payment.create({ data: { chargeId: charge.id, amount: charge.amount, date: new Date(`${day(new Date())}T00:00:00.000Z`), method: "CASH", receiptNumber: await nextReceiptNumber(tx), registeredBy: actor.id, registeredByName: actor.name } });
       await tx.charge.update({ where: { id: charge.id }, data: { status: "PAID" } });
     });
     paid += 1;

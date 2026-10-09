@@ -42,7 +42,7 @@ export default function ChangeGroupDialog({ group, enrollment, onClose, onChange
     }
   };
 
-  const title = t("enrollments.changeTitle", { name: enrollment?.studentNombre ?? "" });
+  const title = t("enrollments.changeTitle", { name: enrollment?.studentName ?? "" });
   return (
     <ITDialog isOpen={!!enrollment} onClose={onClose} title={title} className="w-full max-w-lg">
       <div role="dialog" aria-label={title}>
@@ -53,7 +53,7 @@ export default function ChangeGroupDialog({ group, enrollment, onClose, onChange
             <ITAlert variant="info">{t("enrollments.noTargets")}</ITAlert>
           ) : (
             <ITSelect name="toGroupId" label={t("enrollments.toGroup")} value={toGroupId} placeholder="—"
-              options={targets.map((g) => ({ value: g.id, label: `${g.name} · ${g.inscritos}/${g.capacity} · ${g.teacherNombre ?? t("groups.noTeacher")}` }))}
+              options={targets.map((g) => ({ value: g.id, label: `${g.name} · ${g.enrolledCount}/${g.capacity} · ${g.teacherName ?? t("groups.noTeacher")}` }))}
               onChange={(e) => setToGroupId(e.target.value)} />
           )}
           <ITFlex justify="end" gap={2}>

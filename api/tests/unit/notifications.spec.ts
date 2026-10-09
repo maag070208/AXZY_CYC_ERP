@@ -21,17 +21,17 @@ test.describe("plantillas", () => {
   });
 
   test("requiredVariables une declaradas y usadas; missingVariables marca las faltantes", () => {
-    const required = requiredVariables(["name"], "Pago {{folio}}", "Hola {{name}}, {{amount}}");
-    expect(required).toEqual(["name", "folio", "amount"]);
-    expect(missingVariables(required, { name: "Ana", amount: 10 })).toEqual(["folio"]);
-    expect(missingVariables(required, { name: "Ana", amount: 0, folio: "REC-1" })).toEqual([]);
+    const required = requiredVariables(["name"], "Pago {{receiptNumber}}", "Hola {{name}}, {{amount}}");
+    expect(required).toEqual(["name", "receiptNumber", "amount"]);
+    expect(missingVariables(required, { name: "Ana", amount: 10 })).toEqual(["receiptNumber"]);
+    expect(missingVariables(required, { name: "Ana", amount: 0, receiptNumber: "REC-1" })).toEqual([]);
   });
 
   test("render sustituye, convierte números y deja vacías las no provistas", () => {
     expect(render("Hola {{name}}, debes {{amount}} {{extra}}", { name: "Ana", amount: 1500 })).toBe("Hola Ana, debes 1500");
   });
 
-  test("toHtml escapa el text del usuario", () => {
+  test("toHtml escapa el texto del usuario", () => {
     expect(toHtml("<b>Hola</b>\nAdiós & bye")).toBe("<p>&lt;b&gt;Hola&lt;/b&gt;<br>Adiós &amp; bye</p>");
   });
 });

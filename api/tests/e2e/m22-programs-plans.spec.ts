@@ -70,7 +70,7 @@ test.describe.serial("programas y planes de pago", () => {
     expect((await res.json()).code).toBe("INVALID_IDEMPOTENCY_KEY");
   });
 
-  test("genera 15 cargos (3 reinscripciones + 12 mensualidades) y no duplica al repetir la code", async () => {
+  test("genera 15 cargos (3 reinscripciones + 12 mensualidades) y no duplica al repetir la clave", async () => {
     const key = `${E2E_PREFIX}plan_${RUN}`;
     const res = await admin.post("plans", {
       headers: { "Idempotency-Key": key },
@@ -88,7 +88,7 @@ test.describe.serial("programas y planes de pago", () => {
     expect(await db.charge.count({ where: { planId: body.id } })).toBe(15);
   });
 
-  test("el discount se aplica a los cargos (snapshot)", async () => {
+  test("el descuento se aplica a los cargos (snapshot)", async () => {
     const res = await admin.post("plans", {
       headers: { "Idempotency-Key": `${E2E_PREFIX}plan_d_${RUN}` },
       data: { studentId, programId, startDate: "2026-09-01", discountPercent: 20, discountReason: "Beca" },

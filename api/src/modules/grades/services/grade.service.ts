@@ -12,6 +12,7 @@ import type { KardexEntry } from "@modules/documents/models/dto/document.dto";
 import { fullName } from "@modules/students/services/student.service";
 import type { Gradebook, GradeCaptureInput, GradeView } from "../models/dto/grade.dto";
 import { finalGradeOf, resultOf, round2, scoreInRange, weightsComplete, weightsTotal } from "../models/entity/grading";
+import { t } from "@core/i18n";
 
 const studentSelect = { studentNumber: true, firstNames: true, paternalSurname: true, maternalSurname: true } as const;
 
@@ -25,11 +26,11 @@ type GradeRow = Prisma.GradeGetPayload<{ include: typeof gradeInclude }>;
 const toGradeView = (row: GradeRow): GradeView => ({
   id: row.id,
   assessmentId: row.assessmentId,
-  assessmentNombre: row.assessment.name,
+  assessmentName: row.assessment.name,
   enrollmentId: row.enrollmentId,
   studentId: row.enrollment.studentId,
   studentNumber: row.enrollment.student.studentNumber,
-  studentNombre: fullName(row.enrollment.student),
+  studentName: fullName(row.enrollment.student),
   score: row.score === null ? null : Number(row.score),
   notes: row.notes,
   capturedBy: row.capturedBy,
@@ -257,9 +258,9 @@ export class GradeService {
       group: {
         id: group.id,
         name: group.name,
-        courseNombre: group.course.name,
-        termNombre: group.term.name,
-        teacherNombre: group.teacher ? `${group.teacher.firstNames} ${group.teacher.surnames}` : null,
+        courseName: group.course.name,
+        termName: group.term.name,
+        teacherName: group.teacher ? `${group.teacher.firstNames} ${group.teacher.surnames}` : null,
         closedAt: group.closedAt?.toISOString() ?? null,
       },
       assessments: group.assessments.map((a) => ({
@@ -322,7 +323,7 @@ export class GradeService {
         data: { closedAt: new Date(), closedBy: actor.id },
       });
       if (closed.count === 0) throw new HttpError(409, "GROUP_CLOSED");
-      const acreditados = results.filter((r) => r.status === "PASSED").length;
+      const passedCount = results.filter((r) => r.status === "PASSED").length;
       await this.audit?.(
         {
           action: "GROUP_CLOSED",
@@ -333,11 +334,11 @@ export class GradeService {
           previousState: { closedAt: null },
           newState: { results } as unknown as Prisma.InputJsonObject,
           metadata: {
-            alumnos: results.length,
-            acreditados,
-            reprobados: results.length - acreditados,
-            promedio: results.length ? round2(results.reduce((s, r) => s + r.final, 0) / results.length) : null,
-            umbral: book.approvalThreshold,
+            students: results.length,
+            passedCount,
+            failedCount: results.length - passedCount,
+            average: results.length ? round2(results.reduce((s, r) => s + r.final, 0) / results.length) : null,
+            threshold: book.approvalThreshold,
           },
         },
         tx
@@ -353,15 +354,15 @@ export class GradeService {
     const book = await this.buildGradebook(this.db, groupId, null);
     const sheet = XLSX.utils.json_to_sheet(
       book.students.map((s) => {
-        const row: Record<string, string | number | null> = { Matrícula: s.studentNumber, Nombre: s.name };
+        const row: Record<string, string | number | null> = { [t("exports.studentNumber")]: s.studentNumber, [t("exports.name")]: s.name };
         for (const a of book.assessments) row[`${a.name} (${a.weight}%)`] = s.scores[a.id];
-        row.Final = s.final;
-        row.Resultado = s.result ?? "EN CURSO";
+        row[t("exports.final")] = s.final;
+        row[t("exports.result")] = s.result ?? t("exports.inProgress");
         return row;
       })
     );
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, sheet, "Calificaciones");
+    XLSX.utils.book_append_sheet(workbook, sheet, t("exports.gradesSheet"));
     await this.audit?.({
       action: "GRADES_EXPORTED",
       entityType: "Group",
@@ -370,7 +371,7 @@ export class GradeService {
       userName: user.username,
       metadata: { rows: book.students.length },
     });
-    const slug = `${book.group.courseNombre}-${book.group.name}`.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    const slug = `${book.group.courseName}-${book.group.name}`.toLowerCase().replace(/[^a-z0-9]+/g, "-");
     return {
       buffer: XLSX.write(workbook, { type: "buffer", bookType: "xlsx" }) as Buffer,
       filename: `calificaciones-${slug}.xlsx`,
@@ -411,17 +412,17 @@ export class GradeService {
       });
       return {
         termId: row.group.term.id,
-        termNombre: row.group.term.name,
+        termName: row.group.term.name,
         courseId: row.group.course.id,
-        courseNombre: row.group.course.name,
-        grupo: row.group.name,
+        courseName: row.group.course.name,
+        groupName: row.group.name,
         // En escala 0–100 para que instrumentos con distinto máximo sean comparables.
-        calificaciones: captured.map((a) =>
+        grades: captured.map((a) =>
           round2(new Prisma.Decimal(byAssessment.get(a.id) as Prisma.Decimal).div(a.maxScore).times(100))
         ),
-        ponderaciones: captured.map((a) => Number(a.weight)),
-        calificacionFinal: row.finalGrade === null ? null : Number(row.finalGrade),
-        estatus: row.status === "ENROLLED" ? "IN_PROGRESS" : row.status,
+        weights: captured.map((a) => Number(a.weight)),
+        finalGrade: row.finalGrade === null ? null : Number(row.finalGrade),
+        status: row.status === "ENROLLED" ? "IN_PROGRESS" : row.status,
       };
     });
   };

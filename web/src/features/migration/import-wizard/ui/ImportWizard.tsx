@@ -17,7 +17,7 @@ const newKey = (): string => `mig-${crypto.randomUUID()}`;
 export default function ImportWizard({ onExecuted }: Props) {
   const { t } = useTranslation(["migration", "common"]);
   const notify = useNotify();
-  const [entity, setEntidad] = useState<MigrationEntity>("Student");
+  const [entity, setEntity] = useState<MigrationEntity>("Student");
   const [file, setFile] = useState<File | null>(null);
   const [result, setResult] = useState<MigrationResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -82,13 +82,13 @@ export default function ImportWizard({ onExecuted }: Props) {
         <ITFlex gap={3} wrap="wrap" align="end">
           <ITSelect
             name="entity"
-            label={t("wizard.entidad")}
+            label={t("wizard.entity")}
             value={entity}
             options={MIGRATION_ENTITIES.map((e) => ({ value: e, label: t(`entities.${e}`) }))}
-            onChange={(e) => { setEntidad(e.target.value as MigrationEntity); reset(); }}
+            onChange={(e) => { setEntity(e.target.value as MigrationEntity); reset(); }}
           />
           <label className="flex flex-col gap-1 text-[12px] font-bold text-slate-600">
-            {t("wizard.archivo")}
+            {t("wizard.file")}
             <input
               type="file"
               name="file"

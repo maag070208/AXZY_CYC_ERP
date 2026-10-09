@@ -6,7 +6,7 @@ import { errorMessage } from "@app/toast/useNotify";
 import { cents, formatMoney, isValidAmount } from "@shared/lib/money";
 
 interface Props {
-  charge: Pick<Charge, "id" | "studentNombre" | "conceptNombre" | "description" | "saldo"> | null;
+  charge: Pick<Charge, "id" | "studentName" | "conceptName" | "description" | "balance"> | null;
   onClose: () => void;
   onRegistered: (payment: Payment) => void;
 }
@@ -27,7 +27,7 @@ export default function RegisterPaymentDialog({ charge, onClose, onRegistered }:
 
   useEffect(() => {
     if (!charge) return;
-    setAmountInput(String(charge.saldo));
+    setAmountInput(String(charge.balance));
     setMethod("CASH");
     setReference("");
     setFieldError(undefined);
@@ -37,8 +37,8 @@ export default function RegisterPaymentDialog({ charge, onClose, onRegistered }:
   const save = async () => {
     if (!charge) return;
     const amount = Number(amountInput);
-    if (!isValidAmount(amount) || cents(amount) > charge.saldo) {
-      setFieldError(t("payments.exceeds", { saldo: formatMoney(charge.saldo, i18n.language) }));
+    if (!isValidAmount(amount) || cents(amount) > charge.balance) {
+      setFieldError(t("payments.exceeds", { balance: formatMoney(charge.balance, i18n.language) }));
       return;
     }
     setFieldError(undefined);
@@ -53,7 +53,7 @@ export default function RegisterPaymentDialog({ charge, onClose, onRegistered }:
     }
   };
 
-  const title = t("payments.registerTitle", { concept: charge?.description ?? charge?.conceptNombre ?? "" });
+  const title = t("payments.registerTitle", { concept: charge?.description ?? charge?.conceptName ?? "" });
   return (
     <ITDialog isOpen={!!charge} onClose={onClose} title={title} className="w-full max-w-lg">
       <form role="dialog" aria-label={title} noValidate onSubmit={(e) => { e.preventDefault(); void save(); }}>
@@ -61,26 +61,26 @@ export default function RegisterPaymentDialog({ charge, onClose, onRegistered }:
           {error && <ITAlert variant="error">{error}</ITAlert>}
           <ITFlex justify="between" className="rounded-xl border border-slate-200 px-3 py-2">
             <div>
-              <ITText className="block text-[10px] font-black uppercase text-slate-400">{t("payments.alumno")}</ITText>
-              <ITText className="text-[13px] font-bold text-slate-700">{charge?.studentNombre}</ITText>
+              <ITText className="block text-[10px] font-black uppercase text-slate-400">{t("payments.student")}</ITText>
+              <ITText className="text-[13px] font-bold text-slate-700">{charge?.studentName}</ITText>
             </div>
             <div className="text-right">
-              <ITText className="block text-[10px] font-black uppercase text-slate-400">{t("payments.saldo")}</ITText>
-              <ITText className="text-[16px] font-black text-slate-800" data-role="saldo">{formatMoney(charge?.saldo ?? 0, i18n.language)}</ITText>
+              <ITText className="block text-[10px] font-black uppercase text-slate-400">{t("payments.balance")}</ITText>
+              <ITText className="text-[16px] font-black text-slate-800" data-role="balance">{formatMoney(charge?.balance ?? 0, i18n.language)}</ITText>
             </div>
           </ITFlex>
           <ITGrid container columns={12} spacing={4}>
             <ITGrid item xs={12} md={6}>
-              <ITInput name="amount" type="number" label={t("payments.monto")} value={amountInput} required error={fieldError}
+              <ITInput name="amount" type="number" label={t("payments.amount")} value={amountInput} required error={fieldError}
                 onChange={(e) => setAmountInput(e.target.value)} />
             </ITGrid>
             <ITGrid item xs={12} md={6}>
-              <ITSelect name="method" label={t("payments.metodo")} value={method}
+              <ITSelect name="method" label={t("payments.method")} value={method}
                 options={PAYMENT_METHODS.map((m) => ({ value: m, label: t(`payments.methods.${m}`) }))}
                 onChange={(e) => setMethod(e.target.value as PaymentMethod)} />
             </ITGrid>
             <ITGrid item xs={12}>
-              <ITInput name="reference" label={t("payments.referencia")} value={reference} onChange={(e) => setReference(e.target.value)} />
+              <ITInput name="reference" label={t("payments.reference")} value={reference} onChange={(e) => setReference(e.target.value)} />
             </ITGrid>
           </ITGrid>
           <ITFlex justify="end" gap={2}>

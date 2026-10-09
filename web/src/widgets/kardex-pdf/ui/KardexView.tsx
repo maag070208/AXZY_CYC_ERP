@@ -27,7 +27,7 @@ export default function KardexView({ studentId }: { studentId: string }) {
   if (error) return <ITAlert variant="error">{error}</ITAlert>;
   if (!kardex) return <ITLoader />;
 
-  const generated = t("kardex.generated", { date: new Date(kardex.generadoEn).toLocaleString(i18n.language) });
+  const generated = t("kardex.generated", { date: new Date(kardex.generatedAt).toLocaleString(i18n.language) });
 
   const exportPdf = async () => {
     setExporting(true);
@@ -36,22 +36,22 @@ export default function KardexView({ studentId }: { studentId: string }) {
         title: t("kardex.title"),
         studentNumber: t("students:detail.studentNumber"),
         status: t("students:table.status"),
-        ingreso: t("students:form.enrollmentDate"),
-        ciclo: t("kardex.ciclo"),
-        curso: t("kardex.curso"),
-        grupo: t("kardex.grupo"),
+        enrollmentDate: t("students:form.enrollmentDate"),
+        termName: t("kardex.termName"),
+        courseName: t("kardex.courseName"),
+        groupName: t("kardex.groupName"),
         final: t("kardex.final"),
-        estatus: t("kardex.estatus"),
-        promedio: t("kardex.promedio"),
+        entryStatus: t("kardex.status"),
+        average: t("kardex.average"),
         empty: t("kardex.empty"),
-        faltantes: t("kardex.faltantes"),
-        ninguno: t("kardex.ninguno"),
+        missing: t("kardex.missing"),
+        ninguno: t("kardex.noneOption"),
         generated,
-        estatusValues: {
-          PASSED: t("kardex.estatusValues.PASSED"),
-          FAILED: t("kardex.estatusValues.FAILED"),
-          IN_PROGRESS: t("kardex.estatusValues.IN_PROGRESS"),
-          WITHDRAWN: t("kardex.estatusValues.WITHDRAWN"),
+        statusValues: {
+          PASSED: t("kardex.statusValues.PASSED"),
+          FAILED: t("kardex.statusValues.FAILED"),
+          IN_PROGRESS: t("kardex.statusValues.IN_PROGRESS"),
+          WITHDRAWN: t("kardex.statusValues.WITHDRAWN"),
         },
       });
       saveAs(blob, `kardex-${kardex.studentNumber}.pdf`);
@@ -63,22 +63,22 @@ export default function KardexView({ studentId }: { studentId: string }) {
   };
 
   const columns: Column<KardexEntry>[] = [
-    { key: "termNombre", label: t("kardex.ciclo"), type: "string", width: 120 },
-    { key: "courseNombre", label: t("kardex.curso"), type: "string" },
-    { key: "grupo", label: t("kardex.grupo"), type: "string", width: 100 },
-    { key: "calificacionFinal", label: t("kardex.final"), type: "string", width: 90, render: (e) => e.calificacionFinal ?? "—" },
+    { key: "termName", label: t("kardex.termName"), type: "string", width: 120 },
+    { key: "courseName", label: t("kardex.courseName"), type: "string" },
+    { key: "groupName", label: t("kardex.groupName"), type: "string", width: 100 },
+    { key: "finalGrade", label: t("kardex.final"), type: "string", width: 90, render: (e) => e.finalGrade ?? "—" },
     {
-      key: "estatus", label: t("kardex.estatus"), type: "string", width: 130,
-      render: (e) => <ITBadget color={STATUS_COLOR[e.estatus]} size="sm">{tr(`kardex.estatusValues.${e.estatus}`)}</ITBadget>,
+      key: "status", label: t("kardex.status"), type: "string", width: 130,
+      render: (e) => <ITBadget color={STATUS_COLOR[e.status]} size="sm">{tr(`kardex.estatusValues.${e.status}`)}</ITBadget>,
     },
   ];
 
   return (
     <ITFlex direction="column" gap={4}>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        <KpiTile label={t("kardex.promedio")} value={kardex.promedioGeneral ?? "—"} icon={<FaStar size={16} />} tone="violet" />
-        <KpiTile label={t("kardex.creditos")} value={kardex.creditosAcreditados} icon={<FaGraduationCap size={16} />} tone="emerald" />
-        <KpiTile label={t("kardex.minimo")} value={kardex.minPassingGrade} icon={<FaCheckCircle size={16} />} tone="sky" />
+        <KpiTile label={t("kardex.average")} value={kardex.overallAverage ?? "—"} icon={<FaStar size={16} />} tone="violet" />
+        <KpiTile label={t("kardex.credits")} value={kardex.passedCredits} icon={<FaGraduationCap size={16} />} tone="emerald" />
+        <KpiTile label={t("kardex.minimum")} value={kardex.minPassingGrade} icon={<FaCheckCircle size={16} />} tone="sky" />
       </div>
       <PanelCard
         title={t("kardex.title")}
@@ -96,7 +96,7 @@ export default function KardexView({ studentId }: { studentId: string }) {
             data={kardex.entries as unknown as Record<string, unknown>[]} defaultItemsPerPage={50} density="compact" />
         )}
         <div className="mt-3 text-[12px] text-slate-600" data-kardex-missing>
-          <b>{t("kardex.faltantes")}:</b> {kardex.documentosFaltantes.length ? kardex.documentosFaltantes.join(", ") : t("kardex.ninguno")}
+          <b>{t("kardex.missing")}:</b> {kardex.missingDocuments.length ? kardex.missingDocuments.join(", ") : t("kardex.noneOption")}
         </div>
       </PanelCard>
     </ITFlex>

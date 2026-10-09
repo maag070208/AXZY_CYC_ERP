@@ -46,18 +46,18 @@ export default function AccountStatementView({ studentId }: { studentId: string 
     try {
       const blob = await renderStatementPdf(statement, {
         title: t("statement.title"),
-        studentNumber: t("receipt.matricula"),
-        alumno: t("receipt.alumno"),
-        concepto: t("charges.concepto"),
-        vencimiento: t("charges.vencimiento"),
+        studentNumber: t("receipt.studentNumber"),
+        alumno: t("receipt.student"),
+        concept: t("charges.concept"),
+        dueDate: t("charges.dueDate"),
         total: t("charges.total"),
-        pagado: t("charges.pagado"),
-        saldo: t("charges.saldo"),
-        cargos: t("statement.cargos"),
-        descuentos: t("statement.descuentos"),
-        vencido: t("statement.vencido"),
+        paid: t("charges.paid"),
+        balance: t("charges.balance"),
+        charges: t("statement.charges"),
+        discounts: t("statement.discounts"),
+        overdue: t("statement.overdue"),
         empty: t("statement.empty"),
-        generated: t("statement.generated", { date: new Date(statement.generadoEn).toLocaleString(i18n.language) }),
+        generated: t("statement.generated", { date: new Date(statement.generatedAt).toLocaleString(i18n.language) }),
         money,
         date: (d) => formatDay(d, i18n.language),
       });
@@ -79,13 +79,13 @@ export default function AccountStatementView({ studentId }: { studentId: string 
   return (
     <ITFlex direction="column" gap={4}>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        <KpiTile label={t("statement.saldo")} value={money(totals.saldo)} icon={<FaWallet size={16} />} tone="sky" />
-        <KpiTile label={t("statement.pagado")} value={money(totals.pagado)} icon={<FaMoneyBillWave size={16} />} tone="emerald" />
-        <KpiTile label={t("statement.vencido")} value={money(totals.vencido)} icon={<FaExclamationTriangle size={16} />} tone={totals.vencido > 0 ? "rose" : "neutral"} />
+        <KpiTile label={t("statement.balance")} value={money(totals.balance)} icon={<FaWallet size={16} />} tone="sky" />
+        <KpiTile label={t("statement.paid")} value={money(totals.paid)} icon={<FaMoneyBillWave size={16} />} tone="emerald" />
+        <KpiTile label={t("statement.overdue")} value={money(totals.overdue)} icon={<FaExclamationTriangle size={16} />} tone={totals.overdue > 0 ? "rose" : "neutral"} />
       </div>
       <PanelCard
         title={t("statement.title")}
-        description={t("statement.generated", { date: new Date(statement.generadoEn).toLocaleString(i18n.language) })}
+        description={t("statement.generated", { date: new Date(statement.generatedAt).toLocaleString(i18n.language) })}
         actions={
           <>
             {canCharge && (
@@ -106,11 +106,11 @@ export default function AccountStatementView({ studentId }: { studentId: string 
             <table className="w-full text-left text-[12px]" data-role="statement">
               <thead>
                 <tr className="border-b border-slate-200 text-[10px] font-black uppercase tracking-wide text-slate-400">
-                  <th className="px-2 py-2">{t("charges.concepto")}</th>
-                  <th className="px-2 py-2">{t("charges.vencimiento")}</th>
+                  <th className="px-2 py-2">{t("charges.concept")}</th>
+                  <th className="px-2 py-2">{t("charges.dueDate")}</th>
                   <th className="px-2 py-2 text-right">{t("charges.total")}</th>
-                  <th className="px-2 py-2 text-right">{t("charges.pagado")}</th>
-                  <th className="px-2 py-2 text-right">{t("charges.saldo")}</th>
+                  <th className="px-2 py-2 text-right">{t("charges.paid")}</th>
+                  <th className="px-2 py-2 text-right">{t("charges.balance")}</th>
                   <th className="px-2 py-2">{t("charges.status")}</th>
                   <th className="px-2 py-2" />
                 </tr>
@@ -119,8 +119,8 @@ export default function AccountStatementView({ studentId }: { studentId: string 
                 {statement.charges.map((c) => (
                   <tr key={c.id} className="border-b border-slate-100 align-top" data-charge={c.id}>
                     <td className="px-2 py-2">
-                      <span className="block font-bold text-slate-700">{c.description ?? c.conceptNombre}</span>
-                      {c.discount > 0 && <span className="text-[10px] text-slate-400">{t("charges.descuento")}: {money(c.discount)}</span>}
+                      <span className="block font-bold text-slate-700">{c.description ?? c.conceptName}</span>
+                      {c.discount > 0 && <span className="text-[10px] text-slate-400">{t("charges.discount")}: {money(c.discount)}</span>}
                       {c.payments.map((p) => (
                         <button key={p.id} type="button" onClick={() => void receipt(p.id)}
                           className="mt-1 flex items-center gap-1 text-[10px] text-blue-600 hover:underline" aria-label={`${t("payments.receiptPdf")} ${p.receiptNumber}`}>
@@ -129,19 +129,19 @@ export default function AccountStatementView({ studentId }: { studentId: string 
                       ))}
                     </td>
                     <td className="px-2 py-2">
-                      <span className={c.vencido ? "font-bold" : "text-slate-600"} style={c.vencido ? { color: "#dc2626" } : undefined} data-overdue={c.vencido || undefined}>
+                      <span className={c.overdue ? "font-bold" : "text-slate-600"} style={c.overdue ? { color: "#dc2626" } : undefined} data-overdue={c.overdue || undefined}>
                         {formatDay(c.dueDate, i18n.language)}
                       </span>
                     </td>
                     <td className="px-2 py-2 text-right">{money(c.total)}</td>
-                    <td className="px-2 py-2 text-right">{money(c.pagado)}</td>
-                    <td className="px-2 py-2 text-right font-black text-slate-800">{money(c.saldo)}</td>
+                    <td className="px-2 py-2 text-right">{money(c.paid)}</td>
+                    <td className="px-2 py-2 text-right font-black text-slate-800">{money(c.balance)}</td>
                     <td className="px-2 py-2">
                       <ITBadget color={CHARGE_STATUS_COLOR[c.status]} size="sm">{t(`charges.statuses.${c.status}`)}</ITBadget>
                     </td>
                     <td className="px-2 py-2 text-right">
-                      {canPay && c.saldo > 0 && (
-                        <ITButton variant="filled" color="success" size="sm" ariaLabel={`${t("charges.pay")} ${c.description ?? c.conceptNombre}`}
+                      {canPay && c.balance > 0 && (
+                        <ITButton variant="filled" color="success" size="sm" ariaLabel={`${t("charges.pay")} ${c.description ?? c.conceptName}`}
                           onClick={() => setPaying(c)}>
                           <ITFlex align="center" gap={1}><FaCashRegister size={10} /><ITText className="text-[11px] font-bold">{t("charges.pay")}</ITText></ITFlex>
                         </ITButton>
@@ -152,10 +152,10 @@ export default function AccountStatementView({ studentId }: { studentId: string 
               </tbody>
               <tfoot>
                 <tr className="text-[12px] font-black text-slate-800">
-                  <td className="px-2 py-2" colSpan={2}>{t("statement.saldo")}</td>
-                  <td className="px-2 py-2 text-right">{money(totals.cargos - totals.descuentos)}</td>
-                  <td className="px-2 py-2 text-right">{money(totals.pagado)}</td>
-                  <td className="px-2 py-2 text-right" data-role="total-saldo">{money(totals.saldo)}</td>
+                  <td className="px-2 py-2" colSpan={2}>{t("statement.balance")}</td>
+                  <td className="px-2 py-2 text-right">{money(totals.charges - totals.discounts)}</td>
+                  <td className="px-2 py-2 text-right">{money(totals.paid)}</td>
+                  <td className="px-2 py-2 text-right" data-role="total-saldo">{money(totals.balance)}</td>
                   <td colSpan={2} />
                 </tr>
               </tfoot>
@@ -168,14 +168,14 @@ export default function AccountStatementView({ studentId }: { studentId: string 
         onClose={() => setPaying(null)}
         onRegistered={(payment: Payment) => {
           setPaying(null);
-          notify.success(t("payments.registered", { folio: payment.receiptNumber }));
+          notify.success(t("payments.registered", { receiptNumber: payment.receiptNumber }));
           load();
           void printReceipt(payment);
         }}
       />
       <ChargeFormDialog
         isOpen={charging}
-        student={{ id: statement.student.id, nombreCompleto: statement.student.name, studentNumber: statement.student.studentNumber }}
+        student={{ id: statement.student.id, fullName: statement.student.name, studentNumber: statement.student.studentNumber }}
         onClose={() => setCharging(false)}
         onSaved={() => {
           setCharging(false);

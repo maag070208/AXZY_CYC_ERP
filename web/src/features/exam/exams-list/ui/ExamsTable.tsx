@@ -25,16 +25,16 @@ export default function ExamsTable({ reloadKey, onTotal, onOpen }: Props) {
 
   const columns: Column<OnlineExam>[] = [
     {
-      key: "title", label: t("exams.titulo"), type: "string", filter: true, sortable: false,
+      key: "title", label: t("exams.titleField"), type: "string", filter: true, sortable: false,
       render: (row) => (
         <div>
           <ITText className="block text-[12px] font-bold text-slate-700">{row.title}</ITText>
-          <ITText className="text-[10px] text-slate-400">{row.courseNombre} · {row.groupNombre} · {row.termNombre}</ITText>
+          <ITText className="text-[10px] text-slate-400">{row.courseName} · {row.groupName} · {row.termName}</ITText>
         </div>
       ),
     },
     {
-      key: "opensAt", label: t("exams.ventana"), type: "date", width: 260, sortable: false,
+      key: "opensAt", label: t("exams.window"), type: "date", width: 260, sortable: false,
       render: (row) => (
         <ITText className="text-[11px] text-slate-600">
           {formatInstant(row.opensAt, i18n.language)} → {formatInstant(row.closesAt, i18n.language)}
@@ -42,10 +42,10 @@ export default function ExamsTable({ reloadKey, onTotal, onOpen }: Props) {
       ),
     },
     {
-      key: "preguntas", label: t("exams.preguntas"), type: "number", width: 110,
-      render: (row) => <ITText className="text-[12px] text-slate-600">{row.preguntas} · {row.totalPuntos} pt</ITText>,
+      key: "questionCount", label: t("exams.questionCount"), type: "number", width: 110,
+      render: (row) => <ITText className="text-[12px] text-slate-600">{row.questionCount} · {row.totalPoints} pt</ITText>,
     },
-    { key: "intentos", label: t("exams.intentos"), type: "number", width: 90 },
+    { key: "attemptCount", label: t("exams.attempts"), type: "number", width: 90 },
     {
       key: "status", label: t("exams.status"), type: "catalog", width: 120, filter: "catalog", sortable: false,
       catalogOptions: { data: (["DRAFT", "PUBLISHED", "CLOSED"] as const).map((s) => ({ id: s, name: t(`exams.statuses.${s}`) })) },

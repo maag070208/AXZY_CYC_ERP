@@ -6,7 +6,7 @@ import { z, registry } from "@core/swagger/registry";
  * parámetro = migración que inserta la fila + entrada aquí.
  */
 export const SETTING_SCHEMAS = {
-  SCHOOL_NAME: z.string().trim().min(1, "NOMBRE_REQUIRED").max(150),
+  SCHOOL_NAME: z.string().trim().min(1, "NAME_REQUIRED").max(150),
   SCHOOL_ADDRESS: z.string().max(300),
   SCHOOL_PHONE: z.string().max(30),
   SCHOOL_EMAIL: z.union([z.literal(""), z.string().email("INVALID_EMAIL").max(150)]),

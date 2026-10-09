@@ -65,7 +65,7 @@ export class MovementService {
   }
 
   /** Baja: ACTIVO → BAJA. Repetirla responde `409 STUDENT_INACTIVE`. */
-  async baja(studentId: string, input: MovementInput, actor: AuthenticatedUser, permission = "students.movements") {
+  async withdraw(studentId: string, input: MovementInput, actor: AuthenticatedUser, permission = "students.movements") {
     const student = await this.students.loadScoped(studentId, actor, permission);
     if (student.status === "WITHDRAWN") throw new HttpError(409, "STUDENT_INACTIVE");
     const { date } = await this.prepare(input);
@@ -105,7 +105,7 @@ export class MovementService {
   }
 
   /** Reingreso: BAJA → ACTIVO; la matrícula se conserva. */
-  async reingreso(studentId: string, input: MovementInput, actor: AuthenticatedUser) {
+  async reenter(studentId: string, input: MovementInput, actor: AuthenticatedUser) {
     const student = await this.students.loadScoped(studentId, actor, "students.movements");
     if (student.status === "ACTIVE") throw new HttpError(409, "STUDENT_ALREADY_ACTIVE");
     const { date } = await this.prepare(input);

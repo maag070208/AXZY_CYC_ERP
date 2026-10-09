@@ -18,6 +18,7 @@ import {
 } from "@core/utils/table";
 import type { AuditLogger } from "@modules/audit";
 import type { TeacherCreateInput, TeacherUpdateInput, TeacherView } from "../models/dto/teacher.dto";
+import { t } from "@core/i18n";
 
 /** La invitación es un token de restablecimiento de contraseña de vida más larga. */
 const INVITATION_TTL_MS = 72 * 60 * 60 * 1000;
@@ -34,7 +35,7 @@ const toView = (row: TeacherRow): TeacherView => ({
   id: row.id,
   firstNames: row.firstNames,
   surnames: row.surnames,
-  nombreCompleto: `${row.firstNames} ${row.surnames}`,
+  fullName: `${row.firstNames} ${row.surnames}`,
   email: row.email,
   phone: row.phone,
   specialty: row.specialty,
@@ -172,12 +173,12 @@ export class TeacherService {
     const link = this.invitationLink(token);
     void sendEmail({
       to: view.email,
-      subject: "Invitación al Sistema de Gestión Escolar — CYC",
+      subject: t("emails.teacherInvitation.subject"),
       html:
-        `<p>Hola ${view.firstNames},</p>` +
-        `<p>Se creó tu cuenta de profesor con el usuario <b>${view.account?.username ?? ""}</b>.</p>` +
-        `<p>Define tu contraseña aquí: <a href="${link}">${link}</a></p>` +
-        `<p>El enlace vence en 72 horas y es de un solo uso.</p>`,
+        `<p>${t("emails.greeting", { name: view.firstNames })}</p>` +
+        `<p>${t("emails.teacherInvitation.body", { username: view.account?.username ?? "" })}</p>` +
+        `<p>${t("emails.teacherInvitation.action")} <a href="${link}">${link}</a></p>` +
+        `<p>${t("emails.teacherInvitation.expiry")}</p>`,
     }).catch((error) => logger.error(`[teachers] invitation email failed: ${String(error)}`));
   }
 

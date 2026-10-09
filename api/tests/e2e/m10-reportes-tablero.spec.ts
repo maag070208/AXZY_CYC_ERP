@@ -34,8 +34,8 @@ let mine: { id: string };
 let foreign: { id: string };
 const students: Array<{ id: string; studentNumber: string }> = [];
 let teacher: Awaited<ReturnType<typeof makeTeacher>>;
-let paidFolio = "";
-let cancelledFolio = "";
+let paidReceipt = "";
+let cancelledReceipt = "";
 
 const report = (api: APIRequestContext, type: string, query: Record<string, string> = {}) =>
   api.get(`reports/${type}?${new URLSearchParams(query).toString()}`);
@@ -62,7 +62,7 @@ test.beforeAll(async () => {
   prof = (await loginAs(teacher.username)).api;
   const group = async (name: string, teacherId: string, capacity: number) =>
     (await control.post("groups", {
-      data: { courseId: course.id, termId, teacherId, name, capacity, schedule: [slot("MARTES", "07:00", "08:00")] },
+      data: { courseId: course.id, termId, teacherId, name, capacity, schedule: [slot("TUESDAY", "07:00", "08:00")] },
     })).json();
   mine = await group("R1", teacher.teacher.id, 4);
   foreign = await group("R2", other.teacher.id, 10);
@@ -77,9 +77,9 @@ test.beforeAll(async () => {
     (await control.post("charges", { data: { studentId, conceptId: concept.id, termId, dueDate } })).json();
   const c1 = await charge(students[0].id, "2026-01-10");
   const c2 = await charge(students[1].id, "2099-01-10");
-  paidFolio = (await (await control.post("payments", { data: { chargeId: c1.id, amount: 300, method: "CASH" } })).json()).receiptNumber;
+  paidReceipt = (await (await control.post("payments", { data: { chargeId: c1.id, amount: 300, method: "CASH" } })).json()).receiptNumber;
   const toCancel = await (await control.post("payments", { data: { chargeId: c2.id, amount: 200, method: "TRANSFER" } })).json();
-  cancelledFolio = toCancel.receiptNumber;
+  cancelledReceipt = toCancel.receiptNumber;
   await control.delete(`payments/${toCancel.id}`, { data: { reason: "Prueba de reporte" } });
   const cancelledCharge = await charge(students[2].id, "2026-01-10");
   await control.delete(`charges/${cancelledCharge.id}`, { data: { reason: "Prueba de reporte" } });
@@ -109,7 +109,7 @@ test("catálogo: el profesor no ve reportes con montos; el alumno no entra", asy
   await api.dispose();
 });
 
-test("validaciones: type desconocido 404, formato inválido, rango invertido y date inválida 400", async () => {
+test("validaciones: tipo desconocido 404, formato inválido, rango invertido y fecha inválida 400", async () => {
   const unknown = await report(control, "attendance-list");
   expect(unknown.status()).toBe(404);
   expect((await unknown.json()).code).toBe("REPORT_NOT_FOUND");
@@ -120,14 +120,14 @@ test("validaciones: type desconocido 404, formato inválido, rango invertido y d
 
 test("inscripciones por grupo: ocupación y alcance AREA del profesor", async () => {
   const res = await (await report(control, "enrollments-by-group", { termId })).json();
-  expect(res.filters.termNombre).toContain("Reportes");
-  const r1 = res.rows.find((r: { grupo: string }) => r.grupo === "R1");
-  expect(r1).toMatchObject({ capacity: 4, inscritos: 2, disponibles: 2, ocupacion: 50 });
-  expect(res.totals).toMatchObject({ rows: 2, capacity: 14, inscritos: 3 });
-  expect(res.columns.find((c: { key: string }) => c.key === "ocupacion").type).toBe("percent");
+  expect(res.filters.termName).toContain("Reportes");
+  const r1 = res.rows.find((r: { groupName: string }) => r.groupName === "R1");
+  expect(r1).toMatchObject({ capacity: 4, enrolledCount: 2, available: 2, occupancy: 50 });
+  expect(res.totals).toMatchObject({ rows: 2, capacity: 14, enrolledCount: 3 });
+  expect(res.columns.find((c: { key: string }) => c.key === "occupancy").type).toBe("percent");
 
   const area = await (await report(prof, "enrollments-by-group", { termId })).json();
-  expect(area.rows.map((r: { grupo: string }) => r.grupo)).toEqual(["R1"]);
+  expect(area.rows.map((r: { groupName: string }) => r.groupName)).toEqual(["R1"]);
   // Pedir el grupo ajeno no amplía el alcance.
   const forced = await (await report(prof, "enrollments-by-group", { termId, groupId: foreign.id })).json();
   expect(forced.rows).toHaveLength(0);
@@ -135,28 +135,28 @@ test("inscripciones por grupo: ocupación y alcance AREA del profesor", async ()
 
 test("alumnos activos y calificaciones: el profesor solo ve a sus alumnos", async () => {
   const active = await (await report(prof, "students-active")).json();
-  const matriculas = active.rows.map((r: { studentNumber: string }) => r.studentNumber);
-  expect(matriculas).toEqual(expect.arrayContaining([students[0].studentNumber, students[1].studentNumber]));
-  expect(matriculas).not.toContain(students[2].studentNumber);
+  const studentNumbers = active.rows.map((r: { studentNumber: string }) => r.studentNumber);
+  expect(studentNumbers).toEqual(expect.arrayContaining([students[0].studentNumber, students[1].studentNumber]));
+  expect(studentNumbers).not.toContain(students[2].studentNumber);
   const grades = await (await report(prof, "grades-by-group", { termId })).json();
   expect(grades.rows).toHaveLength(2);
-  expect(grades.rows.every((r: { grupo: string; estatus: string }) => r.grupo === "R1" && r.estatus === "ENROLLED")).toBe(true);
+  expect(grades.rows.every((r: { groupName: string; status: string }) => r.groupName === "R1" && r.status === "ENROLLED")).toBe(true);
 });
 
 test("pagos del periodo y adeudos: excluyen cancelados; el profesor → 403", async () => {
   const payments = await (await report(control, "payments-period", { termId })).json();
-  const folios = payments.rows.map((r: { folio: string }) => r.folio);
-  expect(folios).toContain(paidFolio);
-  expect(folios).not.toContain(cancelledFolio);
+  const receiptNumbers = payments.rows.map((r: { receiptNumber: string }) => r.receiptNumber);
+  expect(receiptNumbers).toContain(paidReceipt);
+  expect(receiptNumbers).not.toContain(cancelledReceipt);
   expect(payments.filters.from).toBe(`${today().slice(0, 7)}-01`);
   expect(payments.totals).toMatchObject({ rows: 1, amount: 300, CASH: 300 });
 
   const debts = await (await report(control, "debts", { termId })).json();
   expect(debts.rows).toHaveLength(2);
   const overdue = debts.rows.find((r: { studentNumber: string }) => r.studentNumber === students[0].studentNumber);
-  expect(overdue).toMatchObject({ total: 1000, pagado: 300, saldo: 700 });
-  expect(overdue.diasVencido).toBeGreaterThan(0);
-  expect(debts.totals).toMatchObject({ saldo: 1700, vencido: 700 });
+  expect(overdue).toMatchObject({ total: 1000, paid: 300, balance: 700 });
+  expect(overdue.daysOverdue).toBeGreaterThan(0);
+  expect(debts.totals).toMatchObject({ balance: 1700, overdue: 700 });
 
   const denied = await report(prof, "debts");
   expect(denied.status()).toBe(403);

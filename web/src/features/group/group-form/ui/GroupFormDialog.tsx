@@ -25,10 +25,10 @@ export default function GroupFormDialog({ isOpen, group, onClose, onSaved }: Pro
   const [courseId, setCourseId] = useState("");
   const [termId, setTermId] = useState("");
   const [teacherId, setTeacherId] = useState("");
-  const [name, setNombre] = useState("");
-  const [capacity, setCupo] = useState("30");
-  const [classroom, setAula] = useState("");
-  const [schedule, setHorario] = useState<ScheduleSlot[]>([]);
+  const [name, setName] = useState("");
+  const [capacity, setCapacity] = useState("30");
+  const [classroom, setClassroom] = useState("");
+  const [schedule, setSchedule] = useState<ScheduleSlot[]>([]);
   const [courses, setCourses] = useState<CourseOption[]>([]);
   const [terms, setTerms] = useState<Term[]>([]);
   const [teachers, setTeachers] = useState<Teacher[]>([]);
@@ -41,10 +41,10 @@ export default function GroupFormDialog({ isOpen, group, onClose, onSaved }: Pro
     setCourseId(group?.courseId ?? "");
     setTermId(group?.termId ?? "");
     setTeacherId(group?.teacherId ?? "");
-    setNombre(group?.name ?? "");
-    setCupo(String(group?.capacity ?? 30));
-    setAula(group?.classroom ?? "");
-    setHorario(group?.schedule ?? [{ dia: "LUNES", horaInicio: "08:00", horaFin: "09:00" }]);
+    setName(group?.name ?? "");
+    setCapacity(String(group?.capacity ?? 30));
+    setClassroom(group?.classroom ?? "");
+    setSchedule(group?.schedule ?? [{ day: "MONDAY", startTime: "08:00", endTime: "09:00" }]);
     setErrors({});
     setError(null);
     courseApi.options().then(setCourses).catch(() => setCourses([]));
@@ -59,13 +59,13 @@ export default function GroupFormDialog({ isOpen, group, onClose, onSaved }: Pro
   }, [group, isOpen]);
 
   const save = async () => {
-    const cupoNumber = Number(capacity);
+    const capacityNumber = Number(capacity);
     const slotError = scheduleError(schedule);
     const next: Partial<Record<Field | "schedule", string>> = {
-      courseId: validateRequired(courseId, t("groups.curso")) ?? undefined,
-      termId: validateRequired(termId, t("groups.ciclo")) ?? undefined,
-      name: validateRequired(name, t("groups.nombre")) ?? undefined,
-      capacity: Number.isInteger(cupoNumber) && cupoNumber >= 1 ? undefined : t("common:validation.required", { label: t("groups.cupo") }),
+      courseId: validateRequired(courseId, t("groups.courseName")) ?? undefined,
+      termId: validateRequired(termId, t("groups.termName")) ?? undefined,
+      name: validateRequired(name, t("groups.name")) ?? undefined,
+      capacity: Number.isInteger(capacityNumber) && capacityNumber >= 1 ? undefined : t("common:validation.required", { label: t("groups.capacity") }),
       schedule: slotError ? t(`groups.${slotError}`) : undefined,
     };
     for (const key of Object.keys(next) as (keyof typeof next)[]) if (!next[key]) delete next[key];
@@ -73,7 +73,7 @@ export default function GroupFormDialog({ isOpen, group, onClose, onSaved }: Pro
     if (Object.keys(next).length > 0) return;
     setSaving(true);
     setError(null);
-    const common = { teacherId: teacherId || null, name: name.trim(), capacity: cupoNumber, classroom: classroom.trim() || null, schedule };
+    const common = { teacherId: teacherId || null, name: name.trim(), capacity: capacityNumber, classroom: classroom.trim() || null, schedule };
     try {
       if (group) onSaved(await groupApi.update(group.id, common), false);
       else onSaved(await groupApi.create({ ...common, courseId, termId }), true);
@@ -92,33 +92,33 @@ export default function GroupFormDialog({ isOpen, group, onClose, onSaved }: Pro
           {error && <ITAlert variant="error">{error}</ITAlert>}
           <ITGrid container columns={12} spacing={4}>
             <ITGrid item xs={12} md={6}>
-              <ITSelect name="courseId" label={t("groups.curso")} value={courseId} disabled={!!group} error={errors.courseId}
+              <ITSelect name="courseId" label={t("groups.courseName")} value={courseId} disabled={!!group} error={errors.courseId}
                 placeholder="—" options={courses.map((c) => ({ value: c.id, label: `${c.code} · ${c.name}` }))}
                 onChange={(e) => setCourseId(e.target.value)} />
             </ITGrid>
             <ITGrid item xs={12} md={6}>
-              <ITSelect name="termId" label={t("groups.ciclo")} value={termId} disabled={!!group} error={errors.termId}
+              <ITSelect name="termId" label={t("groups.termName")} value={termId} disabled={!!group} error={errors.termId}
                 placeholder="—" options={terms.map((term) => ({ value: term.id, label: term.name }))}
                 onChange={(e) => setTermId(e.target.value)} />
             </ITGrid>
             <ITGrid item xs={12} md={4}>
-              <ITInput name="name" label={t("groups.nombre")} value={name} required error={errors.name}
-                onChange={(e) => setNombre(e.target.value)} />
+              <ITInput name="name" label={t("groups.name")} value={name} required error={errors.name}
+                onChange={(e) => setName(e.target.value)} />
             </ITGrid>
             <ITGrid item xs={12} md={4}>
-              <ITInput name="capacity" type="number" label={t("groups.cupo")} value={capacity} required error={errors.capacity}
-                onChange={(e) => setCupo(e.target.value)} />
+              <ITInput name="capacity" type="number" label={t("groups.capacity")} value={capacity} required error={errors.capacity}
+                onChange={(e) => setCapacity(e.target.value)} />
             </ITGrid>
             <ITGrid item xs={12} md={4}>
-              <ITInput name="classroom" label={t("groups.aula")} value={classroom} onChange={(e) => setAula(e.target.value)} />
+              <ITInput name="classroom" label={t("groups.classroom")} value={classroom} onChange={(e) => setClassroom(e.target.value)} />
             </ITGrid>
             <ITGrid item xs={12}>
-              <ITSelect name="teacherId" label={t("groups.profesor")} value={teacherId} placeholder={t("groups.noTeacher")}
-                options={teachers.map((x) => ({ value: x.id, label: x.nombreCompleto }))}
+              <ITSelect name="teacherId" label={t("groups.teacherName")} value={teacherId} placeholder={t("groups.noTeacher")}
+                options={teachers.map((x) => ({ value: x.id, label: x.fullName }))}
                 onChange={(e) => setTeacherId(e.target.value)} />
             </ITGrid>
             <ITGrid item xs={12}>
-              <ScheduleEditor value={schedule} onChange={setHorario} error={errors.schedule} />
+              <ScheduleEditor value={schedule} onChange={setSchedule} error={errors.schedule} />
             </ITGrid>
           </ITGrid>
           <ITFlex justify="end" gap={2}>

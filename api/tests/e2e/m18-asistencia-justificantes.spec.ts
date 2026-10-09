@@ -60,10 +60,10 @@ test.beforeAll(async () => {
   prof = (await loginAs(teacher.username)).api;
   const other = await makeTeacher(RUN, "aprof2");
   const group = await db.group.create({
-    data: { courseId: course.id, termId, teacherId: teacher.teacher.id, name: "A1", capacity: 10, schedule: [{ dia: "LUNES", horaInicio: "07:00", horaFin: "08:00" }] },
+    data: { courseId: course.id, termId, teacherId: teacher.teacher.id, name: "A1", capacity: 10, schedule: [{ day: "MONDAY", startTime: "07:00", endTime: "08:00" }] },
   });
   const foreign = await db.group.create({
-    data: { courseId: course.id, termId, teacherId: other.teacher.id, name: "A2", capacity: 10, schedule: [{ dia: "MARTES", horaInicio: "07:00", horaFin: "08:00" }] },
+    data: { courseId: course.id, termId, teacherId: other.teacher.id, name: "A2", capacity: 10, schedule: [{ day: "TUESDAY", startTime: "07:00", endTime: "08:00" }] },
   });
   groupId = group.id;
   foreignGroupId = foreign.id;
@@ -85,7 +85,7 @@ test.afterAll(async () => {
   await clearAuthE2E();
 });
 
-test("regla 1: una sesión vigente por grupo/date/time; date futura y time inválida → 400; bitácora", async () => {
+test("regla 1: una sesión vigente por grupo/fecha/hora; fecha futura y hora inválida → 400; bitácora", async () => {
   for (const date of ["2026-09-01", "2026-09-02", "2026-09-03"]) {
     const res = await prof.post(`groups/${groupId}/sessions`, { data: { date, time: "07:00" } });
     expect(res.status(), await res.text()).toBe(201);
@@ -131,19 +131,19 @@ test("reglas 2–3: el pase incluye a todos los inscritos, rechaza inscripciones
 test("reglas 4–5: porcentaje (retardo cuenta) y alerta al cruzar el umbral, una sola vez y con aviso", async () => {
   await roll(sessions[1], { [ana.enrollmentId]: "ABSENT", [beto.enrollmentId]: "PRESENT" });
   // Ana: P, F → 50 % (< 80): alerta. Beto: R, P → 100 %.
-  expect(await summaryRow(prof, ana.enrollmentId)).toMatchObject({ sesiones: 2, faltas: 1, porcentaje: 50, alerta: true });
-  expect(await summaryRow(prof, beto.enrollmentId)).toMatchObject({ sesiones: 2, retardos: 1, porcentaje: 100, alerta: false });
+  expect(await summaryRow(prof, ana.enrollmentId)).toMatchObject({ sessions: 2, absences: 1, percentage: 50, alert: true });
+  expect(await summaryRow(prof, beto.enrollmentId)).toMatchObject({ sessions: 2, lates: 1, percentage: 100, alert: false });
   const alertAt = (await db.enrollment.findUniqueOrThrow({ where: { id: ana.enrollmentId } })).attendanceAlertAt;
   expect(alertAt).not.toBeNull();
   const audit = await db.auditLog.findFirst({ where: { action: "ATTENDANCE_ALERT_TRIGGERED", entityId: ana.enrollmentId }, orderBy: { createdAt: "desc" } });
-  expect(audit?.newState).toMatchObject({ alerta: true, porcentaje: 50, umbral: 80 });
-  const notices = await db.notification.findMany({ where: { origin: "ALERTA_INASISTENCIA", userId: ana.userId } });
+  expect(audit?.newState).toMatchObject({ alert: true, percentage: 50, threshold: 80 });
+  const notices = await db.notification.findMany({ where: { origin: "ABSENCE_ALERT", userId: ana.userId } });
   expect(notices.map((n) => n.channel).sort()).toEqual(["EMAIL", "IN_APP"]);
   expect(notices.find((n) => n.channel === "IN_APP")?.body).toContain("50 %");
 
   // Sigue por debajo con otra falta: no se repite la alerta.
   await roll(sessions[2], { [ana.enrollmentId]: "ABSENT", [beto.enrollmentId]: "PRESENT" });
-  expect(await db.notification.count({ where: { origin: "ALERTA_INASISTENCIA", userId: ana.userId } })).toBe(2);
+  expect(await db.notification.count({ where: { origin: "ABSENCE_ALERT", userId: ana.userId } })).toBe(2);
   expect((await db.enrollment.findUniqueOrThrow({ where: { id: ana.enrollmentId } })).attendanceAlertAt).toEqual(alertAt);
 
   // El alumno solo ve su renglón.
@@ -193,8 +193,8 @@ test("regla 6: aprobar convierte la falta en JUSTIFIED, recalcula y limpia la al
   expect(audit?.previousState).toMatchObject({ status: "PENDING", attendance: "ABSENT" });
   expect(audit?.newState).toMatchObject({ status: "APPROVED", attendance: "JUSTIFIED" });
   // Ana: P, J, F → 66.67 % sigue bajo 80 (la alerta sigue vigente).
-  expect(await summaryRow(prof, ana.enrollmentId)).toMatchObject({ justificadas: 1, faltas: 1, porcentaje: 66.67, alerta: true });
-  expect(await db.notification.count({ where: { origin: "JUSTIFICANTE_RESUELTO", userId: ana.userId } })).toBe(2);
+  expect(await summaryRow(prof, ana.enrollmentId)).toMatchObject({ justified: 1, absences: 1, percentage: 66.67, alert: true });
+  expect(await db.notification.count({ where: { origin: "JUSTIFICATION_RESOLVED", userId: ana.userId } })).toBe(2);
 
   // Volver a pasar lista no modifica la justificada (queda bloqueada).
   const again = await roll(sessions[1], { [ana.enrollmentId]: "ABSENT", [beto.enrollmentId]: "PRESENT" });
@@ -214,7 +214,7 @@ test("rechazar deja la falta; se puede volver a solicitar y al aprobar se recupe
   expect((await retry.json()).id).toBe(first.id);
   await control.patch(`justifications/${first.id}/resolve`, { data: { status: "APPROVED" } });
   // Ana: P, J, J → 100 %: la alerta se limpia (y queda en bitácora).
-  expect(await summaryRow(prof, ana.enrollmentId)).toMatchObject({ porcentaje: 100, alerta: false });
+  expect(await summaryRow(prof, ana.enrollmentId)).toMatchObject({ percentage: 100, alert: false });
   expect((await db.enrollment.findUniqueOrThrow({ where: { id: ana.enrollmentId } })).attendanceAlertAt).toBeNull();
   expect(await db.auditLog.count({ where: { action: "ATTENDANCE_ALERT_CLEARED", entityId: ana.enrollmentId } })).toBe(1);
 });
@@ -222,12 +222,12 @@ test("rechazar deja la falta; se puede volver a solicitar y al aprobar se recupe
 test("regla 9: anular una sesión la saca del porcentaje sin borrar registros; ya no admite pase", async () => {
   const extra = (await (await prof.get(`groups/${groupId}/sessions`)).json()).find((s: { time: string | null }) => s.time === "12:00");
   await roll(extra.id, { [ana.enrollmentId]: "PRESENT", [beto.enrollmentId]: "ABSENT" });
-  expect(await summaryRow(prof, beto.enrollmentId)).toMatchObject({ sesiones: 4, faltas: 1, porcentaje: 75, alerta: true });
+  expect(await summaryRow(prof, beto.enrollmentId)).toMatchObject({ sessions: 4, absences: 1, percentage: 75, alert: true });
 
   const annulled = await prof.delete(`attendance-sessions/${extra.id}`, { data: { reason: "Sesión duplicada por error" } });
   expect(await annulled.json()).toMatchObject({ annulled: true, deleteReason: "Sesión duplicada por error" });
   expect(await db.attendance.count({ where: { sessionId: extra.id } })).toBe(2);
-  expect(await summaryRow(prof, beto.enrollmentId)).toMatchObject({ sesiones: 3, faltas: 0, porcentaje: 100, alerta: false });
+  expect(await summaryRow(prof, beto.enrollmentId)).toMatchObject({ sessions: 3, absences: 0, percentage: 100, alert: false });
   expect((await roll(extra.id, { [ana.enrollmentId]: "PRESENT", [beto.enrollmentId]: "PRESENT" })).status()).toBe(409);
   expect((await prof.delete(`attendance-sessions/${extra.id}`, { data: { reason: "otra vez" } })).status()).toBe(409);
 });
@@ -235,16 +235,16 @@ test("regla 9: anular una sesión la saca del porcentaje sin borrar registros; y
 test("asistencia del alumno (OWN/AREA) y reporte attendance-by-group", async () => {
   const own = await (await anaApi.get(`students/${ana.studentId}/attendance`)).json();
   expect(own.groups).toHaveLength(1);
-  expect(own.groups[0]).toMatchObject({ groupId, porcentaje: 100, sesiones: 3 });
+  expect(own.groups[0]).toMatchObject({ groupId, percentage: 100, sessions: 3 });
   expect(own.groups[0].records.map((r: { status: string }) => r.status)).toEqual(["JUSTIFIED", "JUSTIFIED", "PRESENT"]);
   const peek = await (await anaApi.get(`students/${beto.studentId}/attendance`)).json();
   expect(peek.groups).toHaveLength(0);
   expect((await (await prof.get(`students/${beto.studentId}/attendance`)).json()).groups).toHaveLength(1);
 
   const report = await (await control.get(`reports/attendance-by-group?termId=${termId}`)).json();
-  const row = report.rows.find((r: { studentNumber: string; grupo: string }) => r.grupo === "A1" && r.name.includes("asana"));
-  expect(row).toMatchObject({ sesiones: 3, faltas: 0, justificadas: 2, porcentaje: 100, alerta: null });
-  expect(report.columns.find((c: { key: string }) => c.key === "porcentaje").type).toBe("percent");
+  const row = report.rows.find((r: { studentNumber: string; groupName: string }) => r.groupName === "A1" && r.name.includes("asana"));
+  expect(row).toMatchObject({ sessions: 3, absences: 0, justified: 2, percentage: 100, alert: null });
+  expect(report.columns.find((c: { key: string }) => c.key === "percentage").type).toBe("percent");
   const area = await (await prof.get(`reports/attendance-by-group?termId=${termId}`)).json();
-  expect(area.rows.every((r: { grupo: string }) => r.grupo === "A1")).toBe(true);
+  expect(area.rows.every((r: { groupName: string }) => r.groupName === "A1")).toBe(true);
 });

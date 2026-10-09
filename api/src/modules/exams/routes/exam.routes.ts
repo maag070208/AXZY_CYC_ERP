@@ -37,13 +37,13 @@ export const createExamRouters = (c: ExamController) => {
     responses: { 201: { description: "Examen", content: json(ExamDetailSchema) } },
   });
   doc("get", "/online-exams/{id}", "Detalle con preguntas (exams.view)", { parameters: [param("id")], responses: { 200: { description: "Examen", content: json(ExamDetailSchema) } } });
-  doc("patch", "/online-exams/{id}", "Configuración (exams.manage); con intentos solo instructions, cierre y mostrar resultado", {
+  doc("patch", "/online-exams/{id}", "Configuración (exams.manage); con intentos solo instrucciones, cierre y mostrar resultado", {
     parameters: [param("id")],
     request: { body: { required: true, content: json(ExamUpdateDto) } },
     responses: { 200: { description: "Examen", content: json(ExamDetailSchema) }, 409: { description: "EXAM_PUBLISHED_LOCKED" } },
   });
   doc("delete", "/online-exams/{id}", "Elimina un borrador (exams.manage)", { parameters: [param("id")], responses: { 204: { description: "Eliminado" } } });
-  doc("post", "/online-exams/{id}/questions", "Fija las preguntas y sus points (exams.manage)", {
+  doc("post", "/online-exams/{id}/questions", "Fija las preguntas y sus puntos (exams.manage)", {
     parameters: [param("id")],
     request: { body: { required: true, content: json(ExamQuestionsDto) } },
     responses: { 200: { description: "Examen", content: json(ExamDetailSchema) }, 409: { description: "EXAM_PUBLISHED_LOCKED" } },

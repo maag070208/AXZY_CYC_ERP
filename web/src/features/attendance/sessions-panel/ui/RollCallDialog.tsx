@@ -84,7 +84,7 @@ export default function RollCallDialog({ sessionId, onClose, onSaved }: Props) {
         {roll && (
           <ITFlex direction="column" gap={4}>
             <ITFlex justify="between" align="center" wrap="wrap" gap={2}>
-              <ITText className="text-[12px] text-slate-500">{roll.group.courseNombre} · {roll.group.name} · {roll.group.termNombre}</ITText>
+              <ITText className="text-[12px] text-slate-500">{roll.group.courseName} · {roll.group.name} · {roll.group.termName}</ITText>
               <ITFlex gap={2}>
                 <ITButton variant="outlined" color="success" size="sm" disabled={roll.group.closed} onClick={() => setAll("PRESENT")}>
                   {t("roll.allPresent")}

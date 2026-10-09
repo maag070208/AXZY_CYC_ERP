@@ -14,8 +14,8 @@ export interface QuestionOption {
 export interface Question {
   id: string;
   courseId: string;
-  courseClave: string;
-  courseNombre: string;
+  courseCode: string;
+  courseName: string;
   topic: string | null;
   type: QuestionType;
   text: string;
@@ -46,5 +46,5 @@ export interface ImportResult {
   valid: number;
   created: number;
   rejected: Array<{ row: number; code: string; message: string }>;
-  sample: Array<{ row: number; curso: string; type: QuestionType; text: string; points: number; opciones: number }>;
+  sample: Array<{ row: number; courseName: string; type: QuestionType; text: string; points: number; optionCount: number }>;
 }

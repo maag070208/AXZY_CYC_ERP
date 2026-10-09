@@ -21,11 +21,11 @@ interface Var {
 /** Envío manual o de prueba por el outbox (M19 §4.3). */
 export default function SendDialog({ isOpen, onClose, onSent }: Props) {
   const { t } = useTranslation(["notifications", "common"]);
-  const [channel, setCanal] = useState<NotificationChannel>("EMAIL");
-  const [recipient, setDestinatario] = useState("");
-  const [templateClave, setTemplateClave] = useState("");
-  const [subject, setAsunto] = useState("");
-  const [body, setCuerpo] = useState("");
+  const [channel, setChannel] = useState<NotificationChannel>("EMAIL");
+  const [recipient, setRecipient] = useState("");
+  const [templateCode, setTemplateCode] = useState("");
+  const [subject, setSubject] = useState("");
+  const [body, setBody] = useState("");
   const [variables, setVariables] = useState<Var[]>([]);
   const [templates, setTemplates] = useState<string[]>([]);
   const [errors, setErrors] = useState<Errors>({});
@@ -34,11 +34,11 @@ export default function SendDialog({ isOpen, onClose, onSent }: Props) {
 
   useEffect(() => {
     if (!isOpen) return;
-    setCanal("EMAIL");
-    setDestinatario("");
-    setTemplateClave("");
-    setAsunto("");
-    setCuerpo("");
+    setChannel("EMAIL");
+    setRecipient("");
+    setTemplateCode("");
+    setSubject("");
+    setBody("");
     setVariables([]);
     setErrors({});
     setError(null);
@@ -52,8 +52,8 @@ export default function SendDialog({ isOpen, onClose, onSent }: Props) {
 
   const save = async () => {
     const next: Errors = {
-      recipient: recipient.trim() ? undefined : t("common:validation.required", { label: t("outbox.destinatario") }),
-      body: templateClave || body.trim() ? undefined : t("common:validation.required", { label: t("outbox.cuerpo") }),
+      recipient: recipient.trim() ? undefined : t("common:validation.required", { label: t("outbox.recipient") }),
+      body: templateCode || body.trim() ? undefined : t("common:validation.required", { label: t("outbox.body") }),
     };
     setErrors(next);
     if (Object.values(next).some(Boolean)) return;
@@ -64,7 +64,7 @@ export default function SendDialog({ isOpen, onClose, onSent }: Props) {
       const item = await notificationApi.send({
         channel,
         recipient: recipient.trim(),
-        ...(templateClave ? { templateClave } : {}),
+        ...(templateCode ? { templateCode } : {}),
         subject: subject.trim() || null,
         body: body.trim() || null,
         payload,
@@ -85,28 +85,28 @@ export default function SendDialog({ isOpen, onClose, onSent }: Props) {
           {error && <ITAlert variant="error">{error}</ITAlert>}
           <ITGrid container columns={12} spacing={4}>
             <ITGrid item xs={12} md={4}>
-              <ITSelect name="channel" label={t("outbox.canal")} value={channel}
+              <ITSelect name="channel" label={t("outbox.channel")} value={channel}
                 options={NOTIFICATION_CHANNELS.map((c) => ({ value: c, label: t(`channels.${c}`) }))}
-                onChange={(e) => setCanal(e.target.value as NotificationChannel)} />
+                onChange={(e) => setChannel(e.target.value as NotificationChannel)} />
             </ITGrid>
             <ITGrid item xs={12} md={8}>
-              <ITInput name="recipient" label={t("outbox.destinatario")} value={recipient} required error={errors.recipient}
+              <ITInput name="recipient" label={t("outbox.recipient")} value={recipient} required error={errors.recipient}
                 placeholder={channel === "IN_APP" ? "user:<uuid>" : channel === "EMAIL" ? "correo@dominio" : "+526141234567"}
-                onChange={(e) => setDestinatario(e.target.value)} />
+                onChange={(e) => setRecipient(e.target.value)} />
             </ITGrid>
             <ITGrid item xs={12}>
               <ITText className="text-[11px] text-slate-400">{t(`outbox.recipientHint.${channel}`)}</ITText>
             </ITGrid>
             <ITGrid item xs={12} md={6}>
-              <ITSelect name="templateClave" label={t("outbox.plantilla")} value={templateClave} placeholder={t("outbox.sinPlantilla")}
-                options={[{ value: "", label: t("outbox.sinPlantilla") }, ...templates.map((c) => ({ value: c, label: c }))]}
-                onChange={(e) => setTemplateClave(e.target.value)} />
+              <ITSelect name="templateCode" label={t("outbox.template")} value={templateCode} placeholder={t("outbox.noTemplate")}
+                options={[{ value: "", label: t("outbox.noTemplate") }, ...templates.map((c) => ({ value: c, label: c }))]}
+                onChange={(e) => setTemplateCode(e.target.value)} />
             </ITGrid>
             <ITGrid item xs={12} md={6}>
-              <ITInput name="subject" label={t("outbox.asunto")} value={subject} maxLength={200} onChange={(e) => setAsunto(e.target.value)} />
+              <ITInput name="subject" label={t("outbox.subject")} value={subject} maxLength={200} onChange={(e) => setSubject(e.target.value)} />
             </ITGrid>
             <ITGrid item xs={12}>
-              <ITTextarea name="body" label={t("outbox.cuerpo")} value={body} onChange={setCuerpo} rows={4} maxLength={5000} error={errors.body} />
+              <ITTextarea name="body" label={t("outbox.body")} value={body} onChange={setBody} rows={4} maxLength={5000} error={errors.body} />
             </ITGrid>
           </ITGrid>
 

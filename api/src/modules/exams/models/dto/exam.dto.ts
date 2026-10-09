@@ -10,7 +10,7 @@ export const EXAM_STATUSES = ["DRAFT", "PUBLISHED", "CLOSED"] as const;
 
 const examFields = {
   groupId: z.string().uuid(),
-  title: z.string().trim().min(1, "NOMBRE_REQUIRED").max(150),
+  title: z.string().trim().min(1, "NAME_REQUIRED").max(150),
   instructions: z.string().trim().max(5000).transform((v) => v || null).nullable().optional(),
   durationMin: z.number().int().min(1).max(600),
   maxAttempts: z.number().int().min(1).max(10).default(1),
@@ -69,10 +69,10 @@ export const ExamSchema = z
   .object({
     id: z.string(),
     groupId: z.string(),
-    groupNombre: z.string(),
+    groupName: z.string(),
     courseId: z.string(),
-    courseNombre: z.string(),
-    termNombre: z.string(),
+    courseName: z.string(),
+    termName: z.string(),
     title: z.string(),
     instructions: z.string().nullable(),
     durationMin: z.number().int(),
@@ -85,11 +85,11 @@ export const ExamSchema = z
     passingScore: z.number(),
     attemptCriterion: z.enum(["BEST", "LAST"]),
     assessmentId: z.string().nullable(),
-    assessmentNombre: z.string().nullable(),
+    assessmentName: z.string().nullable(),
     status: z.enum(EXAM_STATUSES),
-    totalPuntos: z.number(),
-    preguntas: z.number().int(),
-    intentos: z.number().int(),
+    totalPoints: z.number(),
+    questionCount: z.number().int(),
+    attemptCount: z.number().int(),
     publishedAt: z.string().nullable(),
     closedAt: z.string().nullable(),
     createdAt: z.string(),
@@ -182,5 +182,5 @@ export interface AttemptView {
   focusLosses: number;
   questions: AttemptQuestionView[];
   /** Solo al terminar (y para el alumno solo si el examen muestra resultado). */
-  result: { score: number; totalPuntos: number; pendingCount: number; aprobado: boolean | null } | null;
+  result: { score: number; totalPoints: number; pendingCount: number; passed: boolean | null } | null;
 }

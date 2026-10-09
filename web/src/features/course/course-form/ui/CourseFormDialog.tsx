@@ -18,10 +18,10 @@ const CLAVE = /^[A-Z0-9][A-Z0-9._-]*$/;
 /** Alta y edición de un curso (clave, nombre, nivel, descripción). */
 export default function CourseFormDialog({ isOpen, course, onClose, onSaved }: Props) {
   const { t } = useTranslation(["courses", "common"]);
-  const [code, setClave] = useState("");
-  const [name, setNombre] = useState("");
+  const [code, setCode] = useState("");
+  const [name, setName] = useState("");
   const [levelId, setLevelId] = useState("");
-  const [description, setDescripcion] = useState("");
+  const [description, setDescription] = useState("");
   const [levels, setLevels] = useState<CatalogItem[]>([]);
   const [errors, setErrors] = useState<{ code?: string; name?: string }>({});
   const [saving, setSaving] = useState(false);
@@ -29,10 +29,10 @@ export default function CourseFormDialog({ isOpen, course, onClose, onSaved }: P
 
   useEffect(() => {
     if (!isOpen) return;
-    setClave(course?.code ?? "");
-    setNombre(course?.name ?? "");
+    setCode(course?.code ?? "");
+    setName(course?.name ?? "");
     setLevelId(course?.levelId ?? "");
-    setDescripcion(course?.description ?? "");
+    setDescription(course?.description ?? "");
     setErrors({});
     setError(null);
     catalogApi.options("levels").then(setLevels).catch(() => setLevels([]));
@@ -41,8 +41,8 @@ export default function CourseFormDialog({ isOpen, course, onClose, onSaved }: P
   const save = async () => {
     const normalized = code.trim().toUpperCase();
     const next = {
-      code: validateRequired(normalized, t("courses.clave")) ?? (CLAVE.test(normalized) ? undefined : t("courses.claveHint")),
-      name: validateRequired(name, t("courses.nombre")) ?? undefined,
+      code: validateRequired(normalized, t("courses.code")) ?? (CLAVE.test(normalized) ? undefined : t("courses.codeHint")),
+      name: validateRequired(name, t("courses.name")) ?? undefined,
     };
     setErrors(next);
     if (next.code || next.name) return;
@@ -67,22 +67,22 @@ export default function CourseFormDialog({ isOpen, course, onClose, onSaved }: P
           {error && <ITAlert variant="error">{error}</ITAlert>}
           <ITGrid container columns={12} spacing={4}>
             <ITGrid item xs={12} md={5}>
-              <ITInput name="code" label={t("courses.clave")} value={code} required error={errors.code}
-                onChange={(e) => setClave(e.target.value.toUpperCase())} />
+              <ITInput name="code" label={t("courses.code")} value={code} required error={errors.code}
+                onChange={(e) => setCode(e.target.value.toUpperCase())} />
             </ITGrid>
             <ITGrid item xs={12} md={7}>
-              <ITInput name="name" label={t("courses.nombre")} value={name} required error={errors.name}
-                onChange={(e) => setNombre(e.target.value)} />
+              <ITInput name="name" label={t("courses.name")} value={name} required error={errors.name}
+                onChange={(e) => setName(e.target.value)} />
             </ITGrid>
             <ITGrid item xs={12}>
-              <ITSelect name="levelId" label={t("courses.nivel")} value={levelId} placeholder={t("courses.noLevel")}
+              <ITSelect name="levelId" label={t("courses.level")} value={levelId} placeholder={t("courses.noLevel")}
                 options={levels.map((l) => ({ value: l.id, label: l.name }))} onChange={(e) => setLevelId(e.target.value)} />
             </ITGrid>
             <ITGrid item xs={12}>
-              <ITTextarea name="description" label={t("courses.descripcion")} value={description} onChange={setDescripcion} rows={3} maxLength={1000} />
+              <ITTextarea name="description" label={t("courses.descriptionField")} value={description} onChange={setDescription} rows={3} maxLength={1000} />
             </ITGrid>
           </ITGrid>
-          <ITText className="text-[11px] text-slate-400">{t("courses.claveHint")}</ITText>
+          <ITText className="text-[11px] text-slate-400">{t("courses.codeHint")}</ITText>
           <ITFlex justify="end" gap={2}>
             <ITButton variant="outlined" color="secondary" onClick={onClose}>{t("common:actions.cancel")}</ITButton>
             <ITButton type="submit" variant="filled" color="primary" disabled={saving}>

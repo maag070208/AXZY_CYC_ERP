@@ -17,27 +17,27 @@ export type ChargeRow = Prisma.ChargeGetPayload<{ include: typeof chargeInclude 
 /** Vista del cargo con total, pagado, saldo y vencimiento calculados. */
 export const toChargeView = (row: ChargeRow, today = todayInBusinessZone()): ChargeView => {
   const total = chargeTotal(row.amount, row.discount);
-  const pagado = sumOf(row.payments.map((p) => p.amount));
-  const saldo = row.status === "CANCELLED" ? 0 : balanceOf(total, pagado);
+  const paid = sumOf(row.payments.map((p) => p.amount));
+  const balance = row.status === "CANCELLED" ? 0 : balanceOf(total, paid);
   const dueDate = fromDbDay(row.dueDate);
   return {
     id: row.id,
     studentId: row.studentId,
     studentNumber: row.student.studentNumber,
-    studentNombre: fullName(row.student),
+    studentName: fullName(row.student),
     conceptId: row.conceptId,
-    conceptNombre: row.concept.name,
-    conceptTipo: row.concept.type,
+    conceptName: row.concept.name,
+    conceptType: row.concept.type,
     termId: row.termId,
-    termNombre: row.term?.name ?? null,
+    termName: row.term?.name ?? null,
     description: row.description,
     amount: Number(row.amount),
     discount: Number(row.discount),
     total,
-    pagado,
-    saldo,
+    paid,
+    balance,
     dueDate,
-    vencido: saldo > 0 && dueDate < today,
+    overdue: balance > 0 && dueDate < today,
     status: row.status,
     parentChargeId: row.parentChargeId,
     cancelledAt: row.cancelledAt?.toISOString() ?? null,

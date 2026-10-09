@@ -35,8 +35,8 @@ export default function FeeConceptDialog({ isOpen, concept, onClose, onSaved }: 
   const save = async () => {
     const amount = Number(amountInput);
     const next = {
-      name: validateRequired(name, t("concepts.nombre")) ?? undefined,
-      amount: amountInput !== "" && Number.isFinite(amount) && amount >= 0 ? undefined : t("common:validation.required", { label: t("concepts.monto") }),
+      name: validateRequired(name, t("concepts.name")) ?? undefined,
+      amount: amountInput !== "" && Number.isFinite(amount) && amount >= 0 ? undefined : t("common:validation.required", { label: t("concepts.amount") }),
     };
     setErrors(next);
     if (next.name || next.amount) return;
@@ -61,18 +61,18 @@ export default function FeeConceptDialog({ isOpen, concept, onClose, onSaved }: 
           {error && <ITAlert variant="error">{error}</ITAlert>}
           <ITGrid container columns={12} spacing={4}>
             <ITGrid item xs={12}>
-              <ITInput name="name" label={t("concepts.nombre")} value={name} required error={errors.name} onChange={(e) => setName(e.target.value)} />
+              <ITInput name="name" label={t("concepts.name")} value={name} required error={errors.name} onChange={(e) => setName(e.target.value)} />
             </ITGrid>
             <ITGrid item xs={12} md={6}>
-              <ITInput name="amount" type="number" label={t("concepts.monto")} value={amountInput} required error={errors.amount} onChange={(e) => setAmountInput(e.target.value)} />
+              <ITInput name="amount" type="number" label={t("concepts.amount")} value={amountInput} required error={errors.amount} onChange={(e) => setAmountInput(e.target.value)} />
             </ITGrid>
             <ITGrid item xs={12} md={6}>
-              <ITSelect name="type" label={t("concepts.tipo")} value={type}
+              <ITSelect name="type" label={t("concepts.type")} value={type}
                 options={EDITABLE_FEE_TYPES.map((x) => ({ value: x, label: t(`concepts.types.${x}`) }))}
                 onChange={(e) => setType(e.target.value as FeeConceptType)} />
             </ITGrid>
             <ITGrid item xs={12}>
-              <ITTextarea name="description" label={t("concepts.descripcion")} value={description} onChange={setDescription} rows={2} maxLength={500} />
+              <ITTextarea name="description" label={t("concepts.description")} value={description} onChange={setDescription} rows={2} maxLength={500} />
             </ITGrid>
           </ITGrid>
           <ITFlex justify="end" gap={2}>

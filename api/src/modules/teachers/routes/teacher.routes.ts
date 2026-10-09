@@ -39,7 +39,7 @@ export const createTeacherRouter = (controller: TeacherController): Router => {
     parameters: [idParam],
     responses: { 200: { description: "Profesor", content: json(TeacherSchema) } },
   });
-  doc("patch", "/teachers/{id}", "Edición; sincroniza name/correo/teléfono de la cuenta (teachers.edit)", {
+  doc("patch", "/teachers/{id}", "Edición; sincroniza nombre/correo/teléfono de la cuenta (teachers.edit)", {
     parameters: [idParam],
     request: { body: { required: true, content: json(TeacherUpdateDto) } },
     responses: { 200: { description: "Profesor", content: json(TeacherSchema) } },

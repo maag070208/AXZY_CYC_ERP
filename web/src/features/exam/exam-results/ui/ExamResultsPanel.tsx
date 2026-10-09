@@ -32,21 +32,21 @@ export default function ExamResultsPanel({ examId, canReview, reloadKey }: Props
   return (
     <ITFlex direction="column" gap={4}>
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
-        <ITStatCard label={t("results.inscritos")} value={kpis.inscritos} icon={<FaUsers size={16} />} />
-        <ITStatCard label={t("results.presentaron")} value={kpis.presentaron} icon={<FaClipboardList size={16} />} />
-        <ITStatCard label={t("results.promedio")} value={kpis.promedio === null ? "—" : `${kpis.promedio} / ${kpis.totalPuntos}`} icon={<FaStar size={16} />} />
-        <ITStatCard label={t("results.aprobados")} value={kpis.aprobados} icon={<FaCheckCircle size={16} />} />
-        <ITStatCard label={t("results.pendientes")} value={kpis.pendientesRevision} icon={<FaHourglassHalf size={16} />} />
+        <ITStatCard label={t("results.enrolledCount")} value={kpis.enrolledCount} icon={<FaUsers size={16} />} />
+        <ITStatCard label={t("results.submittedCount")} value={kpis.submittedCount} icon={<FaClipboardList size={16} />} />
+        <ITStatCard label={t("results.average")} value={kpis.average === null ? "—" : `${kpis.average} / ${kpis.totalPoints}`} icon={<FaStar size={16} />} />
+        <ITStatCard label={t("results.passedCount")} value={kpis.passedCount} icon={<FaCheckCircle size={16} />} />
+        <ITStatCard label={t("results.pending")} value={kpis.pendingReview} icon={<FaHourglassHalf size={16} />} />
       </div>
       <PanelCard>
         <div className="overflow-x-auto">
           <table data-role="exam-results" className="w-full text-left text-[12px]">
             <thead className="text-[10px] font-black uppercase tracking-wide text-slate-400">
               <tr>
-                <th className="py-2 pr-3">{t("results.alumno")}</th>
-                <th className="py-2 pr-3">{t("results.intentos")}</th>
-                <th className="py-2 pr-3">{t("results.calificacion")}</th>
-                <th className="py-2 pr-3">{t("results.resultado")}</th>
+                <th className="py-2 pr-3">{t("results.student")}</th>
+                <th className="py-2 pr-3">{t("results.attempts")}</th>
+                <th className="py-2 pr-3">{t("results.grade")}</th>
+                <th className="py-2 pr-3">{t("results.result")}</th>
                 <th className="py-2" />
               </tr>
             </thead>
@@ -58,26 +58,26 @@ export default function ExamResultsPanel({ examId, canReview, reloadKey }: Props
                     <ITText className="text-[10px] text-slate-400">{r.studentNumber}</ITText>
                   </td>
                   <td className="py-2 pr-3 text-slate-600">
-                    {r.intentos}
-                    {r.enCurso && <span className="ml-2"><ITBadget color="warning" size="sm">{t("results.enCurso")}</ITBadget></span>}
+                    {r.attemptCount}
+                    {r.inProgress && <span className="ml-2"><ITBadget color="warning" size="sm">{t("results.inProgress")}</ITBadget></span>}
                   </td>
-                  <td className="py-2 pr-3 font-bold text-slate-700">{r.calificacion === null ? "—" : `${r.calificacion} / ${kpis.totalPuntos}`}</td>
+                  <td className="py-2 pr-3 font-bold text-slate-700">{r.grade === null ? "—" : `${r.grade} / ${kpis.totalPoints}`}</td>
                   <td className="py-2 pr-3">
-                    {r.pendientes > 0 ? (
-                      <ITBadget color="warning" size="sm">{t("results.pendientes")}</ITBadget>
-                    ) : r.aprobado === null ? (
-                      <ITText className="text-slate-400">{r.intentos ? "—" : t("results.sinIntentos")}</ITText>
+                    {r.pending > 0 ? (
+                      <ITBadget color="warning" size="sm">{t("results.pending")}</ITBadget>
+                    ) : r.passed === null ? (
+                      <ITText className="text-slate-400">{r.attemptCount ? "—" : t("results.noAttemptsYet")}</ITText>
                     ) : (
-                      <ITBadget color={r.aprobado ? "success" : "danger"} size="sm">{r.aprobado ? t("results.aprobado") : t("results.reprobado")}</ITBadget>
+                      <ITBadget color={r.passed ? "success" : "danger"} size="sm">{r.passed ? t("results.passed") : t("results.failed")}</ITBadget>
                     )}
                   </td>
                   <td className="py-2 text-right">
                     <ITFlex gap={1} justify="end" wrap="wrap">
                       {r.attempts.map((a) => (
                         <ITButton key={a.attemptId} variant="text" color={a.pendingCount > 0 ? "warning" : "primary"} size="sm"
-                          ariaLabel={`${a.pendingCount > 0 ? t("results.revisar") : t("results.ver")} ${a.number} ${r.name}`}
+                          ariaLabel={`${a.pendingCount > 0 ? t("results.reviewAction") : t("results.viewAction")} ${a.number} ${r.name}`}
                           onClick={() => setViewing(a.attemptId)}>
-                          <ITText className="text-[11px] font-bold">#{a.number} {a.pendingCount > 0 ? t("results.revisar") : t("results.ver")}</ITText>
+                          <ITText className="text-[11px] font-bold">#{a.number} {a.pendingCount > 0 ? t("results.reviewAction") : t("results.viewAction")}</ITText>
                         </ITButton>
                       ))}
                     </ITFlex>

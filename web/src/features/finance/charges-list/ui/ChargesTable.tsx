@@ -28,37 +28,37 @@ export default function ChargesTable({ reloadKey, onAction }: Props) {
   }, []);
 
   const columns: Column<Charge>[] = [
-    { key: "studentNumber", label: t("charges.matricula"), type: "string", width: 120, filter: true },
+    { key: "studentNumber", label: t("charges.studentNumber"), type: "string", width: 120, filter: true },
     {
-      key: "studentNombre", label: t("charges.alumno"), type: "string", filter: true, sortable: false,
-      render: (row) => <ITText className="text-[12px] font-bold text-slate-700">{row.studentNombre}</ITText>,
+      key: "studentName", label: t("charges.student"), type: "string", filter: true, sortable: false,
+      render: (row) => <ITText className="text-[12px] font-bold text-slate-700">{row.studentName}</ITText>,
     },
     {
-      key: "conceptNombre", label: t("charges.concepto"), type: "string", width: 220,
+      key: "conceptName", label: t("charges.concept"), type: "string", width: 220,
       render: (row) => (
         <div>
-          <ITText className="block text-[12px] text-slate-700">{row.description ?? row.conceptNombre}</ITText>
-          {row.termNombre && <ITText className="text-[10px] text-slate-400">{row.termNombre}</ITText>}
+          <ITText className="block text-[12px] text-slate-700">{row.description ?? row.conceptName}</ITText>
+          {row.termName && <ITText className="text-[10px] text-slate-400">{row.termName}</ITText>}
         </div>
       ),
     },
     {
-      key: "dueDate", label: t("charges.vencimiento"), type: "string", width: 130, sortable: false,
+      key: "dueDate", label: t("charges.dueDate"), type: "string", width: 130, sortable: false,
       render: (row) => (
-        <span className={`text-[12px] ${row.vencido ? "font-bold" : "text-slate-600"}`} style={row.vencido ? { color: "#dc2626" } : undefined}>
+        <span className={`text-[12px] ${row.overdue ? "font-bold" : "text-slate-600"}`} style={row.overdue ? { color: "#dc2626" } : undefined}>
           {formatDay(row.dueDate, i18n.language)}
         </span>
       ),
     },
     { key: "total", label: t("charges.total"), type: "number", width: 120, render: (row) => <ITText className="text-[12px] text-slate-700">{money(row.total)}</ITText> },
-    { key: "saldo", label: t("charges.saldo"), type: "number", width: 120, render: (row) => <ITText className="text-[12px] font-black text-slate-800">{money(row.saldo)}</ITText> },
+    { key: "balance", label: t("charges.balance"), type: "number", width: 120, render: (row) => <ITText className="text-[12px] font-black text-slate-800">{money(row.balance)}</ITText> },
     {
       key: "status", label: t("charges.status"), type: "catalog", width: 120, filter: "catalog", sortable: false,
       catalogOptions: { data: CHARGE_STATUSES.map((s) => ({ id: s, name: t(`charges.statuses.${s}`) })) },
       render: (row) => (
         <ITFlex gap={1} align="center">
           <ITBadget color={CHARGE_STATUS_COLOR[row.status]} size="sm">{t(`charges.statuses.${row.status}`)}</ITBadget>
-          {row.vencido && <ITBadget color="danger" size="sm">{t("charges.vencido")}</ITBadget>}
+          {row.overdue && <ITBadget color="danger" size="sm">{t("charges.overdue")}</ITBadget>}
         </ITFlex>
       ),
     },
@@ -69,13 +69,13 @@ export default function ChargesTable({ reloadKey, onAction }: Props) {
             <ITFlex gap={1}>
               {canPay && (row.status === "PENDING" || row.status === "PARTIAL") && (
                 <ITButton variant="text" color="success" size="sm" title={t("charges.pay")}
-                  ariaLabel={`${t("charges.pay")} ${row.studentNombre} ${row.description ?? row.conceptNombre}`} onClick={() => onAction("pay", row)}>
+                  ariaLabel={`${t("charges.pay")} ${row.studentName} ${row.description ?? row.conceptName}`} onClick={() => onAction("pay", row)}>
                   <FaCashRegister size={12} />
                 </ITButton>
               )}
               {canCancel && row.status === "PENDING" && (
                 <ITButton variant="text" color="danger" size="sm" title={t("charges.cancel")}
-                  ariaLabel={`${t("charges.cancel")} ${row.studentNombre} ${row.description ?? row.conceptNombre}`} onClick={() => onAction("cancel", row)}>
+                  ariaLabel={`${t("charges.cancel")} ${row.studentName} ${row.description ?? row.conceptName}`} onClick={() => onAction("cancel", row)}>
                   <FaBan size={12} />
                 </ITButton>
               )}

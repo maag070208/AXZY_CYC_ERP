@@ -14,7 +14,7 @@ export const PeriodTypeSchema = z.enum(PERIOD_TYPES);
 export const ProgramCreateDto = z
   .object({
     code: z.string().trim().regex(/^[A-Z0-9-]{2,30}$/, "INVALID_FORMAT"),
-    name: z.string().trim().min(1, "NOMBRE_REQUIRED").max(150),
+    name: z.string().trim().min(1, "NAME_REQUIRED").max(150),
     description: optionalText(500),
     periodType: PeriodTypeSchema,
     periodCount: z.number().int().min(1).max(20),

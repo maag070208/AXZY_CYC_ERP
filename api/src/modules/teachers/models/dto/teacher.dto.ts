@@ -37,7 +37,7 @@ export const TeacherSchema = z
     id: z.string(),
     firstNames: z.string(),
     surnames: z.string(),
-    nombreCompleto: z.string(),
+    fullName: z.string(),
     email: z.string(),
     phone: z.string().nullable(),
     specialty: z.string().nullable(),

@@ -46,17 +46,17 @@ test.describe("CSV y encabezados", () => {
   });
 });
 
-test.describe("alumnos", () => {
+test.describe("students", () => {
   const base = { name: "Ana", paternal_surname: "Pérez", curp: ADULT, birth_date: "1990-01-01" };
 
-  test("una fila válida produce la code natural CURP y normaliza campos", () => {
+  test("una fila válida produce la clave natural CURP y normaliza campos", () => {
     const parsed = parseStudentRow({ ...base, gender: "f", email: "ANA@X.MX" }, TODAY);
     expect(parsed).toMatchObject({ naturalKey: ADULT });
     if ("reason" in parsed) throw new Error("esperaba registro válido");
     expect(parsed.data).toMatchObject({ gender: "F", email: "ana@x.mx", studentNumber: null, guardians: [] });
   });
 
-  test("CURP inválida y date inválida se rechazan con su reason", () => {
+  test("CURP inválida y fecha inválida se rechazan con su motivo", () => {
     expect(parseStudentRow({ ...base, curp: "XAXX010101HDFXXX01" }, TODAY)).toMatchObject({ reason: "INVALID_CURP" });
     expect(parseStudentRow({ ...base, birth_date: "2026-13-01" }, TODAY)).toMatchObject({ reason: "INVALID_DATE" });
   });
@@ -69,7 +69,7 @@ test.describe("alumnos", () => {
     expect(parsed.data.guardians).toHaveLength(1);
   });
 
-  test("detecta duplicados por CURP dentro del file", () => {
+  test("detecta duplicados por CURP dentro del archivo", () => {
     const table = readTable(
       `name,apellido_paterno,curp,fecha_nacimiento\nAna,Pérez,${ADULT},1990-01-01\nOtra,Pérez,${ADULT},1990-01-01`
     );
@@ -81,7 +81,7 @@ test.describe("alumnos", () => {
 });
 
 test.describe("profesores", () => {
-  test("code natural email; correo inválido se rechaza", () => {
+  test("clave natural email; correo inválido se rechaza", () => {
     const parsed = parseTeacherRow({ name: "Luis", surnames: "Ramos", email: "LUIS@ESCUELA.MX" });
     if ("reason" in parsed) throw new Error("esperaba registro válido");
     expect(parsed.naturalKey).toBe("luis@escuela.mx");

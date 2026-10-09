@@ -29,7 +29,7 @@ export default function TeachersTable({ fx, onAction }: Props) {
   const columns: Column<Teacher>[] = [
     {
       key: "name", label: t("table.name"), type: "string", filter: true, sortable: false,
-      render: (row) => <ITText className="text-[12px] font-bold text-slate-700">{row.nombreCompleto}</ITText>,
+      render: (row) => <ITText className="text-[12px] font-bold text-slate-700">{row.fullName}</ITText>,
     },
     { key: "email", label: t("table.email"), type: "string", width: 240, filter: true, sortable: false, truncate: true },
     { key: "specialty", label: t("table.specialty"), type: "string", width: 180, filter: true, sortable: false },

@@ -20,61 +20,61 @@ export interface KardexLabels {
   title: string;
   studentNumber: string;
   status: string;
-  ingreso: string;
-  ciclo: string;
-  curso: string;
-  grupo: string;
+  enrollmentDate: string;
+  termName: string;
+  courseName: string;
+  groupName: string;
   final: string;
-  estatus: string;
-  promedio: string;
+  entryStatus: string;
+  average: string;
   empty: string;
-  faltantes: string;
+  missing: string;
   ninguno: string;
   generated: string;
-  estatusValues: Record<string, string>;
+  statusValues: Record<string, string>;
 }
 
 /** Kardex en PDF (`@react-pdf/renderer`): se arma en el navegador con los datos de la API. */
 export default function KardexDocument({ kardex, labels }: { kardex: Kardex; labels: KardexLabels }) {
   return (
-    <Document title={`Kardex ${kardex.studentNumber}`} author={kardex.escuela}>
+    <Document title={`Kardex ${kardex.studentNumber}`} author={kardex.school}>
       <Page size="LETTER" style={styles.page}>
         <View style={styles.header}>
-          <Text style={styles.school}>{kardex.escuela}</Text>
+          <Text style={styles.school}>{kardex.school}</Text>
           <Text style={styles.title}>{labels.title}</Text>
         </View>
         <View style={styles.row}><Text style={styles.label}>{labels.studentNumber}</Text><Text>{kardex.studentNumber}</Text></View>
         <View style={styles.row}><Text style={styles.label}>Nombre</Text><Text>{kardex.name}</Text></View>
         <View style={styles.row}><Text style={styles.label}>{labels.status}</Text><Text>{kardex.status}</Text></View>
-        <View style={styles.row}><Text style={styles.label}>{labels.ingreso}</Text><Text>{kardex.enrollmentDate}</Text></View>
+        <View style={styles.row}><Text style={styles.label}>{labels.enrollmentDate}</Text><Text>{kardex.enrollmentDate}</Text></View>
         <View style={styles.table}>
           <View style={styles.th}>
-            <Text style={styles.cell}>{labels.ciclo}</Text>
-            <Text style={styles.wide}>{labels.curso}</Text>
-            <Text style={styles.cell}>{labels.grupo}</Text>
+            <Text style={styles.cell}>{labels.termName}</Text>
+            <Text style={styles.wide}>{labels.courseName}</Text>
+            <Text style={styles.cell}>{labels.groupName}</Text>
             <Text style={styles.cell}>{labels.final}</Text>
-            <Text style={styles.cell}>{labels.estatus}</Text>
+            <Text style={styles.cell}>{labels.entryStatus}</Text>
           </View>
           {kardex.entries.length === 0 ? (
             <View style={styles.tr}><Text style={styles.wide}>{labels.empty}</Text></View>
           ) : (
             kardex.entries.map((entry) => (
               <View key={`${entry.termId}-${entry.courseId}`} style={styles.tr}>
-                <Text style={styles.cell}>{entry.termNombre}</Text>
-                <Text style={styles.wide}>{entry.courseNombre}</Text>
-                <Text style={styles.cell}>{entry.grupo}</Text>
-                <Text style={styles.cell}>{entry.calificacionFinal ?? "—"}</Text>
-                <Text style={styles.cell}>{labels.estatusValues[entry.estatus] ?? entry.estatus}</Text>
+                <Text style={styles.cell}>{entry.termName}</Text>
+                <Text style={styles.wide}>{entry.courseName}</Text>
+                <Text style={styles.cell}>{entry.groupName}</Text>
+                <Text style={styles.cell}>{entry.finalGrade ?? "—"}</Text>
+                <Text style={styles.cell}>{labels.statusValues[entry.status] ?? entry.status}</Text>
               </View>
             ))
           )}
         </View>
         <View style={[styles.row, { marginTop: 10 }]}>
-          <Text style={styles.label}>{labels.promedio}</Text><Text>{kardex.promedioGeneral ?? "—"}</Text>
+          <Text style={styles.label}>{labels.average}</Text><Text>{kardex.overallAverage ?? "—"}</Text>
         </View>
         <View style={styles.row}>
-          <Text style={styles.label}>{labels.faltantes}</Text>
-          <Text>{kardex.documentosFaltantes.length ? kardex.documentosFaltantes.join(", ") : labels.ninguno}</Text>
+          <Text style={styles.label}>{labels.missing}</Text>
+          <Text>{kardex.missingDocuments.length ? kardex.missingDocuments.join(", ") : labels.ninguno}</Text>
         </View>
         <Text style={styles.footer} fixed>{labels.generated}</Text>
       </Page>

@@ -52,20 +52,20 @@ export default function CatalogManager({ resource, canManage }: Props) {
   const columns: Column<CatalogItem>[] = [
     {
       key: "name",
-      label: t("catalogs.nombre"),
+      label: t("catalogs.name"),
       type: "string",
       filter: true,
       sortable: false,
       render: (row) => <ITText className="text-[12px] font-bold text-slate-700">{row.name}</ITText>,
     },
     ...(resource === "levels"
-      ? [{ key: "sortOrder", label: t("catalogs.orden"), type: "number" as const, width: 100, sortable: false }]
+      ? [{ key: "sortOrder", label: t("catalogs.sortOrder"), type: "number" as const, width: 100, sortable: false }]
       : []),
     ...(resource === "document-types"
       ? [
           {
             key: "required",
-            label: t("catalogs.obligatorio"),
+            label: t("catalogs.required"),
             type: "boolean" as const,
             width: 130,
             filter: true,

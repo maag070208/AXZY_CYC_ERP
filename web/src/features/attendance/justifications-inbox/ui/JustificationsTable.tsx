@@ -30,7 +30,7 @@ export default function JustificationsTable({ reloadKey, onTotal, onResolved }: 
   // Resolver exige alcance AREA/ALL; el alumno (OWN) solo ve cómo va su trámite.
   const canResolve = justifyScope === "AREA" || justifyScope === "ALL";
   const [resolving, setResolving] = useState<{ row: Justification; status: "APPROVED" | "REJECTED" } | null>(null);
-  const [note, setNota] = useState("");
+  const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
 
   const fetchData = useCallback(async (params: ITDataTableFetchParams) => {
@@ -41,7 +41,7 @@ export default function JustificationsTable({ reloadKey, onTotal, onResolved }: 
 
   const download = async (row: Justification) => {
     try {
-      saveAs(await justificationApi.file(row.id), row.fileName ?? "justificante");
+      saveAs(await justificationApi.file(row.id), row.fileName ?? "justification");
     } catch (err) {
       notify.error(errorMessage(err, t("common:errors.load")));
     }
@@ -64,7 +64,7 @@ export default function JustificationsTable({ reloadKey, onTotal, onResolved }: 
 
   const columns: Column<Justification>[] = [
     {
-      key: "name", label: t("justifications.alumno"), type: "string", filter: true, sortable: false,
+      key: "name", label: t("justifications.student"), type: "string", filter: true, sortable: false,
       render: (r) => (
         <div>
           <ITText className="block text-[12px] font-bold text-slate-700">{r.name}</ITText>
@@ -73,19 +73,19 @@ export default function JustificationsTable({ reloadKey, onTotal, onResolved }: 
       ),
     },
     {
-      key: "curso", label: t("justifications.grupo"), type: "string",
-      render: (r) => <ITText className="text-[12px] text-slate-600">{r.curso} · {r.grupo}</ITText>,
+      key: "courseName", label: t("justifications.groupName"), type: "string",
+      render: (r) => <ITText className="text-[12px] text-slate-600">{r.courseName} · {r.groupName}</ITText>,
     },
     {
-      key: "date", label: t("justifications.fecha"), type: "date", width: 150, sortable: false,
+      key: "date", label: t("justifications.date"), type: "date", width: 150, sortable: false,
       render: (r) => <ITText className="text-[12px] text-slate-600">{formatDay(r.date, i18n.language)}{r.time ? ` · ${r.time}` : ""}</ITText>,
     },
     {
-      key: "reason", label: t("justifications.motivo"), type: "string",
+      key: "reason", label: t("justifications.reason"), type: "string",
       render: (r) => <ITText className="text-[12px] text-slate-600">{r.reason}</ITText>,
     },
     {
-      key: "status", label: t("justifications.estado"), type: "catalog", width: 120, filter: "catalog", sortable: false,
+      key: "status", label: t("justifications.state"), type: "catalog", width: 120, filter: "catalog", sortable: false,
       catalogOptions: { data: (["PENDING", "APPROVED", "REJECTED"] as const).map((s) => ({ id: s, name: t(`justificationStatus.${s}`) })) },
       render: (r) => (
         <ITFlex direction="column" gap={1}>
@@ -105,10 +105,10 @@ export default function JustificationsTable({ reloadKey, onTotal, onResolved }: 
           )}
           {canResolve && r.status === "PENDING" && (
             <>
-              <ITButton variant="text" color="success" size="sm" title={t("justifications.approve")} ariaLabel={`${t("justifications.approve")} ${r.name}`} onClick={() => { setNota(""); setResolving({ row: r, status: "APPROVED" }); }}>
+              <ITButton variant="text" color="success" size="sm" title={t("justifications.approve")} ariaLabel={`${t("justifications.approve")} ${r.name}`} onClick={() => { setNote(""); setResolving({ row: r, status: "APPROVED" }); }}>
                 <FaCheck size={12} />
               </ITButton>
-              <ITButton variant="text" color="danger" size="sm" title={t("justifications.reject")} ariaLabel={`${t("justifications.reject")} ${r.name}`} onClick={() => { setNota(""); setResolving({ row: r, status: "REJECTED" }); }}>
+              <ITButton variant="text" color="danger" size="sm" title={t("justifications.reject")} ariaLabel={`${t("justifications.reject")} ${r.name}`} onClick={() => { setNote(""); setResolving({ row: r, status: "REJECTED" }); }}>
                 <FaTimes size={11} />
               </ITButton>
             </>
@@ -137,7 +137,7 @@ export default function JustificationsTable({ reloadKey, onTotal, onResolved }: 
           <ITFlex direction="column" gap={4}>
             <ITText className="text-[12px] text-slate-600">{resolving?.row.reason}</ITText>
             {resolving?.status === "REJECTED" && <ITText className="text-[12px] text-slate-500">{t("justifications.rejectHint")}</ITText>}
-            <ITTextarea name="note" label={t("justifications.nota")} value={note} onChange={setNota} rows={3} maxLength={500} />
+            <ITTextarea name="note" label={t("justifications.note")} value={note} onChange={setNote} rows={3} maxLength={500} />
             <ITFlex justify="end" gap={2}>
               <ITButton variant="outlined" color="secondary" onClick={() => setResolving(null)}>{t("common:actions.cancel")}</ITButton>
               <ITButton variant="filled" color={resolving?.status === "APPROVED" ? "success" : "danger"} disabled={busy} onClick={() => void confirm()}>

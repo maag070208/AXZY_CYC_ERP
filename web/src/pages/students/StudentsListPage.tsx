@@ -60,8 +60,8 @@ export default function StudentsListPage() {
     >
       <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <KpiTile label={t("kpi.total")} value={fx.summary?.total ?? "—"} icon={<FaUsers size={16} />} tone="sky" />
-        <KpiTile label={t("kpi.activos")} value={fx.summary?.activos ?? "—"} icon={<FaUserGraduate size={16} />} tone="emerald" />
-        <KpiTile label={t("kpi.bajas")} value={fx.summary?.bajas ?? "—"} icon={<FaUserSlash size={16} />} tone="rose" />
+        <KpiTile label={t("kpi.active")} value={fx.summary?.active ?? "—"} icon={<FaUserGraduate size={16} />} tone="emerald" />
+        <KpiTile label={t("kpi.withdrawn")} value={fx.summary?.withdrawn ?? "—"} icon={<FaUserSlash size={16} />} tone="rose" />
       </div>
       <StudentsTable fx={fx} onOpen={(student) => navigate(`/students/${student.id}`)} />
     </ITPage>

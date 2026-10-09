@@ -47,10 +47,10 @@ export default function StudentSearch({ label, hint, emptyText, actionLabel, onS
           {results.map((s) => (
             <li key={s.id} className="flex items-center justify-between gap-3 px-3 py-2">
               <div>
-                <ITText className="block text-[12px] font-bold text-slate-700">{s.nombreCompleto}</ITText>
+                <ITText className="block text-[12px] font-bold text-slate-700">{s.fullName}</ITText>
                 <ITText className="font-mono text-[11px] text-slate-400">{s.studentNumber}</ITText>
               </div>
-              <ITButton variant="outlined" color="primary" size="sm" ariaLabel={`${actionLabel} ${s.nombreCompleto}`} onClick={() => onSelect(s)}>
+              <ITButton variant="outlined" color="primary" size="sm" ariaLabel={`${actionLabel} ${s.fullName}`} onClick={() => onSelect(s)}>
                 {actionLabel}
               </ITButton>
             </li>

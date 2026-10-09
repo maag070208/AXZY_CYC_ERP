@@ -47,12 +47,12 @@ export default function EnrollmentsTable({ filter, reloadKey, onAction, canChang
   const columns: Column<Enrollment>[] = [
     ...(byGroup
       ? [
-          { key: "studentNumber", label: t("enrollments.matricula"), type: "string" as const, width: 130, filter: true, sortable: false },
+          { key: "studentNumber", label: t("enrollments.studentNumber"), type: "string" as const, width: 130, filter: true, sortable: false },
           {
-            key: "name", label: t("enrollments.alumno"), type: "string" as const, filter: true, sortable: false,
+            key: "name", label: t("enrollments.student"), type: "string" as const, filter: true, sortable: false,
             render: (row: Enrollment) => (
               <ITFlex align="center" gap={2}>
-                <ITText className="text-[12px] font-bold text-slate-700">{row.studentNombre}</ITText>
+                <ITText className="text-[12px] font-bold text-slate-700">{row.studentName}</ITText>
                 {row.studentStatus === "WITHDRAWN" && <ITBadget color="danger" size="sm">{t("enrollments.inactiveStudent")}</ITBadget>}
               </ITFlex>
             ),
@@ -60,14 +60,14 @@ export default function EnrollmentsTable({ filter, reloadKey, onAction, canChang
         ]
       : [
           {
-            key: "courseNombre", label: t("enrollments.curso"), type: "string" as const,
-            render: (row: Enrollment) => <ITText className="text-[12px] font-bold text-slate-700">{row.courseNombre}</ITText>,
+            key: "courseName", label: t("enrollments.courseName"), type: "string" as const,
+            render: (row: Enrollment) => <ITText className="text-[12px] font-bold text-slate-700">{row.courseName}</ITText>,
           },
-          { key: "groupNombre", label: t("enrollments.grupo"), type: "string" as const, width: 100 },
-          { key: "termNombre", label: t("enrollments.ciclo"), type: "string" as const, width: 140 },
+          { key: "groupName", label: t("enrollments.groupName"), type: "string" as const, width: 100 },
+          { key: "termName", label: t("enrollments.termName"), type: "string" as const, width: 140 },
         ]),
     {
-      key: "date", label: t("enrollments.fecha"), type: "string", width: 130, sortable: false,
+      key: "date", label: t("enrollments.date"), type: "string", width: 130, sortable: false,
       render: (row) => <ITText className="text-[12px] text-slate-600">{formatDay(row.date, i18n.language)}</ITText>,
     },
     {
@@ -93,13 +93,13 @@ export default function EnrollmentsTable({ filter, reloadKey, onAction, canChang
               <ITFlex gap={1}>
                 {canChange && (
                   <ITButton variant="text" color="primary" size="sm" title={t("enrollments.changeGroup")}
-                    ariaLabel={`${t("enrollments.changeGroup")} ${row.studentNombre}`} onClick={() => onAction("change", row)}>
+                    ariaLabel={`${t("enrollments.changeGroup")} ${row.studentName}`} onClick={() => onAction("change", row)}>
                     <FaExchangeAlt size={12} />
                   </ITButton>
                 )}
                 {canDrop && (
                   <ITButton variant="text" color="danger" size="sm" title={t("enrollments.drop")}
-                    ariaLabel={`${t("enrollments.drop")} ${row.studentNombre}`} onClick={() => onAction("drop", row)}>
+                    ariaLabel={`${t("enrollments.drop")} ${row.studentName}`} onClick={() => onAction("drop", row)}>
                     <FaUserMinus size={12} />
                   </ITButton>
                 )}

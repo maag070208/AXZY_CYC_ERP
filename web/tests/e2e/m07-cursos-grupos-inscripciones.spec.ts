@@ -18,24 +18,24 @@ const TERM = `E2E Ciclo Web ${RUN}`;
 let admin: APIRequestContext;
 let control: APIRequestContext;
 let termId: string;
-const students: Array<{ id: string; nombre: string }> = [];
+const students: Array<{ id: string; name: string }> = [];
 let groupUrl = "";
 
 const student = async (label: string) => {
   const birth = "2001-03-10";
-  const nombres = `E2E ${label} ${RUN}`;
+  const firstNames = `E2E ${label} ${RUN}`;
   const res = await control.post("students", {
-    data: { nombres, apellidoPaterno: "Inscrito", curp: makeCurp(birth), fechaNacimiento: birth },
+    data: { firstNames, paternalSurname: "Inscrito", curp: makeCurp(birth), birthDate: birth },
   });
   expect(res.status(), await res.text()).toBe(201);
   const body = await res.json();
-  return { id: body.id as string, nombre: body.nombreCompleto as string };
+  return { id: body.id as string, name: body.fullName as string };
 };
 
 test.beforeAll(async () => {
   admin = await apiAs(E2E.admin.username);
   control = await apiAs(E2E.control.username);
-  const term = await admin.post("terms", { data: { nombre: TERM, fechaInicio: "2026-08-01", fechaFin: "2026-12-15" } });
+  const term = await admin.post("terms", { data: { name: TERM, startDate: "2026-08-01", endDate: "2026-12-15" } });
   expect(term.status()).toBe(201);
   termId = (await term.json()).id;
   students.push(await student("Uno"), await student("Dos"), await student("Tres"));
@@ -63,8 +63,8 @@ test.describe.serial("cursos y grupos", () => {
     await page.goto(route("/courses"));
     await page.getByRole("button", { name: "Nuevo curso" }).click();
     const dialog = page.getByRole("dialog");
-    await dialog.locator('input[name="clave"]').fill(CLAVE.toLowerCase());
-    await dialog.locator('input[name="nombre"]').fill(COURSE);
+    await dialog.locator('input[name="code"]').fill(CLAVE.toLowerCase());
+    await dialog.locator('input[name="name"]').fill(COURSE);
     await dialog.getByRole("button", { name: "Guardar" }).click();
     await expect(page.getByText("Curso creado")).toBeVisible();
     await page.getByPlaceholder("Buscar...").nth(1).fill(CLAVE);
@@ -78,21 +78,21 @@ test.describe.serial("cursos y grupos", () => {
     const dialog = page.getByRole("dialog");
     await dialog.locator('select[name="courseId"]').selectOption({ label: `${CLAVE} · ${COURSE}` });
     await dialog.locator('select[name="termId"]').selectOption({ label: TERM });
-    await dialog.locator('input[name="nombre"]').fill("A");
-    await dialog.locator('input[name="cupo"]').fill("2");
+    await dialog.locator('input[name="name"]').fill("A");
+    await dialog.locator('input[name="capacity"]').fill("2");
     await dialog.locator('select[name="teacherId"]').selectOption({ label: "E2E Profesor" });
-    await dialog.locator('select[name="dia-0"]').selectOption("MARTES");
+    await dialog.locator('select[name="day-0"]').selectOption("TUESDAY");
     await dialog.locator('select[name="inicio-0"]').selectOption("07:00");
     await dialog.locator('select[name="fin-0"]').selectOption("09:00");
     // Segundo bloque que se empalma con el primero.
     await dialog.getByRole("button", { name: "Agregar horario" }).click();
-    await dialog.locator('select[name="dia-1"]').selectOption("MARTES");
+    await dialog.locator('select[name="day-1"]').selectOption("TUESDAY");
     await dialog.locator('select[name="inicio-1"]').selectOption("08:00");
     await dialog.locator('select[name="fin-1"]').selectOption("10:00");
     await dialog.getByRole("button", { name: "Guardar" }).click();
     await expect(dialog.getByText("Los horarios se empalman entre sí")).toBeVisible();
 
-    await dialog.locator('select[name="dia-1"]').selectOption("JUEVES");
+    await dialog.locator('select[name="day-1"]').selectOption("THURSDAY");
     await dialog.getByRole("button", { name: "Guardar" }).click();
     await expect(page.getByText("Grupo creado")).toBeVisible();
     await expect(page).toHaveURL(/#\/groups\/[0-9a-f-]{36}$/);
@@ -105,10 +105,10 @@ test.describe.serial("cursos y grupos", () => {
   test("inscribe buscando al alumno; con el cupo lleno ya no se puede inscribir", async ({ page }) => {
     await signIn(page, E2E.control.username);
     await page.goto(route(groupUrl));
-    await enrollByName(page, students[0].nombre);
-    await enrollByName(page, students[1].nombre);
+    await enrollByName(page, students[0].name);
+    await enrollByName(page, students[1].name);
     await expect(roster(page)).toHaveCount(2);
-    await expect(rowOf(page, students[0].nombre)).toContainText("Inscrito");
+    await expect(rowOf(page, students[0].name)).toContainText("Inscrito");
     await expect(page.getByRole("button", { name: "Inscribir alumno" })).toBeDisabled();
     await expect(page.getByText("Lleno")).toBeVisible();
   });
@@ -117,25 +117,25 @@ test.describe.serial("cursos y grupos", () => {
     const groupId = groupUrl.split("/").pop() as string;
     const original = await (await control.get(`groups/${groupId}`)).json();
     const b = await control.post("groups", {
-      data: { courseId: original.courseId, termId, nombre: "B", cupo: 10, horario: [{ dia: "VIERNES", horaInicio: "07:00", horaFin: "08:00" }] },
+      data: { courseId: original.courseId, termId, name: "B", capacity: 10, schedule: [{ day: "FRIDAY", startTime: "07:00", endTime: "08:00" }] },
     });
     expect(b.status()).toBe(201);
 
     await signIn(page, E2E.control.username);
     await page.goto(route(groupUrl));
-    await page.getByRole("button", { name: `Cambiar de grupo ${students[0].nombre}` }).click();
+    await page.getByRole("button", { name: `Cambiar de grupo ${students[0].name}` }).click();
     const dialog = page.getByRole("dialog");
     await dialog.locator('select[name="toGroupId"]').selectOption({ index: 1 });
     await dialog.getByRole("button", { name: "Cambiar de grupo" }).click();
     await expect(page.getByText("Cambio de grupo realizado")).toBeVisible();
-    await expect(rowOf(page, students[0].nombre)).toContainText("Baja");
+    await expect(rowOf(page, students[0].name)).toContainText("Baja");
 
-    await page.getByRole("button", { name: `Dar de baja ${students[1].nombre}` }).click();
+    await page.getByRole("button", { name: `Dar de baja ${students[1].name}` }).click();
     const drop = page.getByRole("dialog");
-    await drop.locator('textarea[name="motivo"]').fill("Cambio de horario laboral");
+    await drop.locator('textarea[name="reason"]').fill("Cambio de horario laboral");
     await drop.getByRole("button", { name: "Dar de baja" }).click();
     await expect(page.getByText("Inscripción dada de baja")).toBeVisible();
-    await expect(rowOf(page, students[1].nombre)).toContainText("Baja");
+    await expect(rowOf(page, students[1].name)).toContainText("Baja");
     // Liberó lugares: se vuelve a poder inscribir.
     await expect(page.getByRole("button", { name: "Inscribir alumno" })).toBeEnabled();
   });

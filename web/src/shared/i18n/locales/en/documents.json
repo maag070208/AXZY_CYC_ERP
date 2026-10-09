@@ -11,7 +11,7 @@
   "upload": {
     "title": "Upload document",
     "type": "Document type",
-    "notas": "Notes (optional)",
+    "notes": "Notes (optional)",
     "submit": "Upload",
     "hint": "PDF, JPG or PNG up to 5 MB.",
     "done": "Document uploaded",
@@ -21,13 +21,13 @@
     "badType": "PDF, JPG or PNG only"
   },
   "table": {
-    "tipo": "Type",
-    "archivo": "File",
+    "type": "Type",
+    "file": "File",
     "status": "Status",
     "size": "Size",
-    "subio": "Uploaded by",
-    "reviso": "Reviewed by",
-    "fecha": "Date",
+    "uploadedBy": "Uploaded by",
+    "reviewedBy": "Reviewed by",
+    "date": "Date",
     "empty": "No documents."
   },
   "status": {
@@ -44,7 +44,7 @@
   "review": {
     "validateTitle": "Validate “{{name}}”",
     "rejectTitle": "Reject “{{name}}”",
-    "notas": "Notes",
+    "notes": "Notes",
     "rejectHint": "Explain what must be fixed; the document can be replaced.",
     "validated": "Document validated",
     "rejected": "Document rejected"
@@ -57,19 +57,19 @@
   "kardex": {
     "title": "Transcript",
     "generated": "Generated {{date}}",
-    "promedio": "Overall average",
-    "creditos": "Courses passed",
-    "minimo": "Passing grade",
+    "average": "Overall average",
+    "credits": "Courses passed",
+    "minimum": "Passing grade",
     "empty": "No courses or grades yet (fed by enrollments and grades, F3).",
-    "ciclo": "Term",
-    "curso": "Course",
-    "grupo": "Group",
+    "termName": "Term",
+    "courseName": "Course",
+    "groupName": "Group",
     "final": "Final",
-    "estatus": "Status",
+    "status": "Status",
     "pdf": "Export PDF",
-    "faltantes": "Missing documents",
-    "ninguno": "None",
-    "estatusValues": {
+    "missing": "Missing documents",
+    "noneOption": "None",
+    "statusValues": {
       "PASSED": "Passed",
       "FAILED": "Failed",
       "IN_PROGRESS": "In progress",

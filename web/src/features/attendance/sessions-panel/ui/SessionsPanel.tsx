@@ -55,7 +55,7 @@ export default function SessionsPanel({ groupId, readOnly, reloadKey, onChanged 
 
   const columns: Column<AttendanceSession>[] = [
     {
-      key: "date", label: t("sessions.fecha"), type: "string", width: 170,
+      key: "date", label: t("sessions.date"), type: "string", width: 170,
       render: (s) => (
         <div>
           <ITText className="block text-[12px] font-bold text-slate-700">{formatDay(s.date, i18n.language)}</ITText>
@@ -63,14 +63,14 @@ export default function SessionsPanel({ groupId, readOnly, reloadKey, onChanged 
         </div>
       ),
     },
-    { key: "topic", label: t("sessions.tema"), type: "string", render: (s) => <ITText className="text-[12px] text-slate-600">{s.topic ?? "—"}</ITText> },
+    { key: "topic", label: t("sessions.topic"), type: "string", render: (s) => <ITText className="text-[12px] text-slate-600">{s.topic ?? "—"}</ITText> },
     {
-      key: "registrados", label: t("sessions.registrados"), type: "number", width: 130,
-      render: (s) => <ITText className="text-[12px] text-slate-600">{s.registrados} · {t("sessions.faltasCount", { count: s.faltas })}</ITText>,
+      key: "recordedCount", label: t("sessions.recordedCount"), type: "number", width: 130,
+      render: (s) => <ITText className="text-[12px] text-slate-600">{s.recordedCount} · {t("sessions.absenceCount", { count: s.absences })}</ITText>,
     },
     {
-      key: "status", label: t("sessions.estado"), type: "string", width: 120,
-      render: (s) => (s.annulled ? <ITBadget color="danger" size="sm">{t("sessions.anulada")}</ITBadget> : <ITBadget color="success" size="sm">{t("sessions.vigente")}</ITBadget>),
+      key: "status", label: t("sessions.state"), type: "string", width: 120,
+      render: (s) => (s.annulled ? <ITBadget color="danger" size="sm">{t("sessions.statusAnnulled")}</ITBadget> : <ITBadget color="success" size="sm">{t("sessions.current")}</ITBadget>),
     },
     {
       key: "actions", label: t("common:labels.actions"), type: "actions", width: 170,
@@ -138,10 +138,10 @@ export default function SessionsPanel({ groupId, readOnly, reloadKey, onChanged 
         isOpen={!!annulling}
         title={t("sessions.annulTitle")}
         message={t("sessions.annulHint")}
-        label={t("sessions.annulMotivo")}
+        label={t("sessions.annulReason")}
         confirmLabel={t("sessions.annul")}
         cancelLabel={t("common:actions.cancel")}
-        requiredMessage={t("common:validation.minLength", { label: t("sessions.annulMotivo"), min: 3 })}
+        requiredMessage={t("common:validation.minLength", { label: t("sessions.annulReason"), min: 3 })}
         onClose={() => setAnnulling(null)}
         onConfirm={async (reason) => {
           const session = annulling;

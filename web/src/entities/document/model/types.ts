@@ -26,14 +26,14 @@ export interface StudentDocuments {
 
 export interface KardexEntry {
   termId: string;
-  termNombre: string;
+  termName: string;
   courseId: string;
-  courseNombre: string;
-  grupo: string;
-  calificaciones: number[];
-  ponderaciones: number[];
-  calificacionFinal: number | null;
-  estatus: "PASSED" | "FAILED" | "IN_PROGRESS" | "WITHDRAWN";
+  courseName: string;
+  groupName: string;
+  grades: number[];
+  weights: number[];
+  finalGrade: number | null;
+  status: "PASSED" | "FAILED" | "IN_PROGRESS" | "WITHDRAWN";
 }
 
 export interface Kardex {
@@ -43,12 +43,12 @@ export interface Kardex {
   status: "ACTIVE" | "WITHDRAWN";
   enrollmentDate: string;
   entries: KardexEntry[];
-  promedioGeneral: number | null;
-  creditosAcreditados: number;
-  documentosFaltantes: string[];
+  overallAverage: number | null;
+  passedCredits: number;
+  missingDocuments: string[];
   minPassingGrade: number;
-  escuela: string;
-  generadoEn: string;
+  school: string;
+  generatedAt: string;
 }
 
 /** Límite de la API (también se valida en el cliente para avisar antes). */

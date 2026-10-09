@@ -63,7 +63,7 @@ test("ADMIN da de alta, edita y desactiva un motivo de baja", async ({ page }) =
   let dialog = page.getByRole("dialog");
   await dialog.getByRole("button", { name: "Guardar" }).click();
   await expect(dialog.getByText("El nombre es obligatorio")).toBeVisible();
-  await dialog.locator('input[name="nombre"]').fill(REASON);
+  await dialog.locator('input[name="name"]').fill(REASON);
   await dialog.getByRole("button", { name: "Guardar" }).click();
   await expect(page.getByText("Registro creado")).toBeVisible();
 
@@ -72,7 +72,7 @@ test("ADMIN da de alta, edita y desactiva un motivo de baja", async ({ page }) =
 
   await page.getByRole("button", { name: `Editar ${REASON}` }).click();
   dialog = page.getByRole("dialog");
-  await dialog.locator('input[name="nombre"]').fill(`${REASON} editado`);
+  await dialog.locator('input[name="name"]').fill(`${REASON} editado`);
   await dialog.getByRole("button", { name: "Guardar" }).click();
   await expect(page.getByText("Registro guardado")).toBeVisible();
   await expect(row(page, `${REASON} editado`)).toBeVisible();
@@ -83,8 +83,8 @@ test("ADMIN da de alta, edita y desactiva un motivo de baja", async ({ page }) =
   await expect(row(page, `${REASON} editado`)).toContainText("inactivo");
 
   // Desactivado: ya no se ofrece en los selects.
-  const options: Array<{ nombre: string }> = await (await admin.get("cancellation-reasons")).json();
-  expect(options.some((o) => o.nombre.startsWith(REASON))).toBe(false);
+  const options: Array<{ name: string }> = await (await admin.get("cancellation-reasons")).json();
+  expect(options.some((o) => o.name.startsWith(REASON))).toBe(false);
 });
 
 test("un nombre duplicado muestra el error de la API", async ({ page }) => {
@@ -93,7 +93,7 @@ test("un nombre duplicado muestra el error de la API", async ({ page }) => {
   await page.getByRole("button", { name: "Tipos de documento", exact: true }).click();
   await page.getByRole("button", { name: "Nuevo", exact: true }).click();
   const dialog = page.getByRole("dialog");
-  await dialog.locator('input[name="nombre"]').fill("CURP");
+  await dialog.locator('input[name="name"]').fill("CURP");
   await dialog.getByRole("button", { name: "Guardar" }).click();
   await expect(dialog.getByText(/duplicado/i)).toBeVisible();
 });

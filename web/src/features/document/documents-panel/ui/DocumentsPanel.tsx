@@ -32,7 +32,7 @@ export default function DocumentsPanel({ studentId, readOnly }: Props) {
   const canValidate = useCan("documents.validate") && !readOnly;
   const canDelete = useCan("documents.delete") && !readOnly;
   const [reviewing, setReviewing] = useState<{ doc: StudentDocument; status: "VALIDATED" | "REJECTED" } | null>(null);
-  const [notes, setNotas] = useState("");
+  const [notes, setNotes] = useState("");
   const [deleting, setDeleting] = useState<StudentDocument | null>(null);
 
   const act = async (call: () => Promise<void>, message: string) => {
@@ -52,7 +52,7 @@ export default function DocumentsPanel({ studentId, readOnly }: Props) {
 
   const columns: Column<StudentDocument>[] = [
     {
-      key: "documentType", label: t("table.tipo"), type: "string", width: 200,
+      key: "documentType", label: t("table.type"), type: "string", width: 200,
       render: (d) => (
         <ITFlex gap={1} align="center">
           <ITText className="text-[12px] font-bold text-slate-700">{d.documentType}</ITText>
@@ -61,7 +61,7 @@ export default function DocumentsPanel({ studentId, readOnly }: Props) {
       ),
     },
     {
-      key: "originalName", label: t("table.archivo"), type: "string",
+      key: "originalName", label: t("table.file"), type: "string",
       render: (d) => (
         <ITFlex gap={1} align="center"><FaFileAlt size={11} className="text-slate-400" />
           <ITText className="text-[12px] text-slate-600">{d.originalName}</ITText>
@@ -79,7 +79,7 @@ export default function DocumentsPanel({ studentId, readOnly }: Props) {
     },
     { key: "size", label: t("table.size"), type: "string", width: 90, render: (d) => kb(d.size) },
     {
-      key: "createdAt", label: t("table.fecha"), type: "string", width: 170,
+      key: "createdAt", label: t("table.date"), type: "string", width: 170,
       render: (d) => (
         <ITFlex direction="column">
           <ITText className="text-[11px] text-slate-600">{new Date(d.createdAt).toLocaleDateString(i18n.language)}</ITText>
@@ -92,8 +92,8 @@ export default function DocumentsPanel({ studentId, readOnly }: Props) {
       actions: (d) => (
         <ITFlex gap={1}>
           {button(t("actions.download"), d, <FaDownload size={12} />, () => void act(() => fx.download(d), t("actions.download")))}
-          {canValidate && d.status === "PENDING" && button(t("actions.validate"), d, <FaCheck size={12} />, () => { setNotas(""); setReviewing({ doc: d, status: "VALIDATED" }); }, "success")}
-          {canValidate && d.status === "PENDING" && button(t("actions.reject"), d, <FaTimes size={12} />, () => { setNotas(""); setReviewing({ doc: d, status: "REJECTED" }); }, "danger")}
+          {canValidate && d.status === "PENDING" && button(t("actions.validate"), d, <FaCheck size={12} />, () => { setNotes(""); setReviewing({ doc: d, status: "VALIDATED" }); }, "success")}
+          {canValidate && d.status === "PENDING" && button(t("actions.reject"), d, <FaTimes size={12} />, () => { setNotes(""); setReviewing({ doc: d, status: "REJECTED" }); }, "danger")}
           {canDelete && button(t("actions.delete"), d, <FaTrash size={11} />, () => setDeleting(d), "danger")}
         </ITFlex>
       ),
@@ -137,7 +137,7 @@ export default function DocumentsPanel({ studentId, readOnly }: Props) {
         <div role="dialog" aria-label={reviewTitle}>
           <ITFlex direction="column" gap={3}>
             {reviewing?.status === "REJECTED" && <ITText className="text-[12px] text-slate-600">{t("review.rejectHint")}</ITText>}
-            <ITTextarea name="reviewNotas" label={t("review.notas")} value={notes} onChange={setNotas} rows={3} maxLength={1000} />
+            <ITTextarea name="reviewNotas" label={t("review.notes")} value={notes} onChange={setNotes} rows={3} maxLength={1000} />
             <ITFlex justify="end" gap={2}>
               <ITButton variant="outlined" color="secondary" onClick={() => setReviewing(null)}>{t("common:actions.cancel")}</ITButton>
               <ITButton variant="filled" color={reviewing?.status === "VALIDATED" ? "success" : "danger"}

@@ -16,7 +16,7 @@ const include = {
   student: { select: { id: true, studentNumber: true, firstNames: true, paternalSurname: true, maternalSurname: true } },
   program: { select: { id: true, code: true, name: true } },
   term: { select: { id: true, name: true } },
-  charges: { orderBy: { planChargeIndex: "asc" } },
+  charges: { orderBy: { planChargeIndex: "asc" }, include: { concept: { select: { type: true } } } },
 } satisfies Prisma.StudentPlanInclude;
 type PlanRow = Prisma.StudentPlanGetPayload<{ include: typeof include }>;
 
@@ -43,8 +43,8 @@ const toPlanView = (row: PlanRow): PlanView => {
     status: row.status,
     totals: {
       charges: row.charges.length,
-      enrollmentCharges: row.charges.filter((c) => c.description?.startsWith("Reinscripción")).length,
-      monthlyCharges: row.charges.filter((c) => c.description?.startsWith("Colegiatura")).length,
+      enrollmentCharges: row.charges.filter((c) => c.concept.type === "ENROLLMENT").length,
+      monthlyCharges: row.charges.filter((c) => c.concept.type === "TUITION").length,
       amount: Math.round(amounts.reduce((sum, a) => sum + a, 0) * 100) / 100,
     },
     firstDueDate: dates[0] ?? null,

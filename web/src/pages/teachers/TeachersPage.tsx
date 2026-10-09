@@ -43,7 +43,7 @@ export default function TeachersPage() {
     } else setReactivating(teacher);
   };
 
-  const deactivateTitle = t("deactivate.title", { name: deactivating?.nombreCompleto ?? "" });
+  const deactivateTitle = t("deactivate.title", { name: deactivating?.fullName ?? "" });
 
   return (
     <ITPage
@@ -80,7 +80,7 @@ export default function TeachersPage() {
         isOpen={!!resending}
         onClose={() => setResending(null)}
         onConfirm={() => resending && void run(() => teacherApi.resendInvitation(resending.id), t("resend.done"), () => setResending(null))}
-        title={t("resend.title", { name: resending?.nombreCompleto ?? "" })}
+        title={t("resend.title", { name: resending?.fullName ?? "" })}
         message={t("resend.message")}
         confirmLabel={t("resend.confirm")}
         cancelLabel={t("common:actions.cancel")}
@@ -89,7 +89,7 @@ export default function TeachersPage() {
         isOpen={!!reactivating}
         onClose={() => setReactivating(null)}
         onConfirm={() => reactivating && void run(() => teacherApi.reactivate(reactivating.id), t("reactivate.done"), () => setReactivating(null))}
-        title={t("reactivate.title", { name: reactivating?.nombreCompleto ?? "" })}
+        title={t("reactivate.title", { name: reactivating?.fullName ?? "" })}
         message={t("reactivate.message")}
         confirmLabel={t("actions.reactivate")}
         cancelLabel={t("common:actions.cancel")}

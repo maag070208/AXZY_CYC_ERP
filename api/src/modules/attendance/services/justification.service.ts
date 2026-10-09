@@ -22,6 +22,7 @@ import {
 } from "../models/entity/attendance-rules";
 import type { JustificationFields, JustificationView, ResolveInput } from "../models/dto/attendance.dto";
 import type { AttendanceService } from "./attendance.service";
+import { t } from "@core/i18n";
 
 export interface UploadedFile {
   buffer: Buffer;
@@ -56,8 +57,8 @@ const toView = (row: JustificationRow): JustificationView => {
     date: fromDbDay(session.date),
     time: session.time,
     groupId: session.groupId,
-    grupo: session.group.name,
-    curso: session.group.course.name,
+    groupName: session.group.name,
+    courseName: session.group.course.name,
     studentId: s.id,
     studentNumber: s.studentNumber,
     name: [s.firstNames, s.paternalSurname, s.maternalSurname].filter(Boolean).join(" "),
@@ -222,16 +223,16 @@ export class JustificationService {
         if (contacts) {
           await this.notifier(
             {
-              code: "JUSTIFICANTE_RESUELTO",
+              code: "JUSTIFICATION_RESOLVED",
               recipients: contacts.recipients,
               payload: {
                 name: contacts.name,
                 date: formatDay(fromDbDay(row.attendance.session.date)),
-                curso: row.attendance.session.group.course.name,
-                resultado: input.status === "APPROVED" ? "aprobado" : "rechazado",
+                courseName: row.attendance.session.group.course.name,
+                result: t(input.status === "APPROVED" ? "justifications.approved" : "justifications.rejected"),
                 note: input.note ?? "",
               },
-              idempotencyKey: `JUSTIFICANTE_RESUELTO:${id}:${updated.resolvedAt?.getTime()}`,
+              idempotencyKey: `JUSTIFICATION_RESOLVED:${id}:${updated.resolvedAt?.getTime()}`,
             },
             tx
           );

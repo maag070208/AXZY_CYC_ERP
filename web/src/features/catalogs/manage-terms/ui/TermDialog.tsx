@@ -28,7 +28,7 @@ export default function TermDialog({ isOpen, term, onClose, onSaved }: Props) {
   }, [term, isOpen]);
 
   const save = async () => {
-    if (!name.trim()) return setError(t("catalogs.nombreRequired"));
+    if (!name.trim()) return setError(t("catalogs.nameRequired"));
     if (!start || !end) return setError(t("terms.datesRequired"));
     if (start > end) return setError(t("terms.datesInvalid"));
     setSaving(true);
@@ -66,7 +66,7 @@ export default function TermDialog({ isOpen, term, onClose, onSaved }: Props) {
           {error && <ITAlert variant="error">{error}</ITAlert>}
           <ITInput
             name="name"
-            label={t("terms.nombre")}
+            label={t("terms.name")}
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
@@ -75,7 +75,7 @@ export default function TermDialog({ isOpen, term, onClose, onSaved }: Props) {
             <ITGrid item xs={12} md={6}>
               <ITDatePicker
                 name="startDate"
-                label={t("terms.fechaInicio")}
+                label={t("terms.startDate")}
                 value={start}
                 onChange={(e) => setStart(pickDate(e.target.value))}
                 required
@@ -84,7 +84,7 @@ export default function TermDialog({ isOpen, term, onClose, onSaved }: Props) {
             <ITGrid item xs={12} md={6}>
               <ITDatePicker
                 name="endDate"
-                label={t("terms.fechaFin")}
+                label={t("terms.endDate")}
                 value={end}
                 minDate={start}
                 onChange={(e) => setEnd(pickDate(e.target.value))}

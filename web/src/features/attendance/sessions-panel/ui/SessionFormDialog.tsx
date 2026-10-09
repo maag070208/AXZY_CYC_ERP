@@ -20,26 +20,26 @@ const pickDay = (value: unknown): string => (value instanceof Date && !Number.is
 /** Alta de una sesión de asistencia (M18 §4.1). No se permiten fechas futuras. */
 export default function SessionFormDialog({ isOpen, groupId, onClose, onSaved }: Props) {
   const { t } = useTranslation(["attendance", "common"]);
-  const [date, setFecha] = useState("");
-  const [time, setHora] = useState("");
-  const [topic, setTema] = useState("");
+  const [date, setDate] = useState("");
+  const [time, setTime] = useState("");
+  const [topic, setTopic] = useState("");
   const [errors, setErrors] = useState<Errors>({});
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!isOpen) return;
-    setFecha(toDay(new Date()));
-    setHora("");
-    setTema("");
+    setDate(toDay(new Date()));
+    setTime("");
+    setTopic("");
     setErrors({});
     setError(null);
   }, [isOpen]);
 
   const save = async () => {
     const next: Errors = {
-      date: validateRequired(date, t("form.fecha")) ?? undefined,
-      topic: topic.trim().length > 200 ? t("common:validation.minLength", { label: t("form.tema"), min: 0 }) : undefined,
+      date: validateRequired(date, t("form.date")) ?? undefined,
+      topic: topic.trim().length > 200 ? t("common:validation.minLength", { label: t("form.topic"), min: 0 }) : undefined,
     };
     setErrors(next);
     if (Object.values(next).some(Boolean)) return;
@@ -67,15 +67,15 @@ export default function SessionFormDialog({ isOpen, groupId, onClose, onSaved }:
           {error && <ITAlert variant="error">{error}</ITAlert>}
           <ITGrid container columns={12} spacing={4}>
             <ITGrid item xs={12} md={7}>
-              <ITDatePicker name="date" label={t("form.fecha")} required error={errors.date} maxDate={new Date()}
+              <ITDatePicker name="date" label={t("form.date")} required error={errors.date} maxDate={new Date()}
                 value={date ? fromDay(date) : undefined}
-                onChange={(e) => setFecha(pickDay(e.target.value))} />
+                onChange={(e) => setDate(pickDay(e.target.value))} />
             </ITGrid>
             <ITGrid item xs={12} md={5}>
-              <ITTimePicker name="time" label={t("form.hora")} value={time} onChange={(e) => setHora(e.target.value)} />
+              <ITTimePicker name="time" label={t("form.time")} value={time} onChange={(e) => setTime(e.target.value)} />
             </ITGrid>
             <ITGrid item xs={12}>
-              <ITInput name="topic" label={t("form.tema")} value={topic} maxLength={200} onChange={(e) => setTema(e.target.value)} />
+              <ITInput name="topic" label={t("form.topic")} value={topic} maxLength={200} onChange={(e) => setTopic(e.target.value)} />
             </ITGrid>
           </ITGrid>
           <ITFlex justify="end" gap={2}>

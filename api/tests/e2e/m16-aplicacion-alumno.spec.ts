@@ -49,10 +49,10 @@ test.afterAll(async () => {
   await clearAuthE2E();
 });
 
-test("inicio: sin claves de answer, tiempo del servidor y reanudación sin duplicar", async () => {
+test("inicio: sin claves de respuesta, tiempo del servidor y reanudación sin duplicar", async () => {
   const examId = await publishedExam();
   const available = await (await pupilApi.get("online-exams/available")).json();
-  expect(available.find((e: { examId: string }) => e.examId === examId)).toMatchObject({ canStart: true, intentosUsados: 0, state: "OPEN" });
+  expect(available.find((e: { examId: string }) => e.examId === examId)).toMatchObject({ canStart: true, attemptsUsed: 0, state: "OPEN" });
 
   const res = await pupilApi.post(`online-exams/${examId}/start`);
   expect(res.status(), await res.text()).toBe(201);
@@ -149,7 +149,7 @@ test("expiración decidida por el servidor; el cierre del examen acota la duraci
   await db.examAttempt.update({ where: { id: attempt.attemptId }, data: { endsAt: new Date(Date.now() - 1000) } });
   const expired = await (await pupilApi.get(`attempts/${attempt.attemptId}`)).json();
   expect(expired).toMatchObject({ status: "EXPIRED", remainingSeconds: 0 });
-  expect(expired.result).toMatchObject({ score: 0, totalPuntos: 10 });
+  expect(expired.result).toMatchObject({ score: 0, totalPoints: 10 });
   expect((await lastAudit("ATTEMPT_EXPIRED"))?.entityId).toBe(attempt.attemptId);
 });
 

@@ -27,10 +27,10 @@ test.describe.serial("profesores", () => {
     await page.goto(route("/teachers"));
     await page.getByRole("button", { name: "Nuevo profesor" }).click();
     const dialog = page.getByRole("dialog");
-    await dialog.locator('input[name="nombres"]').fill("E2E Docente");
-    await dialog.locator('input[name="apellidos"]').fill(RUN);
+    await dialog.locator('input[name="firstNames"]').fill("E2E Docente");
+    await dialog.locator('input[name="surnames"]').fill(RUN);
     await dialog.locator('input[name="email"]').fill(EMAIL);
-    await dialog.locator('input[name="especialidad"]').fill("Diagnóstico electrónico");
+    await dialog.locator('input[name="specialty"]').fill("Diagnóstico electrónico");
     await dialog.getByRole("button", { name: "Guardar" }).click();
 
     await expect(page.getByText(`Profesor creado: invitación enviada a ${EMAIL}`)).toBeVisible();
@@ -61,7 +61,7 @@ test.describe.serial("profesores", () => {
     await openTeachers(page);
     await page.getByRole("button", { name: `Editar ${EMAIL}` }).click();
     const dialog = page.getByRole("dialog");
-    await dialog.locator('input[name="especialidad"]').fill("Suspensión y frenos");
+    await dialog.locator('input[name="specialty"]').fill("Suspensión y frenos");
     await dialog.getByRole("button", { name: "Guardar" }).click();
     await expect(page.getByText("Profesor actualizado")).toBeVisible();
     await expect(row(page)).toContainText("Suspensión y frenos");

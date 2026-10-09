@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { CURP_PATTERN, curpCheckDigit, isValidCurp } from "../../src/core/utils/curp";
 import { ageOn, isRealDay, todayInBusinessZone } from "../../src/core/utils/day";
-import { assertGuardians, formatMatricula } from "../../src/modules/students/services/student.service";
+import { assertGuardians, formatStudentNumber } from "../../src/modules/students/services/student.service";
 
 /** Reglas puras de M03: CURP, matrícula, tutores y fechas de calendario. */
 
@@ -20,7 +20,7 @@ test.describe("CURP", () => {
     expect(isValidCurp(wrong)).toBe(false);
   });
 
-  test("rechaza date, sexo o entity imposibles y longitudes distintas a 18", () => {
+  test("rechaza fecha, sexo o entidad imposibles y longitudes distintas a 18", () => {
     expect(CURP_PATTERN.test("PELJ101301HDFRXN01")).toBe(false); // mes 13
     expect(CURP_PATTERN.test("PELJ100101ZDFRXN01")).toBe(false); // sexo Z
     expect(CURP_PATTERN.test("PELJ100101HXXRXN01")).toBe(false); // entity XX
@@ -30,9 +30,9 @@ test.describe("CURP", () => {
 
 test.describe("matrícula", () => {
   test("formato AAAA-NNNN con relleno de ceros", () => {
-    expect(formatMatricula(2026, 1)).toBe("2026-0001");
-    expect(formatMatricula(2026, 42)).toBe("2026-0042");
-    expect(formatMatricula(2026, 12345)).toBe("2026-12345");
+    expect(formatStudentNumber(2026, 1)).toBe("2026-0001");
+    expect(formatStudentNumber(2026, 42)).toBe("2026-0042");
+    expect(formatStudentNumber(2026, 12345)).toBe("2026-12345");
   });
 });
 

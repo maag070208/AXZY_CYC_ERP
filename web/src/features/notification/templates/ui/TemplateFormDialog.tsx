@@ -23,34 +23,34 @@ const variablesIn = (...texts: string[]): string[] => {
 /** Alta/edición de una plantilla de notificación (M19 §4.1). */
 export default function TemplateFormDialog({ isOpen, template, onClose, onSaved }: Props) {
   const { t } = useTranslation(["notifications", "common"]);
-  const [code, setClave] = useState("");
-  const [name, setNombre] = useState("");
-  const [channel, setCanal] = useState<NotificationChannel>("EMAIL");
-  const [subject, setAsunto] = useState("");
-  const [body, setCuerpo] = useState("");
-  const [required, setObligatorio] = useState(false);
+  const [code, setCode] = useState("");
+  const [name, setName] = useState("");
+  const [channel, setChannel] = useState<NotificationChannel>("EMAIL");
+  const [subject, setSubject] = useState("");
+  const [body, setBody] = useState("");
+  const [required, setRequired] = useState(false);
   const [errors, setErrors] = useState<Errors>({});
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!isOpen) return;
-    setClave(template?.code ?? "");
-    setNombre(template?.name ?? "");
-    setCanal(template?.channel ?? "EMAIL");
-    setAsunto(template?.subject ?? "");
-    setCuerpo(template?.body ?? "");
-    setObligatorio(template?.required ?? false);
+    setCode(template?.code ?? "");
+    setName(template?.name ?? "");
+    setChannel(template?.channel ?? "EMAIL");
+    setSubject(template?.subject ?? "");
+    setBody(template?.body ?? "");
+    setRequired(template?.required ?? false);
     setErrors({});
     setError(null);
   }, [template, isOpen]);
 
   const save = async () => {
     const next: Errors = {
-      code: !template && !/^[A-Z][A-Z0-9_]{1,59}$/.test(code.trim()) ? t("templates.badClave") : undefined,
-      name: name.trim() ? undefined : t("common:validation.required", { label: t("templates.nombre") }),
-      body: body.trim() ? undefined : t("common:validation.required", { label: t("templates.cuerpo") }),
-      subject: channel !== "EMAIL" || subject.trim() ? undefined : t("common:validation.required", { label: t("templates.asunto") }),
+      code: !template && !/^[A-Z][A-Z0-9_]{1,59}$/.test(code.trim()) ? t("templates.badCodeFormat") : undefined,
+      name: name.trim() ? undefined : t("common:validation.required", { label: t("templates.name") }),
+      body: body.trim() ? undefined : t("common:validation.required", { label: t("templates.body") }),
+      subject: channel !== "EMAIL" || subject.trim() ? undefined : t("common:validation.required", { label: t("templates.subject") }),
     };
     setErrors(next);
     if (Object.values(next).some(Boolean)) return;
@@ -78,27 +78,27 @@ export default function TemplateFormDialog({ isOpen, template, onClose, onSaved 
           {error && <ITAlert variant="error">{error}</ITAlert>}
           <ITGrid container columns={12} spacing={4}>
             <ITGrid item xs={12} md={4}>
-              <ITInput name="code" label={t("templates.clave")} value={code} required disabled={!!template} error={errors.code} maxLength={60} placeholder="ALERTA_INASISTENCIA" onChange={(e) => setClave(e.target.value.toUpperCase())} />
+              <ITInput name="code" label={t("templates.code")} value={code} required disabled={!!template} error={errors.code} maxLength={60} placeholder="ABSENCE_ALERT" onChange={(e) => setCode(e.target.value.toUpperCase())} />
             </ITGrid>
             <ITGrid item xs={12} md={4}>
-              <ITInput name="name" label={t("templates.nombre")} value={name} required error={errors.name} maxLength={150} onChange={(e) => setNombre(e.target.value)} />
+              <ITInput name="name" label={t("templates.name")} value={name} required error={errors.name} maxLength={150} onChange={(e) => setName(e.target.value)} />
             </ITGrid>
             <ITGrid item xs={12} md={4}>
-              <ITSelect name="channel" label={t("templates.canal")} value={channel} disabled={!!template}
+              <ITSelect name="channel" label={t("templates.channel")} value={channel} disabled={!!template}
                 options={NOTIFICATION_CHANNELS.map((c) => ({ value: c, label: t(`channels.${c}`) }))}
-                onChange={(e) => setCanal(e.target.value as NotificationChannel)} />
+                onChange={(e) => setChannel(e.target.value as NotificationChannel)} />
             </ITGrid>
             {channel === "EMAIL" && (
               <ITGrid item xs={12}>
-                <ITInput name="subject" label={t("templates.asunto")} value={subject} required error={errors.subject} maxLength={200} onChange={(e) => setAsunto(e.target.value)} />
+                <ITInput name="subject" label={t("templates.subject")} value={subject} required error={errors.subject} maxLength={200} onChange={(e) => setSubject(e.target.value)} />
               </ITGrid>
             )}
             <ITGrid item xs={12}>
-              <ITTextarea name="body" label={t("templates.cuerpo")} value={body} onChange={setCuerpo} rows={5} maxLength={5000} error={errors.body} />
+              <ITTextarea name="body" label={t("templates.body")} value={body} onChange={setBody} rows={5} maxLength={5000} error={errors.body} />
             </ITGrid>
           </ITGrid>
           <ITText className="text-[11px] text-slate-400">{t("templates.variablesHint")}</ITText>
-          <ITCheckbox name="required" label={t("templates.obligatorio")} checked={required} onChange={setObligatorio} />
+          <ITCheckbox name="required" label={t("templates.required")} checked={required} onChange={setRequired} />
           <ITFlex justify="end" gap={2}>
             <ITButton variant="outlined" color="secondary" onClick={onClose}>{t("common:actions.cancel")}</ITButton>
             <ITButton type="submit" variant="filled" color="primary" disabled={saving}>{t("common:actions.save")}</ITButton>

@@ -1,3 +1,5 @@
+import { t } from "@core/i18n";
+
 /**
  * Reglas **puras** de M22 (programas, plan de estudios y plan de pagos). Sin BD:
  * se prueban de forma unitaria.
@@ -88,11 +90,11 @@ export const dueDayFor = (startDay: string, monthOffset: number, dueDay: number)
   return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())}`;
 };
 
-/** Descripción legible del cargo (se guarda en `Charge.descripcion`). */
+/** Descripción legible del cargo (se guarda en `Charge.description`). */
 export const chargeDescription = (seed: ChargeSeed): string =>
   seed.kind === "ENROLLMENT"
-    ? `Reinscripción — Periodo ${seed.period}`
-    : `Colegiatura — Periodo ${seed.period} · Mes ${seed.monthInPeriod}`;
+    ? t("plans.enrollmentCharge", { period: seed.period })
+    : t("plans.monthlyCharge", { period: seed.period, month: seed.monthInPeriod });
 
 /** Totales del plan a partir de los cargos generados. */
 export const planTotals = (charges: ChargeSeed[]): { charges: number; enrollmentCharges: number; monthlyCharges: number; amount: number } => ({

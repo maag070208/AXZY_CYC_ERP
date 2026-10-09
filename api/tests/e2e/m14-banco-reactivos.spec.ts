@@ -19,7 +19,7 @@ let admin: APIRequestContext;
 let prof: APIRequestContext;
 let profUserId: string;
 let courseId: string;
-let courseClave: string;
+let courseCode: string;
 let foreignCourseId: string;
 let termId: string;
 
@@ -43,12 +43,12 @@ test.beforeAll(async () => {
   termId = (await makeTerm(RUN, "Reactivos")).id;
   const course = await makeCourse(RUN, "Reactivos");
   courseId = course.id;
-  courseClave = course.code;
+  courseCode = course.code;
   foreignCourseId = (await makeCourse(RUN, "Ajeno")).id;
   const teacher = await makeTeacher(RUN, "qprof");
   profUserId = teacher.userId;
   await db.group.create({
-    data: { courseId, termId, teacherId: teacher.teacher.id, name: "Q1", capacity: 10, schedule: [{ dia: "LUNES", horaInicio: "07:00", horaFin: "08:00" }] },
+    data: { courseId, termId, teacherId: teacher.teacher.id, name: "Q1", capacity: 10, schedule: [{ day: "MONDAY", startTime: "07:00", endTime: "08:00" }] },
   });
   prof = (await loginAs(teacher.username)).api;
 });
@@ -67,7 +67,7 @@ test.describe("reglas de opciones", () => {
   test("los cuatro tipos válidos; OPEN sin opciones; bitácora", async () => {
     const om = await prof.post("questions", { data: question() });
     expect(om.status(), await om.text()).toBe(201);
-    expect(await om.json()).toMatchObject({ type: "MULTIPLE_CHOICE", status: "ACTIVE", points: 2, locked: false, courseClave });
+    expect(await om.json()).toMatchObject({ type: "MULTIPLE_CHOICE", status: "ACTIVE", points: 2, locked: false, courseCode });
     expect((await lastAudit("QUESTION_CREATED", profUserId))?.entityId).toBe((await om.json()).id);
     const vf = await prof.post("questions", {
       data: question({ type: "TRUE_FALSE", options: [{ text: "Verdadero", isCorrect: true }, { text: "Falso", isCorrect: false }] }),
@@ -143,13 +143,13 @@ test.describe("importación CSV", () => {
   const csv = () =>
     [
       "curso,topic,type,text,points,difficulty,opciones,correctas",
-      `${courseClave},Frenos,opcion multiple,"¿Qué líquido usan los frenos? (DOT)",2,media,Agua|DOT 4|Aceite,2`,
-      `${courseClave},Frenos,verdadero_falso,"El ABS evita el bloqueo de ruedas",1,facil,,1`,
-      `${courseClave},Encendido,MULTIPLE_ANSWER,"Componentes del encendido",3,dificil,Bobina|Bujía|Radiador,1|2`,
-      `${courseClave},Diagnóstico,OPEN,"Describe el diagnóstico de una falla P0300",4,,,`,
-      `${courseClave},Mal,MULTIPLE_CHOICE,"Dos correctas",1,,a|b,1|2`,
+      `${courseCode},Frenos,opcion multiple,"¿Qué líquido usan los frenos? (DOT)",2,media,Agua|DOT 4|Aceite,2`,
+      `${courseCode},Frenos,verdadero_falso,"El ABS evita el bloqueo de ruedas",1,facil,,1`,
+      `${courseCode},Encendido,MULTIPLE_ANSWER,"Componentes del encendido",3,dificil,Bobina|Bujía|Radiador,1|2`,
+      `${courseCode},Diagnóstico,OPEN,"Describe el diagnóstico de una falla P0300",4,,,`,
+      `${courseCode},Mal,MULTIPLE_CHOICE,"Dos correctas",1,,a|b,1|2`,
       `NOEXISTE-${RUN},X,OPEN,"Curso inexistente",1,,,`,
-      `${courseClave},X,DIBUJO,"Tipo inválido",1,,,`,
+      `${courseCode},X,DIBUJO,"Tipo inválido",1,,,`,
     ].join("\n");
 
   test("vista previa no guarda; aplicar exige Idempotency-Key y repetirla no duplica", async () => {
@@ -182,7 +182,7 @@ test.describe("importación CSV", () => {
     expect(await db.question.count({ where: { courseId } })).toBe(before + 4);
   });
 
-  test("cabecera incompleta → 400 CSV_INVALID; sin file → 400", async () => {
+  test("cabecera incompleta → 400 CSV_INVALID; sin archivo → 400", async () => {
     const bad = await prof.post("questions/import?preview=true", { multipart: csvFile("curso,type\nX,OPEN") });
     expect(bad.status()).toBe(400);
     expect((await bad.json()).code).toBe("CSV_INVALID");

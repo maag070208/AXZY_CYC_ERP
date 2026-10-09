@@ -15,8 +15,8 @@
     "title": "Importar datos históricos",
     "description": "Previsualiza el CSV (dry-run) y confirma la importación por lotes idempotente.",
     "backupHint": "La importación real exige un respaldo reciente de la base (ajustes) y la cabecera de idempotencia se genera sola.",
-    "entidad": "Entidad",
-    "archivo": "Archivo CSV",
+    "entity": "Entidad",
+    "file": "Archivo CSV",
     "preview": "Previsualizar",
     "previewed": "Previsualizado: {{rejected}} fila(s) rechazada(s)",
     "dryRun": "Simulación",
@@ -29,7 +29,7 @@
     "reason": "Motivo",
     "value": "Valor",
     "confirmTitle": "Confirmar importación",
-    "confirmMessage": "Se importarán los registros válidos de {{entidad}}. Esta acción no borra datos existentes; reejecutar no duplica."
+    "confirmMessage": "Se importarán los registros válidos de {{entity}}. Esta acción no borra datos existentes; reejecutar no duplica."
   },
   "totals": {
     "read": "Leídas",
@@ -48,17 +48,17 @@
     "GUARDIAN_REQUIRED": "Falta el tutor (menor de edad)",
     "DUPLICATE_CURP": "CURP duplicada",
     "DUPLICATE_EMAIL": "Correo duplicado",
-    "DUPLICATE_MATRICULA": "Matrícula duplicada",
+    "DUPLICATE_STUDENT_NUMBER": "Matrícula duplicada",
     "REJECTED": "Rechazada"
   },
   "batches": {
-    "archivo": "Archivo",
+    "file": "Archivo",
     "mode": "Modo",
     "status": "Estado",
     "totals": "Totales",
-    "fecha": "Fecha",
+    "date": "Fecha",
     "view": "Ver detalle",
-    "detailTitle": "Lote {{archivo}}",
+    "detailTitle": "Lote {{file}}",
     "noRows": "Sin filas rechazadas."
   },
   "status": {

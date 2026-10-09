@@ -1,3 +1,5 @@
+import { t } from "@core/i18n";
+
 /**
  * Reglas **puras** de reactivos (M14 §4.1–4.5, 4.7) y lectura del CSV de
  * importación. Sin BD: se prueban de forma unitaria.
@@ -75,10 +77,13 @@ export const parseCsv = (text: string, delimiter = ","): string[][] => {
   return rows;
 };
 
-export const CSV_COLUMNS = ["curso", "topic", "type", "text", "points", "difficulty", "opciones", "correctas"] as const;
+export const CSV_COLUMNS = ["course", "topic", "type", "text", "points", "difficulty", "options", "correct"] as const;
 
 /** Alias de encabezados de origen (español) → columna canónica. */
 const CSV_HEADER_ALIASES: Record<string, string> = {
+  curso: "course",
+  opciones: "options",
+  correctas: "correct",
   tema: "topic",
   enunciado: "text",
   texto: "text",
@@ -89,7 +94,7 @@ const CSV_HEADER_ALIASES: Record<string, string> = {
 
 export interface CsvQuestion {
   row: number;
-  cursoClave: string;
+  courseCode: string;
   topic: string | null;
   type: QuestionTypeValue;
   text: string;
@@ -123,21 +128,21 @@ const DIFFICULTY_ALIASES: Record<string, DifficultyValue> = {
 /**
  * Lee el CSV de importación (cabecera obligatoria, `,` o `;`). Cada fila se
  * valida por separado: las inválidas van a `rejected` sin abortar el lote.
- * `opciones` y `correctas` se separan con `|`; `correctas` son posiciones
- * (1 = primera opción). En VERDADERO_FALSO las opciones por omisión son
- * «Verdadero|Falso».
+ * `options` y `correct` se separan con `|`; `correct` son posiciones
+ * (1 = primera opción). En TRUE_FALSE las opciones por omisión son
+ * «Verdadero|Falso». Los encabezados en español se aceptan por alias.
  */
 export const readQuestionsCsv = (text: string): { rows: CsvQuestion[]; rejected: CsvRejection[]; total: number } => {
   const firstLine = text.replace(/^﻿/, "").split(/\r?\n/, 1)[0] ?? "";
   const delimiter = firstLine.includes(";") && !firstLine.includes(",") ? ";" : ",";
   const table = parseCsv(text, delimiter);
-  if (table.length === 0) throw new Error("vacío");
+  if (table.length === 0) throw new Error(t("csv.empty"));
   const header = table[0].map((h) => {
     const key = h.trim().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
     return CSV_HEADER_ALIASES[key] ?? key;
   });
   const missing = CSV_COLUMNS.filter((c) => !header.includes(c));
-  if (missing.length) throw new Error(`faltan columnas: ${missing.join(", ")}`);
+  if (missing.length) throw new Error(t("csv.missingColumns", { columns: missing.join(", ") }));
   const at = (cells: string[], key: (typeof CSV_COLUMNS)[number]) => (cells[header.indexOf(key)] ?? "").trim();
 
   const rows: CsvQuestion[] = [];
@@ -147,30 +152,30 @@ export const readQuestionsCsv = (text: string): { rows: CsvQuestion[]; rejected:
     const reject = (code: string, message: string) => rejected.push({ row, code, message });
     const typeRaw = norm(at(cells, "type"));
     const type = (TYPE_ALIASES[typeRaw] ?? typeRaw) as QuestionTypeValue;
-    if (!QUESTION_TYPES.includes(type)) return reject("VALIDATION_ERROR", `type inválido: ${at(cells, "type")}`);
+    if (!QUESTION_TYPES.includes(type)) return reject("VALIDATION_ERROR", t("csv.invalidType", { value: at(cells, "type") }));
     const text = at(cells, "text");
-    if (text.length < 3) return reject("VALIDATION_ERROR", "text required (mínimo 3 caracteres)");
-    const cursoClave = at(cells, "curso").toUpperCase();
-    if (!cursoClave) return reject("VALIDATION_ERROR", "curso required (code)");
+    if (text.length < 3) return reject("VALIDATION_ERROR", t("csv.textRequired"));
+    const courseCode = at(cells, "course").toUpperCase();
+    if (!courseCode) return reject("VALIDATION_ERROR", t("csv.courseRequired"));
     const points = Number(at(cells, "points").replace(",", "."));
     if (!Number.isFinite(points) || points <= 0 || Math.abs(Math.round(points * 100) - points * 100) > 1e-6) {
-      return reject("VALIDATION_ERROR", "points debe ser mayor que 0 (máx. 2 decimales)");
+      return reject("VALIDATION_ERROR", t("csv.invalidPoints"));
     }
     const rawDifficulty = at(cells, "difficulty");
     const difficulty = rawDifficulty ? (DIFFICULTY_ALIASES[norm(rawDifficulty)] ?? (norm(rawDifficulty) as DifficultyValue)) : null;
-    if (difficulty && !DIFFICULTIES.includes(difficulty)) return reject("VALIDATION_ERROR", `difficulty inválida: ${rawDifficulty}`);
-    let texts = at(cells, "opciones").split("|").map((o) => o.trim()).filter(Boolean);
-    if (type === "TRUE_FALSE" && texts.length === 0) texts = ["Verdadero", "Falso"];
-    const correctas = new Set(
-      at(cells, "correctas").split("|").map((c) => c.trim()).filter(Boolean).map(Number)
+    if (difficulty && !DIFFICULTIES.includes(difficulty)) return reject("VALIDATION_ERROR", t("csv.invalidDifficulty", { value: rawDifficulty }));
+    let texts = at(cells, "options").split("|").map((o) => o.trim()).filter(Boolean);
+    if (type === "TRUE_FALSE" && texts.length === 0) texts = [t("csv.trueOption"), t("csv.falseOption")];
+    const correctPositions = new Set(
+      at(cells, "correct").split("|").map((c) => c.trim()).filter(Boolean).map(Number)
     );
-    if ([...correctas].some((n) => !Number.isInteger(n) || n < 1 || n > texts.length)) {
-      return reject("VALIDATION_ERROR", "correctas debe listar posiciones de opciones (1, 2, …)");
+    if ([...correctPositions].some((n) => !Number.isInteger(n) || n < 1 || n > texts.length)) {
+      return reject("VALIDATION_ERROR", t("csv.invalidCorrect"));
     }
-    const options = texts.map((text, i) => ({ text, isCorrect: correctas.has(i + 1), sortOrder: i + 1 }));
+    const options = texts.map((text, i) => ({ text, isCorrect: correctPositions.has(i + 1), sortOrder: i + 1 }));
     const error = optionRuleError(type, options);
-    if (error) return reject(error, `opciones inválidas para ${type}`);
-    rows.push({ row, cursoClave, topic: at(cells, "topic") || null, type, text, points, difficulty, options });
+    if (error) return reject(error, t("csv.invalidOptions", { type }));
+    rows.push({ row, courseCode, topic: at(cells, "topic") || null, type, text, points, difficulty, options });
   });
   return { rows, rejected, total: table.length - 1 };
 };

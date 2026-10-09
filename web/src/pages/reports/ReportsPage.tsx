@@ -26,7 +26,7 @@ export default function ReportsPage() {
   const [catalog, setCatalog] = useState<ReportCatalogItem[]>([]);
   const [terms, setTerms] = useState<Term[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
-  const [type, setTipo] = useState<ReportType | "">("");
+  const [type, setType] = useState<ReportType | "">("");
   const [filters, setFilters] = useState<ReportFilters>({});
   const [result, setResult] = useState<ReportResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -98,14 +98,14 @@ export default function ReportsPage() {
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 items-end">
             <ITSelect name="report" label={t("report")} value={type} placeholder="—"
               options={catalog.map((r) => ({ value: r.type, label: r.financial ? `${r.title} · $` : r.title }))}
-              onChange={(e) => { setTipo(e.target.value as ReportType); setResult(null); }} />
+              onChange={(e) => { setType(e.target.value as ReportType); setResult(null); }} />
             {current && TERM_REPORTS.includes(current) && canTerms && (
-              <ITSelect name="termId" label={t("ciclo")} value={filters.termId ?? ""} placeholder={current === "payments-period" || current === "debts" ? t("allGroups") : t("activeTerm")}
+              <ITSelect name="termId" label={t("termName")} value={filters.termId ?? ""} placeholder={current === "payments-period" || current === "debts" ? t("allGroups") : t("activeTerm")}
                 options={terms.map((x) => ({ value: x.id, label: x.name }))} onChange={(e) => { set("termId", e.target.value); set("groupId", ""); }} />
             )}
             {current && GROUP_REPORTS.includes(current) && (
-              <ITSelect name="groupId" label={t("grupo")} value={filters.groupId ?? ""} placeholder={t("allGroups")}
-                options={groups.map((g) => ({ value: g.id, label: `${g.courseNombre} · ${g.name}` }))} onChange={(e) => set("groupId", e.target.value)} />
+              <ITSelect name="groupId" label={t("groupName")} value={filters.groupId ?? ""} placeholder={t("allGroups")}
+                options={groups.map((g) => ({ value: g.id, label: `${g.courseName} · ${g.name}` }))} onChange={(e) => set("groupId", e.target.value)} />
             )}
             {current && RANGE_REPORTS.includes(current) && current !== "debts" && (
               <ITDatePicker name="from" label={t("from")} value={filters.from ? fromDay(filters.from) : undefined}
@@ -127,7 +127,7 @@ export default function ReportsPage() {
         {result && (
           <PanelCard
             title={result.title}
-            description={`${t("rows", { count: result.rows.length })}${result.filters.termNombre ? ` · ${result.filters.termNombre}` : ""}${
+            description={`${t("rows", { count: result.rows.length })}${result.filters.termName ? ` · ${result.filters.termName}` : ""}${
               result.filters.from ? ` · ${formatDay(result.filters.from, i18n.language)} – ${formatDay(result.filters.to ?? "", i18n.language)}` : ""}`}
           >
             {result.rows.length === 0 ? (
@@ -159,7 +159,7 @@ export default function ReportsPage() {
             <ITFlex gap={2} wrap="wrap" className="mt-3" data-role="report-totals">
               {Object.entries(result.totals).map(([key, value]) => {
                 const column = result.columns.find((c) => c.key === key);
-                const isMoney = column?.type === "money" || ["vencido", "CASH", "TRANSFER", "DEPOSIT", "CARD", "OTHER"].includes(key);
+                const isMoney = column?.type === "money" || ["overdue", "CASH", "TRANSFER", "DEPOSIT", "CARD", "OTHER"].includes(key);
                 return (
                   <ITBadget key={key} color="secondary" size="sm">
                     {`${key === "rows" ? t("rows", { count: value }) : `${column?.label ?? key}: ${isMoney ? formatMoney(value, i18n.language) : column?.type === "percent" ? `${value}%` : value}`}`}

@@ -98,15 +98,15 @@ export default function FinancePage() {
         onClose={() => setPaying(null)}
         onRegistered={(payment) => {
           setPaying(null);
-          notify.success(t("payments.registered", { folio: payment.receiptNumber }));
+          notify.success(t("payments.registered", { receiptNumber: payment.receiptNumber }));
           reload();
           void printReceipt(payment);
         }}
       />
       <ReasonDialog
         isOpen={!!cancellingCharge}
-        title={t("charges.cancelTitle", { name: cancellingCharge?.studentNombre ?? "" })}
-        label={t("charges.motivo")}
+        title={t("charges.cancelTitle", { name: cancellingCharge?.studentName ?? "" })}
+        label={t("charges.reason")}
         confirmLabel={t("charges.cancel")}
         cancelLabel={t("common:actions.cancel")}
         requiredMessage={t("reasonRequired")}
@@ -115,9 +115,9 @@ export default function FinancePage() {
       />
       <ReasonDialog
         isOpen={!!cancellingPayment}
-        title={t("payments.cancelTitle", { folio: cancellingPayment?.receiptNumber ?? "" })}
+        title={t("payments.cancelTitle", { receiptNumber: cancellingPayment?.receiptNumber ?? "" })}
         message={t("payments.cancelMessage")}
-        label={t("charges.motivo")}
+        label={t("charges.reason")}
         confirmLabel={t("payments.cancel")}
         cancelLabel={t("common:actions.cancel")}
         requiredMessage={t("reasonRequired")}

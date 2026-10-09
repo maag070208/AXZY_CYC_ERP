@@ -9,7 +9,7 @@ const optionalText = (max: number) => z.string().trim().max(max).transform((v) =
 
 const templateFields = {
   code: z.string().trim().regex(/^[A-Z][A-Z0-9_]{1,59}$/, "INVALID_FORMAT"),
-  name: z.string().trim().min(1, "NOMBRE_REQUIRED").max(150),
+  name: z.string().trim().min(1, "NAME_REQUIRED").max(150),
   channel: z.enum(CHANNELS),
   subject: optionalText(200),
   body: z.string().trim().min(1, "REQUIRED_FIELD").max(5000),
@@ -53,7 +53,7 @@ export const TemplateSchema = z
     variables: z.array(z.string()),
     required: z.boolean(),
     active: z.boolean(),
-    enviadas: z.number().int(),
+    sentCount: z.number().int(),
     createdAt: z.string(),
     updatedAt: z.string(),
   })
@@ -70,13 +70,13 @@ export const SendDto = z
   .object({
     channel: z.enum(CHANNELS),
     recipient: z.string().trim().min(1, "REQUIRED_FIELD").max(200),
-    templateClave: z.string().trim().max(60).optional(),
+    templateCode: z.string().trim().max(60).optional(),
     subject: optionalText(200),
     body: optionalText(5000),
     payload: payloadSchema,
   })
   .strict()
-  .refine((v) => !!v.templateClave || !!v.body, { message: "REQUIRED_FIELD", path: ["body"] })
+  .refine((v) => !!v.templateCode || !!v.body, { message: "REQUIRED_FIELD", path: ["body"] })
   .openapi("NotificationSendInput");
 registry.register("NotificationSendInput", SendDto);
 export type SendInput = z.infer<typeof SendDto>;
@@ -88,7 +88,7 @@ export const NotificationSchema = z
     recipient: z.string(),
     userId: z.string().nullable(),
     origin: z.string(),
-    templateClave: z.string().nullable(),
+    templateCode: z.string().nullable(),
     subject: z.string().nullable(),
     body: z.string(),
     status: z.enum(NOTIFICATION_STATUSES),

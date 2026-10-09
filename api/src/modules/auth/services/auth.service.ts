@@ -14,7 +14,7 @@ import {
   type JwtPayload,
 } from "@core/utils/security";
 import { permissionsOf, type PermissionException, type Scope } from "@core/permissions";
-import { systemLanguage } from "@core/i18n";
+import { systemLanguage, t } from "@core/i18n";
 import { HttpError } from "@core/middlewares/error.middleware";
 import { sendEmail } from "@core/services/mail";
 import type { AuditLogger } from "@modules/audit";
@@ -299,12 +299,12 @@ export class AuthService {
     const link = `${env.APP_URL.replace(/\/+$/, "")}/#/reset-password?token=${token}`;
     void sendEmail({
       to: user.email,
-      subject: "Recuperación de contraseña — SGE",
+      subject: t("emails.passwordReset.subject"),
       html:
-        `<p>Hola ${user.name},</p>` +
-        `<p>Para restablecer tu contraseña entra a:</p>` +
+        `<p>${t("emails.greeting", { name: user.name })}</p>` +
+        `<p>${t("emails.passwordReset.body")}</p>` +
         `<p><a href="${link}">${link}</a></p>` +
-        `<p>El enlace vence en 1 time y es de un solo uso.</p>`,
+        `<p>${t("emails.passwordReset.expiry")}</p>`,
     }).catch((error) => logger.error(`[auth] forgot-password email failed: ${String(error)}`));
   }
 

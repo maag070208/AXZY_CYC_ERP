@@ -22,42 +22,42 @@ import { GradeCaptureDto } from "../../src/modules/grades/models/dto/grade.dto";
 
 /** M07/M08 puros: empalme de horarios, ponderaciones y calificación final. */
 
-const s = (dia: ScheduleSlot["dia"], horaInicio: string, horaFin: string): ScheduleSlot => ({ dia, horaInicio, horaFin });
+const s = (day: ScheduleSlot["day"], startTime: string, endTime: string): ScheduleSlot => ({ day, startTime, endTime });
 
-test.describe("schedule (M07)", () => {
+test.describe("horario (M07)", () => {
   test("intervalos semiabiertos: contiguos no chocan, traslapes sí", () => {
     expect(minutesOf("07:30")).toBe(450);
-    expect(slotsOverlap(s("LUNES", "08:00", "10:00"), s("LUNES", "09:59", "11:00"))).toBe(true);
-    expect(slotsOverlap(s("LUNES", "08:00", "10:00"), s("LUNES", "10:00", "11:00"))).toBe(false);
-    expect(slotsOverlap(s("LUNES", "08:00", "10:00"), s("MARTES", "08:00", "10:00"))).toBe(false);
-    expect(slotsOverlap(s("LUNES", "08:00", "12:00"), s("LUNES", "09:00", "10:00"))).toBe(true);
+    expect(slotsOverlap(s("MONDAY", "08:00", "10:00"), s("MONDAY", "09:59", "11:00"))).toBe(true);
+    expect(slotsOverlap(s("MONDAY", "08:00", "10:00"), s("MONDAY", "10:00", "11:00"))).toBe(false);
+    expect(slotsOverlap(s("MONDAY", "08:00", "10:00"), s("TUESDAY", "08:00", "10:00"))).toBe(false);
+    expect(slotsOverlap(s("MONDAY", "08:00", "12:00"), s("MONDAY", "09:00", "10:00"))).toBe(true);
   });
 
   test("primer empalme entre dos horarios y empalme interno", () => {
-    const a = [s("LUNES", "08:00", "09:00"), s("MIERCOLES", "08:00", "09:00")];
-    const b = [s("MARTES", "08:00", "09:00"), s("MIERCOLES", "08:30", "09:30")];
+    const a = [s("MONDAY", "08:00", "09:00"), s("WEDNESDAY", "08:00", "09:00")];
+    const b = [s("TUESDAY", "08:00", "09:00"), s("WEDNESDAY", "08:30", "09:30")];
     expect(firstConflict(a, b)?.theirs).toEqual(b[1]);
-    expect(firstConflict(a, [s("LUNES", "09:00", "10:00")])).toBeNull();
+    expect(firstConflict(a, [s("MONDAY", "09:00", "10:00")])).toBeNull();
     expect(hasInternalOverlap(a)).toBe(false);
-    expect(hasInternalOverlap([...a, s("LUNES", "08:45", "09:15")])).toBe(true);
+    expect(hasInternalOverlap([...a, s("MONDAY", "08:45", "09:15")])).toBe(true);
   });
 
-  test("sortOrder estable y lectura defensiva del JSON guardado", () => {
-    const sorted = sortSchedule([s("VIERNES", "07:00", "08:00"), s("LUNES", "10:00", "11:00"), s("LUNES", "08:00", "09:00")]);
-    expect(sorted.map((x) => `${x.dia} ${x.horaInicio}`)).toEqual(["LUNES 08:00", "LUNES 10:00", "VIERNES 07:00"]);
-    expect(parseSchedule([s("LUNES", "08:00", "09:00"), { dia: "FERIADO", horaInicio: "x" }, null])).toHaveLength(1);
+  test("orden estable y lectura defensiva del JSON guardado", () => {
+    const sorted = sortSchedule([s("FRIDAY", "07:00", "08:00"), s("MONDAY", "10:00", "11:00"), s("MONDAY", "08:00", "09:00")]);
+    expect(sorted.map((x) => `${x.day} ${x.startTime}`)).toEqual(["LUNES 08:00", "LUNES 10:00", "VIERNES 07:00"]);
+    expect(parseSchedule([s("MONDAY", "08:00", "09:00"), { day: "FERIADO", startTime: "x" }, null])).toHaveLength(1);
     expect(parseSchedule({ no: "array" })).toEqual([]);
   });
 
   test("el DTO de grupo rechaza horas mal formadas, fin ≤ inicio y empalmes internos", () => {
     const base = { courseId: crypto.randomUUID(), termId: crypto.randomUUID(), name: "A", capacity: 10 };
-    expect(GroupCreateDto.safeParse({ ...base, schedule: [s("LUNES", "08:00", "09:00")] }).success).toBe(true);
-    expect(GroupCreateDto.safeParse({ ...base, schedule: [s("LUNES", "9:00", "10:00")] }).success).toBe(false);
-    expect(GroupCreateDto.safeParse({ ...base, schedule: [s("LUNES", "10:00", "10:00")] }).success).toBe(false);
+    expect(GroupCreateDto.safeParse({ ...base, schedule: [s("MONDAY", "08:00", "09:00")] }).success).toBe(true);
+    expect(GroupCreateDto.safeParse({ ...base, schedule: [s("MONDAY", "9:00", "10:00")] }).success).toBe(false);
+    expect(GroupCreateDto.safeParse({ ...base, schedule: [s("MONDAY", "10:00", "10:00")] }).success).toBe(false);
     expect(
-      GroupCreateDto.safeParse({ ...base, schedule: [s("LUNES", "08:00", "10:00"), s("LUNES", "09:00", "11:00")] }).success
+      GroupCreateDto.safeParse({ ...base, schedule: [s("MONDAY", "08:00", "10:00"), s("MONDAY", "09:00", "11:00")] }).success
     ).toBe(false);
-    expect(GroupCreateDto.safeParse({ ...base, capacity: 0, schedule: [s("LUNES", "08:00", "09:00")] }).success).toBe(false);
+    expect(GroupCreateDto.safeParse({ ...base, capacity: 0, schedule: [s("MONDAY", "08:00", "09:00")] }).success).toBe(false);
   });
 });
 

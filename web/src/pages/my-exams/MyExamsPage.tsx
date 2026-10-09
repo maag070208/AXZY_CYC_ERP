@@ -47,11 +47,11 @@ export default function MyExamsPage() {
           <PanelCard key={exam.examId} title={exam.title}>
             <article aria-label={exam.title}>
             <ITFlex direction="column" gap={2}>
-              <ITText className="text-[12px] text-slate-500">{exam.curso} · {exam.grupo}</ITText>
+              <ITText className="text-[12px] text-slate-500">{exam.courseName} · {exam.groupName}</ITText>
               <ITFlex gap={1} wrap="wrap">
                 <ITBadget color={STATE_COLORS[exam.state]} size="sm">{t(`my.states.${exam.state}`)}</ITBadget>
-                <ITBadget color="secondary" size="sm">{t("my.duracion", { min: exam.durationMin })}</ITBadget>
-                <ITBadget color="secondary" size="sm">{t("my.intentos", { used: exam.intentosUsados, max: exam.maxAttempts })}</ITBadget>
+                <ITBadget color="secondary" size="sm">{t("my.duration", { min: exam.durationMin })}</ITBadget>
+                <ITBadget color="secondary" size="sm">{t("my.attempts", { used: exam.attemptsUsed, max: exam.maxAttempts })}</ITBadget>
               </ITFlex>
               <ITText className="text-[11px] text-slate-500">
                 {exam.state === "NOT_OPEN" ? t("my.notOpen", { date: date(exam.opensAt) })
@@ -66,7 +66,7 @@ export default function MyExamsPage() {
                       ? t("runner.hiddenResult")
                       : exam.lastAttempt.pendingCount
                         ? t("my.pending")
-                        : t("my.score", { score: exam.lastAttempt.score, total: exam.totalPuntos })}
+                        : t("my.score", { score: exam.lastAttempt.score, total: exam.totalPoints })}
                   </ITText>
                   <ITButton variant="text" color="primary" size="sm" onClick={() => navigate(`/exam/${exam.lastAttempt?.attemptId}`)}>
                     {t("runner.resultTitle")}

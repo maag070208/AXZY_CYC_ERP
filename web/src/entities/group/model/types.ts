@@ -1,11 +1,11 @@
-export const WEEK_DAYS = ["LUNES", "MARTES", "MIERCOLES", "JUEVES", "VIERNES", "SABADO", "DOMINGO"] as const;
+export const WEEK_DAYS = ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"] as const;
 export type WeekDay = (typeof WEEK_DAYS)[number];
 
 /** Bloque semanal `[horaInicio, horaFin)` en `HH:mm`. */
 export interface ScheduleSlot {
-  dia: WeekDay;
-  horaInicio: string;
-  horaFin: string;
+  day: WeekDay;
+  startTime: string;
+  endTime: string;
 }
 
 /** Grupo (`/groups`, M07): curso + ciclo + profesor + cupo + horario. */
@@ -13,16 +13,16 @@ export interface Group {
   id: string;
   name: string;
   courseId: string;
-  courseClave: string;
-  courseNombre: string;
+  courseCode: string;
+  courseName: string;
   termId: string;
-  termNombre: string;
-  termActivo: boolean;
+  termName: string;
+  activeTerm: boolean;
   teacherId: string | null;
-  teacherNombre: string | null;
+  teacherName: string | null;
   capacity: number;
-  inscritos: number;
-  disponibles: number;
+  enrolledCount: number;
+  available: number;
   schedule: ScheduleSlot[];
   classroom: string | null;
   active: boolean;
@@ -47,12 +47,12 @@ export interface Enrollment {
   id: string;
   studentId: string;
   studentNumber: string;
-  studentNombre: string;
+  studentName: string;
   studentStatus: "ACTIVE" | "WITHDRAWN";
   groupId: string;
-  groupNombre: string;
-  courseNombre: string;
-  termNombre: string;
+  groupName: string;
+  courseName: string;
+  termName: string;
   date: string;
   status: EnrollmentStatus;
   finalGrade: number | null;

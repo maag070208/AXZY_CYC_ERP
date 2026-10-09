@@ -18,6 +18,7 @@ import type { AuditLogger } from "@modules/audit";
 import { GROUPS_RESOURCE } from "@modules/courses";
 import type { ImportResult, QuestionCreateInput, QuestionUpdateInput, QuestionView } from "../models/dto/question.dto";
 import { DIFFICULTIES, QUESTION_TYPES, optionRuleError, readQuestionsCsv } from "../models/entity/question-rules";
+import { t } from "@core/i18n";
 
 const include = {
   course: { select: { code: true, name: true } },
@@ -30,8 +31,8 @@ type QuestionRow = Prisma.QuestionGetPayload<{ include: typeof include }>;
 const toView = (row: QuestionRow): QuestionView => ({
   id: row.id,
   courseId: row.courseId,
-  courseClave: row.course.code,
-  courseNombre: row.course.name,
+  courseCode: row.course.code,
+  courseName: row.course.name,
   topic: row.topic,
   type: row.type,
   text: row.text,
@@ -227,32 +228,32 @@ export class QuestionService {
     try {
       parsed = readQuestionsCsv(csv);
     } catch (error) {
-      throw new HttpError(400, "CSV_INVALID", { reason: error instanceof Error ? error.message : "formato" });
+      throw new HttpError(400, "CSV_INVALID", { reason: error instanceof Error ? error.message : t("csv.invalidFormat") });
     }
-    if (parsed.total > MAX_IMPORT_ROWS) throw new HttpError(400, "CSV_INVALID", { reason: `máximo ${MAX_IMPORT_ROWS} filas` });
+    if (parsed.total > MAX_IMPORT_ROWS) throw new HttpError(400, "CSV_INVALID", { reason: t("csv.maxRows", { max: MAX_IMPORT_ROWS }) });
     if (!options.preview && !options.idempotencyKey) throw new HttpError(400, "INVALID_IDEMPOTENCY_KEY");
 
     // Cursos por clave: activos y dentro del alcance de `questions.import`.
-    const claves = [...new Set(parsed.rows.map((r) => r.cursoClave))];
+    const codes = [...new Set(parsed.rows.map((r) => r.courseCode))];
     const all = scopeOf(actor, "questions.import") === "ALL";
     const courses = await this.db.course.findMany({
       where: {
-        code: { in: claves },
+        code: { in: codes },
         active: true,
         ...(all ? {} : { groups: { some: { teacher: { userId: actor.id } } } }),
       },
       select: { id: true, code: true },
     });
-    const courseByClave = new Map(courses.map((c) => [c.code, c.id]));
+    const courseByCode = new Map(courses.map((c) => [c.code, c.id]));
     const rejected = [...parsed.rejected];
     const valid = parsed.rows.filter((r) => {
-      if (courseByClave.has(r.cursoClave)) return true;
-      rejected.push({ row: r.row, code: "COURSE_NOT_FOUND", message: `curso ${r.cursoClave} inexistente, inactivo o fuera de tu alcance` });
+      if (courseByCode.has(r.courseCode)) return true;
+      rejected.push({ row: r.row, code: "COURSE_NOT_FOUND", message: t("csv.courseNotFound", { code: r.courseCode }) });
       return false;
     });
     rejected.sort((a, b) => a.row - b.row);
     const sample = valid.slice(0, 20).map((r) => ({
-      row: r.row, curso: r.cursoClave, type: r.type, text: r.text.slice(0, 140), points: r.points, opciones: r.options.length,
+      row: r.row, courseName: r.courseCode, type: r.type, text: r.text.slice(0, 140), points: r.points, optionCount: r.options.length,
     }));
     const base = { total: parsed.total, valid: valid.length, rejected, sample };
     if (options.preview) return { preview: true, created: 0, ...base };
@@ -262,7 +263,7 @@ export class QuestionService {
         for (const r of valid) {
           await tx.question.create({
             data: {
-              courseId: courseByClave.get(r.cursoClave) as string,
+              courseId: courseByCode.get(r.courseCode) as string,
               topic: r.topic,
               type: r.type,
               text: r.text,
@@ -275,7 +276,7 @@ export class QuestionService {
         }
         await this.audit?.(
           { action: "QUESTIONS_IMPORTED", entityType: "Question", userId: actor.id, userName: actor.username,
-            metadata: { total: parsed.total, created: valid.length, rejected: rejected.length, cursos: claves } },
+            metadata: { total: parsed.total, created: valid.length, rejected: rejected.length, courses: codes } },
           tx
         );
         return { preview: false, created: valid.length, ...base } as ImportResult;

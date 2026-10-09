@@ -4,13 +4,13 @@
  * bloque que termina a las 09:00 no se empalma con otro que empieza a las 09:00.
  * Funciones **puras** (pruebas unitarias sin BD).
  */
-export const WEEK_DAYS = ["LUNES", "MARTES", "MIERCOLES", "JUEVES", "VIERNES", "SABADO", "DOMINGO"] as const;
+export const WEEK_DAYS = ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"] as const;
 export type WeekDay = (typeof WEEK_DAYS)[number];
 
 export interface ScheduleSlot {
-  dia: WeekDay;
-  horaInicio: string;
-  horaFin: string;
+  day: WeekDay;
+  startTime: string;
+  endTime: string;
 }
 
 export const TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d$/;
@@ -23,9 +23,9 @@ export const minutesOf = (time: string): number => {
 
 /** ¿Se traslapan dos bloques? (mismo día y `[a, b)` ∩ `[c, d)` ≠ ∅). */
 export const slotsOverlap = (a: ScheduleSlot, b: ScheduleSlot): boolean =>
-  a.dia === b.dia &&
-  minutesOf(a.horaInicio) < minutesOf(b.horaFin) &&
-  minutesOf(b.horaInicio) < minutesOf(a.horaFin);
+  a.day === b.day &&
+  minutesOf(a.startTime) < minutesOf(b.endTime) &&
+  minutesOf(b.startTime) < minutesOf(a.endTime);
 
 /** Primer par de bloques que se empalman entre dos horarios, o `null`. */
 export const firstConflict = (
@@ -47,7 +47,7 @@ export const hasInternalOverlap = (slots: readonly ScheduleSlot[]): boolean =>
 /** Orden estable: por día de la semana y hora de inicio. */
 export const sortSchedule = (slots: readonly ScheduleSlot[]): ScheduleSlot[] =>
   [...slots].sort(
-    (a, b) => WEEK_DAYS.indexOf(a.dia) - WEEK_DAYS.indexOf(b.dia) || minutesOf(a.horaInicio) - minutesOf(b.horaInicio)
+    (a, b) => WEEK_DAYS.indexOf(a.day) - WEEK_DAYS.indexOf(b.day) || minutesOf(a.startTime) - minutesOf(b.startTime)
   );
 
 /** Lee el `Json` guardado en BD; descarta lo que no tenga la forma esperada. */
@@ -57,8 +57,8 @@ export const parseSchedule = (value: unknown): ScheduleSlot[] =>
         (s): s is ScheduleSlot =>
           typeof s === "object" &&
           s !== null &&
-          WEEK_DAYS.includes((s as ScheduleSlot).dia) &&
-          TIME_PATTERN.test(String((s as ScheduleSlot).horaInicio)) &&
-          TIME_PATTERN.test(String((s as ScheduleSlot).horaFin))
+          WEEK_DAYS.includes((s as ScheduleSlot).day) &&
+          TIME_PATTERN.test(String((s as ScheduleSlot).startTime)) &&
+          TIME_PATTERN.test(String((s as ScheduleSlot).endTime))
       )
     : [];

@@ -24,7 +24,7 @@ export const PAYMENT_METHODS = ["CASH", "TRANSFER", "DEPOSIT", "CARD", "OTHER"] 
 // --- Conceptos ----------------------------------------------------------------
 
 const conceptFields = {
-  name: z.string().trim().min(1, "NOMBRE_REQUIRED").max(120),
+  name: z.string().trim().min(1, "NAME_REQUIRED").max(120),
   description: optionalText(500),
   amount: amount.pipe(z.number().min(0).max(9_999_999)),
   type: z.enum(EDITABLE_FEE_TYPES),
@@ -107,21 +107,21 @@ export const ChargeSchema = z
     id: z.string(),
     studentId: z.string(),
     studentNumber: z.string(),
-    studentNombre: z.string(),
+    studentName: z.string(),
     conceptId: z.string(),
-    conceptNombre: z.string(),
-    conceptTipo: z.enum(FEE_CONCEPT_TYPES),
+    conceptName: z.string(),
+    conceptType: z.enum(FEE_CONCEPT_TYPES),
     termId: z.string().nullable(),
-    termNombre: z.string().nullable(),
+    termName: z.string().nullable(),
     description: z.string().nullable(),
     amount: z.number(),
     discount: z.number(),
     total: z.number(),
-    pagado: z.number(),
-    saldo: z.number(),
+    paid: z.number(),
+    balance: z.number(),
     dueDate: z.string(),
     /** Con saldo y vencimiento anterior a hoy. */
-    vencido: z.boolean(),
+    overdue: z.boolean(),
     status: z.enum(CHARGE_STATUSES),
     parentChargeId: z.string().nullable(),
     cancelledAt: z.string().nullable(),
@@ -160,9 +160,9 @@ export const PaymentSchema = z
     chargeId: z.string(),
     studentId: z.string(),
     studentNumber: z.string(),
-    studentNombre: z.string(),
-    conceptNombre: z.string(),
-    chargeDescripcion: z.string().nullable(),
+    studentName: z.string(),
+    conceptName: z.string(),
+    chargeDescription: z.string().nullable(),
     amount: z.number(),
     date: z.string(),
     method: z.enum(PAYMENT_METHODS),
@@ -175,7 +175,7 @@ export const PaymentSchema = z
     createdAt: z.string(),
     /** Estado del cargo después de este movimiento. */
     chargeStatus: z.enum(CHARGE_STATUSES),
-    chargeSaldo: z.number(),
+    chargeBalance: z.number(),
   })
   .openapi("Payment");
 registry.register("Payment", PaymentSchema);
@@ -187,7 +187,7 @@ export const PaymentTableResponseSchema = paginatedTableResponseSchema(PaymentSc
 export const AccountStatementSchema = z
   .object({
     student: z.object({ id: z.string(), studentNumber: z.string(), name: z.string(), status: z.enum(["ACTIVE", "WITHDRAWN"]) }),
-    escuela: z.object({ name: z.string(), address: z.string(), phone: z.string(), email: z.string() }),
+    school: z.object({ name: z.string(), address: z.string(), phone: z.string(), email: z.string() }),
     charges: z.array(
       ChargeSchema.extend({
         payments: z.array(
@@ -195,8 +195,8 @@ export const AccountStatementSchema = z
         ),
       })
     ),
-    totals: z.object({ cargos: z.number(), descuentos: z.number(), pagado: z.number(), saldo: z.number(), vencido: z.number() }),
-    generadoEn: z.string(),
+    totals: z.object({ charges: z.number(), discounts: z.number(), paid: z.number(), balance: z.number(), overdue: z.number() }),
+    generatedAt: z.string(),
   })
   .openapi("AccountStatement");
 registry.register("AccountStatement", AccountStatementSchema);

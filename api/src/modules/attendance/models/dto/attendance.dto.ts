@@ -54,8 +54,8 @@ export const SessionSchema = z
     date: z.string(),
     time: z.string().nullable(),
     topic: z.string().nullable(),
-    registrados: z.number().int(),
-    faltas: z.number().int(),
+    recordedCount: z.number().int(),
+    absences: z.number().int(),
     annulled: z.boolean(),
     deleteReason: z.string().nullable(),
     createdAt: z.string(),
@@ -77,7 +77,7 @@ export const RollRowSchema = z.object({
 });
 
 export const SessionRollSchema = SessionSchema.extend({
-  group: z.object({ id: z.string(), name: z.string(), courseNombre: z.string(), termNombre: z.string(), closed: z.boolean() }),
+  group: z.object({ id: z.string(), name: z.string(), courseName: z.string(), termName: z.string(), closed: z.boolean() }),
   rows: z.array(RollRowSchema),
 }).openapi("AttendanceSessionRoll");
 registry.register("AttendanceSessionRoll", SessionRollSchema);
@@ -88,18 +88,18 @@ export const SummaryRowSchema = z.object({
   studentId: z.string(),
   studentNumber: z.string(),
   name: z.string(),
-  sesiones: z.number().int(),
+  sessions: z.number().int(),
   presentes: z.number().int(),
-  retardos: z.number().int(),
-  faltas: z.number().int(),
-  justificadas: z.number().int(),
-  porcentaje: z.number().nullable(),
-  alerta: z.boolean(),
+  lates: z.number().int(),
+  absences: z.number().int(),
+  justified: z.number().int(),
+  percentage: z.number().nullable(),
+  alert: z.boolean(),
 });
 export type SummaryRow = z.infer<typeof SummaryRowSchema>;
 
 export const GroupSummarySchema = z
-  .object({ groupId: z.string(), threshold: z.number(), sesiones: z.number().int(), promedio: z.number().nullable(), enAlerta: z.number().int(), rows: z.array(SummaryRowSchema) })
+  .object({ groupId: z.string(), threshold: z.number(), sessions: z.number().int(), average: z.number().nullable(), inAlert: z.number().int(), rows: z.array(SummaryRowSchema) })
   .openapi("GroupAttendanceSummary");
 registry.register("GroupAttendanceSummary", GroupSummarySchema);
 export type GroupSummaryView = z.infer<typeof GroupSummarySchema>;
@@ -111,9 +111,9 @@ export const StudentAttendanceSchema = z
     groups: z.array(
       SummaryRowSchema.omit({ studentId: true, studentNumber: true, name: true }).extend({
         groupId: z.string(),
-        grupo: z.string(),
-        curso: z.string(),
-        ciclo: z.string(),
+        groupName: z.string(),
+        courseName: z.string(),
+        termName: z.string(),
         records: z.array(
           z.object({
             attendanceId: z.string(),
@@ -143,8 +143,8 @@ export const JustificationSchema = z
     date: z.string(),
     time: z.string().nullable(),
     groupId: z.string(),
-    grupo: z.string(),
-    curso: z.string(),
+    groupName: z.string(),
+    courseName: z.string(),
     studentId: z.string(),
     studentNumber: z.string(),
     name: z.string(),

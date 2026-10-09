@@ -144,7 +144,7 @@ const optional = (values: Record<string, string>, key: string): string | null =>
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE = /^[0-9+()\-\s]{7,20}$/;
-const GENEROS = ["M", "F", "OTHER"] as const;
+const GENDERS = ["M", "F", "OTHER"] as const;
 
 /** Construye la tabla del CSV: encabezado normalizado y filas indexadas. */
 export const readTable = (text: string): SourceTable => {
@@ -190,7 +190,7 @@ export const parseStudentRow = (values: Record<string, string>, today: string): 
   if (!isRealDay(enrollmentDate)) return problem("INVALID_DATE", enrollmentDate);
 
   const gender = optional(values, "gender");
-  if (gender && !(GENEROS as readonly string[]).includes(gender.toUpperCase())) return problem("INVALID_FORMAT", gender);
+  if (gender && !(GENDERS as readonly string[]).includes(gender.toUpperCase())) return problem("INVALID_FORMAT", gender);
 
   const email = optional(values, "email");
   if (email && !EMAIL.test(email)) return problem("INVALID_EMAIL", email);

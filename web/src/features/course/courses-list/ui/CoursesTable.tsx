@@ -26,15 +26,15 @@ export default function CoursesTable({ fx, onAction }: Props) {
 
   const columns: Column<Course>[] = [
     {
-      key: "code", label: t("courses.clave"), type: "string", width: 140, filter: true, sortable: false,
+      key: "code", label: t("courses.code"), type: "string", width: 140, filter: true, sortable: false,
       render: (row) => <ITText className="font-mono text-[12px] font-bold text-slate-700">{row.code}</ITText>,
     },
-    { key: "name", label: t("courses.nombre"), type: "string", filter: true, sortable: false },
+    { key: "name", label: t("courses.name"), type: "string", filter: true, sortable: false },
     {
-      key: "levelNombre", label: t("courses.nivel"), type: "string", width: 160,
-      render: (row) => <ITText className="text-[12px] text-slate-600">{row.levelNombre ?? t("courses.noLevel")}</ITText>,
+      key: "levelName", label: t("courses.level"), type: "string", width: 160,
+      render: (row) => <ITText className="text-[12px] text-slate-600">{row.levelName ?? t("courses.noLevel")}</ITText>,
     },
-    { key: "groupsCount", label: t("courses.grupos"), type: "number", width: 120 },
+    { key: "groupsCount", label: t("courses.groups"), type: "number", width: 120 },
     {
       key: "active", label: t("courses.status"), type: "boolean", width: 120, filter: true, sortable: false,
       render: (row) => (

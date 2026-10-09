@@ -29,9 +29,9 @@ let admin: APIRequestContext;
 let control: APIRequestContext;
 let prof: APIRequestContext;
 let groupId: string;
-let termNombre: string;
+let termName: string;
 let examId: string;
-let pupilNombre: string;
+let pupilName: string;
 
 /** Día del calendario en la zona de la app, desplazado `offset` días. */
 const dayFrom = (offset: number): string =>
@@ -42,14 +42,14 @@ test.beforeAll(async () => {
   admin = await apiAs(E2E.admin.username);
   control = await apiAs(E2E.control.username);
   prof = await apiAs(E2E.teacher.username);
-  termNombre = `E2E Ciclo Línea ${RUN}`;
-  const term = await (await admin.post("terms", { data: { nombre: termNombre, fechaInicio: "2026-08-01", fechaFin: "2026-12-15" } })).json();
-  const course = await (await admin.post("courses", { data: { clave: CLAVE, nombre: COURSE } })).json();
+  termName = `E2E Ciclo Línea ${RUN}`;
+  const term = await (await admin.post("terms", { data: { name: termName, startDate: "2026-08-01", endDate: "2026-12-15" } })).json();
+  const course = await (await admin.post("courses", { data: { code: CLAVE, name: COURSE } })).json();
   const teachers = await (
     await control.post("teachers/query", { data: { page: 1, limit: 5, filters: { email: "e2e_profesor@e2e.local" } } })
   ).json();
   const group = await control.post("groups", {
-    data: { courseId: course.id, termId: term.id, teacherId: teachers.data[0].id, nombre: "Línea", cupo: 10, horario: [{ dia: "JUEVES", horaInicio: "10:00", horaFin: "12:00" }] },
+    data: { courseId: course.id, termId: term.id, teacherId: teachers.data[0].id, name: "Línea", capacity: 10, schedule: [{ day: "THURSDAY", startTime: "10:00", endTime: "12:00" }] },
   });
   expect(group.status(), await group.text()).toBe(201);
   groupId = (await group.json()).id;
@@ -61,13 +61,13 @@ test.beforeAll(async () => {
   await pupil.dispose();
   const birth = "2004-03-03";
   const student = await control.post("students", {
-    data: { nombres: `E2E Línea ${RUN}`, apellidoPaterno: "Examen", curp: makeCurp(birth, "M"), fechaNacimiento: birth, userId: user.id },
+    data: { firstNames: `E2E Línea ${RUN}`, paternalSurname: "Examen", curp: makeCurp(birth, "M"), birthDate: birth, userId: user.id },
   });
   expect(student.status(), await student.text()).toBe(201);
   const s = await student.json();
-  pupilNombre = s.nombreCompleto;
+  pupilName = s.fullName;
   expect((await control.post(`groups/${groupId}/enroll`, { data: { studentId: s.id } })).status()).toBe(201);
-  const assessment = await prof.post("assessments", { data: { groupId, nombre: "Parcial en línea", tipo: "PARCIAL", ponderacion: 100, maxScore: 10 } });
+  const assessment = await prof.post("assessments", { data: { groupId, name: "Parcial en línea", type: "PARTIAL", weight: 100, maxScore: 10 } });
   expect(assessment.status(), await assessment.text()).toBe(201);
 });
 
@@ -91,10 +91,10 @@ test.describe.serial("examen en línea", () => {
     await page.getByRole("button", { name: "Nuevo reactivo" }).click();
     const form = page.getByRole("dialog", { name: "Nuevo reactivo" });
     await form.locator('select[name="courseId"]').selectOption({ label: `${CLAVE} · ${COURSE}` });
-    await form.locator('textarea[name="enunciado"]').fill(Q.om);
-    await form.locator('input[name="puntos"]').fill("2");
-    await form.locator('input[name="opcion-0"]').fill("Na");
-    await form.locator('input[name="opcion-1"]').fill("So");
+    await form.locator('textarea[name="text"]').fill(Q.om);
+    await form.locator('input[name="points"]').fill("2");
+    await form.locator('input[name="option-0"]').fill("Na");
+    await form.locator('input[name="option-1"]').fill("So");
     await form.getByRole("button", { name: "Guardar" }).click();
     await expect(page.getByText("Reactivo creado")).toBeVisible();
 
@@ -120,14 +120,14 @@ test.describe.serial("examen en línea", () => {
     await page.goto(route("/exams"));
     await page.getByRole("button", { name: "Nuevo examen" }).click();
     const form = page.getByRole("dialog", { name: "Nuevo examen" });
-    await form.locator('select[name="groupId"]').selectOption({ label: `${CLAVE} · Línea (${termNombre})` });
-    await form.locator('input[name="titulo"]').fill(EXAM);
-    await form.locator('input[name="fechaApertura"]').fill(typedDate(dayFrom(-1)));
-    await form.locator('select[name="fechaApertura-hora"]').selectOption("00:00");
-    await form.locator('input[name="fechaCierre"]').fill(typedDate(dayFrom(7)));
-    await form.locator('select[name="fechaCierre-hora"]').selectOption("23:45");
-    await form.locator('input[name="duracionMin"]').fill("30");
-    await form.locator('input[name="puntajeAprobatorio"]').fill("3");
+    await form.locator('select[name="groupId"]').selectOption({ label: `${CLAVE} · Línea (${termName})` });
+    await form.locator('input[name="title"]').fill(EXAM);
+    await form.locator('input[name="opensAt"]').fill(typedDate(dayFrom(-1)));
+    await form.locator('select[name="opensAt-time"]').selectOption("00:00");
+    await form.locator('input[name="closesAt"]').fill(typedDate(dayFrom(7)));
+    await form.locator('select[name="closesAt-time"]').selectOption("23:45");
+    await form.locator('input[name="durationMin"]').fill("30");
+    await form.locator('input[name="passingScore"]').fill("3");
     await form.locator('select[name="assessmentId"]').selectOption({ label: "Parcial en línea (100% · /10)" });
     await form.getByRole("button", { name: "Guardar" }).click();
     await expect(page.getByText("Examen creado")).toBeVisible();
@@ -135,7 +135,7 @@ test.describe.serial("examen en línea", () => {
     examId = page.url().split("/").pop() as string;
 
     await page.getByRole("button", { name: "Reactivos (0)", exact: true }).click();
-    for (const enunciado of [Q.om, Q.vf, Q.open]) await page.getByRole("button", { name: `Agregar ${enunciado}` }).click();
+    for (const text of [Q.om, Q.vf, Q.open]) await page.getByRole("button", { name: `Agregar ${text}` }).click();
     await expect(page.getByText("Total: 5 puntos")).toBeVisible();
     await page.getByRole("button", { name: "Guardar preguntas" }).click();
     await expect(page.getByText("Preguntas guardadas")).toBeVisible();
@@ -189,14 +189,14 @@ test.describe.serial("examen en línea", () => {
     await signIn(page, E2E.teacher.username);
     await page.goto(route(`/exams/${examId}`));
     await page.getByRole("button", { name: "Resultados", exact: true }).click();
-    const row = page.locator("[data-role=exam-results] tr", { hasText: pupilNombre });
+    const row = page.locator("[data-role=exam-results] tr", { hasText: pupilName });
     await expect(row.getByText("Por revisar")).toBeVisible();
-    await row.getByRole("button", { name: `Revisar 1 ${pupilNombre}` }).click();
+    await row.getByRole("button", { name: `Revisar 1 ${pupilName}` }).click();
 
-    const dialog = page.getByRole("dialog", { name: `Intento 1 · ${pupilNombre}` });
+    const dialog = page.getByRole("dialog", { name: `Intento 1 · ${pupilName}` });
     await expect(dialog.getByText("Puntaje: 3 de 5")).toBeVisible();
-    await dialog.locator('input[name="review-puntos-3"]').fill("1.5");
-    await dialog.locator('textarea[name="review-comentario-3"]').fill("Falta el ejemplo.");
+    await dialog.locator('input[name="review-points-3"]').fill("1.5");
+    await dialog.locator('textarea[name="review-comment-3"]').fill("Falta el ejemplo.");
     await dialog.getByRole("button", { name: "Calificar", exact: true }).click();
     await expect(page.getByText("Respuesta calificada")).toBeVisible();
     await expect(dialog.getByText("Puntaje: 4.5 de 5")).toBeVisible();
@@ -206,10 +206,10 @@ test.describe.serial("examen en línea", () => {
 
     // 4.5 de 5 → 9 sobre la escala 10 del instrumento vinculado.
     const book = await (await prof.get(`groups/${groupId}/gradebook`)).json();
-    const assessment = book.assessments.find((a: { nombre: string }) => a.nombre === "Parcial en línea");
+    const assessment = book.assessments.find((a: { name: string }) => a.name === "Parcial en línea");
     expect(book.students[0].scores[assessment.id]).toBe(9);
     await page.goto(route(`/groups/${groupId}`));
     await page.getByRole("button", { name: "Calificaciones", exact: true }).click();
-    await expect(page.getByLabel(`${pupilNombre} · Parcial en línea`)).toHaveValue("9");
+    await expect(page.getByLabel(`${pupilName} · Parcial en línea`)).toHaveValue("9");
   });
 });

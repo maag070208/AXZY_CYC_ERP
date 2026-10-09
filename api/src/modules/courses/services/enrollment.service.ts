@@ -19,6 +19,7 @@ import { fullName } from "@modules/students/services/student.service";
 import { ENROLLMENT_STATUSES, type EnrollInput, type EnrollmentView } from "../models/dto/course.dto";
 import { firstConflict, parseSchedule } from "../models/entity/schedule";
 import { CURRENT_ENROLLMENT, enrollmentScope } from "./academic-scope";
+import { t, type MessageKey } from "@core/i18n";
 
 const include = {
   student: {
@@ -36,12 +37,12 @@ const toView = (row: EnrollmentRow): EnrollmentView => ({
   id: row.id,
   studentId: row.studentId,
   studentNumber: row.student.studentNumber,
-  studentNombre: fullName(row.student),
+  studentName: fullName(row.student),
   studentStatus: row.student.status,
   groupId: row.groupId,
-  groupNombre: row.group.name,
-  courseNombre: row.group.course.name,
-  termNombre: row.group.term.name,
+  groupName: row.group.name,
+  courseName: row.group.course.name,
+  termName: row.group.term.name,
   date: fromDbDay(row.date),
   status: row.status,
   finalGrade: row.finalGrade === null ? null : Number(row.finalGrade),
@@ -50,16 +51,6 @@ const toView = (row: EnrollmentRow): EnrollmentView => ({
   transferredToId: row.transferredToId,
   createdAt: row.createdAt.toISOString(),
 });
-
-const DAY_LABEL: Record<string, string> = {
-  LUNES: "lunes",
-  MARTES: "martes",
-  MIERCOLES: "miércoles",
-  JUEVES: "jueves",
-  VIERNES: "viernes",
-  SABADO: "sábado",
-  DOMINGO: "domingo",
-};
 
 type Tx = Prisma.TransactionClient;
 
@@ -164,9 +155,9 @@ export class EnrollmentService {
       const conflict = firstConflict(schedule, parseSchedule(other.group.schedule));
       if (conflict) {
         throw new HttpError(409, "SCHEDULE_CONFLICT", {
-          grupo: other.group.name,
-          curso: other.group.course.name,
-          dia: DAY_LABEL[conflict.mine.dia],
+          groupName: other.group.name,
+          courseName: other.group.course.name,
+          day: t(`days.${conflict.mine.day}` as MessageKey),
         }, { conflict });
       }
     }
@@ -249,7 +240,7 @@ export class EnrollmentService {
         });
         const changed = await tx.enrollment.updateMany({
           where: { id, status: "ENROLLED" },
-          data: { status: "WITHDRAWN", withdrawnAt: new Date(), withdrawalReason: "Cambio de grupo", transferredToId: created.id },
+          data: { status: "WITHDRAWN", withdrawnAt: new Date(), withdrawalReason: t("enrollments.groupChangeReason"), transferredToId: created.id },
         });
         if (changed.count === 0) throw new HttpError(409, "ENROLLMENT_NOT_ACTIVE");
         await this.audit?.(
@@ -274,7 +265,7 @@ export class EnrollmentService {
     const client = (tx ?? this.db) as Tx;
     const result = await client.enrollment.updateMany({
       where: { studentId, status: "ENROLLED" },
-      data: { status: "WITHDRAWN", withdrawnAt: new Date(), withdrawalReason: "Baja del alumno" },
+      data: { status: "WITHDRAWN", withdrawnAt: new Date(), withdrawalReason: t("enrollments.studentWithdrawalReason") },
     });
     return result.count;
   };

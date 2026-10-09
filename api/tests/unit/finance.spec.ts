@@ -4,7 +4,7 @@ import {
   chargeStatusOf,
   chargeTotal,
   daysBetween,
-  formatFolio,
+  formatReceiptNumber,
   isCents,
   lateFeeOf,
   sumOf,
@@ -42,8 +42,8 @@ test.describe("dinero (M09)", () => {
   });
 
   test("folio consecutivo con año y relleno", () => {
-    expect(formatFolio(2026, 123)).toBe("REC-2026-000123");
-    expect(formatFolio(2027, 1)).toBe("REC-2027-000001");
+    expect(formatReceiptNumber(2026, 123)).toBe("REC-2026-000123");
+    expect(formatReceiptNumber(2027, 1)).toBe("REC-2027-000001");
   });
 
   test("montos: máximo 2 decimales; pago > 0; método del catálogo", () => {

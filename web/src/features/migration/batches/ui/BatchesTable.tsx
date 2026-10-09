@@ -41,7 +41,7 @@ export default function BatchesTable({ reloadKey, onTotal }: Props) {
 
   const columns: Column<MigrationBatch>[] = [
     {
-      key: "file", label: t("batches.archivo"), type: "string", filter: true, sortable: false,
+      key: "file", label: t("batches.file"), type: "string", filter: true, sortable: false,
       render: (r) => (
         <div>
           <ITText className="block text-[12px] font-bold text-slate-700">{r.file}</ITText>
@@ -63,7 +63,7 @@ export default function BatchesTable({ reloadKey, onTotal }: Props) {
       render: (r) => <ITText className="text-[11px] text-slate-600">{totalsText(r.totals)}</ITText>,
     },
     {
-      key: "createdAt", label: t("batches.fecha"), type: "date", width: 170, sortable: false,
+      key: "createdAt", label: t("batches.date"), type: "date", width: 170, sortable: false,
       render: (r) => <ITText className="text-[11px] text-slate-500">{formatInstant(r.executedAt ?? r.createdAt, i18n.language)}</ITText>,
     },
     {

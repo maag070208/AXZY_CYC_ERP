@@ -46,7 +46,7 @@ export default function AssessmentFormDialog({ isOpen, groupId, assessment, avai
     const weight = Number(weightInput);
     const max = Number(maxScore);
     const next = {
-      name: validateRequired(name, t("assessments.nombre")) ?? undefined,
+      name: validateRequired(name, t("assessments.name")) ?? undefined,
       weight: weight > 0 && weight <= 100 && twoDecimals(weight) ? undefined : "0 < % ≤ 100",
       maxScore: max > 0 && twoDecimals(max) ? undefined : "> 0",
     };
@@ -73,16 +73,16 @@ export default function AssessmentFormDialog({ isOpen, groupId, assessment, avai
           {error && <ITAlert variant="error">{error}</ITAlert>}
           <ITGrid container columns={12} spacing={4}>
             <ITGrid item xs={12} md={8}>
-              <ITInput name="name" label={t("assessments.nombre")} value={name} required error={errors.name}
+              <ITInput name="name" label={t("assessments.name")} value={name} required error={errors.name}
                 onChange={(e) => setName(e.target.value)} />
             </ITGrid>
             <ITGrid item xs={12} md={4}>
-              <ITSelect name="type" label={t("assessments.tipo")} value={type}
+              <ITSelect name="type" label={t("assessments.type")} value={type}
                 options={ASSESSMENT_TYPES.map((x) => ({ value: x, label: t(`assessments.types.${x}`) }))}
                 onChange={(e) => setType(e.target.value as AssessmentType)} />
             </ITGrid>
             <ITGrid item xs={12} md={4}>
-              <ITInput name="weight" type="number" label={t("assessments.ponderacion")} value={weightInput} required
+              <ITInput name="weight" type="number" label={t("assessments.weight")} value={weightInput} required
                 error={errors.weight} onChange={(e) => setWeightInput(e.target.value)} />
             </ITGrid>
             <ITGrid item xs={12} md={4}>
@@ -90,7 +90,7 @@ export default function AssessmentFormDialog({ isOpen, groupId, assessment, avai
                 error={errors.maxScore} onChange={(e) => setMaxScore(e.target.value)} />
             </ITGrid>
             <ITGrid item xs={12} md={4}>
-              <ITDatePicker name="date" label={t("assessments.fecha")} value={date ? fromDay(date) : undefined}
+              <ITDatePicker name="date" label={t("assessments.date")} value={date ? fromDay(date) : undefined}
                 onChange={(e) => setDate(pickDay(e.target.value))} />
             </ITGrid>
           </ITGrid>

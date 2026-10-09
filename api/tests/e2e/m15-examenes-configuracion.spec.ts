@@ -57,7 +57,7 @@ test("alta en borrador con bitácora; ventana invertida → 400; grupo ajeno →
   const res = await prof.post("online-exams", { data: exam() });
   expect(res.status(), await res.text()).toBe(201);
   const body = await res.json();
-  expect(body).toMatchObject({ status: "DRAFT", totalPuntos: 0, preguntas: 0, attemptCriterion: "BEST", maxAttempts: 2 });
+  expect(body).toMatchObject({ status: "DRAFT", totalPoints: 0, questionCount: 0, attemptCriterion: "BEST", maxAttempts: 2 });
   expect((await lastAudit("EXAM_CREATED", profUserId))?.entityId).toBe(body.id);
 
   const inverted = await prof.post("online-exams", {
@@ -72,9 +72,9 @@ test("alta en borrador con bitácora; ventana invertida → 400; grupo ajeno →
   await api.dispose();
 });
 
-test("preguntas: points por omisión del reactivo, total; inactivas o de otro curso → 400", async () => {
+test("preguntas: puntos por omisión del reactivo, total; inactivas o de otro curso → 400", async () => {
   const detail = await draftWithQuestions();
-  expect(detail.totalPuntos).toBe(10);
+  expect(detail.totalPoints).toBe(10);
   expect(detail.questions.map((q: { points: number }) => q.points)).toEqual([2, 1, 3, 4]);
   expect((await lastAudit("EXAM_QUESTIONS_SET", profUserId))?.newState).toMatchObject({ total: 10 });
 
@@ -84,7 +84,7 @@ test("preguntas: points por omisión del reactivo, total; inactivas o de otro cu
   expect((await bad.json()).code).toBe("EXAM_QUESTION_INVALID");
 
   const removed = await prof.delete(`online-exams/${detail.id}/questions/${world.questions.ab.id}`);
-  expect((await removed.json()).totalPuntos).toBe(6);
+  expect((await removed.json()).totalPoints).toBe(6);
 });
 
 test("publicar: sin preguntas → 409; aprobatorio > total → 400; publicado con bitácora", async () => {
@@ -111,7 +111,7 @@ test("evaluación vinculada: debe ser del mismo grupo y una sola por examen", as
     data: { groupId: world.group.id, name: "E2E Parcial online", type: "PARTIAL", weight: 30, maxScore: 100 },
   });
   const foreignGroup = await db.group.create({
-    data: { courseId: world.course.id, termId: world.term.id, name: "Ajeno", capacity: 5, schedule: [{ dia: "LUNES", horaInicio: "07:00", horaFin: "08:00" }] },
+    data: { courseId: world.course.id, termId: world.term.id, name: "Ajeno", capacity: 5, schedule: [{ day: "MONDAY", startTime: "07:00", endTime: "08:00" }] },
   });
   const foreignAssessment = await db.assessment.create({
     data: { groupId: foreignGroup.id, name: "E2E Ajena", type: "PARTIAL", weight: 10, maxScore: 100 },
@@ -119,7 +119,7 @@ test("evaluación vinculada: debe ser del mismo grupo y una sola por examen", as
   const bad = await prof.post("online-exams", { data: exam({ assessmentId: foreignAssessment.id }) });
   expect((await bad.json()).code).toBe("EXAM_ASSESSMENT_INVALID");
   const linked = await prof.post("online-exams", { data: exam({ assessmentId: assessment.id }) });
-  expect(await linked.json()).toMatchObject({ assessmentId: assessment.id, assessmentNombre: "E2E Parcial online" });
+  expect(await linked.json()).toMatchObject({ assessmentId: assessment.id, assessmentName: "E2E Parcial online" });
   const taken = await prof.post("online-exams", { data: exam({ assessmentId: assessment.id }) });
   expect((await taken.json()).code).toBe("EXAM_ASSESSMENT_TAKEN");
 });

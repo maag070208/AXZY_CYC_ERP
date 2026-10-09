@@ -49,15 +49,15 @@ export class StudentController {
   /** `DELETE /students/:id`: baja lógica (M03) = movimiento de baja con motivo (M05). */
   remove = async (req: Request, res: Response) => {
     const input = MovementInputDto.parse(req.body ?? {});
-    res.json(await this.movements.baja(req.params.id, input, this.actor(req), "students.delete"));
+    res.json(await this.movements.withdraw(req.params.id, input, this.actor(req), "students.delete"));
   };
 
-  baja = async (req: Request, res: Response) => {
-    res.json(await this.movements.baja(req.params.id, MovementInputDto.parse(req.body ?? {}), this.actor(req)));
+  withdraw = async (req: Request, res: Response) => {
+    res.json(await this.movements.withdraw(req.params.id, MovementInputDto.parse(req.body ?? {}), this.actor(req)));
   };
 
-  reingreso = async (req: Request, res: Response) => {
-    res.json(await this.movements.reingreso(req.params.id, MovementInputDto.parse(req.body ?? {}), this.actor(req)));
+  reenter = async (req: Request, res: Response) => {
+    res.json(await this.movements.reenter(req.params.id, MovementInputDto.parse(req.body ?? {}), this.actor(req)));
   };
 
   listMovements = async (req: Request, res: Response) => {

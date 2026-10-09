@@ -27,29 +27,29 @@ export default function PaymentsTable({ reloadKey, onAction }: Props) {
 
   const columns: Column<Payment>[] = [
     {
-      key: "receiptNumber", label: t("payments.folio"), type: "string", width: 160, filter: true, sortable: false,
+      key: "receiptNumber", label: t("payments.receiptNumber"), type: "string", width: 160, filter: true, sortable: false,
       render: (row) => <ITText className="font-mono text-[12px] font-bold text-slate-700">{row.receiptNumber}</ITText>,
     },
     {
-      key: "date", label: t("payments.fecha"), type: "string", width: 120, sortable: false,
+      key: "date", label: t("payments.date"), type: "string", width: 120, sortable: false,
       render: (row) => <ITText className="text-[12px] text-slate-600">{formatDay(row.date, i18n.language)}</ITText>,
     },
     {
-      key: "studentNombre", label: t("payments.alumno"), type: "string", filter: true,
+      key: "studentName", label: t("payments.student"), type: "string", filter: true,
       render: (row) => (
         <div>
-          <ITText className="block text-[12px] font-bold text-slate-700">{row.studentNombre}</ITText>
-          <ITText className="text-[10px] text-slate-400">{row.chargeDescripcion ?? row.conceptNombre}</ITText>
+          <ITText className="block text-[12px] font-bold text-slate-700">{row.studentName}</ITText>
+          <ITText className="text-[10px] text-slate-400">{row.chargeDescription ?? row.conceptName}</ITText>
         </div>
       ),
     },
     {
-      key: "method", label: t("payments.metodo"), type: "catalog", width: 140, filter: "catalog",
+      key: "method", label: t("payments.method"), type: "catalog", width: 140, filter: "catalog",
       catalogOptions: { data: PAYMENT_METHODS.map((m) => ({ id: m, name: t(`payments.methods.${m}`) })) },
       render: (row) => <ITText className="text-[12px] text-slate-600">{t(`payments.methods.${row.method}`)}</ITText>,
     },
     {
-      key: "amount", label: t("payments.monto"), type: "number", width: 130, sortable: false,
+      key: "amount", label: t("payments.amount"), type: "number", width: 130, sortable: false,
       render: (row) => (
         <ITText className={`text-[12px] font-black ${row.cancelledAt ? "text-slate-400 line-through" : "text-slate-800"}`}>
           {formatMoney(row.amount, i18n.language)}
@@ -60,7 +60,7 @@ export default function PaymentsTable({ reloadKey, onAction }: Props) {
       key: "cancelled", label: t("payments.status"), type: "boolean", width: 120,
       render: (row) => (
         <span title={row.cancelReason ?? undefined}>
-          <ITBadget color={row.cancelledAt ? "danger" : "success"} size="sm">{row.cancelledAt ? t("payments.cancelado") : t("payments.vigente")}</ITBadget>
+          <ITBadget color={row.cancelledAt ? "danger" : "success"} size="sm">{row.cancelledAt ? t("payments.statusCancelled") : t("payments.current")}</ITBadget>
         </span>
       ),
     },

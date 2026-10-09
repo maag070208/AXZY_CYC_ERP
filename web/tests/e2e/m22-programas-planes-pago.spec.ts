@@ -20,16 +20,16 @@ let studentName: string;
 
 test.beforeAll(async () => {
   admin = await apiAs(E2E.admin.username);
-  const course = await admin.post("courses", { data: { clave: `E2E-M22C-${RUN}`.toUpperCase().slice(0, 30), nombre: COURSE } });
+  const course = await admin.post("courses", { data: { code: `E2E-M22C-${RUN}`.toUpperCase().slice(0, 30), name: COURSE } });
   expect(course.status(), await course.text()).toBe(201);
   const birth = "2000-06-06";
   const student = await admin.post("students", {
-    data: { nombres: `E2E M22 ${RUN}`, apellidoPaterno: "Pago", curp: makeCurp(birth, "M"), fechaNacimiento: birth },
+    data: { firstNames: `E2E M22 ${RUN}`, paternalSurname: "Pago", curp: makeCurp(birth, "M"), birthDate: birth },
   });
   expect(student.status(), await student.text()).toBe(201);
   const s = await student.json();
   studentId = s.id;
-  studentName = s.nombreCompleto;
+  studentName = s.fullName;
 });
 
 test.afterAll(async () => {

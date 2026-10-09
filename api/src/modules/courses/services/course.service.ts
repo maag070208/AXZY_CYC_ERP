@@ -28,7 +28,7 @@ const toView = (row: CourseRow): CourseView => ({
   code: row.code,
   name: row.name,
   levelId: row.levelId,
-  levelNombre: row.level?.name ?? null,
+  levelName: row.level?.name ?? null,
   description: row.description,
   active: row.active,
   groupsCount: row._count.groups,
@@ -64,9 +64,9 @@ export class CourseService {
     if (!level) throw new HttpError(400, "LEVEL_NOT_AVAILABLE");
   }
 
-  private async assertClaveFree(code: string, exceptId?: string): Promise<void> {
+  private async assertCodeFree(code: string, exceptId?: string): Promise<void> {
     const taken = await this.db.course.findFirst({ where: { code, ...(exceptId ? { NOT: { id: exceptId } } : {}) } });
-    if (taken) throw new HttpError(409, "COURSE_CLAVE_TAKEN", { code });
+    if (taken) throw new HttpError(409, "COURSE_CODE_TAKEN", { code });
   }
 
   async table(params: ITDataTableFetchParams, user: UserPermissions): Promise<ITDataTableResponse<CourseView>> {
@@ -113,7 +113,7 @@ export class CourseService {
   }
 
   async create(input: CourseCreateInput, actor: AuthenticatedUser): Promise<CourseView> {
-    await this.assertClaveFree(input.code);
+    await this.assertCodeFree(input.code);
     await this.assertLevel(input.levelId);
     return this.db.$transaction(async (tx) => {
       const row = await tx.course.create({
@@ -137,7 +137,7 @@ export class CourseService {
 
   async update(id: string, input: CourseUpdateInput, actor: AuthenticatedUser): Promise<CourseView> {
     const before = toView(await this.load(id));
-    if (input.code && input.code !== before.code) await this.assertClaveFree(input.code, id);
+    if (input.code && input.code !== before.code) await this.assertCodeFree(input.code, id);
     if (input.levelId !== undefined) await this.assertLevel(input.levelId);
     return this.db.$transaction(async (tx) => {
       const row = await tx.course.update({

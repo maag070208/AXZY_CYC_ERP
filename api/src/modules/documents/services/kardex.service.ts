@@ -13,8 +13,8 @@ const noAcademicHistory: KardexSource = async () => [];
 /** Promedio de las calificaciones finales de cursos cerrados. **Pura.** */
 export const averageOf = (entries: KardexEntry[]): number | null => {
   const finals = entries
-    .filter((e) => e.estatus === "PASSED" || e.estatus === "FAILED")
-    .map((e) => e.calificacionFinal)
+    .filter((e) => e.status === "PASSED" || e.status === "FAILED")
+    .map((e) => e.finalGrade)
     .filter((v): v is number => v !== null);
   if (finals.length === 0) return null;
   return Math.round((finals.reduce((a, b) => a + b, 0) / finals.length) * 100) / 100;
@@ -58,12 +58,12 @@ export class KardexService {
       status: student.status,
       enrollmentDate: fromDbDay(student.enrollmentDate),
       entries,
-      promedioGeneral: averageOf(entries),
-      creditosAcreditados: entries.filter((e) => e.estatus === "PASSED").length,
-      documentosFaltantes: required.filter((t) => !has.has(t.id)).map((t) => t.name),
+      overallAverage: averageOf(entries),
+      passedCredits: entries.filter((e) => e.status === "PASSED").length,
+      missingDocuments: required.filter((t) => !has.has(t.id)).map((t) => t.name),
       minPassingGrade: Number(setting.get("MIN_PASSING_GRADE") ?? 70),
-      escuela: String(setting.get("SCHOOL_NAME") ?? "CYC"),
-      generadoEn: new Date().toISOString(),
+      school: String(setting.get("SCHOOL_NAME") ?? "CYC"),
+      generatedAt: new Date().toISOString(),
     };
   }
 }

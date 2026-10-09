@@ -90,7 +90,7 @@ test.describe.serial("migración de históricos", () => {
     expect((await res.json()).code).toBe("BACKUP_REQUIRED");
   });
 
-  test("ejecuta e inserta; reejecutar con la misma code no duplica y con otra actualiza", async () => {
+  test("ejecuta e inserta; reejecutar con la misma clave no duplica y con otra actualiza", async () => {
     await registerBackup(admin, new Date().toISOString());
     const first = await upload(admin, "migration/execute", "Student", STUDENT_FILE, STUDENT_CSV, {}, { "Idempotency-Key": KEY });
     expect(first.status(), await first.text()).toBe(201);
@@ -116,14 +116,14 @@ test.describe.serial("migración de históricos", () => {
     expect(audit).not.toBeNull();
   });
 
-  test("revalida el checksum del file en la confirmación", async () => {
+  test("revalida el checksum del archivo en la confirmación", async () => {
     await registerBackup(admin, new Date().toISOString());
     const res = await upload(admin, "migration/execute", "Student", STUDENT_FILE, STUDENT_CSV, { checksum: "0".repeat(64) }, { "Idempotency-Key": `${KEY}_3` });
     expect(res.status()).toBe(409);
     expect((await res.json()).code).toBe("CHECKSUM_MISMATCH");
   });
 
-  test("importa profesores con su cuenta PROFESOR y su code natural email", async () => {
+  test("importa profesores con su cuenta PROFESOR y su clave natural email", async () => {
     await registerBackup(admin, new Date().toISOString());
     const first = await upload(admin, "migration/execute", "Teacher", TEACHER_FILE, TEACHER_CSV, {}, { "Idempotency-Key": `${KEY}_t` });
     expect(first.status(), await first.text()).toBe(201);

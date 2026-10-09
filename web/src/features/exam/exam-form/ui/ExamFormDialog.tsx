@@ -28,13 +28,13 @@ export default function ExamFormDialog({ isOpen, exam, onClose, onSaved }: Props
   const [assessments, setAssessments] = useState<Assessment[]>([]);
   const [groupId, setGroupId] = useState("");
   const [title, setTitle] = useState("");
-  const [instructions, setInstrucciones] = useState("");
-  const [duracion, setDuracion] = useState("60");
-  const [intentos, setIntentos] = useState("1");
-  const [apertura, setApertura] = useState("");
-  const [cierre, setCierre] = useState("");
-  const [aprobatorio, setAprobatorio] = useState("0");
-  const [criterio, setCriterio] = useState<Criterion>("BEST");
+  const [instructions, setInstructions] = useState("");
+  const [duration, setDuration] = useState("60");
+  const [attempts, setAttempts] = useState("1");
+  const [opensAt, setApertura] = useState("");
+  const [closesAt, setCierre] = useState("");
+  const [passingScore, setPassingScore] = useState("0");
+  const [criterion, setCriterion] = useState<Criterion>("BEST");
   const [shuffleQ, setShuffleQ] = useState(false);
   const [shuffleO, setShuffleO] = useState(false);
   const [showResult, setShowResult] = useState(true);
@@ -42,20 +42,20 @@ export default function ExamFormDialog({ isOpen, exam, onClose, onSaved }: Props
   const [errors, setErrors] = useState<Errors>({});
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const locked = !!exam && exam.intentos > 0;
+  const locked = !!exam && exam.attemptCount > 0;
 
   useEffect(() => {
     if (!isOpen) return;
     if (!exam) groupApi.options().then((rows) => setGroups(rows.filter((g) => g.active && !g.closedAt))).catch(() => setGroups([]));
     setGroupId(exam?.groupId ?? "");
     setTitle(exam?.title ?? "");
-    setInstrucciones(exam?.instructions ?? "");
-    setDuracion(String(exam?.durationMin ?? 60));
-    setIntentos(String(exam?.maxAttempts ?? 1));
+    setInstructions(exam?.instructions ?? "");
+    setDuration(String(exam?.durationMin ?? 60));
+    setAttempts(String(exam?.maxAttempts ?? 1));
     setApertura(toLocalInput(exam?.opensAt));
     setCierre(toLocalInput(exam?.closesAt));
-    setAprobatorio(String(exam?.passingScore ?? 0));
-    setCriterio(exam?.attemptCriterion ?? "BEST");
+    setPassingScore(String(exam?.passingScore ?? 0));
+    setCriterion(exam?.attemptCriterion ?? "BEST");
     setShuffleQ(exam?.shuffleQuestions ?? false);
     setShuffleO(exam?.shuffleOptions ?? false);
     setShowResult(exam?.showResult ?? true);
@@ -77,16 +77,16 @@ export default function ExamFormDialog({ isOpen, exam, onClose, onSaved }: Props
 
   const save = async () => {
     const required = (label: string) => t("common:validation.required", { label });
-    const from = fromLocalInput(apertura);
-    const to = fromLocalInput(cierre);
+    const from = fromLocalInput(opensAt);
+    const to = fromLocalInput(closesAt);
     const next: Errors = {
-      groupId: exam ? undefined : validateRequired(groupId, t("exams.grupo")) ?? undefined,
-      title: validateRequired(title, t("exams.titulo")) ?? undefined,
-      durationMin: Number(duracion) >= 1 ? undefined : required(t("exams.duracion")),
-      maxAttempts: Number(intentos) >= 1 ? undefined : required(t("exams.intentosMax")),
-      opensAt: from ? undefined : required(t("exams.apertura")),
-      closesAt: !to ? required(t("exams.cierre")) : from && from >= to ? t("common:validation.invalidRange") : undefined,
-      passingScore: aprobatorio !== "" && Number(aprobatorio) >= 0 ? undefined : required(t("exams.aprobatorio")),
+      groupId: exam ? undefined : validateRequired(groupId, t("exams.groupName")) ?? undefined,
+      title: validateRequired(title, t("exams.titleField")) ?? undefined,
+      durationMin: Number(duration) >= 1 ? undefined : required(t("exams.duration")),
+      maxAttempts: Number(attempts) >= 1 ? undefined : required(t("exams.maxAttempts")),
+      opensAt: from ? undefined : required(t("exams.opensAt")),
+      closesAt: !to ? required(t("exams.closesAt")) : from && from >= to ? t("common:validation.invalidRange") : undefined,
+      passingScore: passingScore !== "" && Number(passingScore) >= 0 ? undefined : required(t("exams.passingScore")),
     };
     setErrors(next);
     if (Object.values(next).some(Boolean)) return;
@@ -95,12 +95,12 @@ export default function ExamFormDialog({ isOpen, exam, onClose, onSaved }: Props
       : {
           title: title.trim(),
           instructions: instructions.trim() || null,
-          durationMin: Number(duracion),
-          maxAttempts: Number(intentos),
+          durationMin: Number(duration),
+          maxAttempts: Number(attempts),
           opensAt: from!,
           closesAt: to!,
-          passingScore: Number(aprobatorio),
-          attemptCriterion: criterio,
+          passingScore: Number(passingScore),
+          attemptCriterion: criterion,
           shuffleQuestions: shuffleQ,
           shuffleOptions: shuffleO,
           showResult: showResult,
@@ -128,49 +128,49 @@ export default function ExamFormDialog({ isOpen, exam, onClose, onSaved }: Props
           <ITGrid container columns={12} spacing={4}>
             <ITGrid item xs={12} md={6}>
               {exam ? (
-                <ITInput name="grupo" label={t("exams.grupo")} value={`${exam.courseNombre} · ${exam.groupNombre}`} disabled onChange={() => undefined} />
+                <ITInput name="groupName" label={t("exams.groupName")} value={`${exam.courseName} · ${exam.groupName}`} disabled onChange={() => undefined} />
               ) : (
-                <ITSelect name="groupId" label={t("exams.grupo")} value={groupId} error={errors.groupId} placeholder="—"
-                  options={groups.map((g) => ({ value: g.id, label: `${g.courseClave} · ${g.name} (${g.termNombre})` }))}
+                <ITSelect name="groupId" label={t("exams.groupName")} value={groupId} error={errors.groupId} placeholder="—"
+                  options={groups.map((g) => ({ value: g.id, label: `${g.courseCode} · ${g.name} (${g.termName})` }))}
                   onChange={(e) => { setGroupId(e.target.value); setAssessmentId(""); }} />
               )}
             </ITGrid>
             <ITGrid item xs={12} md={6}>
-              <ITInput name="title" label={t("exams.titulo")} value={title} required disabled={locked} error={errors.title} maxLength={150} onChange={(e) => setTitle(e.target.value)} />
+              <ITInput name="title" label={t("exams.titleField")} value={title} required disabled={locked} error={errors.title} maxLength={150} onChange={(e) => setTitle(e.target.value)} />
             </ITGrid>
             <ITGrid item xs={12}>
-              <ITTextarea name="instructions" label={t("exams.instrucciones")} value={instructions} onChange={setInstrucciones} rows={2} maxLength={5000} />
+              <ITTextarea name="instructions" label={t("exams.instructions")} value={instructions} onChange={setInstructions} rows={2} maxLength={5000} />
             </ITGrid>
             <ITGrid item xs={12} md={6}>
-              <DateTimeField name="opensAt" label={t("exams.apertura")} timeLabel={t("exams.hora")} value={apertura} required disabled={locked} error={errors.opensAt} onChange={setApertura} />
+              <DateTimeField name="opensAt" label={t("exams.opensAt")} timeLabel={t("exams.time")} value={opensAt} required disabled={locked} error={errors.opensAt} onChange={setApertura} />
             </ITGrid>
             <ITGrid item xs={12} md={6}>
-              <DateTimeField name="closesAt" label={t("exams.cierre")} timeLabel={t("exams.hora")} value={cierre} required error={errors.closesAt} onChange={setCierre} />
+              <DateTimeField name="closesAt" label={t("exams.closesAt")} timeLabel={t("exams.time")} value={closesAt} required error={errors.closesAt} onChange={setCierre} />
             </ITGrid>
             <ITGrid item xs={6} md={3}>
-              <ITInput name="durationMin" type="number" label={t("exams.duracion")} value={duracion} required disabled={locked} error={errors.durationMin} onChange={(e) => setDuracion(e.target.value)} />
+              <ITInput name="durationMin" type="number" label={t("exams.duration")} value={duration} required disabled={locked} error={errors.durationMin} onChange={(e) => setDuration(e.target.value)} />
             </ITGrid>
             <ITGrid item xs={6} md={3}>
-              <ITInput name="maxAttempts" type="number" label={t("exams.intentosMax")} value={intentos} required disabled={locked} error={errors.maxAttempts} onChange={(e) => setIntentos(e.target.value)} />
+              <ITInput name="maxAttempts" type="number" label={t("exams.maxAttempts")} value={attempts} required disabled={locked} error={errors.maxAttempts} onChange={(e) => setAttempts(e.target.value)} />
             </ITGrid>
             <ITGrid item xs={6} md={3}>
-              <ITInput name="passingScore" type="number" label={t("exams.aprobatorio")} value={aprobatorio} required disabled={locked} error={errors.passingScore} onChange={(e) => setAprobatorio(e.target.value)} />
+              <ITInput name="passingScore" type="number" label={t("exams.passingScore")} value={passingScore} required disabled={locked} error={errors.passingScore} onChange={(e) => setPassingScore(e.target.value)} />
             </ITGrid>
             <ITGrid item xs={6} md={3}>
-              <ITSelect name="attemptCriterion" label={t("exams.criterio")} value={criterio} disabled={locked}
-                options={(["BEST", "LAST"] as const).map((c) => ({ value: c, label: t(`exams.criterios.${c}`) }))}
-                onChange={(e) => setCriterio(e.target.value as Criterion)} />
+              <ITSelect name="attemptCriterion" label={t("exams.criterion")} value={criterion} disabled={locked}
+                options={(["BEST", "LAST"] as const).map((c) => ({ value: c, label: t(`exams.criteria.${c}`) }))}
+                onChange={(e) => setCriterion(e.target.value as Criterion)} />
             </ITGrid>
             <ITGrid item xs={12}>
-              <ITSelect name="assessmentId" label={t("exams.evaluacion")} value={assessmentId} disabled={locked || !groupId} placeholder={t("exams.sinEvaluacion")}
-                options={[{ value: "", label: t("exams.sinEvaluacion") }, ...assessments.map((a) => ({ value: a.id, label: `${a.name} (${a.weight}% · /${a.maxScore})` }))]}
+              <ITSelect name="assessmentId" label={t("exams.assessment")} value={assessmentId} disabled={locked || !groupId} placeholder={t("exams.noAssessment")}
+                options={[{ value: "", label: t("exams.noAssessment") }, ...assessments.map((a) => ({ value: a.id, label: `${a.name} (${a.weight}% · /${a.maxScore})` }))]}
                 onChange={(e) => setAssessmentId(e.target.value)} />
             </ITGrid>
           </ITGrid>
           <ITFlex gap={4} wrap="wrap">
-            <ITCheckbox name="shuffleQuestions" label={t("exams.aleatorizarPreguntas")} checked={shuffleQ} disabled={locked} onChange={setShuffleQ} />
-            <ITCheckbox name="shuffleOptions" label={t("exams.aleatorizarOpciones")} checked={shuffleO} disabled={locked} onChange={setShuffleO} />
-            <ITCheckbox name="showResult" label={t("exams.mostrarResultado")} checked={showResult} onChange={setShowResult} />
+            <ITCheckbox name="shuffleQuestions" label={t("exams.shuffleQuestions")} checked={shuffleQ} disabled={locked} onChange={setShuffleQ} />
+            <ITCheckbox name="shuffleOptions" label={t("exams.shuffleOptions")} checked={shuffleO} disabled={locked} onChange={setShuffleO} />
+            <ITCheckbox name="showResult" label={t("exams.showResult")} checked={showResult} onChange={setShowResult} />
           </ITFlex>
           <ITFlex justify="end" gap={2}>
             <ITButton variant="outlined" color="secondary" onClick={onClose}>{t("common:actions.cancel")}</ITButton>

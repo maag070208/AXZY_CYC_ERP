@@ -67,7 +67,7 @@ export default function ExamQuestionsBuilder({ exam, readOnly, onSaved }: Props)
 
   const save = async () => {
     if (rows.some((r) => !(Number(r.points) > 0))) {
-      setError(t("common:validation.required", { label: t("questions.puntos") }));
+      setError(t("common:validation.required", { label: t("questions.points") }));
       return;
     }
     setSaving(true);
@@ -88,7 +88,7 @@ export default function ExamQuestionsBuilder({ exam, readOnly, onSaved }: Props)
       <div className="lg:col-span-3">
         <PanelCard
           title={t("exams.builder.selected")}
-          description={t("exams.builder.totalPuntos", { total: Math.round(total * 100) / 100 })}
+          description={t("exams.builder.totalPoints", { total: Math.round(total * 100) / 100 })}
           actions={!readOnly && (
             <ITButton variant="filled" color="primary" disabled={!dirty || saving} onClick={() => void save()}>
               {t("exams.builder.save")}
@@ -130,7 +130,7 @@ export default function ExamQuestionsBuilder({ exam, readOnly, onSaved }: Props)
       </div>
       {!readOnly && (
         <div className="lg:col-span-2">
-          <PanelCard title={t("exams.builder.bank")} description={exam.courseNombre}>
+          <PanelCard title={t("exams.builder.bank")} description={exam.courseName}>
             <div className="mb-3">
               <ITInput name="bankSearch" placeholder={t("common:actions.search")} value={search} onChange={(e) => setSearch(e.target.value)} />
             </div>
