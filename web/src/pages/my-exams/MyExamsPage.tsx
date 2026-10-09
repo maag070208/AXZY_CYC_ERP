@@ -42,7 +42,7 @@ export default function MyExamsPage() {
 
   const date = (iso: string) => formatInstant(iso, i18n.language);
   return (
-    <ITPage breadcrumbs={crumbs({ label: t("common:nav.myExams") })} title={t("my.title")} description={t("my.description")} icon={<FaFileSignature size={20} />} loading={!exams && !error} error={error}>
+    <ITPage className="m-0! px-4! max-w-screen!" noPadding breadcrumbs={crumbs({ label: t("common:nav.myExams") })} title={t("my.title")} description={t("my.description")} icon={<FaFileSignature size={20} />} loading={!exams && !error} error={error}>
       {exams && exams.length === 0 && <ITEmptyState title={t("my.empty")} />}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
         {exams?.map((exam) => (

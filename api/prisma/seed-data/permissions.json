@@ -628,5 +628,23 @@
     "sensitive": true,
     "active": true,
     "sortOrder": 2
+  },
+  {
+    "key": "expenses.view",
+    "module": "Gastos",
+    "name": "Ver gastos y su resumen",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 1
+  },
+  {
+    "key": "expenses.manage",
+    "module": "Gastos",
+    "name": "Registrar y editar gastos",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 2
   }
 ]

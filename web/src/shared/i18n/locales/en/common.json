@@ -9,6 +9,7 @@
     "search": "Search...",
     "back": "Back",
     "reload": "Reload",
+    "retry": "Retry",
     "logout": "Sign out",
     "close": "Close",
     "confirm": "Confirm",
@@ -37,6 +38,7 @@
     "teachers": "Teachers",
     "courses": "Courses",
     "groups": "Groups",
+    "expenses": "Expenses",
     "finance": "Billing",
     "reports": "Reports",
     "questions": "Questions",
@@ -90,7 +92,8 @@
   "home": {
     "title": "Home",
     "description": "School Management System dashboard",
-    "welcome": "Welcome, {{name}}"
+    "welcome": "Welcome, {{name}}",
+    "manageStudents": "Students"
   },
   "toast": {
     "saved": "Changes saved",

@@ -1,0 +1,63 @@
+{
+  "page": {
+    "title": "Expenses",
+    "description": "Institutional expenses for the term: services, supplies, payroll and maintenance"
+  },
+  "summary": {
+    "total": "Term total",
+    "paid": "Paid",
+    "pending": "Pending",
+    "count": "Registered expenses",
+    "cycleHint": "Active term",
+    "allTerms": "All terms"
+  },
+  "table": {
+    "date": "Date",
+    "concept": "Concept",
+    "vendor": "Vendor",
+    "noVendor": "No vendor",
+    "type": "Type",
+    "amount": "Amount",
+    "dueDate": "Due date",
+    "status": "Status",
+    "term": "Term",
+    "overdue": "Overdue"
+  },
+  "type": {
+    "SERVICES": "Services",
+    "SUPPLIES": "Supplies",
+    "PAYROLL": "Payroll",
+    "MAINTENANCE": "Maintenance",
+    "TAXES": "Taxes",
+    "EQUIPMENT": "Equipment",
+    "OTHER": "Other"
+  },
+  "status": {
+    "PENDING": "Pending",
+    "PAID": "Paid",
+    "CANCELLED": "Cancelled"
+  },
+  "form": {
+    "titleNew": "New expense",
+    "titleEdit": "Edit expense",
+    "notes": "Notes",
+    "required": "{{label}} is required",
+    "invalidAmount": "Amount must be greater than zero with at most two decimals",
+    "dueBeforeDate": "The due date cannot be earlier than the expense date",
+    "dueDateHint": "Optional; cannot be earlier than the date"
+  },
+  "actions": {
+    "new": "New expense",
+    "edit": "Edit expense",
+    "cancel": "Cancel expense"
+  },
+  "messages": {
+    "created": "Expense registered",
+    "saved": "Expense updated",
+    "cancelled": "Expense cancelled",
+    "cancelTitle": "Cancel the expense \"{{concept}}\"?",
+    "cancelMessage": "The expense is kept in the audit log with the cancellation reason.",
+    "reason": "Reason",
+    "reasonRequired": "Enter a reason of at least 3 characters"
+  }
+}

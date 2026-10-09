@@ -46,22 +46,6 @@ export interface ReportResult {
   totals: Record<string, number>;
 }
 
-export interface Dashboard {
-  termId: string | null;
-  termName: string | null;
-  activeStudents: number;
-  inactiveStudents: number;
-  groupOccupancy: {
-    average: number;
-    groups: Array<{ groupId: string; name: string; courseName: string; enrolledCount: number; capacity: number; ratio: number }>;
-  };
-  monthIncome: number | null;
-  totalDebt: number | null;
-  overdueDebt: number | null;
-  incomeByMonth: Array<{ month: string; total: number }> | null;
-  generatedAt: string;
-}
-
 /** Valor de un indicador frente al ciclo anterior (M21). */
 export interface Indicator {
   value: number | null;
@@ -72,8 +56,50 @@ export interface Indicator {
 
 export type ExecutiveFilters = Pick<ReportFilters, "termId" | "levelId" | "courseId" | "groupId">;
 
+/** Fila de una tabla reciente del tablero (pago o movimiento de alumno). */
+export interface RecentRow {
+  id: string;
+  label: string;
+  description: string | null;
+  amount: number | null;
+  date: string;
+  tone: "neutral" | "positive" | "warning" | "danger";
+}
+
+/** Grupo del ciclo con su ocupación (tablero de operación escolar). */
+export interface GroupOccupancy {
+  groupId: string;
+  groupName: string;
+  courseName: string;
+  levelId: string | null;
+  levelName: string | null;
+  teacherName: string | null;
+  enrolledCount: number;
+  capacity: number;
+  ratio: number;
+  /** Promedio de las calificaciones finales escritas; `null` sin captura. */
+  averageGrade: number | null;
+}
+
+/** Alertas operativas del ciclo. Todo bloque puede faltar según alcance y datos. */
+export interface DashboardAlerts {
+  overdueDebt: {
+    count: number;
+    amount: number;
+    students: Array<{ id: string; name: string; amount: number; days: number }>;
+  } | null;
+  pendingDocuments: { students: number; documents: number } | null;
+  pendingDocumentList: Array<{ id: string; studentName: string; typeName: string; days: number }> | null;
+  fullGroups: { count: number; groups: Array<{ groupId: string; label: string; ratio: number }> } | null;
+  total: number;
+}
+
+/**
+ * Tablero de Inicio (M21 ampliado): académico, financiero y operación escolar
+ * del ciclo. Los bloques con montos vienen en `null` sin alcance institucional.
+ */
 export interface ExecutiveDashboard {
-  term: { id: string; name: string } | null;
+  term: { id: string; name: string; startDate: string; endDate: string } | null;
   previousTerm: { id: string; name: string } | null;
   indicators: {
     enrolledCount: Indicator;
@@ -81,13 +107,31 @@ export interface ExecutiveDashboard {
     passRate: Indicator;
     averageGrade: Indicator;
     occupancy: Indicator;
-    /** Solo con alcance institucional; `null` para el profesor. */
+    attendanceRate: Indicator;
+    pendingDocuments: Indicator | null;
     delinquencyRate: Indicator | null;
     pendingAmount: Indicator | null;
     collected: Indicator | null;
     projected: Indicator | null;
+    expenses: Indicator | null;
   };
+  movements: { withdrawals: number; reentries: number };
+  enrollmentByLevel: Array<{ levelId: string; levelName: string; enrolledCount: number; share: number }>;
   enrollmentTrend: Array<{ termId: string; termName: string; initialCount: number; withdrawnCount: number; dropoutRate: number }>;
   incomeVsProjection: Array<{ month: string; projected: number; collected: number }> | null;
+  incomeVsExpenses: Array<{ month: string; income: number; expenses: number }> | null;
+  expenses: {
+    total: number;
+    paid: number;
+    pending: number;
+    count: number;
+    byType: Array<{ type: string; label: string; total: number; count: number }>;
+  } | null;
+  financialPosition: { collected: number; receivable: number; overdue: number } | null;
+  incomeByConcept: Array<{ concept: string; total: number; share: number }> | null;
+  recentPayments: RecentRow[] | null;
+  recentMovements: RecentRow[];
+  groupsByOccupancy: GroupOccupancy[];
+  alerts: DashboardAlerts;
   generatedAt: string;
 }

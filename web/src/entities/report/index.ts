@@ -1,10 +1,12 @@
-// API pública del slice "report" (M10: reportes y tablero; M21: indicadores ejecutivos).
+// API pública del slice "report" (M10: reportes; M21: tablero ejecutivo de Inicio).
 export { reportApi } from "./api/reportApi";
 export type {
-  Dashboard,
+  DashboardAlerts,
   ExecutiveDashboard,
   ExecutiveFilters,
+  GroupOccupancy,
   Indicator,
+  RecentRow,
   ReportCatalogItem,
   ReportColumn,
   ReportFilters,

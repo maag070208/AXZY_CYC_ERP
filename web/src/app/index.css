@@ -9,6 +9,14 @@
   --layout-bg: #f1f5f9;
 }
 
+/* Lenguaje visual plano (`appearance="flat"`): fondo de página y borde de la
+   barra lateral. El selector gana a las variables que inyecta el provider. */
+:root[data-it-appearance="flat"] {
+  --it-layout-bg: #f5f6fa;
+  --it-sidebar-border: #e8eaf0;
+  --it-topbar-border: #e8eaf0;
+}
+
 /* Forzar que el modal sea más ancho para que quepan 2 columnas */
 .it-dialog-panel {
   width: min(94vw, 900px) !important;

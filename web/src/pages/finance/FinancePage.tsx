@@ -60,7 +60,7 @@ export default function FinancePage() {
   };
 
   return (
-    <ITPage
+    <ITPage className="m-0! px-4! max-w-screen!" noPadding
       breadcrumbs={crumbs({ label: t("common:nav.finance") })}
       title={t("page.title")}
       description={t("page.description")}

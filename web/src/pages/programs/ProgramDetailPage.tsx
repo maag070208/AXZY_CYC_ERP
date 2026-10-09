@@ -47,7 +47,7 @@ export default function ProgramDetailPage() {
   const p = program;
 
   return (
-    <ITPage
+    <ITPage className="m-0! px-4! max-w-screen!" noPadding
       breadcrumbs={crumbs({ label: t("common:nav.programs"), to: "/programs" }, { label: p?.name })}
       title={p ? p.name : t("list.title")}
       description={p ? p.code : undefined}

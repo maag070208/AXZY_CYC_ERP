@@ -17,8 +17,8 @@ import CoursesPage from "@pages/courses/CoursesPage";
 import GroupsPage from "@pages/groups/GroupsPage";
 import GroupDetailPage from "@pages/groups/GroupDetailPage";
 import FinancePage from "@pages/finance/FinancePage";
+import ExpensesPage from "@pages/expenses/ExpensesPage";
 import ReportsPage from "@pages/reports/ReportsPage";
-import ExecutivePage from "@pages/executive/ExecutivePage";
 import QuestionsPage from "@pages/questions/QuestionsPage";
 import ExamsPage from "@pages/exams/ExamsPage";
 import ExamDetailPage from "@pages/exams/ExamDetailPage";
@@ -137,6 +137,14 @@ export default function App() {
           }
         />
         <Route
+          path="/expenses"
+          element={
+            <RequiresPermission permission="expenses.view">
+              <ExpensesPage />
+            </RequiresPermission>
+          }
+        />
+        <Route
           path="/questions"
           element={
             <RequiresPermission permission="questions.view">
@@ -181,14 +189,6 @@ export default function App() {
           element={
             <RequiresPermission permission="reports.view">
               <ReportsPage />
-            </RequiresPermission>
-          }
-        />
-        <Route
-          path="/executive"
-          element={
-            <RequiresPermission permission="reports.view">
-              <ExecutivePage />
             </RequiresPermission>
           }
         />

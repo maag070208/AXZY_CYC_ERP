@@ -1,0 +1,63 @@
+{
+  "page": {
+    "title": "Gastos",
+    "description": "Gastos institucionales del ciclo: servicios, insumos, nómina y mantenimiento"
+  },
+  "summary": {
+    "total": "Total del ciclo",
+    "paid": "Pagado",
+    "pending": "Pendiente",
+    "count": "Gastos registrados",
+    "cycleHint": "Ciclo activo",
+    "allTerms": "Todos los ciclos"
+  },
+  "table": {
+    "date": "Fecha",
+    "concept": "Concepto",
+    "vendor": "Proveedor",
+    "noVendor": "Sin proveedor",
+    "type": "Tipo",
+    "amount": "Monto",
+    "dueDate": "Vencimiento",
+    "status": "Estatus",
+    "term": "Ciclo",
+    "overdue": "Vencido"
+  },
+  "type": {
+    "SERVICES": "Servicios",
+    "SUPPLIES": "Insumos",
+    "PAYROLL": "Nómina",
+    "MAINTENANCE": "Mantenimiento",
+    "TAXES": "Impuestos",
+    "EQUIPMENT": "Equipo",
+    "OTHER": "Otro"
+  },
+  "status": {
+    "PENDING": "Pendiente",
+    "PAID": "Pagado",
+    "CANCELLED": "Cancelado"
+  },
+  "form": {
+    "titleNew": "Nuevo gasto",
+    "titleEdit": "Editar gasto",
+    "notes": "Notas",
+    "required": "Falta capturar {{label}}",
+    "invalidAmount": "El monto debe ser mayor que cero y con máximo dos decimales",
+    "dueBeforeDate": "El vencimiento no puede ser anterior a la fecha del gasto",
+    "dueDateHint": "Opcional; no puede ser anterior a la fecha"
+  },
+  "actions": {
+    "new": "Nuevo gasto",
+    "edit": "Editar gasto",
+    "cancel": "Cancelar gasto"
+  },
+  "messages": {
+    "created": "Gasto registrado",
+    "saved": "Gasto actualizado",
+    "cancelled": "Gasto cancelado",
+    "cancelTitle": "¿Cancelar el gasto «{{concept}}»?",
+    "cancelMessage": "El gasto se conserva en la bitácora con el motivo de la cancelación.",
+    "reason": "Motivo",
+    "reasonRequired": "Captura un motivo de al menos 3 caracteres"
+  }
+}

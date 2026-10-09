@@ -176,6 +176,12 @@ export const en: Messages = {
     GENERATION_TARGET_REQUIRED: "Provide the group (scope=group) or the term (scope=term)",
     LATE_FEES_DISABLED: "Late fees are disabled in the settings",
 
+    // --- Expenses (M23) ---
+    EXPENSE_NOT_FOUND: "Expense not found",
+    EXPENSE_CANCELLED: "The expense is cancelled: it does not accept changes",
+    EXPENSE_ALREADY_CANCELLED: "The expense was already cancelled",
+    DUE_DATE_BEFORE_DATE: "The due date cannot be earlier than the expense date",
+
     // --- Reports (M10) ---
     REPORT_NOT_FOUND: "Report \"{{type}}\" does not exist",
     REPORT_FORMAT_INVALID: "Invalid format: use json, xlsx or pdf",
@@ -435,5 +441,16 @@ export const en: Messages = {
     administrator: "Administrator",
     unassigned: "Unassigned",
     unknown: "Unknown",
+  },
+  expenses: {
+    types: {
+      SERVICES: "Services",
+      SUPPLIES: "Supplies and stationery",
+      PAYROLL: "Payroll",
+      MAINTENANCE: "Maintenance",
+      TAXES: "Taxes and filings",
+      EQUIPMENT: "Equipment and furniture",
+      OTHER: "Other",
+    },
   },
 };

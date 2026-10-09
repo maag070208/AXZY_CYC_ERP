@@ -76,6 +76,7 @@ export default function UsersListPage() {
 
   return (
     <ITPage
+      className="m-0! px-4! max-w-screen!"
       breadcrumbs={crumbs({ label: t("common:nav.users") })}
       title={t("list.title")}
       description={t("list.description", { count: fx.total })}

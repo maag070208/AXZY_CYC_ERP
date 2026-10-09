@@ -83,7 +83,7 @@ export default function ReportsPage() {
   };
 
   return (
-    <ITPage
+    <ITPage className="m-0! px-4! max-w-screen!" noPadding
       breadcrumbs={crumbs({ label: t("common:nav.reports") })}
       title={t("title")}
       description={t("description")}

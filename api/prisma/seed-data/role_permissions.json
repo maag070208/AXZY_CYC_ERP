@@ -159,5 +159,7 @@
   { "roleKey": "SCHOOL_CONTROL", "permissionKey": "plans.view", "scope": "ALL" },
   { "roleKey": "SCHOOL_CONTROL", "permissionKey": "plans.manage", "scope": "ALL" },
   { "roleKey": "TEACHER", "permissionKey": "programs.view", "scope": "ALL" },
-  { "roleKey": "STUDENT", "permissionKey": "plans.view", "scope": "OWN" }
+  { "roleKey": "STUDENT", "permissionKey": "plans.view", "scope": "OWN" },
+  { "roleKey": "ADMIN", "permissionKey": "expenses.view", "scope": "ALL" },
+  { "roleKey": "ADMIN", "permissionKey": "expenses.manage", "scope": "ALL" }
 ]

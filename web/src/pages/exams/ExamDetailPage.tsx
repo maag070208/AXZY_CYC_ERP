@@ -103,7 +103,7 @@ export default function ExamDetailPage() {
   const current = pending ? confirm[pending] : null;
 
   return (
-    <ITPage
+    <ITPage className="m-0! px-4! max-w-screen!" noPadding
       breadcrumbs={crumbs({ label: t("common:nav.exams"), to: "/exams" }, { label: e?.title })}
       title={e ? e.title : t("exams.title")}
       description={e ? `${e.courseName} · ${e.groupName} · ${e.termName}` : undefined}

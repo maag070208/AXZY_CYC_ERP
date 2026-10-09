@@ -27,8 +27,8 @@ export type NavLabelKey =
   | "nav.academicAssessment"
   | "nav.myExams"
   | "nav.finance"
+  | "nav.expenses"
   | "nav.reports"
-  | "nav.executive"
   | "nav.notifications"
   | "nav.admin"
   | "nav.adminAccess"
@@ -160,15 +160,15 @@ export const APP_SCREENS: readonly AppScreen[] = [
     requirement: { anyOf: ["charges.create", "payments.register", "fee_concepts.manage"] },
   },
   {
+    id: "expenses",
+    labelKey: "nav.expenses",
+    path: "/expenses",
+    requirement: { anyOf: ["expenses.view"] },
+  },
+  {
     id: "reports",
     labelKey: "nav.reports",
     path: "/reports",
-    requirement: { anyOf: ["reports.view"] },
-  },
-  {
-    id: "executive",
-    labelKey: "nav.executive",
-    path: "/executive",
     requirement: { anyOf: ["reports.view"] },
   },
   {
