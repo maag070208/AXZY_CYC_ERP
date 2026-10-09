@@ -111,10 +111,12 @@ test.describe("matriz en memoria", () => {
 test.describe("resolvedor con fixtures reales", () => {
   test.beforeEach(loadFixtures);
 
-  test("ADMIN tiene todos los permisos en ALL", () => {
+  test("ADMIN tiene en ALL todo permiso institucional (los personales, solo OWN, no le aplican)", () => {
     const admin = permissionsOf(user("ADMIN"));
-    expect(Object.keys(admin).sort()).toEqual(catalogKeys().sort());
+    const institutional = catalogKeys().filter((key) => definitionOf(key)?.scopes.includes("ALL"));
+    expect(Object.keys(admin).sort()).toEqual(institutional.sort());
     expect(Object.values(admin).every((scope) => scope === "ALL")).toBe(true);
+    expect(institutional.length).toBe(catalogKeys().length - 1); // attempts.take
   });
 
   test("CONTROL_ESCOLAR opera alumnos y expediente; solo lee configuración", () => {
@@ -148,6 +150,15 @@ test.describe("resolvedor con fixtures reales", () => {
       "grades.export": "AREA",
       "reports.view": "AREA",
       "reports.export": "AREA",
+      "questions.view": "AREA",
+      "questions.create": "AREA",
+      "questions.edit": "AREA",
+      "questions.import": "AREA",
+      "exams.view": "AREA",
+      "exams.manage": "AREA",
+      "exams.publish": "AREA",
+      "attempts.view": "AREA",
+      "attempts.review": "AREA",
     });
     expect(permissionsOf(user("ALUMNO"))).toEqual({
       "students.view": "OWN",
@@ -159,6 +170,9 @@ test.describe("resolvedor con fixtures reales", () => {
       "assessments.view": "OWN",
       "grades.view": "OWN",
       "charges.view": "OWN",
+      "exams.view": "OWN",
+      "attempts.take": "OWN",
+      "attempts.view": "OWN",
     });
   });
 

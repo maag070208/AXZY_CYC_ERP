@@ -13,6 +13,8 @@ import { createCoursesModule } from "./courses";
 import { createGradesModule } from "./grades";
 import { createFinanceModule } from "./finance";
 import { createReportsModule } from "./reports";
+import { createQuestionsModule } from "./questions";
+import { createExamsModule } from "./exams";
 
 // Puerto de auditoría (DIP): cada módulo recibe solo `createLog`, no el servicio.
 const { router: auditRouter, service: auditService } = createAuditModule();
@@ -31,6 +33,10 @@ const courses = createCoursesModule(auditPort.createLog);
 const grades = createGradesModule(auditPort.createLog);
 const finance = createFinanceModule(students.students, auditPort.createLog);
 const reports = createReportsModule(auditPort.createLog);
+const questions = createQuestionsModule(auditPort.createLog);
+const exams = createExamsModule(auditPort.createLog);
+// Intentos vencidos se cierran y califican aunque el alumno no vuelva (M16 §4.4).
+if (process.env.NODE_ENV !== "test") exams.attempts.startSweeper();
 
 // Puertos entre módulos: la baja del alumno (M05) cancela sus inscripciones
 // (M07) y el kardex (M06) lee las calificaciones (M08).
@@ -111,6 +117,9 @@ apiRouter.use("/charges", finance.routers.charges);
 apiRouter.use("/payments", finance.routers.payments);
 apiRouter.use("/reports", reports.routers.reports);
 apiRouter.use("/dashboard", reports.routers.dashboard);
+apiRouter.use("/questions", questions.router);
+apiRouter.use("/online-exams", exams.routers.exams);
+apiRouter.use("/attempts", exams.routers.attempts);
 
 export { auditService };
 export default apiRouter;

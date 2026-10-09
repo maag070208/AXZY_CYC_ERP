@@ -140,6 +140,7 @@ export const clearStudentsE2E = async (): Promise<number> => {
   // Archivos del driver local de almacenamiento (en S3 quedan a cargo del bucket de pruebas).
   const root = path.resolve(__dirname, "../../..", process.env.STORAGE_LOCAL_DIR ?? "storage/private");
   await Promise.all(ids.map((id) => fs.rm(path.join(root, "students", id), { recursive: true, force: true })));
+  await db.examAttempt.deleteMany({ where: { studentId: { in: ids } } });
   await clearEnrollments({ studentId: { in: ids } });
   await clearCharges({ studentId: { in: ids } });
   await db.document.deleteMany({ where: { studentId: { in: ids } } });
@@ -189,6 +190,13 @@ export const clearAcademicE2E = async (): Promise<number> => {
     select: { id: true },
   });
   const groupIds = groups.map((g) => g.id);
+  // Examen en línea (M14–M17): intentos (respuestas en cascada), exámenes y reactivos.
+  await db.examAttempt.deleteMany({ where: { exam: { groupId: { in: groupIds } } } });
+  await db.onlineExam.deleteMany({ where: { groupId: { in: groupIds } } });
+  const e2eCourse = { course: { clave: { startsWith: E2E_CATALOG_PREFIX } } };
+  await db.attemptAnswer.deleteMany({ where: { question: e2eCourse } });
+  await db.onlineExamQuestion.deleteMany({ where: { question: e2eCourse } });
+  await db.question.deleteMany({ where: e2eCourse });
   await clearEnrollments({ groupId: { in: groupIds } });
   await db.grade.deleteMany({ where: { assessment: { groupId: { in: groupIds } } } });
   await db.assessment.deleteMany({ where: { groupId: { in: groupIds } } });

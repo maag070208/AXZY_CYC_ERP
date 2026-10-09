@@ -192,6 +192,39 @@ export const es = {
     REPORT_FORMAT_INVALID: "Formato inválido: usa json, xlsx o pdf",
     REPORT_REQUIRES_FULL_SCOPE: "Este reporte requiere alcance institucional (ALL)",
 
+    // --- Banco de reactivos (M14) ---
+    QUESTION_NOT_FOUND: "Reactivo no encontrado",
+    QUESTION_OPTION_REQUIRED: "Las preguntas cerradas necesitan al menos una opción correcta",
+    QUESTION_OPTION_COUNT_INVALID: "Número de opciones inválido para el tipo de pregunta",
+    QUESTION_MULTIPLE_CORRECT: "Este tipo de pregunta admite una sola opción correcta",
+    QUESTION_OPEN_NO_OPTIONS: "Las preguntas abiertas no llevan opciones",
+    QUESTION_IN_USE: "El reactivo ya se usó en un examen aplicado: solo se puede desactivar",
+    QUESTION_ALREADY_INACTIVE: "El reactivo ya estaba inactivo",
+    QUESTION_INACTIVE: "El reactivo está inactivo",
+    CSV_INVALID: "Archivo CSV inválido: {{reason}}",
+
+    // --- Exámenes en línea (M15) ---
+    EXAM_NOT_FOUND: "Examen no encontrado",
+    EXAM_NOT_EDITABLE: "El examen está cerrado: ya no se puede modificar",
+    EXAM_PUBLISHED_LOCKED: "El examen ya tiene intentos: sus preguntas y reglas no cambian",
+    EXAM_NO_QUESTIONS: "Agrega al menos una pregunta antes de publicar",
+    EXAM_SCORE_INVALID: "El puntaje aprobatorio ({{aprobatorio}}) no puede superar el total ({{total}})",
+    EXAM_QUESTION_INVALID: "La pregunta no está activa o no es del curso del grupo",
+    EXAM_ALREADY_PUBLISHED: "El examen ya fue publicado",
+    EXAM_NOT_PUBLISHED: "El examen no está publicado",
+    EXAM_ASSESSMENT_INVALID: "La evaluación debe ser del mismo grupo y estar activa",
+    EXAM_ASSESSMENT_TAKEN: "Esa evaluación ya está vinculada a otro examen",
+    EXAM_DRAFT_ONLY: "Solo se puede eliminar un examen en borrador",
+
+    // --- Aplicación y calificación (M16/M17) ---
+    EXAM_NOT_AVAILABLE: "El examen no está disponible: {{reason}}",
+    ATTEMPT_NOT_FOUND: "Intento no encontrado",
+    ATTEMPT_CLOSED: "El intento ya fue enviado: no admite cambios",
+    ATTEMPT_OPEN: "El intento sigue en curso",
+    INVALID_ANSWER: "Respuesta inválida para la pregunta {{orden}}",
+    STUDENT_PROFILE_REQUIRED: "Tu cuenta no está vinculada a un alumno",
+    REVIEW_ONLY_OPEN: "Solo las preguntas abiertas se revisan a mano",
+
     // --- Bitácora ---
     AUDIT_LOG_NOT_FOUND: "Registro de auditoría no encontrado",
   },
@@ -260,6 +293,15 @@ export const es = {
     generatedAt: "Generado",
     filters: "Filtros",
     page: "Página {{page}} de {{pages}}",
+  },
+  exams: {
+    reasons: {
+      NOT_PUBLISHED: "no está publicado",
+      NOT_OPEN: "aún no abre",
+      CLOSED: "ya cerró",
+      NO_ATTEMPTS: "ya usaste todos tus intentos",
+      NOT_ENROLLED: "no estás inscrito en el grupo",
+    },
   },
   labels: {
     system: "Sistema",

@@ -358,6 +358,7 @@ model Student {
   documents   Document[]
   enrollments Enrollment[]
   charges     Charge[]
+  attempts    ExamAttempt[]
 
   @@index([status])
   @@index([apellidoPaterno, apellidoMaterno, nombres])
@@ -503,8 +504,9 @@ model Course {
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
-  level  Level?  @relation(fields: [levelId], references: [id])
-  groups Group[]
+  level     Level?     @relation(fields: [levelId], references: [id])
+  groups    Group[]
+  questions Question[]
 
   @@index([active])
   @@index([nombre])
@@ -533,6 +535,7 @@ model Group {
   teacher     Teacher?     @relation(fields: [teacherId], references: [id])
   enrollments Enrollment[]
   assessments Assessment[]
+  onlineExams OnlineExam[]
 
   @@unique([courseId, termId, nombre])
   @@index([termId])
@@ -599,8 +602,9 @@ model Assessment {
   createdAt   DateTime       @default(now()) @map("created_at")
   updatedAt   DateTime       @updatedAt @map("updated_at")
 
-  group  Group   @relation(fields: [groupId], references: [id])
-  grades Grade[]
+  group      Group       @relation(fields: [groupId], references: [id])
+  grades     Grade[]
+  onlineExam OnlineExam?
 
   @@index([groupId])
   @@map("assessments")
@@ -744,4 +748,199 @@ model IdempotencyRecord {
   createdAt DateTime @default(now()) @map("created_at")
 
   @@map("idempotency_records")
+}
+
+// ---------------------------------------------------------------------------
+// M14 — Banco de reactivos
+// ---------------------------------------------------------------------------
+
+enum QuestionType {
+  OPCION_MULTIPLE
+  VERDADERO_FALSO
+  MULTIPLE_RESPUESTA
+  ABIERTA
+}
+
+enum QuestionDifficulty {
+  FACIL
+  MEDIA
+  DIFICIL
+}
+
+enum QuestionStatus {
+  ACTIVA
+  INACTIVA
+}
+
+model Question {
+  id         String              @id @default(uuid())
+  courseId   String              @map("course_id")
+  tema       String?
+  tipo       QuestionType
+  enunciado  String              @db.Text
+  /// Puntos sugeridos al agregarla a un examen (M15 puede cambiarlos).
+  puntos     Decimal             @db.Decimal(6, 2)
+  dificultad QuestionDifficulty?
+  status     QuestionStatus      @default(ACTIVA)
+  createdBy  String?             @map("created_by")
+  createdAt  DateTime            @default(now()) @map("created_at")
+  updatedAt  DateTime            @updatedAt @map("updated_at")
+
+  course        Course               @relation(fields: [courseId], references: [id])
+  options       QuestionOption[]
+  examQuestions OnlineExamQuestion[]
+  answers       AttemptAnswer[]
+
+  @@index([courseId])
+  @@index([tipo])
+  @@index([dificultad])
+  @@index([status])
+  @@map("questions")
+}
+
+model QuestionOption {
+  id         String   @id @default(uuid())
+  questionId String   @map("question_id")
+  texto      String   @db.Text
+  esCorrecta Boolean  @default(false) @map("es_correcta")
+  orden      Int
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([questionId])
+  @@map("question_options")
+}
+
+// ---------------------------------------------------------------------------
+// M15 — Exámenes en línea
+// ---------------------------------------------------------------------------
+
+enum OnlineExamStatus {
+  BORRADOR
+  PUBLICADO
+  CERRADO
+}
+
+/// Qué intento cuenta para la calificación (M17 §4.4).
+enum AttemptCriterion {
+  MEJOR
+  ULTIMO
+}
+
+model OnlineExam {
+  id                   String           @id @default(uuid())
+  groupId              String           @map("group_id")
+  titulo               String
+  instrucciones        String?          @db.Text
+  duracionMin          Int              @map("duracion_min")
+  intentosMax          Int              @default(1) @map("intentos_max")
+  fechaApertura        DateTime         @map("fecha_apertura") @db.Timestamptz
+  fechaCierre          DateTime         @map("fecha_cierre") @db.Timestamptz
+  aleatorizarPreguntas Boolean          @default(false) @map("aleatorizar_preguntas")
+  aleatorizarOpciones  Boolean          @default(false) @map("aleatorizar_opciones")
+  mostrarResultado     Boolean          @default(true) @map("mostrar_resultado")
+  puntajeAprobatorio   Decimal          @map("puntaje_aprobatorio") @db.Decimal(6, 2)
+  criterioIntentos     AttemptCriterion @default(MEJOR) @map("criterio_intentos")
+  /// Evaluación de M08 que recibe la calificación (una por examen).
+  assessmentId         String?          @unique @map("assessment_id")
+  status               OnlineExamStatus @default(BORRADOR)
+  publishedAt          DateTime?        @map("published_at")
+  closedAt             DateTime?        @map("closed_at")
+  createdBy            String?          @map("created_by")
+  createdAt            DateTime         @default(now()) @map("created_at")
+  updatedAt            DateTime         @updatedAt @map("updated_at")
+
+  group      Group                @relation(fields: [groupId], references: [id])
+  assessment Assessment?          @relation(fields: [assessmentId], references: [id])
+  questions  OnlineExamQuestion[]
+  attempts   ExamAttempt[]
+
+  @@index([groupId])
+  @@index([status])
+  @@map("online_exams")
+}
+
+model OnlineExamQuestion {
+  id         String   @id @default(uuid())
+  examId     String   @map("exam_id")
+  questionId String   @map("question_id")
+  puntos     Decimal  @db.Decimal(6, 2)
+  orden      Int
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  exam     OnlineExam @relation(fields: [examId], references: [id], onDelete: Cascade)
+  question Question   @relation(fields: [questionId], references: [id])
+
+  @@unique([examId, questionId])
+  @@index([questionId])
+  @@map("online_exam_questions")
+}
+
+// ---------------------------------------------------------------------------
+// M16/M17 — Intentos, respuestas y calificación automática
+// ---------------------------------------------------------------------------
+
+enum AttemptStatus {
+  EN_CURSO
+  ENVIADO
+  EXPIRADO
+}
+
+model ExamAttempt {
+  id           String        @id @default(uuid())
+  examId       String        @map("exam_id")
+  studentId    String        @map("student_id")
+  numero       Int
+  startedAt    DateTime      @default(now()) @map("started_at")
+  /// Fin calculado en el servidor: min(inicio + duración, cierre del examen).
+  endsAt       DateTime      @map("ends_at")
+  finishedAt   DateTime?     @map("finished_at")
+  status       AttemptStatus @default(EN_CURSO)
+  /// Orden fijo del intento: `[{ questionId, optionIds[] }]` (aleatorización reproducible).
+  layout       Json
+  score        Decimal?      @db.Decimal(6, 2)
+  pendingCount Int           @default(0) @map("pending_count")
+  gradedAt     DateTime?     @map("graded_at")
+  reviewedBy   String?       @map("reviewed_by")
+  reviewedAt   DateTime?     @map("reviewed_at")
+  focusLosses  Int           @default(0) @map("focus_losses")
+  events       Json          @default("[]")
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+
+  exam    OnlineExam      @relation(fields: [examId], references: [id])
+  student Student         @relation(fields: [studentId], references: [id])
+  answers AttemptAnswer[]
+
+  @@unique([examId, studentId, numero])
+  @@index([examId, studentId])
+  @@index([studentId, status])
+  @@index([status, endsAt])
+  @@map("exam_attempts")
+}
+
+model AttemptAnswer {
+  id              String    @id @default(uuid())
+  attemptId       String    @map("attempt_id")
+  questionId      String    @map("question_id")
+  /// Opción (`optionId`), arreglo de opciones o texto, según el tipo.
+  respuesta       Json?
+  /// NULL = pendiente de revisión manual (abiertas).
+  esCorrecta      Boolean?  @map("es_correcta")
+  puntosObtenidos Decimal?  @map("puntos_obtenidos") @db.Decimal(6, 2)
+  comentario      String?
+  answeredAt      DateTime  @default(now()) @map("answered_at")
+  reviewedAt      DateTime? @map("reviewed_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  attempt  ExamAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  question Question    @relation(fields: [questionId], references: [id])
+
+  @@unique([attemptId, questionId])
+  @@index([attemptId])
+  @@map("attempt_answers")
 }

@@ -180,6 +180,39 @@ export const en: Messages = {
     REPORT_FORMAT_INVALID: "Invalid format: use json, xlsx or pdf",
     REPORT_REQUIRES_FULL_SCOPE: "This report requires institutional scope (ALL)",
 
+    // --- Question bank (M14) ---
+    QUESTION_NOT_FOUND: "Question not found",
+    QUESTION_OPTION_REQUIRED: "Closed questions need at least one correct option",
+    QUESTION_OPTION_COUNT_INVALID: "Invalid number of options for the question type",
+    QUESTION_MULTIPLE_CORRECT: "This question type allows a single correct option",
+    QUESTION_OPEN_NO_OPTIONS: "Open questions have no options",
+    QUESTION_IN_USE: "The question was used in an applied exam: it can only be deactivated",
+    QUESTION_ALREADY_INACTIVE: "The question was already inactive",
+    QUESTION_INACTIVE: "The question is inactive",
+    CSV_INVALID: "Invalid CSV file: {{reason}}",
+
+    // --- Online exams (M15) ---
+    EXAM_NOT_FOUND: "Exam not found",
+    EXAM_NOT_EDITABLE: "The exam is closed: it can no longer change",
+    EXAM_PUBLISHED_LOCKED: "The exam already has attempts: its questions and rules cannot change",
+    EXAM_NO_QUESTIONS: "Add at least one question before publishing",
+    EXAM_SCORE_INVALID: "The passing score ({{aprobatorio}}) cannot exceed the total ({{total}})",
+    EXAM_QUESTION_INVALID: "The question is inactive or not from the group's course",
+    EXAM_ALREADY_PUBLISHED: "The exam was already published",
+    EXAM_NOT_PUBLISHED: "The exam is not published",
+    EXAM_ASSESSMENT_INVALID: "The assessment must belong to the same group and be active",
+    EXAM_ASSESSMENT_TAKEN: "That assessment is already linked to another exam",
+    EXAM_DRAFT_ONLY: "Only a draft exam can be deleted",
+
+    // --- Taking and grading (M16/M17) ---
+    EXAM_NOT_AVAILABLE: "The exam is not available: {{reason}}",
+    ATTEMPT_NOT_FOUND: "Attempt not found",
+    ATTEMPT_CLOSED: "The attempt was already submitted: no more changes",
+    ATTEMPT_OPEN: "The attempt is still in progress",
+    INVALID_ANSWER: "Invalid answer for question {{orden}}",
+    STUDENT_PROFILE_REQUIRED: "Your account is not linked to a student",
+    REVIEW_ONLY_OPEN: "Only open questions are reviewed manually",
+
     AUDIT_LOG_NOT_FOUND: "Audit log entry not found",
   },
   validation: {
@@ -247,6 +280,15 @@ export const en: Messages = {
     generatedAt: "Generated",
     filters: "Filters",
     page: "Page {{page}} of {{pages}}",
+  },
+  exams: {
+    reasons: {
+      NOT_PUBLISHED: "it is not published",
+      NOT_OPEN: "it has not opened yet",
+      CLOSED: "it is already closed",
+      NO_ATTEMPTS: "you used all your attempts",
+      NOT_ENROLLED: "you are not enrolled in the group",
+    },
   },
   labels: {
     system: "System",

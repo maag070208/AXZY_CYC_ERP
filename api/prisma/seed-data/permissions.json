@@ -448,5 +448,95 @@
     "sensitive": false,
     "active": true,
     "sortOrder": 2
+  },
+  {
+    "key": "questions.view",
+    "module": "Banco de reactivos",
+    "name": "Ver reactivos",
+    "scopes": ["NONE", "AREA", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 1
+  },
+  {
+    "key": "questions.create",
+    "module": "Banco de reactivos",
+    "name": "Crear reactivos",
+    "scopes": ["NONE", "AREA", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 2
+  },
+  {
+    "key": "questions.edit",
+    "module": "Banco de reactivos",
+    "name": "Editar y desactivar reactivos",
+    "scopes": ["NONE", "AREA", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 3
+  },
+  {
+    "key": "questions.import",
+    "module": "Banco de reactivos",
+    "name": "Importar reactivos (CSV)",
+    "scopes": ["NONE", "AREA", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 4
+  },
+  {
+    "key": "exams.view",
+    "module": "Exámenes en línea",
+    "name": "Ver exámenes en línea",
+    "scopes": ["NONE", "OWN", "AREA", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 1
+  },
+  {
+    "key": "exams.manage",
+    "module": "Exámenes en línea",
+    "name": "Configurar exámenes en línea",
+    "scopes": ["NONE", "AREA", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 2
+  },
+  {
+    "key": "exams.publish",
+    "module": "Exámenes en línea",
+    "name": "Publicar exámenes en línea",
+    "scopes": ["NONE", "AREA", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 3
+  },
+  {
+    "key": "attempts.take",
+    "module": "Exámenes en línea",
+    "name": "Presentar exámenes en línea",
+    "scopes": ["NONE", "OWN"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 4
+  },
+  {
+    "key": "attempts.view",
+    "module": "Exámenes en línea",
+    "name": "Ver intentos y resultados",
+    "scopes": ["NONE", "OWN", "AREA", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 5
+  },
+  {
+    "key": "attempts.review",
+    "module": "Exámenes en línea",
+    "name": "Revisar y recalificar intentos",
+    "scopes": ["NONE", "AREA", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 6
   }
 ]
