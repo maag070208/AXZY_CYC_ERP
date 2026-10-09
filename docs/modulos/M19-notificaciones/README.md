@@ -3,12 +3,39 @@
 | Campo | Valor |
 |---|---|
 | **Código** | M19 |
-| **Versión** | 0.1 |
-| **Estado** | Planeado |
+| **Versión** | 0.2 |
+| **Estado** | Terminado (F6) |
 | **Fase** | Extras |
 | **Depende de** | M02 (auth/roles), M09 (cargos y pagos), M11 (configuración y catálogos), M15 (exámenes en línea), M18 (asistencia) |
 | **Habilita a** | M09/M10/M21 (alertas y avisos), portal del alumno/tutor, recordatorios operativos |
 | **Permisos** | `notifications.view`, `notifications.manage` (con alcance) |
+
+## Implementación (F6, 2026-10-09)
+
+**Estado: terminado.** Código en `api/src/modules/notifications` (`notification-rules.ts`, `notification.service.ts`, `providers/`) y `web/src/entities/notification` + `web/src/features/notification/{inbox,templates,outbox,preferences}`; `/notifications`.
+
+| Método | Ruta | Permiso | Nota |
+|---|---|---|---|
+| POST | `/api/v1/notification-templates/query` | `notifications.view` | Tabla de plantillas |
+| GET | `/api/v1/notification-templates/:id` | `notifications.view` | Detalle |
+| POST | `/api/v1/notification-templates` | `notifications.manage` | Alta (clave+canal únicos) |
+| PATCH | `/api/v1/notification-templates/:id` | `notifications.manage` | Edición |
+| DELETE | `/api/v1/notification-templates/:id` | `notifications.manage` | Baja lógica |
+| POST | `/api/v1/notification-templates/:id/reactivate` | `notifications.manage` | Reactiva |
+| POST | `/api/v1/notifications/query` | `notifications.view` | Historial del outbox |
+| POST | `/api/v1/notifications/send` | `notifications.manage` | Encola un aviso (`Idempotency-Key` opcional) |
+| POST | `/api/v1/notifications/:id/retry` | `notifications.manage` | Reencola fallidos/omitidos |
+| POST | `/api/v1/notifications/drain` | `notifications.manage` | Procesa la cola ahora |
+| GET | `/api/v1/notifications/mine` | cualquier sesión | Bandeja interna propia con no leídas |
+| POST | `/api/v1/notifications/mine/read` | cualquier sesión | Marca leídas (solo las propias) |
+| POST | `/api/v1/notification-preferences/query` | `notifications.view` | Bajas por destinatario y canal |
+| PUT | `/api/v1/notification-preferences` | `notifications.manage` | Da de baja o reincorpora |
+
+Decisiones (sección 12):
+- Plantillas por clave+canal con variables `{{var}}`; el outbox reclama con `FOR UPDATE SKIP LOCKED` y aplica backoff exponencial hasta `maxAttempts`. Ver [D-044](../../../DECISIONES.md).
+- Correo por Resend/SMTP o simulado; SMS/WhatsApp simulados hasta definir proveedor ([A-001](../../../DECISIONES.md)). Canal `INTERNO` con bandeja propia y aviso en tiempo real best-effort (Ably).
+- El puerto `Notifier` dispara `ALERTA_INASISTENCIA`, `JUSTIFICANTE_RESUELTO`, `EXAMEN_PUBLICADO`, `PAGO_RECIBIDO` y `PAGO_POR_VENCER` (barrido horario idempotente).
+- Las bajas (opt-out) no aplican a los avisos obligatorios.
 
 ## 1. Objetivo
 

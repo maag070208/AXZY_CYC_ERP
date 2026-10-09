@@ -5,6 +5,7 @@ import { TeacherController } from "./controllers/teacher.controller";
 import { createTeacherRouter } from "./routes/teacher.routes";
 
 export { TeacherService } from "./services/teacher.service";
+export { usernameBase } from "./services/teacher.service";
 
 /** M04 — profesores y su cuenta PROFESOR. */
 export const createTeachersModule = (audit?: AuditLogger) => {

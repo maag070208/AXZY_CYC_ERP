@@ -33,7 +33,9 @@ export type NavLabelKey =
   | "nav.reports"
   | "nav.questions"
   | "nav.exams"
-  | "nav.myExams";
+  | "nav.myExams"
+  | "nav.attendance"
+  | "nav.notifications";
 
 export interface AppScreen {
   readonly id: string;
@@ -106,6 +108,20 @@ export const APP_SCREENS: readonly AppScreen[] = [
     labelKey: "nav.myExams",
     path: "/my-exams",
     requirement: { anyOf: ["attempts.take"] },
+  },
+  {
+    id: "attendance",
+    labelKey: "nav.attendance",
+    path: "/attendance",
+    // Personal (profesor/control), alumno (su propio alcance) o quien justifica.
+    requirement: { anyOf: ["attendance.view", "attendance.justify"] },
+  },
+  {
+    id: "notifications",
+    labelKey: "nav.notifications",
+    path: "/notifications",
+    // Centro de avisos: todos ven su bandeja interna; las pestañas de
+    // administración se ocultan según permisos dentro de la página.
   },
   {
     id: "reports",

@@ -71,7 +71,8 @@
       "documents": "Documents",
       "kardex": "Transcript",
       "enrollments": "Enrollments",
-      "account": "Account statement"
+      "account": "Account statement",
+      "attendance": "Attendance"
     },
     "matricula": "Enrollment no.",
     "age": "{{age}} years",

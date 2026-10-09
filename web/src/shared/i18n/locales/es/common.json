@@ -41,7 +41,8 @@
     "reports": "Reportes",
     "questions": "Reactivos",
     "exams": "Exámenes en línea",
-    "myExams": "Mis exámenes"
+    "myExams": "Mis exámenes",
+    "attendance": "Asistencia"
   },
   "errors": {
     "network": "Error de red o del servidor",

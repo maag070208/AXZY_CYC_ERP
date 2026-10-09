@@ -21,6 +21,8 @@ export const SETTING_SCHEMAS = {
     })
     .strict(),
   LANGUAGE: z.enum(["es", "en"]),
+  /** Marca de tiempo (ISO) del último respaldo; la migración real la exige reciente. */
+  MIGRATION_LAST_BACKUP_AT: z.union([z.literal(""), z.string().datetime({ offset: true })]),
 } as const;
 
 export type SettingKey = keyof typeof SETTING_SCHEMAS;

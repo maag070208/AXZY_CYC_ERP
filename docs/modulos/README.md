@@ -60,7 +60,7 @@ abiertas, siguiendo la
 
 | Código | Módulo | Objetivo | Estado |
 |---|---|---|---|
-| M18 | [Asistencia y justificantes](M18-asistencia-justificantes/README.md) | Control de asistencia | Planeado |
-| M19 | [Notificaciones](M19-notificaciones/README.md) | Correo, SMS y WhatsApp | Planeado |
+| M18 | [Asistencia y justificantes](M18-asistencia-justificantes/README.md) | Control de asistencia | Terminado (F6) |
+| M19 | [Notificaciones](M19-notificaciones/README.md) | Correo, SMS y WhatsApp | Terminado (F6) |
 | M20 | [Migración de datos históricos](M20-migracion-historica/README.md) | Importación repetible e idempotente | Planeado |
 | M21 | [Reportes y tablero ejecutivo](M21-reportes-ejecutivos/README.md) | Indicadores avanzados | Planeado |

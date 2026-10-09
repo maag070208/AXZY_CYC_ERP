@@ -148,5 +148,6 @@
   { "roleKey": "ALUMNO", "permissionKey": "attempts.take", "scope": "OWN" },
   { "roleKey": "ALUMNO", "permissionKey": "attempts.view", "scope": "OWN" },
   { "roleKey": "ALUMNO", "permissionKey": "attendance.view", "scope": "OWN" },
-  { "roleKey": "ALUMNO", "permissionKey": "attendance.justify", "scope": "OWN" }
+  { "roleKey": "ALUMNO", "permissionKey": "attendance.justify", "scope": "OWN" },
+  { "roleKey": "ADMIN", "permissionKey": "migration.execute", "scope": "ALL" }
 ]

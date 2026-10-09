@@ -269,6 +269,22 @@ Plantilla:
 - **Fecha:** 2026-10-09
 - **Estado:** aceptada
 - **Decisión:** `POST /questions/import?preview=true` valida sin guardar y devuelve filas válidas, rechazadas (fila, código, mensaje) y una muestra; aplicar exige `Idempotency-Key` (repetirla no duplica). Columnas `curso,tema,tipo,enunciado,puntos,dificultad,opciones,correctas` con `,` o `;`; opciones separadas por `|` y correctas por posición (1-based). En V/F sin opciones se usan «Verdadero|Falso». Máximo 1 MB.
+
+### D-042 — Sesión de asistencia única vigente y umbral configurable (resuelve A-006)
+- **Fecha:** 2026-10-09
+- **Estado:** aceptada
+- **Decisión:** una sesión es única por grupo/fecha/hora; la anulación es lógica (con motivo) y conserva los registros. El pase guarda a todos los inscritos vigentes (upsert por sesión+inscripción) y los renglones con justificante pendiente o aprobado no se modifican. El porcentaje resta solo la falta (retardo y justificada cuentan como asistencia) y la alerta cruza `ATTENDANCE_THRESHOLD` (M11; 80 % por defecto) una sola vez, limpiándose al recuperarlo; el umbral es global y configurable, suficiente hasta que se pida por nivel/ciclo.
+
+### D-043 — Justificantes: uno por falta con archivo validado por contenido
+- **Fecha:** 2026-10-09
+- **Estado:** aceptada
+- **Decisión:** cada falta admite un justificante (motivo ≥ 5 y archivo opcional PDF/JPG/PNG ≤ 5 MB validado por contenido; S3 o disco, D-023). Aprobarlo convierte la falta en `JUSTIFICADA` (deja de restar y limpia la alerta); rechazarlo devuelve la falta a `FALTA` y permite una nueva solicitud. Resolver exige `attendance.justify` con alcance AREA/ALL; el alumno (OWN) solo solicita y consulta. El motivo de la decisión (nota) queda en la bitácora.
+
+### D-044 — Outbox de notificaciones con reintentos y canales simulados
+- **Fecha:** 2026-10-09
+- **Estado:** aceptada
+- **Decisión:** las plantillas se identifican por clave+canal (una activa por combinación) con variables `{{var}}`. El outbox reclama con `FOR UPDATE SKIP LOCKED` y backoff exponencial hasta `maxAttempts`; el envío es idempotente por `Idempotency-Key`. Correo por Resend/SMTP o simulado; SMS y WhatsApp simulados hasta definir proveedor ([A-001](#decisiones-abiertas-pendientes-de-definir)). El canal `INTERNO` tiene bandeja propia y aviso en tiempo real best-effort por Ably. Las bajas (opt-out) no aplican a los avisos obligatorios.
+
 ---
 
 ## Mapeo desde la especificación original
@@ -294,15 +310,15 @@ Plantilla:
 | A-003 | Recargos por mora | M09 | ¿Se aplican? ¿Fórmula y periodicidad? | resuelta ([D-033](#d-033--recargos-por-mora-a-demanda-resuelve-a-003)) |
 | A-004 | Almacenamiento de archivos | M06 | ¿S3 (estándar PTNV) o local? | provisional: ambos ([D-023](#d-023--almacenamiento-privado-s3-o-disco-local-resuelve-a-004-de-forma-provisional)) |
 | A-005 | Anti-fraude en examen | M16 | ¿Registrar cambios de pestaña? ¿Bloquear copiar/pegar? | resuelta ([D-037](#d-037--cambios-de-pestaña-se-registran-no-se-bloquean-resuelve-a-005)) |
-| A-006 | Alerta de inasistencia | M18 | ¿Umbral por defecto (80%) configurable? | abierta |
+| A-006 | Alerta de inasistencia | M18 | ¿Umbral por defecto (80%) configurable? | resuelta ([D-042](#d-042--sesión-de-asistencia-única-vigente-y-umbral-configurable-resuelve-a-006)) |
 | A-007 | Acceso de alumnos | M02/M16 | ¿Los alumnos entran al portal o solo presencial? | parcial: portal para exámenes en línea ([D-040](#d-040--portal-del-alumno-para-exámenes-en-línea-resuelve-a-007-para-m16)) |
-| A-008 | Notificaciones en tiempo real | M10/M19 | ¿Ably (estándar PTNV) para el tablero? | abierta |
+| A-008 | Notificaciones en tiempo real | M10/M19 | ¿Ably (estándar PTNV) para el tablero? | parcial: avisos internos por Ably best-effort ([D-044](#d-044--outbox-de-notificaciones-con-reintentos-y-canales-simulados)) |
 
 ---
 
 ## Cómo registrar una nueva decisión
 
-1. Elige el siguiente `D-###` libre (hoy: `D-042`).
+1. Elige el siguiente `D-###` libre (hoy: `D-045`).
 2. Copia la plantilla de arriba y llénala.
 3. Enlaza al documento/módulo afectado.
 4. Si reemplaza a otra, actualiza el estado de la anterior.

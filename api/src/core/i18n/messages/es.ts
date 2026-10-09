@@ -247,6 +247,12 @@ export const es = {
     NOTIFICATION_RECIPIENT_INVALID: "Destinatario inválido para el canal {{canal}}",
     NOTIFICATION_NOT_RETRYABLE: "Solo se reencolan notificaciones fallidas u omitidas",
 
+    // --- Migración de históricos (M20) ---
+    MIGRATION_ENTITY_INVALID: "Entidad de migración no válida",
+    BACKUP_REQUIRED: "Se requiere un respaldo reciente (últimas {{maxHours}} h) antes de importar",
+    CHECKSUM_MISMATCH: "El archivo cambió desde la vista previa; vuelve a previsualizar",
+    MIGRATION_BATCH_NOT_FOUND: "Lote de migración no encontrado",
+
     // --- Bitácora ---
     AUDIT_LOG_NOT_FOUND: "Registro de auditoría no encontrado",
   },

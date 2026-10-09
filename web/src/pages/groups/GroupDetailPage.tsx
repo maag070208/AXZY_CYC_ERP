@@ -11,6 +11,7 @@ import { GroupFormDialog } from "@features/group/group-form";
 import { ChangeGroupDialog, EnrollDialog, EnrollmentsTable, type EnrollmentAction } from "@features/group/group-roster";
 import { AssessmentsPanel } from "@features/grades/manage-assessments";
 import { GradebookGrid } from "@features/grades/capture-grades";
+import { SessionsPanel, GroupAttendanceSummary } from "@features/attendance/sessions-panel";
 import { PanelCard } from "@shared/ui/panel-card";
 
 function Field({ label, value }: { label: string; value: ReactNode }) {
@@ -35,6 +36,7 @@ export default function GroupDetailPage() {
   const canDrop = useCan("enrollments.delete");
   const canGrades = useCan("grades.view");
   const canAssess = useCan("assessments.manage");
+  const canAttendance = useCan("attendance.view");
   const [group, setGroup] = useState<Group | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
@@ -106,6 +108,13 @@ export default function GroupDetailPage() {
     </ITFlex>
   );
 
+  const attendance = g && (
+    <ITFlex direction="column" gap={4}>
+      <GroupAttendanceSummary groupId={g.id} reloadKey={reloadKey} />
+      <SessionsPanel groupId={g.id} readOnly={!open} reloadKey={reloadKey} onChanged={refresh} />
+    </ITFlex>
+  );
+
   const dropTitle = t("enrollments.dropTitle", { name: dropping?.studentNombre ?? "" });
   return (
     <ITPage
@@ -146,6 +155,7 @@ export default function GroupDetailPage() {
             items={[
               ...(canRoster ? [{ id: "roster", label: t("groups.tabs.roster"), content: roster }] : []),
               ...(canGrades ? [{ id: "grades", label: t("groups.tabs.grades"), content: grades }] : []),
+            ...(canAttendance ? [{ id: "attendance", label: t("groups.tabs.attendance"), content: attendance }] : []),
             ]}
           />
         </ITFlex>

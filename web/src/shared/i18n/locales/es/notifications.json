@@ -1,0 +1,95 @@
+{
+  "common": {
+    "active": "Activa",
+    "inactive": "Inactiva"
+  },
+  "channels": {
+    "EMAIL": "Correo",
+    "SMS": "SMS",
+    "WHATSAPP": "WhatsApp",
+    "INTERNO": "Interno"
+  },
+  "status": {
+    "EN_COLA": "En cola",
+    "ENVIADO": "Enviado",
+    "FALLIDO": "Fallido",
+    "OMITIDO": "Omitido"
+  },
+  "page": {
+    "title": "Notificaciones",
+    "description": "Plantillas, envíos y bajas del sistema de avisos.",
+    "noAdmin": "Solo puedes ver tu bandeja interna; la administración requiere permisos."
+  },
+  "tabs": {
+    "inbox": "Mi bandeja",
+    "templates": "Plantillas",
+    "outbox": "Envíos",
+    "preferences": "Bajas"
+  },
+  "templates": {
+    "new": "Nueva plantilla",
+    "titleNew": "Nueva plantilla",
+    "titleEdit": "Editar plantilla",
+    "clave": "Clave",
+    "nombre": "Nombre",
+    "canal": "Canal",
+    "asunto": "Asunto",
+    "cuerpo": "Cuerpo",
+    "obligatorio": "Aviso obligatorio (no se puede dar de baja)",
+    "variablesHint": "Usa variables entre llaves, por ejemplo {{nombre}} o {{fecha}}; se detectan del cuerpo y del asunto.",
+    "enviadas": "Enviadas",
+    "estado": "Estado",
+    "badClave": "La clave debe iniciar con letra y usar MAYÚSCULAS, números y guion bajo.",
+    "deactivated": "Plantilla desactivada",
+    "reactivated": "Plantilla reactivada",
+    "created": "Plantilla creada",
+    "saved": "Plantilla guardada"
+  },
+  "outbox": {
+    "send": "Enviar",
+    "sendTitle": "Enviar notificación",
+    "destinatario": "Destinatario",
+    "canal": "Canal",
+    "plantilla": "Plantilla",
+    "sinPlantilla": "Sin plantilla (texto libre)",
+    "asunto": "Asunto",
+    "cuerpo": "Cuerpo",
+    "variables": "Variables",
+    "estado": "Estado",
+    "fecha": "Fecha",
+    "attempts": "{{n}}/{{max}} intentos",
+    "retry": "Reintentar",
+    "retried": "Envío reencolado",
+    "queued": "Notificación encolada",
+    "drain": "Procesar cola",
+    "drained": "Cola: {{processed}} procesado(s), {{sent}} enviado(s), {{retrying}} por reintentar, {{failed}} fallido(s)",
+    "recipientHint": {
+      "EMAIL": "Correo válido, por ejemplo alumno@escuela.mx.",
+      "SMS": "Teléfono de 10 a 15 dígitos, con lada (por ejemplo +521234567890).",
+      "WHATSAPP": "Teléfono de 10 a 15 dígitos, con lada.",
+      "INTERNO": "Bandeja interna: usa el formato user:<uuid de la cuenta>."
+    }
+  },
+  "preferences": {
+    "new": "Nueva baja",
+    "destinatario": "Destinatario",
+    "estado": "Estado",
+    "baja": "Dado de baja",
+    "motivo": "Motivo",
+    "restore": "Reincorporar",
+    "optOut": "Dar de baja",
+    "optOutTitle": "Dar de baja un destinatario",
+    "restoreTitle": "Reincorporar un destinatario",
+    "optedOut": "Destinatario dado de baja",
+    "restored": "Destinatario reincorporado"
+  },
+  "inbox": {
+    "title": "Mi bandeja",
+    "description": "{{count}} sin leer",
+    "markAll": "Marcar todas leídas",
+    "marked": "Bandeja al día",
+    "markOne": "Marcar como leída",
+    "empty": "No tienes avisos internos.",
+    "total": "{{count}} aviso(s)"
+  }
+}

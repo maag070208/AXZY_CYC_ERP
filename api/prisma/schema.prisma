@@ -1124,3 +1124,71 @@ model NotificationPreference {
   @@unique([destinatario, canal])
   @@map("notification_preferences")
 }
+
+// ---------------------------------------------------------------------------
+// M20 — Migración de datos históricos
+// ---------------------------------------------------------------------------
+
+enum MigrationMode {
+  DRY_RUN
+  EXECUTE
+}
+
+enum MigrationBatchStatus {
+  EN_PROCESO
+  COMPLETADO
+  FALLIDO
+  CANCELADO
+}
+
+enum MigrationRowStatus {
+  ACEPTADA
+  RECHAZADA
+  OMITIDA
+}
+
+/// Lote de migración (una ejecución dry-run o real). Trazabilidad del proceso;
+/// el dataset final vive en cada módulo destino.
+model MigrationBatch {
+  id             String                @id @default(uuid())
+  /// Entidad destino: Student, Teacher…
+  entidad        String
+  /// Nombre del archivo origen (el contenido no se guarda).
+  archivo        String
+  /// sha256 del archivo; la confirmación revalida que coincide.
+  checksum       String                @db.VarChar(64)
+  mode           MigrationMode
+  status         MigrationBatchStatus  @default(EN_PROCESO)
+  idempotencyKey String?               @unique @map("idempotency_key") @db.VarChar(200)
+  /// { read, valid|inserted, updated?, rejected }
+  totalsJson     Json                  @default("{}") @map("totals_json")
+  createdBy      String                @map("created_by")
+  executedAt     DateTime?             @map("executed_at")
+  createdAt      DateTime              @default(now()) @map("created_at")
+  updatedAt      DateTime              @updatedAt @map("updated_at")
+
+  rows MigrationRow[]
+
+  @@index([entidad, status])
+  @@index([createdAt])
+  @@map("migration_batches")
+}
+
+/// Resultado fila a fila de un lote (se guardan las filas no aceptadas).
+model MigrationRow {
+  id         String              @id @default(uuid())
+  batchId    String              @map("batch_id")
+  rowNumber  Int                 @map("row_number")
+  entidad    String
+  naturalKey String?             @map("natural_key") @db.VarChar(200)
+  status     MigrationRowStatus
+  reason     String?             @db.VarChar(120)
+  raw        Json?
+  createdAt  DateTime            @default(now()) @map("created_at")
+
+  batch MigrationBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
+
+  @@index([batchId, status])
+  @@index([naturalKey])
+  @@map("migration_rows")
+}

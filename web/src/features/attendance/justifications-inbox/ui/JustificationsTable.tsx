@@ -1,0 +1,152 @@
+import { useCallback, useState } from "react";
+import { ITBadget, ITButton, ITDataTable, ITDialog, ITFlex, ITText, ITTextarea } from "@axzydev/axzy_ui_system";
+import type { Column, ITDataTableFetchParams, ITDataTableResponse } from "@axzydev/axzy_ui_system";
+import { saveAs } from "file-saver";
+import { FaCheck, FaFileAlt, FaTimes } from "react-icons/fa";
+import { useTranslation } from "react-i18next";
+import { errorMessage, useNotify } from "@app/toast/useNotify";
+import { usePermission } from "@entities/user";
+import { justificationApi, type Justification, type JustificationStatus } from "@entities/attendance";
+import { formatDay } from "@shared/lib/day";
+
+interface Props {
+  reloadKey: number;
+  onTotal?: (total: number) => void;
+  /** Se llama tras resolver un justificante para que el contenedor recargue. */
+  onResolved?: () => void;
+}
+
+const STATUS_COLOR: Record<JustificationStatus, "warning" | "success" | "danger"> = {
+  PENDIENTE: "warning",
+  APROBADA: "success",
+  RECHAZADA: "danger",
+};
+
+/** Bandeja de justificantes con aprobación/rechazo y descarga (M18 §4.4–4.5). */
+export default function JustificationsTable({ reloadKey, onTotal, onResolved }: Props) {
+  const { t, i18n } = useTranslation(["attendance", "common"]);
+  const notify = useNotify();
+  const justifyScope = usePermission("attendance.justify");
+  // Resolver exige alcance AREA/ALL; el alumno (OWN) solo ve cómo va su trámite.
+  const canResolve = justifyScope === "AREA" || justifyScope === "ALL";
+  const [resolving, setResolving] = useState<{ row: Justification; status: "APROBADA" | "RECHAZADA" } | null>(null);
+  const [nota, setNota] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  const fetchData = useCallback(async (params: ITDataTableFetchParams) => {
+    const res = await justificationApi.table({ page: params.page, limit: params.limit, filters: params.filters, sort: params.sort });
+    onTotal?.(res.total);
+    return { data: res.data as unknown as Record<string, unknown>[], total: res.total };
+  }, [onTotal]);
+
+  const download = async (row: Justification) => {
+    try {
+      saveAs(await justificationApi.file(row.id), row.archivoNombre ?? "justificante");
+    } catch (err) {
+      notify.error(errorMessage(err, t("common:errors.load")));
+    }
+  };
+
+  const confirm = async () => {
+    if (!resolving) return;
+    setBusy(true);
+    try {
+      await justificationApi.resolve(resolving.row.id, { status: resolving.status, nota: nota.trim() || null });
+      notify.success(resolving.status === "APROBADA" ? t("justifications.approved") : t("justifications.rejected"));
+      setResolving(null);
+      onResolved?.();
+    } catch (err) {
+      notify.error(errorMessage(err, t("common:errors.save")));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const columns: Column<Justification>[] = [
+    {
+      key: "nombre", label: t("justifications.alumno"), type: "string", filter: true, sortable: true,
+      render: (r) => (
+        <div>
+          <ITText className="block text-[12px] font-bold text-slate-700">{r.nombre}</ITText>
+          <ITText className="text-[10px] text-slate-400">{r.matricula}</ITText>
+        </div>
+      ),
+    },
+    {
+      key: "curso", label: t("justifications.grupo"), type: "string",
+      render: (r) => <ITText className="text-[12px] text-slate-600">{r.curso} · {r.grupo}</ITText>,
+    },
+    {
+      key: "fecha", label: t("justifications.fecha"), type: "date", width: 150, sortable: true,
+      render: (r) => <ITText className="text-[12px] text-slate-600">{formatDay(r.fecha, i18n.language)}{r.hora ? ` · ${r.hora}` : ""}</ITText>,
+    },
+    {
+      key: "motivo", label: t("justifications.motivo"), type: "string",
+      render: (r) => <ITText className="text-[12px] text-slate-600">{r.motivo}</ITText>,
+    },
+    {
+      key: "status", label: t("justifications.estado"), type: "catalog", width: 120, filter: "catalog", sortable: true,
+      catalogOptions: { data: (["PENDIENTE", "APROBADA", "RECHAZADA"] as const).map((s) => ({ id: s, name: t(`justificationStatus.${s}`) })) },
+      render: (r) => (
+        <ITFlex direction="column" gap={1}>
+          <ITBadget color={STATUS_COLOR[r.status]} size="sm">{t(`justificationStatus.${r.status}`)}</ITBadget>
+          {r.nota && <ITText className="text-[10px] text-slate-500">{r.nota}</ITText>}
+        </ITFlex>
+      ),
+    },
+    {
+      key: "actions", label: t("common:labels.actions"), type: "actions", width: 120,
+      actions: (r) => (
+        <ITFlex gap={1}>
+          {r.hasFile && (
+            <ITButton variant="text" color="secondary" size="sm" title={t("justifications.download")} ariaLabel={`${t("justifications.download")} ${r.archivoNombre ?? ""}`} onClick={() => void download(r)}>
+              <FaFileAlt size={12} />
+            </ITButton>
+          )}
+          {canResolve && r.status === "PENDIENTE" && (
+            <>
+              <ITButton variant="text" color="success" size="sm" title={t("justifications.approve")} ariaLabel={`${t("justifications.approve")} ${r.nombre}`} onClick={() => { setNota(""); setResolving({ row: r, status: "APROBADA" }); }}>
+                <FaCheck size={12} />
+              </ITButton>
+              <ITButton variant="text" color="danger" size="sm" title={t("justifications.reject")} ariaLabel={`${t("justifications.reject")} ${r.nombre}`} onClick={() => { setNota(""); setResolving({ row: r, status: "RECHAZADA" }); }}>
+                <FaTimes size={11} />
+              </ITButton>
+            </>
+          )}
+        </ITFlex>
+      ),
+    },
+  ];
+
+  const title = resolving
+    ? t(resolving.status === "APROBADA" ? "justifications.approveTitle" : "justifications.rejectTitle", { name: resolving.row.nombre })
+    : "";
+  return (
+    <>
+      <ITDataTable
+        columns={columns as unknown as Column<Record<string, unknown>>[]}
+        fetchData={fetchData as unknown as (p: ITDataTableFetchParams) => Promise<ITDataTableResponse<Record<string, unknown>>>}
+        reloadTrigger={reloadKey}
+        defaultItemsPerPage={25}
+        itemsPerPageOptions={[25, 50, 100]}
+        layout="fixed"
+        density="compact"
+      />
+      <ITDialog isOpen={!!resolving} onClose={() => setResolving(null)} title={title} className="w-full max-w-lg">
+        <div role="dialog" aria-label={title}>
+          <ITFlex direction="column" gap={4}>
+            <ITText className="text-[12px] text-slate-600">{resolving?.row.motivo}</ITText>
+            {resolving?.status === "RECHAZADA" && <ITText className="text-[12px] text-slate-500">{t("justifications.rejectHint")}</ITText>}
+            <ITTextarea name="nota" label={t("justifications.nota")} value={nota} onChange={setNota} rows={3} maxLength={500} />
+            <ITFlex justify="end" gap={2}>
+              <ITButton variant="outlined" color="secondary" onClick={() => setResolving(null)}>{t("common:actions.cancel")}</ITButton>
+              <ITButton variant="filled" color={resolving?.status === "APROBADA" ? "success" : "danger"} disabled={busy} onClick={() => void confirm()}>
+                {resolving?.status === "APROBADA" ? t("justifications.approve") : t("justifications.reject")}
+              </ITButton>
+            </ITFlex>
+          </ITFlex>
+        </div>
+      </ITDialog>
+    </>
+  );
+}

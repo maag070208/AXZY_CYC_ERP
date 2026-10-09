@@ -41,7 +41,8 @@
     "reports": "Reports",
     "questions": "Questions",
     "exams": "Online exams",
-    "myExams": "My exams"
+    "myExams": "My exams",
+    "attendance": "Attendance"
   },
   "errors": {
     "network": "Network or server error",

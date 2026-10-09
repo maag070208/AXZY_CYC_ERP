@@ -58,7 +58,8 @@
     "detailTitle": "{{course}} · Group {{name}}",
     "tabs": {
       "roster": "Students",
-      "grades": "Grades"
+      "grades": "Grades",
+      "attendance": "Attendance"
     },
     "kpis": {
       "cupo": "Capacity",

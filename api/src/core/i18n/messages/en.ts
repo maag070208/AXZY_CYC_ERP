@@ -235,6 +235,12 @@ export const en: Messages = {
     NOTIFICATION_RECIPIENT_INVALID: "Invalid recipient for channel {{canal}}",
     NOTIFICATION_NOT_RETRYABLE: "Only failed or skipped notifications can be requeued",
 
+    // --- Historical migration (M20) ---
+    MIGRATION_ENTITY_INVALID: "Invalid migration entity",
+    BACKUP_REQUIRED: "A recent backup (last {{maxHours}} h) is required before importing",
+    CHECKSUM_MISMATCH: "The file changed since preview; run preview again",
+    MIGRATION_BATCH_NOT_FOUND: "Migration batch not found",
+
     AUDIT_LOG_NOT_FOUND: "Audit log entry not found",
   },
   validation: {

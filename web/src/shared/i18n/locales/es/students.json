@@ -71,7 +71,8 @@
       "documents": "Expediente",
       "kardex": "Kardex",
       "enrollments": "Inscripciones",
-      "account": "Estado de cuenta"
+      "account": "Estado de cuenta",
+      "attendance": "Asistencia"
     },
     "matricula": "Matrícula",
     "age": "{{age}} años",

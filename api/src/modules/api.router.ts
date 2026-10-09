@@ -17,6 +17,7 @@ import { createQuestionsModule } from "./questions";
 import { createExamsModule } from "./exams";
 import { createNotificationsModule } from "./notifications";
 import { createAttendanceModule } from "./attendance";
+import { createMigrationModule } from "./migration";
 
 // Puerto de auditoría (DIP): cada módulo recibe solo `createLog`, no el servicio.
 const { router: auditRouter, service: auditService } = createAuditModule();
@@ -39,6 +40,7 @@ const questions = createQuestionsModule(auditPort.createLog);
 const exams = createExamsModule(auditPort.createLog);
 const notifications = createNotificationsModule(auditPort.createLog);
 const attendance = createAttendanceModule(auditPort.createLog);
+const migration = createMigrationModule(auditPort.createLog);
 // Intentos vencidos se cierran y califican aunque el alumno no vuelva (M16 §4.4).
 if (process.env.NODE_ENV !== "test") exams.attempts.startSweeper();
 
@@ -149,6 +151,7 @@ apiRouter.use("/justifications", attendance.routers.justifications);
 apiRouter.use("/notification-templates", notifications.routers.templates);
 apiRouter.use("/notifications", notifications.routers.notifications);
 apiRouter.use("/notification-preferences", notifications.routers.preferences);
+apiRouter.use("/migration", migration.router);
 
 export { auditService };
 export default apiRouter;

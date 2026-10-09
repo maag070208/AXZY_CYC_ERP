@@ -1,0 +1,95 @@
+{
+  "common": {
+    "active": "Active",
+    "inactive": "Inactive"
+  },
+  "channels": {
+    "EMAIL": "Email",
+    "SMS": "SMS",
+    "WHATSAPP": "WhatsApp",
+    "INTERNO": "Internal"
+  },
+  "status": {
+    "EN_COLA": "Queued",
+    "ENVIADO": "Sent",
+    "FALLIDO": "Failed",
+    "OMITIDO": "Skipped"
+  },
+  "page": {
+    "title": "Notifications",
+    "description": "Templates, deliveries and opt-outs of the notification system.",
+    "noAdmin": "You can only see your internal inbox; administration requires permissions."
+  },
+  "tabs": {
+    "inbox": "My inbox",
+    "templates": "Templates",
+    "outbox": "Deliveries",
+    "preferences": "Opt-outs"
+  },
+  "templates": {
+    "new": "New template",
+    "titleNew": "New template",
+    "titleEdit": "Edit template",
+    "clave": "Key",
+    "nombre": "Name",
+    "canal": "Channel",
+    "asunto": "Subject",
+    "cuerpo": "Body",
+    "obligatorio": "Mandatory notice (cannot be opted out)",
+    "variablesHint": "Use variables in braces, e.g. {{nombre}} or {{fecha}}; they are detected from the body and subject.",
+    "enviadas": "Sent",
+    "estado": "Status",
+    "badClave": "The key must start with a letter and use UPPERCASE, digits and underscore.",
+    "deactivated": "Template deactivated",
+    "reactivated": "Template reactivated",
+    "created": "Template created",
+    "saved": "Template saved"
+  },
+  "outbox": {
+    "send": "Send",
+    "sendTitle": "Send notification",
+    "destinatario": "Recipient",
+    "canal": "Channel",
+    "plantilla": "Template",
+    "sinPlantilla": "No template (free text)",
+    "asunto": "Subject",
+    "cuerpo": "Body",
+    "variables": "Variables",
+    "estado": "Status",
+    "fecha": "Date",
+    "attempts": "{{n}}/{{max}} attempts",
+    "retry": "Retry",
+    "retried": "Delivery requeued",
+    "queued": "Notification queued",
+    "drain": "Process queue",
+    "drained": "Queue: {{processed}} processed, {{sent}} sent, {{retrying}} retrying, {{failed}} failed",
+    "recipientHint": {
+      "EMAIL": "Valid email, e.g. student@school.mx.",
+      "SMS": "10 to 15 digit phone with country code (e.g. +521234567890).",
+      "WHATSAPP": "10 to 15 digit phone with country code.",
+      "INTERNO": "Internal inbox: use the format user:<account uuid>."
+    }
+  },
+  "preferences": {
+    "new": "New opt-out",
+    "destinatario": "Recipient",
+    "estado": "Status",
+    "baja": "Opted out",
+    "motivo": "Reason",
+    "restore": "Restore",
+    "optOut": "Opt out",
+    "optOutTitle": "Opt out a recipient",
+    "restoreTitle": "Restore a recipient",
+    "optedOut": "Recipient opted out",
+    "restored": "Recipient restored"
+  },
+  "inbox": {
+    "title": "My inbox",
+    "description": "{{count}} unread",
+    "markAll": "Mark all read",
+    "marked": "Inbox up to date",
+    "markOne": "Mark as read",
+    "empty": "You have no internal notices.",
+    "total": "{{count}} notice(s)"
+  }
+}

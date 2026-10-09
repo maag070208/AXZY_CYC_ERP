@@ -3,12 +3,36 @@
 | Campo | Valor |
 |---|---|
 | **Código** | M18 |
-| **Versión** | 0.1 |
-| **Estado** | Planeado |
+| **Versión** | 0.2 |
+| **Estado** | Terminado (F6) |
 | **Fase** | Extras |
 | **Depende de** | M07 (Cursos, grupos e inscripciones), M03 (Alumnos), M11 (Administración y catálogos / `settings`), M02 (Autenticación y RBAC) |
 | **Habilita a** | M10/M21 (reportes y tablero), M19 (Notificaciones) |
 | **Permisos** | `attendance.view` (OWN/AREA), `attendance.manage` (AREA), `attendance.justify` |
+
+## Implementación (F6, 2026-10-09)
+
+**Estado: terminado.** Código en `api/src/modules/attendance` (`attendance-rules.ts`, `attendance.service.ts`, `justification.service.ts`) y `web/src/entities/attendance` + `web/src/features/attendance/{sessions-panel,justifications-inbox,student-attendance}`; pestañas «Asistencia» de `/groups/:id` y de la ficha del alumno, y `/attendance` (bandeja de justificantes).
+
+| Método | Ruta | Permiso | Nota |
+|---|---|---|---|
+| GET | `/api/v1/groups/:groupId/sessions` | `attendance.view` (AREA/ALL) | Sesiones del grupo (vigentes y anuladas) |
+| POST | `/api/v1/groups/:groupId/sessions` | `attendance.manage` | Única por grupo/fecha/hora; no admite fecha futura |
+| GET | `/api/v1/groups/:groupId/attendance-summary` | `attendance.view` (OWN = su renglón) | % por alumno, umbral y alerta |
+| GET | `/api/v1/attendance-sessions/:id` | `attendance.view` (AREA/ALL) | Pase de lista de la sesión |
+| PUT | `/api/v1/attendance-sessions/:id/attendance` | `attendance.manage` | Guarda el pase (upsert); bloquea renglones con justificante |
+| DELETE | `/api/v1/attendance-sessions/:id` | `attendance.manage` | Anulación lógica con motivo |
+| GET | `/api/v1/students/:studentId/attendance` | `attendance.view` | Asistencia del alumno por grupo con detalle |
+| POST | `/api/v1/justifications` | `attendance.justify` | Solicita justificante (multipart; archivo PDF/JPG/PNG ≤ 5 MB opcional) |
+| POST | `/api/v1/justifications/query` | `attendance.justify` (OWN = los propios) | Bandeja de justificantes |
+| PATCH | `/api/v1/justifications/:id/resolve` | `attendance.justify` (AREA/ALL) | Aprueba (→ JUSTIFICADA) o rechaza |
+| GET | `/api/v1/justifications/:id/file` | `attendance.view` | Descarga autorizada del comprobante |
+
+Decisiones (sección 12):
+- Sesión única vigente por grupo/fecha/hora con anulación lógica; el pase guarda a todos los inscritos y respeta los justificantes vigentes. Solo la falta resta en el porcentaje (retardo y justificada no penalizan). Ver [D-042](../../../DECISIONES.md).
+- La alerta cruza `ATTENDANCE_THRESHOLD` (M11; 80 % por defecto) una sola vez y se limpia al recuperarlo, disparando `ALERTA_INASISTENCIA` por M19. Resuelve [A-006](../../../DECISIONES.md).
+- Un justificante por falta con archivo validado por contenido (S3/disco, D-023); aprobar cambia la falta a JUSTIFICADA, rechazar permite nueva solicitud. Ver [D-043](../../../DECISIONES.md).
+- Reporte `attendance-by-group` en M10 y bitácora de sesión creada/anulada y asistencia registrada.
 
 ## 1. Objetivo
 

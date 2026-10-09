@@ -23,6 +23,8 @@ import ExamsPage from "@pages/exams/ExamsPage";
 import ExamDetailPage from "@pages/exams/ExamDetailPage";
 import MyExamsPage from "@pages/my-exams/MyExamsPage";
 import ExamRunnerPage from "@pages/my-exams/ExamRunnerPage";
+import AttendancePage from "@pages/attendance/AttendancePage";
+import NotificationsPage from "@pages/notifications/NotificationsPage";
 import PrivateRoutes from "./guards/PrivateRoutes";
 import RequiresPermission from "./guards/RequirePermission";
 
@@ -157,6 +159,15 @@ export default function App() {
             </RequiresPermission>
           }
         />
+        <Route
+          path="/attendance"
+          element={
+            <RequiresPermission permission={["attendance.view", "attendance.justify"]}>
+              <AttendancePage />
+            </RequiresPermission>
+          }
+        />
+        <Route path="/notifications" element={<NotificationsPage />} />
         <Route
           path="/users"
           element={

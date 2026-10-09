@@ -58,7 +58,8 @@
     "detailTitle": "{{course}} · Grupo {{name}}",
     "tabs": {
       "roster": "Alumnos",
-      "grades": "Calificaciones"
+      "grades": "Calificaciones",
+      "attendance": "Asistencia"
     },
     "kpis": {
       "cupo": "Cupo",

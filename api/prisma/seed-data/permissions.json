@@ -583,5 +583,14 @@
     "sensitive": true,
     "active": true,
     "sortOrder": 2
+  },
+  {
+    "key": "migration.execute",
+    "module": "Migración",
+    "name": "Ejecutar y consultar la migración de históricos",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": true,
+    "active": true,
+    "sortOrder": 1
   }
 ]
