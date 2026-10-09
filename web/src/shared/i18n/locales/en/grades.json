@@ -47,6 +47,7 @@
     "results": {
       "ACREDITADO": "Passed",
       "REPROBADO": "Failed"
-    }
+    },
+    "student": "Student"
   }
 }

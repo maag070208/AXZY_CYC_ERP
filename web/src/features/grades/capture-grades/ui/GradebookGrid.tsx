@@ -16,6 +16,8 @@ interface Props {
 }
 
 type Draft = Record<string, string>;
+const INVALID_CELL = { borderColor: "#ef4444", background: "#fef2f2", color: "#b91c1c" } as const;
+const DIRTY_CELL = { borderColor: "#f59e0b", background: "#fffbeb" } as const;
 const cellKey = (enrollmentId: string, assessmentId: string) => `${enrollmentId}:${assessmentId}`;
 
 /**
@@ -149,7 +151,7 @@ export default function GradebookGrid({ groupId, reloadKey, onClosed }: Props) {
           <table className="w-full text-left text-[12px]" data-role="gradebook">
             <thead>
               <tr className="border-b border-slate-200 text-[10px] font-black uppercase tracking-wide text-slate-400">
-                <th className="px-2 py-2">{t("gradebook.title")}</th>
+                <th className="px-2 py-2">{t("gradebook.student")}</th>
                 {book.assessments.map((a) => (
                   <th key={a.id} className="px-2 py-2 text-center">
                     <span className="block text-slate-600">{a.nombre}</span>
@@ -183,9 +185,10 @@ export default function GradebookGrid({ groupId, reloadKey, onClosed }: Props) {
                             max={a.maxScore}
                             aria-label={`${row.nombre} · ${a.nombre}`}
                             title={invalid(key) ? t("gradebook.outOfRange", { max: a.maxScore }) : undefined}
-                            className={`w-20 rounded-lg border px-2 py-1 text-center text-[12px] outline-none focus:border-blue-500 ${
-                              invalid(key) ? "border-red-500 bg-red-50" : key in draft ? "border-amber-400 bg-amber-50" : "border-slate-200"
-                            }`}
+                            aria-invalid={invalid(key) || undefined}
+                            className="w-20 rounded-lg border border-slate-200 px-2 py-1 text-center text-[12px] outline-none focus:border-blue-500"
+                            // En línea: el estilo de foco del kit no debe ocultar el estado de la celda.
+                            style={invalid(key) ? INVALID_CELL : key in draft ? DIRTY_CELL : undefined}
                             value={value}
                             onChange={(e) => {
                               const next = e.target.value;

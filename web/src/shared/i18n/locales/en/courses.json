@@ -118,6 +118,7 @@
       "BAJA": "Dropped",
       "ACREDITADO": "Passed",
       "REPROBADO": "Failed"
-    }
+    },
+    "alreadyEnrolled": "Already enrolled"
   }
 }

@@ -118,6 +118,7 @@
       "BAJA": "Baja",
       "ACREDITADO": "Acreditado",
       "REPROBADO": "Reprobado"
-    }
+    },
+    "alreadyEnrolled": "Ya inscrito"
   }
 }

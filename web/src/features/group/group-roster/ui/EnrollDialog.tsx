@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { ITAlert, ITButton, ITDialog, ITFlex, ITInput, ITText } from "@axzydev/axzy_ui_system";
 import { useTranslation } from "react-i18next";
-import { groupApi, type Enrollment, type Group } from "@entities/group";
+import { enrollmentApi, groupApi, type Enrollment, type Group } from "@entities/group";
 import { studentApi, type Student } from "@entities/student";
 import { errorMessage } from "@app/toast/useNotify";
 
@@ -17,6 +17,7 @@ export default function EnrollDialog({ group, onClose, onEnrolled }: Props) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Student[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
+  const [enrolled, setEnrolled] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -24,6 +25,11 @@ export default function EnrollDialog({ group, onClose, onEnrolled }: Props) {
     setQuery("");
     setResults([]);
     setError(null);
+    // Quien ya está en el grupo (no en baja) aparece marcado en la búsqueda.
+    enrollmentApi
+      .table({ page: 1, limit: 200, filters: { groupId: group.id } })
+      .then((res) => setEnrolled(new Set(res.data.filter((e) => e.status !== "BAJA").map((e) => e.studentId))))
+      .catch(() => setEnrolled(new Set()));
   }, [group]);
 
   useEffect(() => {
@@ -74,10 +80,14 @@ export default function EnrollDialog({ group, onClose, onEnrolled }: Props) {
                     <ITText className="block text-[12px] font-bold text-slate-700">{s.nombreCompleto}</ITText>
                     <ITText className="font-mono text-[11px] text-slate-400">{s.matricula}</ITText>
                   </div>
-                  <ITButton variant="filled" color="primary" size="sm" disabled={busy !== null}
-                    ariaLabel={`${t("enrollments.enrollAction")} ${s.nombreCompleto}`} onClick={() => void enroll(s)}>
-                    {t("enrollments.enrollAction")}
-                  </ITButton>
+                  {enrolled.has(s.id) ? (
+                    <ITText className="text-[11px] font-bold text-slate-400">{t("enrollments.alreadyEnrolled")}</ITText>
+                  ) : (
+                    <ITButton variant="filled" color="primary" size="sm" disabled={busy !== null}
+                      ariaLabel={`${t("enrollments.enrollAction")} ${s.nombreCompleto}`} onClick={() => void enroll(s)}>
+                      {t("enrollments.enrollAction")}
+                    </ITButton>
+                  )}
                 </li>
               ))}
             </ul>
