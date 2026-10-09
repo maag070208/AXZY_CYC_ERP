@@ -1,0 +1,107 @@
+{
+  "list": {
+    "title": "Carreras",
+    "description": "{{count}} carrera(s)",
+    "new": "Nueva carrera",
+    "created": "Carrera creada",
+    "saved": "Carrera guardada",
+    "name": "Carrera",
+    "period": "Periodos",
+    "fees": "Costos",
+    "monthly": "Mensual",
+    "enrollment": "Reinscripción",
+    "subjects": "Materias"
+  },
+  "periodTypes": {
+    "BIMONTHLY": "Bimestral",
+    "TRIMESTER": "Trimestral",
+    "QUADRIMESTER": "Cuatrimestral",
+    "SEMESTER": "Semestral"
+  },
+  "form": {
+    "titleNew": "Nueva carrera",
+    "titleEdit": "Editar carrera",
+    "code": "Clave",
+    "name": "Nombre",
+    "description": "Descripción",
+    "periodType": "Tipo de periodo",
+    "periodCount": "Número de periodos",
+    "monthsPerPeriod": "Meses por periodo",
+    "auto": "Automático",
+    "monthlyFee": "Costo mensual",
+    "enrollmentFee": "Reinscripción (por periodo)",
+    "badCode": "La clave debe usar MAYÚSCULAS, números y guion (2–30).",
+    "badCount": "Indica entre 1 y 20 periodos.",
+    "badFee": "El monto no puede ser negativo."
+  },
+  "detail": {
+    "monthly": "Mensualidad",
+    "enrollment": "Reinscripción",
+    "period": "Esquema",
+    "monthsPerPeriod": "Meses/periodo",
+    "code": "Clave",
+    "plans": "Planes asignados",
+    "description": "Descripción"
+  },
+  "plan": {
+    "title": "Plan de estudios",
+    "description": "Asigna las materias (cursos) a cada periodo de la carrera.",
+    "save": "Guardar plan",
+    "saved": "Plan de estudios guardado",
+    "period": "Periodo {{n}}",
+    "emptyPeriod": "Sin materias en este periodo.",
+    "addCourse": "Agregar materia",
+    "remove": "Quitar",
+    "alreadyInPlan": "Esa materia ya está en el plan de estudios."
+  },
+  "assign": {
+    "title": "Asignar plan a {{name}}",
+    "titleShort": "Asignar plan",
+    "hint": "Genera los cargos del plan (reinscripción por periodo + mensualidades) con los montos de la carrera.",
+    "program": "Carrera",
+    "term": "Ciclo",
+    "noTerm": "Sin ciclo",
+    "startDate": "Fecha de inicio",
+    "discountPercent": "Descuento %",
+    "discountAmount": "Descuento $",
+    "discountReason": "Motivo del descuento",
+    "discountExclusive": "Usa porcentaje o monto, no ambos.",
+    "footnote": "La inscripción a grupos se hace aparte (M07). Reejecutar el mismo plan no duplica cargos.",
+    "submit": "Generar plan",
+    "created": "Plan generado ({{charges}} cargos)"
+  },
+  "plans": {
+    "title": "Plan de pagos",
+    "description": "Cargos generados por carrera (reinscripción + mensualidades).",
+    "program": "Carrera",
+    "start": "Inicio",
+    "periods": "Periodos",
+    "months": "meses",
+    "totals": "Total",
+    "charges": "{{count}} cargos",
+    "view": "Ver cargos",
+    "cancel": "Cancelar",
+    "cancelled": "Plan cancelado",
+    "cancelTitle": "Cancelar plan de pagos",
+    "cancelHint": "Cancela los cargos pendientes sin pagos; los pagados se conservan.",
+    "cancelReason": "Motivo",
+    "detailTitle": "Cargos del plan · {{name}}",
+    "detailSummary": "{{periods}} periodos × {{months}} meses · {{charges}} cargos · {{amount}}",
+    "detail": {
+      "charge": "Concepto",
+      "due": "Vence",
+      "amount": "Monto"
+    }
+  },
+  "status": {
+    "ACTIVE": "Activo",
+    "COMPLETED": "Completado",
+    "CANCELLED": "Cancelado"
+  },
+  "chargeStatus": {
+    "PENDIENTE": "Pendiente",
+    "PARCIAL": "Parcial",
+    "PAGADO": "Pagado",
+    "CANCELADO": "Cancelado"
+  }
+}

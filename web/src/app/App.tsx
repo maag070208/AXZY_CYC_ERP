@@ -26,6 +26,8 @@ import ExamRunnerPage from "@pages/my-exams/ExamRunnerPage";
 import AttendancePage from "@pages/attendance/AttendancePage";
 import NotificationsPage from "@pages/notifications/NotificationsPage";
 import MigrationPage from "@pages/migration/MigrationPage";
+import ProgramsPage from "@pages/programs/ProgramsPage";
+import ProgramDetailPage from "@pages/programs/ProgramDetailPage";
 import PrivateRoutes from "./guards/PrivateRoutes";
 import RequireAuth from "./guards/RequireAuth";
 import RequiresPermission from "./guards/RequirePermission";
@@ -106,6 +108,22 @@ export default function App() {
           element={
             <RequiresPermission permission="groups.view">
               <GroupDetailPage />
+            </RequiresPermission>
+          }
+        />
+        <Route
+          path="/programs"
+          element={
+            <RequiresPermission permission="programs.view">
+              <ProgramsPage />
+            </RequiresPermission>
+          }
+        />
+        <Route
+          path="/programs/:id"
+          element={
+            <RequiresPermission permission="programs.view">
+              <ProgramDetailPage />
             </RequiresPermission>
           }
         />

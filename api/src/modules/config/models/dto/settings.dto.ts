@@ -23,6 +23,8 @@ export const SETTING_SCHEMAS = {
   LANGUAGE: z.enum(["es", "en"]),
   /** Marca de tiempo (ISO) del último respaldo; la migración real la exige reciente. */
   MIGRATION_LAST_BACKUP_AT: z.union([z.literal(""), z.string().datetime({ offset: true })]),
+  /** Día del mes (1..28) para el vencimiento de cargos del plan de pagos (M22). */
+  PAYMENT_DUE_DAY: z.number().int().min(1).max(28),
 } as const;
 
 export type SettingKey = keyof typeof SETTING_SCHEMAS;

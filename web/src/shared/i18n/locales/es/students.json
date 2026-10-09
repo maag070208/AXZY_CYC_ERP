@@ -72,7 +72,8 @@
       "kardex": "Kardex",
       "enrollments": "Inscripciones",
       "account": "Estado de cuenta",
-      "attendance": "Asistencia"
+      "attendance": "Asistencia",
+      "plans": "Plan de pagos"
     },
     "matricula": "Matrícula",
     "age": "{{age}} años",

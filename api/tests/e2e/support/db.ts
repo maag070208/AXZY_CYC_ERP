@@ -166,6 +166,7 @@ export const clearStudentsE2E = async (): Promise<number> => {
   await clearEnrollments({ studentId: { in: ids } });
   await clearCharges({ studentId: { in: ids } });
   await db.document.deleteMany({ where: { studentId: { in: ids } } });
+  await db.studentPlan.deleteMany({ where: { studentId: { in: ids } } });
   await db.studentMovement.deleteMany({ where: { studentId: { in: ids } } });
   const result = await db.student.deleteMany({ where: { id: { in: ids } } });
   return result.count;
@@ -248,4 +249,27 @@ export const clearMigrationE2E = async (): Promise<number> => {
     where: { OR: [{ createdBy: { in: ids } }, { archivo: { startsWith: E2E_PREFIX } }] },
   });
   return result.count;
+};
+
+/**
+ * Carreras y planes de pago de prueba (M22): los de código `E2E…`, los de
+ * alumnos de prueba y los creados por cuentas `e2e_`. Debe correr **antes** de
+ * borrar alumnos (el plan referencia al alumno).
+ */
+export const clearProgramsE2E = async (): Promise<number> => {
+  const users = await db.user.findMany({ where: { username: { startsWith: E2E_PREFIX } }, select: { id: true } });
+  const ids = users.map((u) => u.id);
+  const students = await db.student.findMany({ where: { nombres: { startsWith: E2E_CATALOG_PREFIX } }, select: { id: true } });
+  const studentIds = students.map((s) => s.id);
+  await db.studentPlan.deleteMany({
+    where: {
+      OR: [
+        { createdBy: { in: ids } },
+        { studentId: { in: studentIds } },
+        { program: { code: { startsWith: E2E_CATALOG_PREFIX } } },
+      ],
+    },
+  });
+  const programs = await db.program.deleteMany({ where: { code: { startsWith: E2E_CATALOG_PREFIX } } });
+  return programs.count;
 };

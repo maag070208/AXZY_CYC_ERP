@@ -72,7 +72,8 @@
       "kardex": "Transcript",
       "enrollments": "Enrollments",
       "account": "Account statement",
-      "attendance": "Attendance"
+      "attendance": "Attendance",
+      "plans": "Payment plan"
     },
     "matricula": "Enrollment no.",
     "age": "{{age}} years",

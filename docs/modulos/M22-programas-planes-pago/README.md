@@ -4,7 +4,7 @@
 |---|---|
 | **Código** | M22 |
 | **Versión** | 0.2 |
-| **Estado** | Propuesto (especificado, sin código) |
+| **Estado** | Terminado (F10) |
 | **Fase** | Extras |
 | **Depende de** | M03 (alumnos), M07 (cursos/grupos/inscripciones, `Term`), M09 (cargos/pagos), M11 (`settings`) |
 | **Habilita a** | Onboarding de alumnos por carrera, estado de cuenta con plan de pagos, M10/M21 (ingresos y becas) |
@@ -261,13 +261,13 @@ del primer cargo, con motivo).
 
 ## 11. Criterios de aceptación
 
-- [ ] Migración `m22_programs_student_plans`.
-- [ ] Módulo API con generación idempotente y descuentos.
-- [ ] Plan de estudios reutilizando `Course` de M07.
-- [ ] Plan de pagos con snapshot y cargos ligados (`Charge.planId`).
-- [ ] Settings `PAYMENT_DUE_DAY` y `Term.calendar`.
-- [ ] Pantallas web (carreras, plan de estudios, asignar plan, plan del alumno).
-- [ ] Specs en verde y este README como fuente de verdad.
+- [x] Migración `m22_programs_student_plans`.
+- [x] Módulo API con generación idempotente y descuentos.
+- [x] Plan de estudios reutilizando `Course` de M07.
+- [x] Plan de pagos con snapshot y cargos ligados (`Charge.planId`).
+- [x] Settings `PAYMENT_DUE_DAY` y `Term.calendar`.
+- [x] Pantallas web (carreras, plan de estudios, asignar plan, plan del alumno).
+- [x] Specs en verde y este README como fuente de verdad.
 
 ## 12. Ejemplos de las carreras del cliente
 

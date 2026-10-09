@@ -1,0 +1,107 @@
+{
+  "list": {
+    "title": "Programs",
+    "description": "{{count}} program(s)",
+    "new": "New program",
+    "created": "Program created",
+    "saved": "Program saved",
+    "name": "Program",
+    "period": "Periods",
+    "fees": "Fees",
+    "monthly": "Monthly",
+    "enrollment": "Re-enrollment",
+    "subjects": "Subjects"
+  },
+  "periodTypes": {
+    "BIMONTHLY": "Bimonthly",
+    "TRIMESTER": "Trimester",
+    "QUADRIMESTER": "Quadrimester",
+    "SEMESTER": "Semester"
+  },
+  "form": {
+    "titleNew": "New program",
+    "titleEdit": "Edit program",
+    "code": "Code",
+    "name": "Name",
+    "description": "Description",
+    "periodType": "Period type",
+    "periodCount": "Period count",
+    "monthsPerPeriod": "Months per period",
+    "auto": "Automatic",
+    "monthlyFee": "Monthly fee",
+    "enrollmentFee": "Re-enrollment (per period)",
+    "badCode": "Code must use UPPERCASE, digits and hyphen (2–30).",
+    "badCount": "Enter between 1 and 20 periods.",
+    "badFee": "Amount cannot be negative."
+  },
+  "detail": {
+    "monthly": "Monthly",
+    "enrollment": "Re-enrollment",
+    "period": "Scheme",
+    "monthsPerPeriod": "Months/period",
+    "code": "Code",
+    "plans": "Assigned plans",
+    "description": "Description"
+  },
+  "plan": {
+    "title": "Study plan",
+    "description": "Assign the subjects (courses) to each program period.",
+    "save": "Save plan",
+    "saved": "Study plan saved",
+    "period": "Period {{n}}",
+    "emptyPeriod": "No subjects in this period.",
+    "addCourse": "Add subject",
+    "remove": "Remove",
+    "alreadyInPlan": "That subject is already in the study plan."
+  },
+  "assign": {
+    "title": "Assign plan to {{name}}",
+    "titleShort": "Assign plan",
+    "hint": "Generates the plan charges (re-enrollment per period + monthly payments) with the program fees.",
+    "program": "Program",
+    "term": "Term",
+    "noTerm": "No term",
+    "startDate": "Start date",
+    "discountPercent": "Discount %",
+    "discountAmount": "Discount $",
+    "discountReason": "Discount reason",
+    "discountExclusive": "Use percent or amount, not both.",
+    "footnote": "Group enrollment is a separate step (M07). Re-running the same plan does not duplicate charges.",
+    "submit": "Generate plan",
+    "created": "Plan generated ({{charges}} charges)"
+  },
+  "plans": {
+    "title": "Payment plan",
+    "description": "Charges generated per program (re-enrollment + monthly).",
+    "program": "Program",
+    "start": "Start",
+    "periods": "Periods",
+    "months": "months",
+    "totals": "Total",
+    "charges": "{{count}} charges",
+    "view": "View charges",
+    "cancel": "Cancel",
+    "cancelled": "Plan cancelled",
+    "cancelTitle": "Cancel payment plan",
+    "cancelHint": "Cancels unpaid pending charges; paid ones are kept.",
+    "cancelReason": "Reason",
+    "detailTitle": "Plan charges · {{name}}",
+    "detailSummary": "{{periods}} periods × {{months}} months · {{charges}} charges · {{amount}}",
+    "detail": {
+      "charge": "Concept",
+      "due": "Due",
+      "amount": "Amount"
+    }
+  },
+  "status": {
+    "ACTIVE": "Active",
+    "COMPLETED": "Completed",
+    "CANCELLED": "Cancelled"
+  },
+  "chargeStatus": {
+    "PENDIENTE": "Pending",
+    "PARCIAL": "Partial",
+    "PAGADO": "Paid",
+    "CANCELADO": "Cancelled"
+  }
+}

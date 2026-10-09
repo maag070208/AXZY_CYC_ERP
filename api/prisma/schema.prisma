@@ -285,11 +285,14 @@ model Term {
   fechaInicio DateTime @map("fecha_inicio") @db.Date
   fechaFin    DateTime @map("fecha_fin") @db.Date
   activo      Boolean  @default(false)
+  /// Calendario/periodos configurables (M22): [{ name, startDate, endDate }].
+  calendar    Json?
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
   groups  Group[]
   charges Charge[]
+  plans   StudentPlan[]
 
   @@index([activo])
   @@map("terms")
@@ -359,6 +362,7 @@ model Student {
   enrollments Enrollment[]
   charges     Charge[]
   attempts    ExamAttempt[]
+  plans       StudentPlan[]
 
   @@index([status])
   @@index([apellidoPaterno, apellidoMaterno, nombres])
@@ -507,6 +511,7 @@ model Course {
   level     Level?     @relation(fields: [levelId], references: [id])
   groups    Group[]
   questions Question[]
+  programSubjects ProgramSubject[]
 
   @@index([active])
   @@index([nombre])
@@ -681,6 +686,10 @@ model Charge {
   studentId        String       @map("student_id")
   conceptId        String       @map("concept_id")
   termId           String?      @map("term_id")
+  /// Plan de pagos que originó el cargo (M22).
+  planId           String?      @map("plan_id")
+  /// Índice del cargo dentro del plan (0..n) para idempotencia.
+  planChargeIndex  Int?         @map("plan_charge_index")
   /// Texto libre visible en el estado de cuenta (p. ej. «Colegiatura septiembre»).
   descripcion      String?
   monto            Decimal      @db.Decimal(12, 2)
@@ -699,10 +708,12 @@ model Charge {
   student  Student    @relation(fields: [studentId], references: [id])
   concept  FeeConcept @relation(fields: [conceptId], references: [id])
   term     Term?      @relation(fields: [termId], references: [id])
+  plan     StudentPlan? @relation(fields: [planId], references: [id])
   parent   Charge?    @relation("LateFee", fields: [parentChargeId], references: [id])
   lateFee  Charge?    @relation("LateFee")
   payments Payment[]
 
+  @@unique([planId, planChargeIndex])
   @@index([studentId])
   @@index([status])
   @@index([termId])
@@ -1191,4 +1202,93 @@ model MigrationRow {
   @@index([batchId, status])
   @@index([naturalKey])
   @@map("migration_rows")
+}
+
+// ---------------------------------------------------------------------------
+// M22 — Programs, study plan and student payment plan
+// ---------------------------------------------------------------------------
+
+/// Esquema de periodos de una carrera (cuántos meses dura cada periodo).
+enum PeriodType {
+  BIMONTHLY
+  TRIMESTER
+  QUADRIMESTER
+  SEMESTER
+}
+
+enum PlanStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+/// Carrera/programa: costos y esquema de periodos.
+model Program {
+  id              String     @id @default(uuid())
+  code            String     @unique @db.VarChar(30)
+  name            String
+  description     String?
+  periodType      PeriodType @map("period_type")
+  periodCount     Int        @map("period_count")
+  /// Meses por periodo (2/3/4/6). Null = derivado de `periodType`.
+  monthsPerPeriod Int?       @map("months_per_period")
+  monthlyFee      Decimal    @map("monthly_fee") @db.Decimal(12, 2)
+  /// Reinscripción cobrada una vez por periodo (0 = no se cobra).
+  enrollmentFee   Decimal    @map("enrollment_fee") @db.Decimal(12, 2)
+  active          Boolean    @default(true)
+  createdAt       DateTime   @default(now()) @map("created_at")
+  updatedAt       DateTime   @updatedAt @map("updated_at")
+
+  subjects ProgramSubject[]
+  plans    StudentPlan[]
+
+  @@index([active])
+  @@map("programs")
+}
+
+/// Plan de estudios: materia (curso de M07) en un periodo de la carrera.
+model ProgramSubject {
+  id          String   @id @default(uuid())
+  programId   String   @map("program_id")
+  courseId    String   @map("course_id")
+  periodIndex Int      @map("period_index")
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
+  course  Course  @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([programId, courseId])
+  @@index([programId, periodIndex])
+  @@map("program_subjects")
+}
+
+/// Plan de pagos de un alumno (snapshot de montos y descuento al generarlo).
+model StudentPlan {
+  id              String     @id @default(uuid())
+  studentId       String     @map("student_id")
+  programId       String     @map("program_id")
+  termId          String?    @map("term_id")
+  startDate       DateTime   @map("start_date") @db.Date
+  periodType      PeriodType @map("period_type")
+  periodCount     Int        @map("period_count")
+  monthlyFee      Decimal    @map("monthly_fee") @db.Decimal(12, 2)
+  enrollmentFee   Decimal    @map("enrollment_fee") @db.Decimal(12, 2)
+  /// Descuento/beca: porcentaje (0..100) o monto; el porcentaje gana si ambos.
+  discountPercent Decimal?   @map("discount_percent") @db.Decimal(5, 2)
+  discountAmount  Decimal?   @map("discount_amount") @db.Decimal(12, 2)
+  discountReason  String?    @map("discount_reason") @db.VarChar(200)
+  status          PlanStatus @default(ACTIVE)
+  createdBy       String?    @map("created_by")
+  createdAt       DateTime   @default(now()) @map("created_at")
+  updatedAt       DateTime   @updatedAt @map("updated_at")
+
+  student Student @relation(fields: [studentId], references: [id])
+  program Program @relation(fields: [programId], references: [id])
+  term    Term?   @relation(fields: [termId], references: [id])
+  charges Charge[]
+
+  @@index([studentId, status])
+  @@index([programId])
+  @@map("student_plans")
 }

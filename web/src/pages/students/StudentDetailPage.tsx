@@ -11,6 +11,7 @@ import { MovementsList } from "@features/student/movements-list";
 import { DocumentsPanel } from "@features/document/documents-panel";
 import { EnrollmentsTable } from "@features/group/group-roster";
 import { StudentAttendancePanel } from "@features/attendance/student-attendance";
+import { StudentPlansPanel } from "@features/plans/student-plans";
 import { KardexView } from "@widgets/kardex-pdf";
 import { AccountStatementView } from "@widgets/account-statement";
 import { PanelCard } from "@shared/ui/panel-card";
@@ -44,6 +45,7 @@ export default function StudentDetailPage() {
   const canEnrollments = useCan("enrollments.view");
   const canAccount = useCan("charges.view");
   const canAttendance = useCan("attendance.view");
+  const canPlans = useCan("plans.view");
   const [student, setStudent] = useState<Student | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [movement, setMovement] = useState<MovementType | null>(null);
@@ -147,6 +149,9 @@ export default function StudentDetailPage() {
               : []),
             ...(canAttendance
               ? [{ id: "attendance", label: t("detail.tabs.attendance"), content: <StudentAttendancePanel studentId={s.id} studentName={s.nombreCompleto} readOnly={s.status === "BAJA"} /> }]
+              : []),
+            ...(canPlans
+              ? [{ id: "plans", label: t("detail.tabs.plans"), content: <StudentPlansPanel studentId={s.id} studentName={s.nombreCompleto} readOnly={s.status === "BAJA"} /> }]
               : []),
             ...(canAccount
               ? [{ id: "account", label: t("detail.tabs.account"), content: <AccountStatementView key={reloadKey} studentId={s.id} /> }]

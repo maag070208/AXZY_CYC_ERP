@@ -253,6 +253,16 @@ export const es = {
     CHECKSUM_MISMATCH: "El archivo cambió desde la vista previa; vuelve a previsualizar",
     MIGRATION_BATCH_NOT_FOUND: "Lote de migración no encontrado",
 
+    // --- Programas y planes de pago (M22) ---
+    PROGRAM_NOT_FOUND: "Carrera no encontrada",
+    PROGRAM_CODE_TAKEN: "Ya existe una carrera con esa clave",
+    PROGRAM_INACTIVE: "La carrera está inactiva",
+    PROGRAM_PERIOD_OUT_OF_RANGE: "El periodo excede el número de periodos de la carrera",
+    PLAN_NOT_FOUND: "Plan de pagos no encontrado",
+    PLAN_NOT_ACTIVE: "El plan de pagos no está activo",
+    DISCOUNT_EXCLUSIVE: "Indica descuento por porcentaje o por monto, no ambos",
+    REASON_REQUIRED: "El motivo es obligatorio",
+
     // --- Bitácora ---
     AUDIT_LOG_NOT_FOUND: "Registro de auditoría no encontrado",
   },

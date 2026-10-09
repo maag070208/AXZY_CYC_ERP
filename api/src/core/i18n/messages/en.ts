@@ -241,6 +241,16 @@ export const en: Messages = {
     CHECKSUM_MISMATCH: "The file changed since preview; run preview again",
     MIGRATION_BATCH_NOT_FOUND: "Migration batch not found",
 
+    // --- Programs & payment plans (M22) ---
+    PROGRAM_NOT_FOUND: "Program not found",
+    PROGRAM_CODE_TAKEN: "A program with that code already exists",
+    PROGRAM_INACTIVE: "The program is inactive",
+    PROGRAM_PERIOD_OUT_OF_RANGE: "The period exceeds the program's period count",
+    PLAN_NOT_FOUND: "Payment plan not found",
+    PLAN_NOT_ACTIVE: "The payment plan is not active",
+    DISCOUNT_EXCLUSIVE: "Set a discount by percent or amount, not both",
+    REASON_REQUIRED: "A reason is required",
+
     AUDIT_LOG_NOT_FOUND: "Audit log entry not found",
   },
   validation: {

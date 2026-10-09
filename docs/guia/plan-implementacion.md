@@ -66,7 +66,7 @@ reglas complejas (M07, M08, M09, M16) ≈ 1.5–2 sprints.
 | M19 | ✅ Terminado (F6) | Plantillas por clave+canal, outbox con reintentos/backoff, opt-out, bandeja interna y avisos; correo Resend/SMTP y SMS/WA simulados (A-001) |
 | M20 | ✅ Terminado (F7) | Migración CSV de alumnos y profesores: `plan()` compartido, dry-run, checksum, `Idempotency-Key`, respaldo previo, lotes/filas trazables y conciliación de totales |
 | M12, M13, M21 | Documentado | Sin código |
-| M22 | 📝 Propuesto | Programas (carreras), plan de estudios (materias por periodo) y plan de pagos del alumno (D-046/D-047) |
+| M22 | ✅ Terminado (F10) | Carreras (`Program`) con costos y periodos, plan de estudios (`ProgramSubject` + `Course`) y plan de pagos idempotente (`StudentPlan` + `Charge.planId`); día de vencimiento configurable y descuentos |
 | F0 — Infra | ✅ Completada | Monorepo + Docker por proyecto + `docker-compose` + CI (incluye e2e); migración `init` + seed; login por proxy de nginx verificado; e2e de auth (contrato + navegador) en verde |
 | F1 — Acceso y catálogos | ✅ Completada (pendiente H1 con el cliente) | Migración `f1_policies_catalogs`; unitarias 39, contrato API 64, navegador 30 — todo en verde |
 | F2 — Personas y expediente | ✅ Completada (pendiente H2 con el cliente) | Migración `f2_personas_expediente`; unitarias 51, contrato API 100, navegador 43 — todo en verde |
@@ -76,7 +76,7 @@ reglas complejas (M07, M08, M09, M16) ≈ 1.5–2 sprints.
 | F6 — Asistencia y notificaciones | ✅ Completada (pendiente H6 con el cliente) | Migración `f6_asistencia_notificaciones`; unitarias 89, contrato API 184, navegador 68 — todo en verde |
 | F7 — Migración de históricos | ✅ Completada (pendiente H7 con el cliente) | Migración `f7_migracion_historica`; unitarias 98, contrato API 192, navegador 69 — todo en verde. CSV de alumnos/profesores con dry-run, idempotencia y respaldo previo |
 | F8 — Analítica ejecutiva | ⏭️ Siguiente | M21 (indicadores ejecutivos y vistas materializadas) |
-| F10 — Programas y planes de pago | 📝 Propuesto | M22 (carreras, materias por periodo, plan de pagos del alumno) |
+| F10 — Programas y planes de pago | ✅ Completada | M22; unitarias 110, contrato API 198, navegador 70 — todo en verde |
 
 ## 3. Detalle por fase
 

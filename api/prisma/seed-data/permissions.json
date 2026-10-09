@@ -592,5 +592,41 @@
     "sensitive": true,
     "active": true,
     "sortOrder": 1
+  },
+  {
+    "key": "programs.view",
+    "module": "Programas",
+    "name": "Ver carreras y planes de estudio",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 1
+  },
+  {
+    "key": "programs.manage",
+    "module": "Programas",
+    "name": "Administrar carreras y planes de estudio",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": true,
+    "active": true,
+    "sortOrder": 2
+  },
+  {
+    "key": "plans.view",
+    "module": "Planes de pago",
+    "name": "Ver planes de pago de alumnos",
+    "scopes": ["NONE", "OWN", "AREA", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 1
+  },
+  {
+    "key": "plans.manage",
+    "module": "Planes de pago",
+    "name": "Asignar y cancelar planes de pago",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": true,
+    "active": true,
+    "sortOrder": 2
   }
 ]

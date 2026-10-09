@@ -37,6 +37,7 @@ export type NavLabelKey =
   | "nav.teachers"
   | "nav.courses"
   | "nav.groups"
+  | "nav.programs"
   | "nav.questions"
   | "nav.exams"
   | "nav.attendance"
@@ -96,6 +97,12 @@ export const APP_SCREENS: readonly AppScreen[] = [
         id: "academicOffer",
         labelKey: "nav.academicOffer",
         children: [
+          {
+            id: "programs",
+            labelKey: "nav.programs",
+            path: "/programs",
+            requirement: { anyOf: ["programs.view"] },
+          },
           {
             id: "courses",
             labelKey: "nav.courses",

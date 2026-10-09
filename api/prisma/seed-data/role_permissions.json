@@ -149,5 +149,15 @@
   { "roleKey": "ALUMNO", "permissionKey": "attempts.view", "scope": "OWN" },
   { "roleKey": "ALUMNO", "permissionKey": "attendance.view", "scope": "OWN" },
   { "roleKey": "ALUMNO", "permissionKey": "attendance.justify", "scope": "OWN" },
-  { "roleKey": "ADMIN", "permissionKey": "migration.execute", "scope": "ALL" }
+  { "roleKey": "ADMIN", "permissionKey": "migration.execute", "scope": "ALL" },
+  { "roleKey": "ADMIN", "permissionKey": "programs.view", "scope": "ALL" },
+  { "roleKey": "ADMIN", "permissionKey": "programs.manage", "scope": "ALL" },
+  { "roleKey": "ADMIN", "permissionKey": "plans.view", "scope": "ALL" },
+  { "roleKey": "ADMIN", "permissionKey": "plans.manage", "scope": "ALL" },
+  { "roleKey": "CONTROL_ESCOLAR", "permissionKey": "programs.view", "scope": "ALL" },
+  { "roleKey": "CONTROL_ESCOLAR", "permissionKey": "programs.manage", "scope": "ALL" },
+  { "roleKey": "CONTROL_ESCOLAR", "permissionKey": "plans.view", "scope": "ALL" },
+  { "roleKey": "CONTROL_ESCOLAR", "permissionKey": "plans.manage", "scope": "ALL" },
+  { "roleKey": "PROFESOR", "permissionKey": "programs.view", "scope": "ALL" },
+  { "roleKey": "ALUMNO", "permissionKey": "plans.view", "scope": "OWN" }
 ]
