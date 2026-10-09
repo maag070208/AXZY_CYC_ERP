@@ -4,6 +4,8 @@ import {
   activeRefreshTokens,
   clearAuthE2E,
   createAuthUser,
+  createResetToken,
+  db,
   deactivateUser,
   lastAudit,
   lockState,
@@ -20,10 +22,12 @@ const RUN = newRunId();
 const ADMIN = { username: `${E2E_PREFIX}admin_${RUN}`, name: "E2E Admin", roleKey: "ADMIN" };
 const LOCKED = { username: `${E2E_PREFIX}lock_${RUN}`, name: "E2E Bloqueo", roleKey: "ALUMNO" };
 const TEACHER = { username: `${E2E_PREFIX}prof_${RUN}`, name: "E2E Profesor", roleKey: "PROFESOR" };
+const RESET = { username: `${E2E_PREFIX}reset_${RUN}`, name: "E2E Recupera", roleKey: "ALUMNO" };
 const GONE = { username: `${E2E_PREFIX}baja_${RUN}`, name: "E2E Baja", roleKey: "ALUMNO" };
 
 let adminId: string;
 let teacherId: string;
+let resetId: string;
 
 const loginAs = async (username: string) => {
   const ctx = await anon();
@@ -48,6 +52,7 @@ test.beforeAll(async () => {
   await createAuthUser({ ...LOCKED, password: E2E.password });
   teacherId = (await createAuthUser({ ...TEACHER, password: E2E.password })).id;
   await createAuthUser({ ...GONE, password: E2E.password });
+  resetId = (await createAuthUser({ ...RESET, password: E2E.password })).id;
   await deactivateUser(GONE.username);
 });
 
@@ -208,6 +213,46 @@ test.describe("recuperación de contraseña", () => {
     });
     expect(res.status()).toBe(200);
     expect((await res.json()).ok).toBe(true);
+    await ctx.dispose();
+  });
+
+  test("forgot-password de un usuario real emite un token (hasheado) y lo audita", async () => {
+    const before = await db.passwordResetToken.count({ where: { userId: resetId } });
+    const ctx = await anon();
+    const res = await ctx.post("auth/forgot-password", { data: { username: `${RESET.username}@e2e.local` } });
+    expect(res.status()).toBe(200);
+    await ctx.dispose();
+    expect(await db.passwordResetToken.count({ where: { userId: resetId } })).toBe(before + 1);
+    expect((await lastAudit("PASSWORD_RESET_REQUESTED", resetId))?.entityId).toBe(resetId);
+  });
+
+  test("reset-password feliz: cambia la contraseña, cierra sesiones y el token es de un uso", async () => {
+    const session = await loginAs(RESET.username);
+    const token = `e2e-reset-${RUN}`;
+    await createResetToken(resetId, token);
+    const next = `${E2E.password}-reset`;
+
+    const ctx = await anon();
+    const res = await ctx.post("auth/reset-password", { data: { token, password: next } });
+    expect(res.status()).toBe(200);
+    expect((await lastAudit("PASSWORD_RESET_COMPLETED", resetId))?.entityId).toBe(resetId);
+
+    expect((await ctx.post("auth/refresh", { data: { refreshToken: session.refreshToken } })).status()).toBe(401);
+    expect((await ctx.post("auth/login", { data: { username: RESET.username, password: E2E.password } })).status()).toBe(401);
+    expect((await ctx.post("auth/login", { data: { username: RESET.username, password: next } })).status()).toBe(200);
+
+    const reused = await ctx.post("auth/reset-password", { data: { token, password: `${next}-2` } });
+    expect((await reused.json()).code).toBe("RESET_TOKEN_INVALID");
+    await ctx.dispose();
+  });
+
+  test("reset-password con token vencido → 422 RESET_TOKEN_INVALID", async () => {
+    const token = `e2e-expired-${RUN}`;
+    await createResetToken(resetId, token, -1000);
+    const ctx = await anon();
+    const res = await ctx.post("auth/reset-password", { data: { token, password: `${E2E.password}-x` } });
+    expect(res.status()).toBe(422);
+    expect((await res.json()).code).toBe("RESET_TOKEN_INVALID");
     await ctx.dispose();
   });
 

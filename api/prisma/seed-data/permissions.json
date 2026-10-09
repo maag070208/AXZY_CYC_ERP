@@ -79,5 +79,41 @@
     "sensitive": true,
     "active": true,
     "sortOrder": 2
+  },
+  {
+    "key": "levels.view",
+    "module": "Catálogos",
+    "name": "Ver niveles educativos",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 1
+  },
+  {
+    "key": "levels.manage",
+    "module": "Catálogos",
+    "name": "Administrar niveles educativos",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 2
+  },
+  {
+    "key": "terms.view",
+    "module": "Catálogos",
+    "name": "Ver ciclos escolares",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 3
+  },
+  {
+    "key": "terms.manage",
+    "module": "Catálogos",
+    "name": "Administrar ciclos escolares",
+    "scopes": ["NONE", "ALL"],
+    "sensitive": false,
+    "active": true,
+    "sortOrder": 4
   }
 ]

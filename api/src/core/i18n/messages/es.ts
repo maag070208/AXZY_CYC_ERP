@@ -81,6 +81,27 @@ export const es = {
     CHANGE_PERMISSION_TOO_LONG: "changes[{{index}}].permission excede {{max}} caracteres",
     INVALID_CHANGE_SCOPE: "changes[{{index}}].scope inválido: {{scope}}",
 
+    // --- Políticas ABAC ---
+    POLICY_DENIED: "Una política de acceso impide esta operación ({{policy}})",
+    POLICY_NOT_FOUND: "Política no encontrada",
+    POLICY_KEY_TAKEN: "Ya existe una política con la clave \"{{key}}\"",
+    POLICY_ACTION_UNKNOWN: "La acción \"{{action}}\" no admite políticas",
+    POLICY_FIELD_UNKNOWN: "La acción \"{{action}}\" no expone el campo \"{{field}}\"",
+
+    // --- Contraseña y cuenta ---
+    CURRENT_PASSWORD_INVALID: "La contraseña actual no es correcta",
+    PASSWORD_REUSED: "La contraseña nueva debe ser distinta de la actual",
+    USER_NOT_LOCKED: "La cuenta no está bloqueada",
+
+    // --- Configuración y catálogos (M11) ---
+    SETTING_UNKNOWN: "El parámetro \"{{key}}\" no existe",
+    SETTING_INVALID: "Valor inválido para \"{{key}}\"",
+    SETTINGS_REQUIRED: "Debe enviar al menos un parámetro",
+    CATALOG_ITEM_NOT_FOUND: "Registro de catálogo no encontrado",
+    CATALOG_ITEM_ALREADY_INACTIVE: "El registro ya estaba desactivado",
+    TERM_DATES_INVALID: "La fecha de inicio no puede ser posterior a la de fin",
+    TERM_ALREADY_ACTIVE: "El ciclo ya es el activo",
+
     // --- Bitácora ---
     AUDIT_LOG_NOT_FOUND: "Registro de auditoría no encontrado",
   },
@@ -92,6 +113,9 @@ export const es = {
     REASON_MIN_LENGTH: "El motivo debe tener al menos 3 caracteres",
     REQUIRED_FIELD: "Campo obligatorio",
     PASSWORD_MISMATCH: "Las contraseñas no coinciden",
+    NOMBRE_REQUIRED: "El nombre es obligatorio",
+    INVALID_DATE: "Fecha inválida (AAAA-MM-DD)",
+    POLICY_KEY_FORMAT: "La clave debe ir en minúsculas, dígitos y guion bajo",
   },
   labels: {
     system: "Sistema",

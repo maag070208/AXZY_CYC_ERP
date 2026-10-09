@@ -4,6 +4,7 @@ import { asyncHandler } from "@core/utils/asyncHandler";
 import { registerPath } from "@core/swagger/registry";
 import {
   AuthMeSchema,
+  ChangePasswordInputSchema,
   ForgotPasswordInputSchema,
   LoginInputSchema,
   LoginResponseSchema,
@@ -89,6 +90,19 @@ export const createAuthRouter = (controller: AuthController): Router => {
     },
   });
 
+  registerPath({
+    method: "post",
+    path: "/auth/change-password",
+    tags: ["Auth"],
+    summary: "Cambia la contraseña propia (revoca sesiones y emite tokens nuevos)",
+    security: bearer,
+    request: { body: { required: true, content: { "application/json": { schema: ChangePasswordInputSchema } } } },
+    responses: {
+      200: { description: "Tokens nuevos", content: { "application/json": { schema: RefreshResponseSchema } } },
+      422: { description: "Contraseña actual incorrecta o repetida" },
+    },
+  });
+
   // Rutas públicas (antes de `authenticate`).
   router.post("/login", asyncHandler(controller.login));
   router.post("/refresh", asyncHandler(controller.refresh));
@@ -98,6 +112,7 @@ export const createAuthRouter = (controller: AuthController): Router => {
   // Rutas protegidas.
   router.get("/me", authenticate, asyncHandler(controller.me));
   router.post("/logout", authenticate, asyncHandler(controller.logout));
+  router.post("/change-password", authenticate, asyncHandler(controller.changePassword));
 
   return router;
 };

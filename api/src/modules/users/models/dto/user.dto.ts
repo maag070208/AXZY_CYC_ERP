@@ -20,6 +20,9 @@ export const UserSchema = z
     deactivatedAt: z.string().nullable(),
     deactivationReason: z.string().nullable(),
     mustChangePassword: z.boolean(),
+    /** Bloqueo temporal vigente por intentos fallidos. */
+    locked: z.boolean(),
+    lockedUntil: z.string().nullable(),
     createdAt: z.string(),
   })
   .openapi("User");
@@ -59,6 +62,15 @@ export const DeactivateUserDto = z
   .openapi("UserDeactivateInput");
 registry.register("UserDeactivateInput", DeactivateUserDto);
 export type DeactivateUserInput = z.infer<typeof DeactivateUserDto>;
+
+export const ResetUserPasswordDto = z
+  .object({
+    /** Contraseña temporal: la persona debe cambiarla en su siguiente acceso. */
+    password: z.string().min(env.PASSWORD_MIN_LENGTH, "PASSWORD_MIN_LENGTH").max(200),
+  })
+  .openapi("UserResetPasswordInput");
+registry.register("UserResetPasswordInput", ResetUserPasswordDto);
+export type ResetUserPasswordInput = z.infer<typeof ResetUserPasswordDto>;
 
 export const SetUserPermissionsDto = z
   .object({

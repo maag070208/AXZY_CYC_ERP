@@ -3,6 +3,7 @@ import { HttpError } from "@core/middlewares/error.middleware";
 import { parseTableParams, paginatedTable } from "@core/utils/table";
 import {
   DeactivateUserDto,
+  ResetUserPasswordDto,
   SetUserPermissionsDto,
   UserCreateDto,
   UserUpdateDto,
@@ -33,22 +34,38 @@ export class UserController {
   create = async (req: Request, res: Response) => {
     if (!req.user) throw new HttpError(401, "UNAUTHENTICATED");
     const input = UserCreateDto.parse(req.body);
-    const data = await this.users.create(input, req.user.id, req.user.username);
+    const data = await this.users.create(input, req.user);
     res.status(201).json(data);
   };
 
   update = async (req: Request, res: Response) => {
     if (!req.user) throw new HttpError(401, "UNAUTHENTICATED");
     const input = UserUpdateDto.parse(req.body);
-    const data = await this.users.update(req.params.id, input, req.user.id, req.user.username);
+    const data = await this.users.update(req.params.id, input, req.user);
     res.json(data);
   };
 
   deactivate = async (req: Request, res: Response) => {
     if (!req.user) throw new HttpError(401, "UNAUTHENTICATED");
     const { reason } = DeactivateUserDto.parse(req.body ?? {});
-    const data = await this.users.deactivate(req.params.id, req.user.id, req.user.username, reason);
+    const data = await this.users.deactivate(req.params.id, req.user, reason);
     res.json(data);
+  };
+
+  reactivate = async (req: Request, res: Response) => {
+    if (!req.user) throw new HttpError(401, "UNAUTHENTICATED");
+    res.json(await this.users.reactivate(req.params.id, req.user));
+  };
+
+  unlock = async (req: Request, res: Response) => {
+    if (!req.user) throw new HttpError(401, "UNAUTHENTICATED");
+    res.json(await this.users.unlock(req.params.id, req.user));
+  };
+
+  resetPassword = async (req: Request, res: Response) => {
+    if (!req.user) throw new HttpError(401, "UNAUTHENTICATED");
+    const { password } = ResetUserPasswordDto.parse(req.body);
+    res.json(await this.users.resetPassword(req.params.id, password, req.user));
   };
 
   listPermissions = async (req: Request, res: Response) => {

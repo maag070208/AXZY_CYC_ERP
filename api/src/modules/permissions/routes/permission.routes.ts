@@ -14,6 +14,12 @@ import {
   RoleUpdateSchema,
   RolesAdminResponseSchema,
 } from "../models/dto/permission.dto";
+import {
+  PolicyActionSchema,
+  PolicyCreateDto,
+  PolicySchema,
+  PolicyUpdateDto,
+} from "../models/dto/policy.dto";
 import type { PermissionController } from "../controllers/permission.controller";
 
 const bearer = [{ bearerAuth: [] }];
@@ -143,6 +149,67 @@ export const createPermissionsRoutes = (controller: PermissionController): Route
     },
   });
 
+  const idParam = { in: "path" as const, name: "id", required: true, schema: { type: "string" as const } };
+
+  registerPath({
+    method: "get",
+    path: "/permissions/policies/actions",
+    tags: ["Permissions"],
+    summary: "Acciones que admiten políticas ABAC y sus campos (roles.manage)",
+    security: bearer,
+    responses: {
+      200: { description: "Registro de acciones", content: { "application/json": { schema: PolicyActionSchema.array() } } },
+    },
+  });
+
+  registerPath({
+    method: "get",
+    path: "/permissions/policies",
+    tags: ["Permissions"],
+    summary: "Políticas ABAC (roles.manage)",
+    security: bearer,
+    responses: {
+      200: { description: "Políticas", content: { "application/json": { schema: PolicySchema.array() } } },
+    },
+  });
+
+  registerPath({
+    method: "post",
+    path: "/permissions/policies",
+    tags: ["Permissions"],
+    summary: "Crear política ABAC (roles.manage)",
+    security: bearer,
+    request: { body: { required: true, content: { "application/json": { schema: PolicyCreateDto } } } },
+    responses: {
+      201: { description: "Política creada", content: { "application/json": { schema: PolicySchema } } },
+      400: { description: "Acción o campo no registrado" },
+      409: { description: "Clave duplicada" },
+    },
+  });
+
+  registerPath({
+    method: "patch",
+    path: "/permissions/policies/{id}",
+    tags: ["Permissions"],
+    summary: "Editar política ABAC (roles.manage)",
+    security: bearer,
+    parameters: [idParam],
+    request: { body: { required: true, content: { "application/json": { schema: PolicyUpdateDto } } } },
+    responses: {
+      200: { description: "Política actualizada", content: { "application/json": { schema: PolicySchema } } },
+    },
+  });
+
+  registerPath({
+    method: "delete",
+    path: "/permissions/policies/{id}",
+    tags: ["Permissions"],
+    summary: "Eliminar política ABAC (roles.manage)",
+    security: bearer,
+    parameters: [idParam],
+    responses: { 204: { description: "Política eliminada" } },
+  });
+
   router.use(authenticate);
 
   // Roles y catálogo activo: solo requieren sesión (la web los usa para nombres y selectores).
@@ -157,6 +224,11 @@ export const createPermissionsRoutes = (controller: PermissionController): Route
   router.post("/catalog", requiresPermission("roles.manage"), asyncHandler(controller.createCatalog));
   router.patch("/catalog/:key", requiresPermission("roles.manage"), asyncHandler(controller.updateCatalog));
   router.post("/reload", requiresPermission("roles.manage"), asyncHandler(controller.reload));
+  router.get("/policies/actions", requiresPermission("roles.manage"), asyncHandler(controller.policyActions));
+  router.get("/policies", requiresPermission("roles.manage"), asyncHandler(controller.listPolicies));
+  router.post("/policies", requiresPermission("roles.manage"), asyncHandler(controller.createPolicy));
+  router.patch("/policies/:id", requiresPermission("roles.manage"), asyncHandler(controller.updatePolicy));
+  router.delete("/policies/:id", requiresPermission("roles.manage"), asyncHandler(controller.deletePolicy));
 
   return router;
 };

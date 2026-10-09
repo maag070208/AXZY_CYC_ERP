@@ -14,6 +14,8 @@ export const AuthUserSchema = z
     role: z.string(),
     roles: z.array(z.string()),
     permissions: z.record(z.string(), ScopeSchema),
+    /** La contraseña es temporal: la web obliga a cambiarla antes de seguir. */
+    mustChangePassword: z.boolean(),
   })
   .openapi("AuthUser");
 registry.register("AuthUser", AuthUserSchema);
@@ -56,6 +58,7 @@ export const AuthMeUserSchema = z
     username: z.string(),
     name: z.string(),
     role: z.string(),
+    mustChangePassword: z.boolean(),
   })
   .openapi("AuthMeUser");
 registry.register("AuthMeUser", AuthMeUserSchema);
@@ -95,6 +98,18 @@ export const ResetPasswordInputSchema = z
   .openapi("ResetPasswordInput");
 registry.register("ResetPasswordInput", ResetPasswordInputSchema);
 export type ResetPasswordInput = z.infer<typeof ResetPasswordInputSchema>;
+
+export const ChangePasswordInputSchema = z
+  .object({
+    currentPassword: z.string().min(1),
+    newPassword: z
+      .string()
+      .min(env.PASSWORD_MIN_LENGTH, "PASSWORD_MIN_LENGTH")
+      .max(200),
+  })
+  .openapi("ChangePasswordInput");
+registry.register("ChangePasswordInput", ChangePasswordInputSchema);
+export type ChangePasswordInput = z.infer<typeof ChangePasswordInputSchema>;
 
 export const OkResponseSchema = z.object({ ok: z.boolean() }).openapi("OkResponse");
 registry.register("OkResponse", OkResponseSchema);

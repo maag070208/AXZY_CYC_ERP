@@ -113,12 +113,17 @@ test.describe("resolvedor con fixtures reales", () => {
 
   test("ADMIN tiene todos los permisos en ALL", () => {
     const admin = permissionsOf(user("ADMIN"));
-    expect(Object.keys(admin)).toHaveLength(9);
+    expect(Object.keys(admin).sort()).toEqual(catalogKeys().sort());
     expect(Object.values(admin).every((scope) => scope === "ALL")).toBe(true);
   });
 
-  test("CONTROL_ESCOLAR solo config.view", () => {
-    expect(scopeOf(user("CONTROL_ESCOLAR"), "config.view")).toBe("ALL");
+  test("CONTROL_ESCOLAR solo lee configuración y catálogos", () => {
+    expect(Object.keys(permissionsOf(user("CONTROL_ESCOLAR"))).sort()).toEqual([
+      "config.view",
+      "levels.view",
+      "terms.view",
+    ]);
+    expect(scopeOf(user("CONTROL_ESCOLAR"), "config.manage")).toBe("NONE");
     expect(scopeOf(user("CONTROL_ESCOLAR"), "audit.view")).toBe("NONE");
     expect(scopeOf(user("CONTROL_ESCOLAR"), "users.view")).toBe("NONE");
   });

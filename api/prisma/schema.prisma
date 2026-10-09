@@ -1,4 +1,5 @@
-// Esquema Prisma del SGE (CYC). Módulo M02: autenticación, roles y bitácora.
+// Esquema Prisma del SGE (CYC). M02: autenticación, roles, políticas ABAC y
+// bitácora. M11: parámetros generales y catálogos base.
 // Convenciones: `id String @id @default(uuid())` (catálogos de seguridad usan
 // clave natural `key`), `createdAt`/`updatedAt`, `active` donde aplique y
 // `@@map("snake_case_plural")`.
@@ -61,6 +62,7 @@ model Role {
 
   permissions RolePermission[]
   users       UserRole[]
+  policies    PolicyRole[]
 
   @@map("roles")
 }
@@ -130,6 +132,64 @@ model UserPermission {
   @@map("user_permissions")
 }
 
+/// Efecto de una política ABAC.
+enum PolicyEffect {
+  ALLOW
+  DENY
+}
+
+/// Política ABAC: actúa DESPUÉS del RBAC sobre una acción registrada
+/// (`core/policies/actions.ts`). La primera que casa (menor `priority`) decide;
+/// sin coincidencia se permite.
+model Policy {
+  id          String       @id @default(uuid())
+  key         String       @unique
+  name        String
+  description String?
+  action      String
+  effect      PolicyEffect @default(DENY)
+  priority    Int          @default(100)
+  active      Boolean      @default(true)
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+
+  conditions PolicyCondition[]
+  roles      PolicyRole[]
+
+  @@index([action, active])
+  @@map("policies")
+}
+
+/// Condición `campo operador valor` (todas deben cumplirse). `value` es JSON y
+/// admite referencias al actor (`"@user.id"`, `"@user.roles"`).
+model PolicyCondition {
+  id        String   @id @default(uuid())
+  policyId  String   @map("policy_id")
+  field     String
+  operator  String
+  value     Json
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  policy Policy @relation(fields: [policyId], references: [id], onDelete: Cascade)
+
+  @@index([policyId])
+  @@map("policy_conditions")
+}
+
+/// Roles a los que aplica la política (sin filas = aplica a todos).
+model PolicyRole {
+  policyId String @map("policy_id")
+  roleKey  String @map("role_key")
+
+  policy Policy @relation(fields: [policyId], references: [id], onDelete: Cascade)
+  role   Role   @relation(fields: [roleKey], references: [key], onDelete: Cascade)
+
+  @@id([policyId, roleKey])
+  @@index([roleKey])
+  @@map("policy_roles")
+}
+
 model RefreshToken {
   id        String    @id @default(uuid())
   userId    String    @map("user_id")
@@ -177,4 +237,74 @@ model AuditLog {
   @@index([userId])
   @@index([createdAt])
   @@map("audit_logs")
+}
+
+// ---------------------------------------------------------------------------
+// M11 — Administración y catálogos
+// ---------------------------------------------------------------------------
+
+/// Parámetro general clave/valor. La `key` la fija la migración (no se crea
+/// desde el cliente); solo se actualiza `value`.
+model Setting {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  value       Json
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("settings")
+}
+
+/// Nivel educativo.
+model Level {
+  id        String   @id @default(uuid())
+  nombre    String   @unique
+  orden     Int?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([active])
+  @@map("levels")
+}
+
+/// Ciclo escolar. Solo uno `activo` a la vez (índice único parcial en SQL).
+/// M07 lo amplía con sus relaciones (grupos).
+model Term {
+  id          String   @id @default(uuid())
+  nombre      String   @unique
+  fechaInicio DateTime @map("fecha_inicio") @db.Date
+  fechaFin    DateTime @map("fecha_fin") @db.Date
+  activo      Boolean  @default(false)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([activo])
+  @@map("terms")
+}
+
+/// Motivo de baja (lo consume M05).
+model CancellationReason {
+  id        String   @id @default(uuid())
+  nombre    String   @unique
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([active])
+  @@map("cancellation_reasons")
+}
+
+/// Tipo de documento del expediente (lo consume M06).
+model DocumentType {
+  id          String   @id @default(uuid())
+  nombre      String   @unique
+  obligatorio Boolean  @default(false)
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([active])
+  @@map("document_types")
 }

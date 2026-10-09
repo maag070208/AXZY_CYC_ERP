@@ -17,7 +17,7 @@ export const buildOpenApiDocument = () => {
       title: "CYC API — Sistema de Gestión Escolar",
       version: "1.0.0",
       description:
-        "API del SGE (Módulo M02). Autenticación JWT (Bearer) con access + refresh rotado. " +
+        "API del SGE (M02 acceso y bitácora, M11 configuración y catálogos). Autenticación JWT (Bearer) con access + refresh rotado. " +
         "Roles base: ADMIN, CONTROL_ESCOLAR, PROFESOR, ALUMNO.",
     },
     servers: [
@@ -31,6 +31,8 @@ export const buildOpenApiDocument = () => {
       { name: "Users", description: "Usuarios y roles" },
       { name: "Permissions", description: "Roles, permisos y matriz" },
       { name: "Audit", description: "Bitácora" },
+      { name: "Config", description: "Parámetros generales (M11)" },
+      { name: "Catalogs", description: "Catálogos base (M11)" },
       { name: "Health", description: "Salud del servicio" },
     ],
   });

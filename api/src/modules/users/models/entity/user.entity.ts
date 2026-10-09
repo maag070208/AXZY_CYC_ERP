@@ -18,6 +18,7 @@ export interface UserEntity {
   deactivatedAt: Date | null;
   deactivationReason: string | null;
   mustChangePassword: boolean;
+  lockedUntil: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }

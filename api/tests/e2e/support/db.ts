@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import bcrypt from "bcryptjs";
 import { PrismaClient } from "@prisma/client";
 import { E2E_PREFIX } from "./env";
@@ -7,6 +8,10 @@ import { E2E_PREFIX } from "./env";
  * limpiar lo que creó la suite. Solo toca filas con el prefijo `e2e_`.
  */
 export const db = new PrismaClient();
+
+/** Mismo hash que `core/utils/security.hashToken`. */
+export const hashToken = (token: string): string =>
+  crypto.createHash("sha256").update(token).digest("hex");
 
 export interface CreateAuthUserInput {
   username: string;
@@ -38,6 +43,37 @@ export const clearAuthE2E = async (): Promise<number> => {
     where: { username: { startsWith: E2E_PREFIX } },
   });
   return result.count;
+};
+
+/** Prefijo de roles de prueba (las claves de rol van en MAYÚSCULAS). */
+export const E2E_ROLE_PREFIX = "E2E_";
+/** Prefijo de nombres en catálogos M11. */
+export const E2E_CATALOG_PREFIX = "E2E";
+
+/** Borra roles y políticas de prueba (matriz y vínculos caen en cascada). */
+export const clearAccessE2E = async (): Promise<{ roles: number; policies: number }> => {
+  const policies = await db.policy.deleteMany({ where: { key: { startsWith: E2E_PREFIX } } });
+  const roles = await db.role.deleteMany({ where: { key: { startsWith: E2E_ROLE_PREFIX } } });
+  return { roles: roles.count, policies: policies.count };
+};
+
+/** Borra los registros de catálogos M11 creados por las suites. */
+export const clearCatalogsE2E = async (): Promise<number> => {
+  const where = { nombre: { startsWith: E2E_CATALOG_PREFIX } };
+  const counts = await Promise.all([
+    db.level.deleteMany({ where }),
+    db.term.deleteMany({ where }),
+    db.cancellationReason.deleteMany({ where }),
+    db.documentType.deleteMany({ where }),
+  ]);
+  return counts.reduce((total, result) => total + result.count, 0);
+};
+
+/** Guarda un token de recuperación conocido (el real solo viaja por correo). */
+export const createResetToken = async (userId: string, token: string, expiresInMs = 60 * 60 * 1000) => {
+  await db.passwordResetToken.create({
+    data: { userId, tokenHash: hashToken(token), expiresAt: new Date(Date.now() + expiresInMs) },
+  });
 };
 
 /** Estado de bloqueo del usuario, leído directo de la base. */

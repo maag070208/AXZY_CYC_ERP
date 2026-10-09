@@ -1,8 +1,9 @@
 import type { Prisma, PrismaClient } from "@prisma/client";
 import { prismaClient } from "@core/config/database";
-import { hashPassword } from "@core/utils/security";
+import { hashPassword, type AuthenticatedUser } from "@core/utils/security";
 import { HttpError } from "@core/middlewares/error.middleware";
 import { definitionOfRole, isRole, roleKeys } from "@core/permissions";
+import { enforcePolicy } from "@core/policies";
 import { paginatedQuery } from "@core/db/table";
 import {
   filterBool,
@@ -28,6 +29,8 @@ const userSelect = () => ({
   deactivatedAt: true,
   deactivationReason: true,
   mustChangePassword: true,
+  failedAttempts: true,
+  lockedUntil: true,
   createdAt: true,
   updatedAt: true,
   roles: {
@@ -47,6 +50,8 @@ type UserRow = {
   deactivatedAt: Date | null;
   deactivationReason: string | null;
   mustChangePassword: boolean;
+  failedAttempts: number;
+  lockedUntil: Date | null;
   createdAt: Date;
   updatedAt: Date;
   roles: Array<{ role: { key: string; name: string; sortOrder: number } }>;
@@ -67,6 +72,7 @@ const toEntity = (row: UserRow): UserEntity => {
     deactivatedAt: row.deactivatedAt,
     deactivationReason: row.deactivationReason,
     mustChangePassword: row.mustChangePassword,
+    lockedUntil: row.lockedUntil,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };
@@ -85,8 +91,12 @@ const toDto = (entity: UserEntity): User => ({
   deactivatedAt: entity.deactivatedAt?.toISOString() ?? null,
   deactivationReason: entity.deactivationReason,
   mustChangePassword: entity.mustChangePassword,
+  locked: !!entity.lockedUntil && entity.lockedUntil.getTime() > Date.now(),
+  lockedUntil: entity.lockedUntil?.toISOString() ?? null,
   createdAt: entity.createdAt.toISOString(),
 });
+
+const rolesOfRow = (row: UserRow): string[] => row.roles.map((link) => link.role.key);
 
 export class UserService {
   constructor(
@@ -102,6 +112,15 @@ export class UserService {
         throw new HttpError(400, "INVALID_ROLE", { role: key });
       }
     }
+  }
+
+  private async loadRow(id: string): Promise<UserRow> {
+    const row = (await this.db.user.findUnique({
+      where: { id },
+      select: userSelect(),
+    })) as unknown as UserRow | null;
+    if (!row) throw new HttpError(404, "USER_NOT_FOUND");
+    return row;
   }
 
   async list() {
@@ -143,6 +162,7 @@ export class UserService {
         name: "name",
         email: "email",
         active: "active",
+        lastLoginAt: "lastLoginAt",
         createdAt: "createdAt",
       },
       [{ name: "asc" }]
@@ -159,7 +179,7 @@ export class UserService {
     return { data: result.data.map((row) => toDto(toEntity(row))), total: result.total };
   }
 
-  async create(input: UserCreateInput, actorId: string, actorName?: string): Promise<User> {
+  async create(input: UserCreateInput, actor: AuthenticatedUser): Promise<User> {
     const usernameTaken = await this.db.user.findUnique({ where: { username: input.username } });
     if (usernameTaken) throw new HttpError(409, "USERNAME_TAKEN");
     const emailTaken = await this.db.user.findUnique({ where: { email: input.email } });
@@ -167,6 +187,7 @@ export class UserService {
 
     const roles = [...new Set(input.roles)];
     this.assertRoles(roles);
+    enforcePolicy("users.create", actor, { roles });
 
     const passwordHash = await hashPassword(input.password);
 
@@ -191,8 +212,8 @@ export class UserService {
           action: "USER_CREATED",
           entityType: "User",
           entityId: user.id,
-          userId: actorId,
-          userName: actorName ?? null,
+          userId: actor.id,
+          userName: actor.username,
           newState: {
             username: input.username,
             name: input.name,
@@ -208,17 +229,8 @@ export class UserService {
     return this.getById(created);
   }
 
-  async update(
-    id: string,
-    input: UserUpdateInput,
-    actorId: string,
-    actorName?: string
-  ): Promise<User> {
-    const previous = (await this.db.user.findUnique({
-      where: { id },
-      select: userSelect(),
-    })) as unknown as UserRow | null;
-    if (!previous) throw new HttpError(404, "USER_NOT_FOUND");
+  async update(id: string, input: UserUpdateInput, actor: AuthenticatedUser): Promise<User> {
+    const previous = await this.loadRow(id);
 
     if (input.email && input.email !== previous.email) {
       const emailTaken = await this.db.user.findFirst({
@@ -226,7 +238,15 @@ export class UserService {
       });
       if (emailTaken) throw new HttpError(409, "EMAIL_TAKEN");
     }
-    if (input.roles) this.assertRoles(input.roles);
+    if (input.roles) {
+      // Los roles propios no se tocan (ni por aquí ni por /permissions).
+      if (actor.id === id) throw new HttpError(409, "CANNOT_CHANGE_OWN_PERMISSIONS");
+      this.assertRoles(input.roles);
+    }
+    enforcePolicy("users.update", actor, {
+      target: { id, roles: rolesOfRow(previous) },
+      roles: input.roles ?? rolesOfRow(previous),
+    });
 
     const data: Prisma.UserUpdateInput = {};
     if (input.email !== undefined) data.email = input.email;
@@ -250,8 +270,8 @@ export class UserService {
           action: "USER_UPDATED",
           entityType: "User",
           entityId: id,
-          userId: actorId,
-          userName: actorName ?? null,
+          userId: actor.id,
+          userName: actor.username,
           previousState: {
             email: previous.email,
             name: previous.name,
@@ -273,20 +293,12 @@ export class UserService {
   }
 
   /** Baja lógica: `active=false` + `deactivatedAt`/`deactivationReason`. */
-  async deactivate(
-    id: string,
-    actorId: string,
-    actorName?: string,
-    reason?: string
-  ): Promise<User> {
-    if (id === actorId) throw new HttpError(400, "CANNOT_DEACTIVATE_SELF");
+  async deactivate(id: string, actor: AuthenticatedUser, reason?: string): Promise<User> {
+    if (id === actor.id) throw new HttpError(400, "CANNOT_DEACTIVATE_SELF");
 
-    const previous = (await this.db.user.findUnique({
-      where: { id },
-      select: userSelect(),
-    })) as unknown as UserRow | null;
-    if (!previous) throw new HttpError(404, "USER_NOT_FOUND");
+    const previous = await this.loadRow(id);
     if (!previous.active) throw new HttpError(409, "USER_ALREADY_DEACTIVATED");
+    enforcePolicy("users.deactivate", actor, { target: { id, roles: rolesOfRow(previous) } });
 
     await this.db.$transaction(async (tx) => {
       await tx.user.update({
@@ -307,8 +319,8 @@ export class UserService {
           action: "USER_DEACTIVATED",
           entityType: "User",
           entityId: id,
-          userId: actorId,
-          userName: actorName ?? null,
+          userId: actor.id,
+          userName: actor.username,
           previousState: { active: true },
           newState: { active: false, deactivationReason: reason ?? null },
           metadata: { reason: reason ?? null },
@@ -317,6 +329,100 @@ export class UserService {
       );
     });
 
+    return this.getById(id);
+  }
+
+  /** Reactiva una cuenta dada de baja (limpia baja y bloqueo). */
+  async reactivate(id: string, actor: AuthenticatedUser): Promise<User> {
+    const previous = await this.loadRow(id);
+    if (previous.active) throw new HttpError(409, "USER_ALREADY_ACTIVE");
+
+    await this.db.$transaction(async (tx) => {
+      await tx.user.update({
+        where: { id },
+        data: {
+          active: true,
+          deactivatedAt: null,
+          deactivationReason: null,
+          failedAttempts: 0,
+          lockedUntil: null,
+        },
+      });
+      await this.audit?.(
+        {
+          action: "USER_REACTIVATED",
+          entityType: "User",
+          entityId: id,
+          userId: actor.id,
+          userName: actor.username,
+          previousState: { active: false, deactivationReason: previous.deactivationReason },
+          newState: { active: true },
+        },
+        tx
+      );
+    });
+    return this.getById(id);
+  }
+
+  /** Quita el bloqueo temporal por intentos fallidos. */
+  async unlock(id: string, actor: AuthenticatedUser): Promise<User> {
+    const previous = await this.loadRow(id);
+    const locked = !!previous.lockedUntil && previous.lockedUntil.getTime() > Date.now();
+    if (!locked && previous.failedAttempts === 0) throw new HttpError(409, "USER_NOT_LOCKED");
+
+    await this.db.$transaction(async (tx) => {
+      await tx.user.update({ where: { id }, data: { failedAttempts: 0, lockedUntil: null } });
+      await this.audit?.(
+        {
+          action: "USER_UNLOCKED",
+          entityType: "User",
+          entityId: id,
+          userId: actor.id,
+          userName: actor.username,
+          previousState: {
+            failedAttempts: previous.failedAttempts,
+            lockedUntil: previous.lockedUntil?.toISOString() ?? null,
+          },
+          newState: { failedAttempts: 0, lockedUntil: null },
+        },
+        tx
+      );
+    });
+    return this.getById(id);
+  }
+
+  /**
+   * Contraseña temporal asignada por un administrador: obliga a cambiarla en el
+   * siguiente acceso, limpia el bloqueo y cierra las sesiones vigentes. Nunca se
+   * audita la contraseña.
+   */
+  async resetPassword(id: string, password: string, actor: AuthenticatedUser): Promise<User> {
+    if (id === actor.id) throw new HttpError(409, "CANNOT_CHANGE_OWN_PERMISSIONS");
+    const previous = await this.loadRow(id);
+    enforcePolicy("users.reset_password", actor, { target: { id, roles: rolesOfRow(previous) } });
+
+    const passwordHash = await hashPassword(password);
+    await this.db.$transaction(async (tx) => {
+      await tx.user.update({
+        where: { id },
+        data: { passwordHash, mustChangePassword: true, failedAttempts: 0, lockedUntil: null },
+      });
+      await tx.refreshToken.updateMany({
+        where: { userId: id, revokedAt: null },
+        data: { revokedAt: new Date() },
+      });
+      await this.audit?.(
+        {
+          action: "USER_PASSWORD_RESET",
+          entityType: "User",
+          entityId: id,
+          userId: actor.id,
+          userName: actor.username,
+          newState: { mustChangePassword: true },
+        },
+        tx
+      );
+    });
     return this.getById(id);
   }
 

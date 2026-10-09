@@ -76,6 +76,24 @@ export const en: Messages = {
     CHANGE_PERMISSION_TOO_LONG: "changes[{{index}}].permission exceeds {{max}} characters",
     INVALID_CHANGE_SCOPE: "changes[{{index}}].scope is invalid: {{scope}}",
 
+    POLICY_DENIED: "An access policy prevents this operation ({{policy}})",
+    POLICY_NOT_FOUND: "Policy not found",
+    POLICY_KEY_TAKEN: "A policy with key \"{{key}}\" already exists",
+    POLICY_ACTION_UNKNOWN: "Action \"{{action}}\" does not support policies",
+    POLICY_FIELD_UNKNOWN: "Action \"{{action}}\" does not expose field \"{{field}}\"",
+
+    CURRENT_PASSWORD_INVALID: "The current password is not correct",
+    PASSWORD_REUSED: "The new password must differ from the current one",
+    USER_NOT_LOCKED: "The account is not locked",
+
+    SETTING_UNKNOWN: "Setting \"{{key}}\" does not exist",
+    SETTING_INVALID: "Invalid value for \"{{key}}\"",
+    SETTINGS_REQUIRED: "At least one setting is required",
+    CATALOG_ITEM_NOT_FOUND: "Catalog record not found",
+    CATALOG_ITEM_ALREADY_INACTIVE: "The record was already deactivated",
+    TERM_DATES_INVALID: "Start date cannot be after end date",
+    TERM_ALREADY_ACTIVE: "The term is already the active one",
+
     AUDIT_LOG_NOT_FOUND: "Audit log entry not found",
   },
   validation: {
@@ -86,6 +104,9 @@ export const en: Messages = {
     REASON_MIN_LENGTH: "Reason must have at least 3 characters",
     REQUIRED_FIELD: "Required field",
     PASSWORD_MISMATCH: "Passwords do not match",
+    NOMBRE_REQUIRED: "Name is required",
+    INVALID_DATE: "Invalid date (YYYY-MM-DD)",
+    POLICY_KEY_FORMAT: "Key must be lowercase letters, digits and underscores",
   },
   labels: {
     system: "System",

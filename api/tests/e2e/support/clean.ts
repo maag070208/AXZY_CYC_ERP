@@ -1,5 +1,5 @@
 import { assertSafeDatabase } from "./env";
-import { clearAuthE2E, db } from "./db";
+import { clearAccessE2E, clearAuthE2E, clearCatalogsE2E, db } from "./db";
 
 /**
  * Borra todo lo que crean las suites E2E (API y web). Solo toca filas con el
@@ -9,7 +9,11 @@ import { clearAuthE2E, db } from "./db";
 const main = async (): Promise<void> => {
   assertSafeDatabase();
   const users = await clearAuthE2E();
-  console.log(`[e2e] limpieza: ${users} usuario(s) e2e_ borrados`);
+  const { roles, policies } = await clearAccessE2E();
+  const catalogs = await clearCatalogsE2E();
+  console.log(
+    `[e2e] limpieza: ${users} usuario(s), ${roles} rol(es), ${policies} política(s), ${catalogs} registro(s) de catálogo`
+  );
 };
 
 main()

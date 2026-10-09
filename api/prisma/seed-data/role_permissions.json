@@ -8,5 +8,11 @@
   { "roleKey": "ADMIN", "permissionKey": "audit.view", "scope": "ALL" },
   { "roleKey": "ADMIN", "permissionKey": "config.view", "scope": "ALL" },
   { "roleKey": "ADMIN", "permissionKey": "config.manage", "scope": "ALL" },
-  { "roleKey": "CONTROL_ESCOLAR", "permissionKey": "config.view", "scope": "ALL" }
+  { "roleKey": "CONTROL_ESCOLAR", "permissionKey": "config.view", "scope": "ALL" },
+  { "roleKey": "ADMIN", "permissionKey": "levels.view", "scope": "ALL" },
+  { "roleKey": "ADMIN", "permissionKey": "levels.manage", "scope": "ALL" },
+  { "roleKey": "ADMIN", "permissionKey": "terms.view", "scope": "ALL" },
+  { "roleKey": "ADMIN", "permissionKey": "terms.manage", "scope": "ALL" },
+  { "roleKey": "CONTROL_ESCOLAR", "permissionKey": "levels.view", "scope": "ALL" },
+  { "roleKey": "CONTROL_ESCOLAR", "permissionKey": "terms.view", "scope": "ALL" }
 ]
