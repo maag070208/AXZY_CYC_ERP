@@ -96,8 +96,14 @@ Los roles `system` están protegidos de borrado/renombrado.
 > Fuera de su ámbito, las lecturas responden 404 y las escrituras 403. Ver D-028.
 | fees / charges / payments | CRUD | CRUD | · | R (OWN: estado de cuenta) |
 | reports | R X | R X | R (AREA, sin montos) X | · |
-| questions / exams | CRUD | R | CRUD (AREA) | · |
-| attempts | R | R | R (AREA) + review | take (OWN) |
+| questions / exams | CRUD + importar + publicar | R | CRUD + importar + publicar (AREA) | exams R (OWN: publicados de sus grupos) |
+| attempts | R + review | R | R + review (AREA) | take + R (OWN) |
+
+> **Examen en línea (F5):** el AREA del profesor sobre reactivos son los cursos de sus
+> grupos; sobre exámenes e intentos, sus grupos. `attempts.take` existe solo con alcance
+> `OWN` (ADMIN no lo tiene: no es alumno). El alumno solo ve exámenes publicados de grupos
+> con inscripción vigente y solo sus intentos; las respuestas correctas se le muestran solo
+> al terminar y si el examen lo permite. Ver D-036…D-041.
 | attendance | CRUD | R | CRUD (AREA) | R (OWN) |
 | notifications | CRUD | R | · | · |
 | migration | execute | · | · | · |

@@ -17,6 +17,8 @@ const CLAVE = `E2E-X${RUN}`.slice(0, 30);
 const COURSE = `E2E Química ${RUN}`;
 const EXAM = `E2E Parcial en línea ${RUN}`;
 const PUPIL = `e2e_alumno_x_${RUN}`.toLowerCase();
+// Las altas por ADMIN nacen con contraseña temporal: el alumno la cambia antes de entrar.
+const PUPIL_PASSWORD = `${E2E.password}Ex9`;
 const Q = {
   om: `E2E ¿Símbolo del sodio? ${RUN}`,
   vf: `E2E El agua hierve a 100 °C al nivel del mar ${RUN}`,
@@ -53,6 +55,10 @@ test.beforeAll(async () => {
   groupId = (await group.json()).id;
 
   const user = await createUser(admin, { username: PUPIL, name: `E2E Alumna Línea ${RUN}`, roles: ["ALUMNO"] });
+  const pupil = await apiAs(PUPIL);
+  const changed = await pupil.post("auth/change-password", { data: { currentPassword: E2E.password, newPassword: PUPIL_PASSWORD } });
+  expect(changed.status(), await changed.text()).toBe(200);
+  await pupil.dispose();
   const birth = "2004-03-03";
   const student = await control.post("students", {
     data: { nombres: `E2E Línea ${RUN}`, apellidoPaterno: "Examen", curp: makeCurp(birth, "M"), fechaNacimiento: birth, userId: user.id },
@@ -74,7 +80,7 @@ test.afterAll(async () => {
 const pupilPage = async (browser: Browser): Promise<Page> => {
   const context = await browser.newContext({ storageState: { cookies: [], origins: [] }, locale: "es-MX", timezoneId: "America/Mexico_City" });
   const page = await context.newPage();
-  await signIn(page, PUPIL);
+  await signIn(page, PUPIL, PUPIL_PASSWORD);
   return page;
 };
 
@@ -191,7 +197,7 @@ test.describe.serial("examen en línea", () => {
     await expect(dialog.getByText("Puntaje: 3 de 5")).toBeVisible();
     await dialog.locator('input[name="review-puntos-3"]').fill("1.5");
     await dialog.locator('textarea[name="review-comentario-3"]').fill("Falta el ejemplo.");
-    await dialog.getByRole("button", { name: "Calificar" }).click();
+    await dialog.getByRole("button", { name: "Calificar", exact: true }).click();
     await expect(page.getByText("Respuesta calificada")).toBeVisible();
     await expect(dialog.getByText("Puntaje: 4.5 de 5")).toBeVisible();
     await page.keyboard.press("Escape");

@@ -20,7 +20,8 @@ export default function QuestionField({ question, value, disabled, onChange }: P
     );
   }
   const multiple = question.tipo === "MULTIPLE_RESPUESTA";
-  const chosen = new Set(Array.isArray(value) ? value : []);
+  // Opción múltiple y V/F guardan el id de la opción; respuesta múltiple, un arreglo.
+  const chosen = new Set(Array.isArray(value) ? value : value ? [value] : []);
   return (
     <div role={multiple ? "group" : "radiogroup"} aria-label={t("runner.question", { n: question.orden })} className="flex flex-col gap-2">
       {question.options.map((o) => {
@@ -36,7 +37,7 @@ export default function QuestionField({ question, value, disabled, onChange }: P
               disabled={disabled}
               className="h-4 w-4 accent-indigo-600"
               onChange={() => {
-                if (!multiple) return onChange([o.id]);
+                if (!multiple) return onChange(o.id);
                 const next = new Set(chosen);
                 if (next.has(o.id)) next.delete(o.id);
                 else next.add(o.id);

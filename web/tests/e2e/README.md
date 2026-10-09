@@ -21,6 +21,7 @@ Cubre **M02** (acceso, usuarios, consola de roles, recuperación) y **M11**
 | `m08-examenes-calificaciones.spec.ts` | `/groups/:id` (Calificaciones) | Instrumentos al 100 %, captura con validación de rango, proyección de la final, cierre y final en el kardex |
 | `m09-colegiaturas-pagos.spec.ts` | `/finance`, `/students/:id` (Estado de cuenta) | Concepto, cargo con descuento, cobro parcial con validación y recibo PDF, liquidación, cancelación con motivo, estado de cuenta PDF |
 | `m10-reportes-tablero.spec.ts` | `/`, `/reports` | Tablero con KPIs y gráficas, consulta y exportación xlsx/pdf, rango inválido, vista del profesor sin montos |
+| `m14-m17-examenes-en-linea.spec.ts` | `/questions`, `/exams/:id`, `/my-exams`, `/exam/:attemptId` | Reactivo por forma y CSV con vista previa; examen configurado, armado y publicado; el alumno presenta con temporizador, autoguardado, reanudación y envío; el profesor revisa la abierta y la calificación llega al libro |
 | `m11-administracion-catalogos.spec.ts` | `/settings`, `/catalogs` | Parámetros persistentes, CRUD de motivo de baja, duplicado, solo lectura por rol |
 
 ## Cómo correrlas

@@ -51,10 +51,10 @@ abiertas, siguiendo la
 |---|---|---|---|
 | M12 | [Pruebas, seguridad y despliegue](M12-pruebas-seguridad-despliegue/README.md) | Calidad y puesta en producción | Planeado |
 | M13 | [Gestión y capacitación](M13-gestion-capacitacion/README.md) | Manuales y capacitación | Planeado |
-| M14 | [Banco de reactivos](M14-banco-reactivos/README.md) | Preguntas e importación | Planeado |
-| M15 | [Configuración de exámenes](M15-examenes-configuracion/README.md) | Crear y publicar exámenes en línea | Planeado |
-| M16 | [Aplicación al alumno](M16-aplicacion-alumno/README.md) | Aplicar exámenes y guardar respuestas | Planeado |
-| M17 | [Calificación automática al kardex](M17-calificacion-kardex/README.md) | Calificar y escribir al kardex | Planeado |
+| M14 | [Banco de reactivos](M14-banco-reactivos/README.md) | Preguntas e importación | Terminado (F5) |
+| M15 | [Configuración de exámenes](M15-examenes-configuracion/README.md) | Crear y publicar exámenes en línea | Terminado (F5) |
+| M16 | [Aplicación al alumno](M16-aplicacion-alumno/README.md) | Aplicar exámenes y guardar respuestas | Terminado (F5) |
+| M17 | [Calificación automática al kardex](M17-calificacion-kardex/README.md) | Calificar y escribir al kardex | Terminado (F5) |
 
 ## Extras
 

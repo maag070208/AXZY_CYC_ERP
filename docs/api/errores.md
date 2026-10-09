@@ -113,8 +113,24 @@ Envelope **plano** (estándar PTNV):
 | `SCORE_OUT_OF_RANGE` | 400 | Calificación fuera de `[0, max_score]` |
 | `MAX_SCORE_BELOW_CAPTURED` | 409 | Bajar el máximo por debajo de calificaciones ya capturadas |
 | `ENROLLMENT_NOT_IN_GROUP` / `NOT_ENROLLED` | 400 / 409 | Captura para una inscripción de otro grupo / no vigente |
-| `EXAM_NOT_AVAILABLE` | 409 | Examen fuera de ventana / sin intentos |
-| `EXAM_PUBLISHED_LOCKED` | 409 | No editable con intentos iniciados |
+| `QUESTION_NOT_FOUND` | 404 | Reactivo inexistente o fuera de alcance |
+| `QUESTION_OPTION_REQUIRED` / `QUESTION_OPTION_COUNT_INVALID` / `QUESTION_MULTIPLE_CORRECT` / `QUESTION_OPEN_NO_OPTIONS` | 400 | Opciones que no cumplen la regla del tipo (M14) |
+| `QUESTION_IN_USE` | 409 | Editar un reactivo ya respondido en un intento (solo se desactiva) |
+| `QUESTION_ALREADY_INACTIVE` / `QUESTION_INACTIVE` | 409 | Desactivar uno inactivo / usar uno inactivo |
+| `CSV_INVALID` | 400 | CSV sin cabecera requerida, vacío o ilegible |
+| `INVALID_IDEMPOTENCY_KEY` | 400 | Aplicar una importación o cobro masivo sin `Idempotency-Key` válida |
+| `EXAM_NOT_FOUND` | 404 | Examen inexistente o fuera de alcance (o borrador para el alumno) |
+| `EXAM_NOT_EDITABLE` | 409 | Examen cerrado |
+| `EXAM_PUBLISHED_LOCKED` | 409 | Preguntas/reglas con intentos iniciados |
+| `EXAM_NO_QUESTIONS` / `EXAM_SCORE_INVALID` / `EXAM_QUESTION_INVALID` | 409 / 409 / 400 | Publicar sin preguntas, aprobatorio > total, reactivo inactivo o de otro curso |
+| `EXAM_ALREADY_PUBLISHED` / `EXAM_NOT_PUBLISHED` / `EXAM_DRAFT_ONLY` | 409 | Transición de estatus inválida (eliminar solo borradores) |
+| `EXAM_ASSESSMENT_INVALID` / `EXAM_ASSESSMENT_TAKEN` | 400 / 409 | Evaluación de otro grupo o inactiva / ya vinculada a otro examen |
+| `EXAM_NOT_AVAILABLE` | 409 | Iniciar fuera de ventana, sin intentos o sin inscripción vigente (`details.reason`) |
+| `ATTEMPT_NOT_FOUND` | 404 | Intento inexistente, ajeno o fuera de alcance |
+| `ATTEMPT_CLOSED` / `ATTEMPT_OPEN` | 409 | Guardar/enviar un intento cerrado o vencido / revisar uno en curso |
+| `INVALID_ANSWER` | 400 | Respuesta que no corresponde al tipo u opciones de la pregunta |
+| `REVIEW_ONLY_OPEN` | 400 | Revisión manual de una pregunta cerrada |
+| `STUDENT_PROFILE_REQUIRED` | 403 | Cuenta ALUMNO sin expediente vinculado |
 | `FILE_TYPE_NOT_ALLOWED` / `FILE_TOO_LARGE` | 400 | Validación de archivos |
 | `CHARGE_ALREADY_PAID` | 409 | Cargo pagado/cancelado: no admite pagos |
 | `CHARGE_NOT_FOUND` / `PAYMENT_NOT_FOUND` / `FEE_CONCEPT_NOT_FOUND` | 404 (400 si viene en el body) | Cargo, pago o concepto inexistente o fuera de alcance |

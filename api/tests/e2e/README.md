@@ -36,6 +36,10 @@ npm run test:e2e:report      # abrir el último reporte HTML
 | `m08-examenes-calificaciones.spec.ts` | M08 | Instrumentos (suma ≤ 100), captura en lote con bitácora anterior/nuevo, rango, libro con proyección, cierre (umbral, estatus, kardex), exportación, alcance |
 | `m09-colegiaturas-pagos.spec.ts` | M09 | Conceptos, cargos, pagos parciales y folio, cancelaciones con bitácora, Idempotency-Key, concurrencia, política de descuento, generación masiva, recargos, estado de cuenta y alcance |
 | `m10-reportes-tablero.spec.ts` | M10 | Catálogo por alcance, validaciones, cada reporte, AREA del profesor, montos solo ALL, exportación xlsx/pdf auditada, tablero |
+| `m14-banco-reactivos.spec.ts` | M14 | Cuatro tipos y sus reglas de opciones, alcance por curso, congelado al usarse, desactivar/reactivar, CSV con vista previa e Idempotency-Key |
+| `m15-examenes-configuracion.spec.ts` | M15 | Alta con evaluación vinculada, constructor (activas y del curso), publicar (aprobatorio ≤ total), edición limitada con intentos, cerrar y eliminar borrador |
+| `m16-aplicacion-alumno.spec.ts` | M16 | Inicio sin claves, tiempo del servidor, reanudación sin duplicar, autoguardado validado, envío, expiración, cambios de pestaña y alcance |
+| `m17-calificacion-kardex.spec.ts` | M17 | Calificación automática, pendientes de abiertas, revisión y recalificación, criterio MEJOR/ULTIMO, escritura normalizada al libro de M08 |
 | `m11-administracion-catalogos.spec.ts` | M11 | `settings` (todo o nada, bitácora, idioma), niveles, ciclos (uno activo), motivos de baja, tipos de documento |
 
 ## Qué cubre `auth.spec.ts` (M02)

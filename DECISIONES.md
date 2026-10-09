@@ -240,6 +240,35 @@ Plantilla:
 - **Estado:** aceptada
 - **Decisión:** `GET /dashboard` calcula en cada consulta (sin caché) alumnos activos/baja, ocupación de grupos del ciclo activo y, con alcance ALL, ingresos del mes, adeudo total/vencido e ingresos de 6 meses. Inicio muestra el tablero a quien tiene `reports.view`. Gráficas en HTML/CSS sin dependencia.
 
+### D-036 — Tiempo del examen controlado por el servidor
+- **Fecha:** 2026-10-09
+- **Estado:** aceptada
+- **Decisión:** al iniciar un intento se fija `endsAt = min(inicio + duración, cierre del examen)`. Cada respuesta de la API trae `remainingSeconds` y el cliente solo cuenta hacia esa hora límite. Un barrido cada 60 s (y cualquier lectura o guardado del intento) cierra como `EXPIRADO` y califica lo vencido; guardar después de la hora límite responde `409 ATTEMPT_CLOSED`. Un solo intento `EN_CURSO` por alumno y examen (índice único parcial); iniciar con uno abierto lo reanuda.
+
+### D-037 — Cambios de pestaña: se registran, no se bloquean (resuelve A-005)
+- **Fecha:** 2026-10-09
+- **Estado:** aceptada
+- **Decisión:** el navegador reporta `TAB_BLUR`/`TAB_FOCUS`; la API guarda los eventos (últimos 200) y cuenta `focusLosses`, que el profesor ve en resultados y en la revisión. No se invalida el intento ni se bloquea copiar/pegar: es evidencia para el profesor, no una sanción automática.
+
+### D-038 — Reactivos y exámenes se congelan al usarse
+- **Fecha:** 2026-10-09
+- **Estado:** aceptada
+- **Decisión:** un reactivo respondido en algún intento ya no se edita (`409 QUESTION_IN_USE`), solo se desactiva. Con el primer intento, el examen fija preguntas, puntos y reglas (`409 EXAM_PUBLISHED_LOCKED`); solo cambian instrucciones, fecha de cierre y si se muestra el resultado. Cada intento guarda su orden de preguntas y opciones (`layout`), así barajar no altera intentos ya iniciados.
+
+### D-039 — La calificación del examen va al libro de M08 (no directo al kardex)
+- **Fecha:** 2026-10-09
+- **Estado:** aceptada
+- **Decisión:** el examen se vincula, opcionalmente y 1:1, a una evaluación activa del mismo grupo. Al cerrar un intento sin preguntas pendientes, el puntaje elegido (criterio `MEJOR` o `ULTIMO`) se normaliza a la escala de la evaluación (`puntaje / total × maxScore`, ROUND_HALF_UP) y se escribe como su `Grade`. Si hay abiertas por revisar se espera a la revisión; si el grupo ya cerró calificaciones no se toca nada. El kardex recibe la final al cerrar el grupo (D-029/D-030).
+
+### D-040 — Portal del alumno para exámenes en línea (resuelve A-007 para M16)
+- **Fecha:** 2026-10-09
+- **Estado:** aceptada
+- **Decisión:** las cuentas `ALUMNO` vinculadas a un expediente (`students.user_id`) entran a «Mis exámenes» (`attempts.take` OWN) y solo ven exámenes publicados de grupos con inscripción vigente. Sin expediente vinculado responde `403 STUDENT_PROFILE_REQUIRED`. La pantalla «Exámenes en línea» es para quien gestiona (`exams.manage`) o revisa (`attempts.review`); control escolar consulta el resultado en el libro y el kardex.
+
+### D-041 — Importación de reactivos por CSV en dos pasos
+- **Fecha:** 2026-10-09
+- **Estado:** aceptada
+- **Decisión:** `POST /questions/import?preview=true` valida sin guardar y devuelve filas válidas, rechazadas (fila, código, mensaje) y una muestra; aplicar exige `Idempotency-Key` (repetirla no duplica). Columnas `curso,tema,tipo,enunciado,puntos,dificultad,opciones,correctas` con `,` o `;`; opciones separadas por `|` y correctas por posición (1-based). En V/F sin opciones se usan «Verdadero|Falso». Máximo 1 MB.
 ---
 
 ## Mapeo desde la especificación original
@@ -264,16 +293,16 @@ Plantilla:
 | A-002 | Regla de aprobación | M08 | ¿Umbral 70 configurable por nivel/ciclo? | parcial: global en M11 ([D-029](#d-029--calificaciones-en-decimal-con-round_half_up-cierre-manual-sin-reapertura)) |
 | A-003 | Recargos por mora | M09 | ¿Se aplican? ¿Fórmula y periodicidad? | resuelta ([D-033](#d-033--recargos-por-mora-a-demanda-resuelve-a-003)) |
 | A-004 | Almacenamiento de archivos | M06 | ¿S3 (estándar PTNV) o local? | provisional: ambos ([D-023](#d-023--almacenamiento-privado-s3-o-disco-local-resuelve-a-004-de-forma-provisional)) |
-| A-005 | Anti-fraude en examen | M16 | ¿Registrar cambios de pestaña? ¿Bloquear copiar/pegar? | abierta |
+| A-005 | Anti-fraude en examen | M16 | ¿Registrar cambios de pestaña? ¿Bloquear copiar/pegar? | resuelta ([D-037](#d-037--cambios-de-pestaña-se-registran-no-se-bloquean-resuelve-a-005)) |
 | A-006 | Alerta de inasistencia | M18 | ¿Umbral por defecto (80%) configurable? | abierta |
-| A-007 | Acceso de alumnos | M02/M16 | ¿Los alumnos entran al portal o solo presencial? | abierta |
+| A-007 | Acceso de alumnos | M02/M16 | ¿Los alumnos entran al portal o solo presencial? | parcial: portal para exámenes en línea ([D-040](#d-040--portal-del-alumno-para-exámenes-en-línea-resuelve-a-007-para-m16)) |
 | A-008 | Notificaciones en tiempo real | M10/M19 | ¿Ably (estándar PTNV) para el tablero? | abierta |
 
 ---
 
 ## Cómo registrar una nueva decisión
 
-1. Elige el siguiente `D-###` libre (hoy: `D-036`).
+1. Elige el siguiente `D-###` libre (hoy: `D-042`).
 2. Copia la plantilla de arriba y llénala.
 3. Enlaza al documento/módulo afectado.
 4. Si reemplaza a otra, actualiza el estado de la anterior.
