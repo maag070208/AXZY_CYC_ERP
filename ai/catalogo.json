@@ -1,0 +1,5796 @@
+{
+ "generatedAt": "2026-10-15T15:47:38.708Z",
+ "libraryVersion": "1.5.1",
+ "components": [
+  {
+   "name": "ITAvatar",
+   "layer": "atoms",
+   "description": "Circular avatar component with image, initials fallback, and optional badge overlay.",
+   "example": "<ITAvatar src=\"/avatar.jpg\" alt=\"John Doe\" size=\"lg\" badge={<span className=\"w-2.5 h-2.5 bg-success-500 rounded-full\" />} />",
+   "source": "src/components/atoms/avatar/avatar.tsx",
+   "props": [
+    {
+     "name": "src",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Image source URL for the avatar. When provided, displays an `<img>` element."
+    },
+    {
+     "name": "alt",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Alt text for the avatar image. Also used as fallback initial when no `initials` or `src` is provided."
+    },
+    {
+     "name": "initials",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Initials to display when no image is available (max 2 characters recommended)."
+    },
+    {
+     "name": "size",
+     "type": "AvatarSize",
+     "required": false,
+     "default": "\"md\"",
+     "description": "Avatar dimensions. Valid values: `\"xs\"`, `\"sm\"`, `\"md\"`, `\"lg\"`, `\"xl\"`."
+    },
+    {
+     "name": "color",
+     "type": "string",
+     "required": false,
+     "default": "\"bg-primary-600\"",
+     "description": "Color de fondo para el fallback de iniciales. Acepta un valor de color\nreal (`\"#8b5cf6\"`, `\"rgb(...)\"`, `\"hsl(...)\"`, `\"var(--...)\"`) — se\naplica como `style` inline y SIEMPRE se renderiza — o una clase de\nTailwind (`\"bg-purple-600\"`) por compatibilidad con código existente.\nUna clase de Tailwind solo se ve si esa clase exacta ya existe en el\nCSS compilado que consume la app (esta librería se dis…"
+    },
+    {
+     "name": "className",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS class names for the avatar container."
+    },
+    {
+     "name": "badge",
+     "type": "React.ReactNode",
+     "required": false,
+     "default": "",
+     "description": "React node rendered as a badge overlay at the bottom-right corner."
+    },
+    {
+     "name": "onClick",
+     "type": "() => void",
+     "required": false,
+     "default": "",
+     "description": "Click handler. When provided, the avatar becomes interactive (role=\"button\")."
+    }
+   ]
+  },
+  {
+   "name": "ITBadget",
+   "layer": "atoms",
+   "description": "Small status tag or label with theme-based colors and filled/outlined variants.",
+   "example": "<ITBadget label=\"Active\" color=\"success\" variant=\"filled\" />",
+   "source": "src/components/atoms/badget/badget.tsx",
+   "props": [
+    {
+     "name": "label",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Text label displayed inside the badge. Overridden if `children` is provided."
+    },
+    {
+     "name": "children",
+     "type": "React.ReactNode",
+     "required": false,
+     "default": "",
+     "description": "Custom content to render inside the badge. Takes precedence over `label`."
+    },
+    {
+     "name": "color",
+     "type": "\"gray\" | \"purple\" | \"info\" | \"success\" | \"warning\" | \"error\" | \"primary\" | \"secondary\" | \"danger\"",
+     "required": false,
+     "default": "\"primary\"",
+     "description": "Color theme key. Values come from the semantic color palette (e.g. `\"primary\"`, `\"secondary\"`, `\"success\"`, `\"danger\"`, `\"warning\"`, `\"info\"`, `\"purple\"`, `\"error\"`, `\"gray\"`)."
+    },
+    {
+     "name": "size",
+     "type": "SizesTypes",
+     "required": false,
+     "default": "\"md\"",
+     "description": "Badge size. Valid values: `\"sm\"`, `\"md\"`, `\"lg\"`."
+    },
+    {
+     "name": "variant",
+     "type": "\"filled\" | \"outlined\"",
+     "required": false,
+     "default": "\"filled\"",
+     "description": "Badge visual style. Valid values: `\"filled\"`, `\"outlined\"`."
+    },
+    {
+     "name": "className",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS class names for the badge element."
+    }
+   ]
+  },
+  {
+   "name": "ITButton",
+   "layer": "atoms",
+   "description": "Highly configurable action button supporting 8 visual variants, theme colors, 3 sizes, icons, and hover/focus states.",
+   "example": "<ITButton label=\"Submit\" color=\"primary\" variant=\"filled\" onClick={() => {}} />",
+   "source": "src/components/atoms/button/button.tsx",
+   "props": [
+    {
+     "name": "label",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Button text label. Overridden if `children` is provided."
+    },
+    {
+     "name": "children",
+     "type": "React.ReactNode",
+     "required": false,
+     "default": "",
+     "description": "Custom content to render inside the button. Takes precedence over `label`."
+    },
+    {
+     "name": "icon",
+     "type": "React.ReactNode",
+     "required": false,
+     "default": "",
+     "description": "Icon element rendered before the label. With `variant=\"icon-only\"` and no `label`/`children` it becomes the only content and is centered in the square button."
+    },
+    {
+     "name": "onClick",
+     "type": "() => void",
+     "required": false,
+     "default": "",
+     "description": "Click handler for the button."
+    },
+    {
+     "name": "color",
+     "type": "\"gray\" | \"purple\" | \"info\" | \"success\" | \"warning\" | \"error\" | \"primary\" | \"secondary\" | \"danger\"",
+     "required": false,
+     "default": "\"primary\"",
+     "description": "Color theme key. Values come from the semantic color palette (e.g. `\"primary\"`, `\"secondary\"`, `\"success\"`, `\"danger\"`, `\"warning\"`, `\"info\"`, `\"purple\"`, `\"error\"`, `\"gray\"`)."
+    },
+    {
+     "name": "size",
+     "type": "SizesTypes",
+     "required": false,
+     "default": "\"md\"",
+     "description": "Button size. Valid values: `\"sm\"`, `\"md\"`, `\"lg\"`. In `variant=\"icon-only\"` it also scales the square padding (`buttonIconPadding`: `sm` 0.5rem, `md` 0.625rem, `lg` 0.75rem)."
+    },
+    {
+     "name": "variant",
+     "type": "string",
+     "required": false,
+     "default": "\"filled\"",
+     "description": "Button visual style. Valid values: `\"filled\"`, `\"outlined\"`, `\"raised\"`, `\"rounded\"`, `\"text\"`, `\"raised-text\"`, `\"icon-only\"`, `\"link\"`. `\"icon-only\"` renders a centered square icon button; combine it with `icon` and `ariaLabel`."
+    },
+    {
+     "name": "disabled",
+     "type": "boolean",
+     "required": false,
+     "default": "false",
+     "description": "Disables the button interaction and applies reduced opacity."
+    },
+    {
+     "name": "className",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS class names for the button element."
+    },
+    {
+     "name": "type",
+     "type": "\"button\" | \"reset\" | \"submit\"",
+     "required": false,
+     "default": "\"button\"",
+     "description": "HTML button type attribute. Valid values: `\"submit\"`, `\"reset\"`, `\"button\"`."
+    },
+    {
+     "name": "ariaLabel",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Accessible label for screen readers. Falls back to `label` if not set."
+    },
+    {
+     "name": "title",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "HTML title attribute for native tooltip. Falls back to `ariaLabel` or `label`."
+    }
+   ]
+  },
+  {
+   "name": "ITCheckbox",
+   "layer": "atoms",
+   "description": "Checkbox component with label, indeterminate state, and disabled support. Uses a visually hidden native input for accessibility.",
+   "example": "<ITCheckbox label=\"Accept terms\" checked={agreed} onChange={setAgreed} />",
+   "source": "src/components/atoms/checkbox/checkbox.tsx",
+   "props": [
+    {
+     "name": "checked",
+     "type": "boolean",
+     "required": false,
+     "default": "false",
+     "description": "Controlled checked state."
+    },
+    {
+     "name": "onChange",
+     "type": "(checked: boolean) => void",
+     "required": false,
+     "default": "",
+     "description": "Callback fired when the checkbox value changes. Receives the new checked state."
+    },
+    {
+     "name": "label",
+     "type": "React.ReactNode",
+     "required": false,
+     "default": "",
+     "description": "Label text or element rendered next to the checkbox."
+    },
+    {
+     "name": "disabled",
+     "type": "boolean",
+     "required": false,
+     "default": "false",
+     "description": "Disables the checkbox interaction and applies reduced opacity."
+    },
+    {
+     "name": "indeterminate",
+     "type": "boolean",
+     "required": false,
+     "default": "false",
+     "description": "Renders the checkbox in an indeterminate (dash) state. Has no effect when `checked` is `true`."
+    },
+    {
+     "name": "className",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS class names for the label wrapper."
+    },
+    {
+     "name": "name",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "HTML name attribute for the native `<input>` element."
+    }
+   ]
+  },
+  {
+   "name": "ITChip",
+   "layer": "atoms",
+   "description": "Compact tag / pill used for labels, active filters, and multi-value selections.\n\nSupports soft, filled, and outlined variants, an optional leading icon,\na removable (X) affordance, and a selected state for filter toggles.",
+   "example": "<ITChip label=\"React\" color=\"primary\" />",
+   "source": "src/components/atoms/chip/chip.tsx",
+   "props": [
+    {
+     "name": "label",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Text label displayed inside the chip. Overridden if `children` is provided."
+    },
+    {
+     "name": "children",
+     "type": "React.ReactNode",
+     "required": false,
+     "default": "",
+     "description": "Custom content rendered inside the chip. Takes precedence over `label`."
+    },
+    {
+     "name": "color",
+     "type": "\"gray\" | \"purple\" | \"info\" | \"success\" | \"warning\" | \"error\" | \"primary\" | \"secondary\" | \"danger\"",
+     "required": false,
+     "default": "\"secondary\"",
+     "description": "Color theme key from the semantic palette (e.g. `\"primary\"`, `\"success\"`, `\"danger\"`)."
+    },
+    {
+     "name": "size",
+     "type": "SizesTypes",
+     "required": false,
+     "default": "\"md\"",
+     "description": "Chip size. Valid values: `\"sm\"`, `\"md\"`, `\"lg\"`."
+    },
+    {
+     "name": "variant",
+     "type": "\"filled\" | \"outlined\" | \"soft\"",
+     "required": false,
+     "default": "\"soft\"",
+     "description": "Visual style. Valid values: `\"soft\"`, `\"filled\"`, `\"outlined\"`."
+    },
+    {
+     "name": "icon",
+     "type": "React.ReactNode",
+     "required": false,
+     "default": "",
+     "description": "Icon rendered before the label."
+    },
+    {
+     "name": "removable",
+     "type": "boolean",
+     "required": false,
+     "default": "false",
+     "description": "Shows a remove (X) button at the end of the chip."
+    },
+    {
+     "name": "onRemove",
+     "type": "() => void",
+     "required": false,
+     "default": "",
+     "description": "Callback fired when the remove button is pressed."
+    },
+    {
+     "name": "onClick",
+     "type": "() => void",
+     "required": false,
+     "default": "",
+     "description": "Makes the chip clickable (filter/toggle usage)."
+    },
+    {
+     "name": "selected",
+     "type": "boolean",
+     "required": false,
+     "default": "false",
+     "description": "Highlights the chip as selected, using the `color` palette."
+    },
+    {
+     "name": "disabled",
+     "type": "boolean",
+     "required": false,
+     "default": "false",
+     "description": "Disables all chip interactions and reduces opacity."
+    },
+    {
+     "name": "className",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS classes for the chip element."
+    }
+   ]
+  },
+  {
+   "name": "ITDivider",
+   "layer": "atoms",
+   "description": "Horizontal or vertical separator line.\n\nRenders a thin full-width (horizontal) or full-height (vertical) bar using\nTailwind utility classes. Supports custom color and thickness overrides.",
+   "example": "```tsx\n<ITDivider />\n```",
+   "source": "src/components/atoms/divider/divider.tsx",
+   "props": [
+    {
+     "name": "orientation",
+     "type": "DividerOrientation",
+     "required": false,
+     "default": "\"horizontal\"",
+     "description": "Layout direction."
+    },
+    {
+     "name": "className",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS classes for the divider element."
+    },
+    {
+     "name": "color",
+     "type": "string",
+     "required": false,
+     "default": "\"bg-slate-200 dark:bg-slate-700\"",
+     "description": "Tailwind background color class(es)."
+    },
+    {
+     "name": "thickness",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Tailwind width/height utility (e.g. \"h-px\", \"h-1\", \"w-px\"). Auto-set based on orientation if omitted."
+    }
+   ]
+  },
+  {
+   "name": "ITFlex",
+   "layer": "atoms",
+   "description": "A complete flexbox container with all alignment and spacing options.",
+   "example": "<ITFlex direction=\"row\" justify=\"between\" align=\"center\" gap={4}>\n  <div>Left</div>\n  <div>Right</div>\n</ITFlex>",
+   "source": "src/components/atoms/flex/flex.tsx",
+   "props": [
+    {
+     "name": "children",
+     "type": "React.ReactNode",
+     "required": false,
+     "default": "",
+     "description": "Child elements to render inside the flex container"
+    },
+    {
+     "name": "direction",
+     "type": "FlexDirection",
+     "required": false,
+     "default": "",
+     "description": "Main axis direction: \"row\" | \"column\" | \"row-reverse\" | \"column-reverse\""
+    },
+    {
+     "name": "align",
+     "type": "FlexAlign",
+     "required": false,
+     "default": "",
+     "description": "Cross-axis alignment: \"start\" | \"end\" | \"center\" | \"stretch\" | \"baseline\""
+    },
+    {
+     "name": "justify",
+     "type": "FlexJustify",
+     "required": false,
+     "default": "",
+     "description": "Main-axis justification: \"start\" | \"end\" | \"center\" | \"between\" | \"around\" | \"evenly\""
+    },
+    {
+     "name": "wrap",
+     "type": "FlexWrap",
+     "required": false,
+     "default": "",
+     "description": "Wrapping behavior: \"nowrap\" | \"wrap\" | \"wrap-reverse\""
+    },
+    {
+     "name": "gap",
+     "type": "number",
+     "required": false,
+     "default": "",
+     "description": "Gap between children in units of 0.25rem"
+    },
+    {
+     "name": "grow",
+     "type": "number | boolean",
+     "required": false,
+     "default": "",
+     "description": "Flex grow factor. Pass `true` for 1, `false` for 0, or a number"
+    },
+    {
+     "name": "shrink",
+     "type": "number | boolean",
+     "required": false,
+     "default": "",
+     "description": "Flex shrink factor. Pass `true` for 1, `false` for 0, or a number"
+    },
+    {
+     "name": "basis",
+     "type": "string | number",
+     "required": false,
+     "default": "",
+     "description": "Flex basis value. Numbers are multiplied by 0.25rem; strings used as-is"
+    },
+    {
+     "name": "className",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS classes"
+    },
+    {
+     "name": "style",
+     "type": "React.CSSProperties",
+     "required": false,
+     "default": "",
+     "description": "Inline styles"
+    },
+    {
+     "name": "as",
+     "type": "React.ElementType",
+     "required": false,
+     "default": "",
+     "description": "Custom HTML element type to render instead of the default `div`"
+    },
+    {
+     "name": "onClick",
+     "type": "(e: React.MouseEvent) => void",
+     "required": false,
+     "default": "",
+     "description": "Click handler"
+    }
+   ]
+  },
+  {
+   "name": "ITGrid",
+   "layer": "atoms",
+   "description": "Responsive 12-column CSS grid layout system.\nRenders as a grid container when `container` is true, as a column-spanning\nitem when `item` is true. Supports breakpoint-aware column spans and\nconfigurable spacing between items.",
+   "example": "<ITGrid container columns={12} spacing={4}>\n  <ITGrid item xs={12} md={6}>Sidebar</ITGrid>\n  <ITGrid item xs={12} md={6}>Content</ITGrid>\n</ITGrid>",
+   "source": "src/components/atoms/grid/grid.tsx",
+   "props": [
+    {
+     "name": "children",
+     "type": "React.ReactNode",
+     "required": false,
+     "default": "",
+     "description": "Child elements"
+    },
+    {
+     "name": "container",
+     "type": "boolean",
+     "required": false,
+     "default": "",
+     "description": "Render as a grid container (CSS grid parent)"
+    },
+    {
+     "name": "item",
+     "type": "boolean",
+     "required": false,
+     "default": "",
+     "description": "Render as a grid item (CSS grid child). If neither `container` nor `item` is set, renders a plain div"
+    },
+    {
+     "name": "spacing",
+     "type": "number",
+     "required": false,
+     "default": "",
+     "description": "Gap between grid children in units of 0.25rem. Only applies when `container` is true"
+    },
+    {
+     "name": "columns",
+     "type": "number",
+     "required": false,
+     "default": "",
+     "description": "Number of grid columns (1-12). Only applies when `container` is true"
+    },
+    {
+     "name": "xs",
+     "type": "number",
+     "required": false,
+     "default": "",
+     "description": "Column span at the base breakpoint (mobile). Falls back to `sm` if not set"
+    },
+    {
+     "name": "sm",
+     "type": "number",
+     "required": false,
+     "default": "",
+     "description": "Column span at the `sm` breakpoint"
+    },
+    {
+     "name": "md",
+     "type": "number",
+     "required": false,
+     "default": "",
+     "description": "Column span at the `md` breakpoint"
+    },
+    {
+     "name": "lg",
+     "type": "number",
+     "required": false,
+     "default": "",
+     "description": "Column span at the `lg` breakpoint"
+    },
+    {
+     "name": "xl",
+     "type": "number",
+     "required": false,
+     "default": "",
+     "description": "Column span at the `xl` breakpoint"
+    },
+    {
+     "name": "className",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS classes"
+    },
+    {
+     "name": "style",
+     "type": "React.CSSProperties",
+     "required": false,
+     "default": "",
+     "description": "Inline styles"
+    },
+    {
+     "name": "as",
+     "type": "React.ElementType",
+     "required": false,
+     "default": "",
+     "description": "Custom HTML element type to render instead of the default `div`"
+    }
+   ]
+  },
+  {
+   "name": "ITImage",
+   "layer": "atoms",
+   "description": "Image component with automatic fallback on load error.\nDisplays the primary `src` image and gracefully switches to the\n`fallback` image if loading fails.",
+   "example": "<ITImage\n  src=\"https://example.com/photo.jpg\"\n  fallback=\"/images/placeholder.png\"\n  alt=\"User photo\"\n/>",
+   "source": "src/components/atoms/image/image.tsx",
+   "props": [
+    {
+     "name": "src",
+     "type": "string",
+     "required": true,
+     "default": "",
+     "description": "Source URL of the image"
+    },
+    {
+     "name": "alt",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Alt text for accessibility"
+    },
+    {
+     "name": "className",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS classes"
+    },
+    {
+     "name": "fallback",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Fallback image URL shown when the primary `src` fails to load"
+    },
+    {
+     "name": "onClick",
+     "type": "() => void",
+     "required": false,
+     "default": "",
+     "description": "Click handler"
+    }
+   ]
+  },
+  {
+   "name": "ITInput",
+   "layer": "atoms",
+   "description": "Text input component with label, validation error display, icon slots,\nand helper text. Supports text, password, email, number (with currency\nand thousand formatting), checkbox, radio, and textarea types.",
+   "example": "<ITInput\n  name=\"email\"\n  label=\"Email Address\"\n  type=\"email\"\n  placeholder=\"you@example.com\"\n  value={email}\n  onChange={handleChange}\n  error={errors.email}\n  required\n/>",
+   "source": "src/components/atoms/input/input.tsx",
+   "props": [
+    {
+     "name": "name",
+     "type": "string",
+     "required": true,
+     "default": "",
+     "description": "Field name used for form identification"
+    },
+    {
+     "name": "type",
+     "type": "\"number\" | \"checkbox\" | \"radio\" | \"textarea\" | \"text\" | \"password\" | \"email\"",
+     "required": false,
+     "default": "",
+     "description": "Input type: \"text\" | \"password\" | \"number\" | \"email\" | \"checkbox\" | \"radio\" | \"textarea\""
+    },
+    {
+     "name": "label",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Label displayed above the input"
+    },
+    {
+     "name": "currencyFormat",
+     "type": "boolean",
+     "required": false,
+     "default": "",
+     "description": "Enable currency formatting for number inputs (MX locale)"
+    },
+    {
+     "name": "decimals",
+     "type": "number",
+     "required": false,
+     "default": "currencyFormat ? 2 : 0",
+     "description": "Decimal places allowed for number inputs. `0` restricts to integers."
+    },
+    {
+     "name": "placeholder",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Placeholder text"
+    },
+    {
+     "name": "value",
+     "type": "any",
+     "required": false,
+     "default": "",
+     "description": "Current input value"
+    },
+    {
+     "name": "onChange",
+     "type": "(event: any) => void",
+     "required": true,
+     "default": "",
+     "description": "Change event handler"
+    },
+    {
+     "name": "onBlur",
+     "type": "(event: React.FocusEvent<HTMLInputElement> | React.FocusEvent<HTMLTextAreaElement, Element>) => void",
+     "required": false,
+     "default": "",
+     "description": "Blur event handler"
+    },
+    {
+     "name": "onKeyDown",
+     "type": "(event: React.KeyboardEvent) => void",
+     "required": false,
+     "default": "",
+     "description": "Keydown event handler"
+    },
+    {
+     "name": "showHintLength",
+     "type": "boolean",
+     "required": false,
+     "default": "",
+     "description": "Show character count hint below the input"
+    },
+    {
+     "name": "maxLength",
+     "type": "number",
+     "required": false,
+     "default": "",
+     "description": "Maximum allowed character length"
+    },
+    {
+     "name": "minLength",
+     "type": "number",
+     "required": false,
+     "default": "",
+     "description": "Minimum allowed character length"
+    },
+    {
+     "name": "variant",
+     "type": "\"gray\" | \"purple\" | \"info\" | \"success\" | \"warning\" | \"error\" | \"primary\" | \"secondary\" | \"danger\"",
+     "required": false,
+     "default": "",
+     "description": "Color variant from the theme palette"
+    },
+    {
+     "name": "size",
+     "type": "SizesTypes",
+     "required": false,
+     "default": "\"md\"",
+     "description": "Size preset: \"sm\" | \"md\" | \"lg\"."
+    },
+    {
+     "name": "disabled",
+     "type": "boolean",
+     "required": false,
+     "default": "",
+     "description": "Disable the input"
+    },
+    {
+     "name": "containerClassName",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS classes for the outer container"
+    },
+    {
+     "name": "labelClassName",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS classes for the label"
+    },
+    {
+     "name": "className",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS classes for the input element"
+    },
+    {
+     "name": "touched",
+     "type": "boolean",
+     "required": false,
+     "default": "",
+     "description": "Whether the field has been touched by the user"
+    },
+    {
+     "name": "error",
+     "type": "string | boolean",
+     "required": false,
+     "default": "",
+     "description": "Validation error message. Pass `true` for a generic error, or a string for a custom message"
+    },
+    {
+     "name": "required",
+     "type": "boolean",
+     "required": false,
+     "default": "",
+     "description": "Mark the field as required"
+    },
+    {
+     "name": "formatNumber",
+     "type": "boolean",
+     "required": false,
+     "default": "",
+     "description": "Enable number formatting on blur"
+    },
+    {
+     "name": "autoFocus",
+     "type": "boolean",
+     "required": false,
+     "default": "",
+     "description": "Auto-focus the input on mount"
+    },
+    {
+     "name": "focusContent",
+     "type": "boolean",
+     "required": false,
+     "default": "",
+     "description": "Select all content on click"
+    },
+    {
+     "name": "onClick",
+     "type": "() => void",
+     "required": false,
+     "default": "",
+     "description": "Click handler for the input"
+    },
+    {
+     "name": "iconLeft",
+     "type": "React.ReactNode",
+     "required": false,
+     "default": "",
+     "description": "Icon element rendered on the left side of the input"
+    },
+    {
+     "name": "iconRight",
+     "type": "React.ReactNode",
+     "required": false,
+     "default": "",
+     "description": "Icon element rendered on the right side of the input"
+    },
+    {
+     "name": "checked",
+     "type": "boolean",
+     "required": false,
+     "default": "",
+     "description": "Checked state for checkbox and radio types"
+    },
+    {
+     "name": "rows",
+     "type": "number",
+     "required": false,
+     "default": "",
+     "description": "Number of visible rows for textarea type"
+    },
+    {
+     "name": "min",
+     "type": "number",
+     "required": false,
+     "default": "",
+     "description": "Minimum numeric value for number inputs"
+    },
+    {
+     "name": "max",
+     "type": "number",
+     "required": false,
+     "default": "",
+     "description": "Maximum numeric value for number inputs"
+    },
+    {
+     "name": "readOnly",
+     "type": "boolean",
+     "required": false,
+     "default": "",
+     "description": "Render the input in read-only mode"
+    }
+   ]
+  },
+  {
+   "name": "ITInputNumber",
+   "layer": "atoms",
+   "description": "Numeric field that always renders currency-style formatting (thousand\nseparators + fixed decimals) and emits a real `number`.\n\nBuilt on top of `ITInput`: it is the same field, but `onChange`/`onBlur`\nalready receive the parsed value, so consumers can do math directly instead\nof converting strings first.",
+   "example": "```tsx\n<ITInputNumber\n  name=\"amount\"\n  label=\"Monto\"\n  value={amount}\n  prefix=\"$\"\n  onChange={(value) => setAmount(value)}\n/>\n```",
+   "source": "src/components/atoms/input-number/input-number.tsx",
+   "props": [
+    {
+     "name": "name",
+     "type": "string",
+     "required": true,
+     "default": "",
+     "description": "Field name used for form identification."
+    },
+    {
+     "name": "value",
+     "type": "number",
+     "required": false,
+     "default": "",
+     "description": "Current numeric value. Pass `null`/`undefined` for \"empty\"."
+    },
+    {
+     "name": "onChange",
+     "type": "(value: number | undefined, event: React.ChangeEvent<HTMLInputElement>) => void",
+     "required": true,
+     "default": "",
+     "description": "Called with the parsed value on every change.\nReceives `undefined` when the field is empty, plus the original input event."
+    },
+    {
+     "name": "onBlur",
+     "type": "(value: number | undefined, event: React.FocusEvent<HTMLInputElement>) => void",
+     "required": false,
+     "default": "",
+     "description": "Called on blur with the parsed (and min/max clamped) value, plus the\noriginal focus event."
+    },
+    {
+     "name": "decimals",
+     "type": "number",
+     "required": false,
+     "default": "2",
+     "description": "Number of decimal places allowed. `0` restricts to integers."
+    },
+    {
+     "name": "prefix",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Text prefix rendered inside the field, e.g. `\"$\"`. Ignored when `iconLeft` is set."
+    },
+    {
+     "name": "label",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Label displayed above the input."
+    },
+    {
+     "name": "placeholder",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Placeholder text."
+    },
+    {
+     "name": "min",
+     "type": "number",
+     "required": false,
+     "default": "",
+     "description": "Minimum numeric value. Values below are clamped on blur."
+    },
+    {
+     "name": "max",
+     "type": "number",
+     "required": false,
+     "default": "",
+     "description": "Maximum numeric value. Values above are clamped on blur."
+    },
+    {
+     "name": "size",
+     "type": "SizesTypes",
+     "required": false,
+     "default": "\"md\"",
+     "description": "Size preset: \"sm\" | \"md\" | \"lg\"."
+    },
+    {
+     "name": "disabled",
+     "type": "boolean",
+     "required": false,
+     "default": "false",
+     "description": "Disable the input."
+    },
+    {
+     "name": "readOnly",
+     "type": "boolean",
+     "required": false,
+     "default": "false",
+     "description": "Render the input in read-only mode."
+    },
+    {
+     "name": "required",
+     "type": "boolean",
+     "required": false,
+     "default": "false",
+     "description": "Mark the field as required."
+    },
+    {
+     "name": "touched",
+     "type": "boolean",
+     "required": false,
+     "default": "",
+     "description": "Whether the field has been touched by the user."
+    },
+    {
+     "name": "error",
+     "type": "string | boolean",
+     "required": false,
+     "default": "",
+     "description": "Validation error. Pass `true` for a generic message, or a string for a custom one."
+    },
+    {
+     "name": "iconLeft",
+     "type": "React.ReactNode",
+     "required": false,
+     "default": "",
+     "description": "Icon element rendered on the left side of the input. Takes precedence over `prefix`."
+    },
+    {
+     "name": "iconRight",
+     "type": "React.ReactNode",
+     "required": false,
+     "default": "",
+     "description": "Icon element rendered on the right side of the input."
+    },
+    {
+     "name": "containerClassName",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS classes for the outer container."
+    },
+    {
+     "name": "labelClassName",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS classes for the label."
+    },
+    {
+     "name": "className",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS classes for the input element."
+    },
+    {
+     "name": "autoFocus",
+     "type": "boolean",
+     "required": false,
+     "default": "false",
+     "description": "Auto-focus the input on mount."
+    },
+    {
+     "name": "focusContent",
+     "type": "boolean",
+     "required": false,
+     "default": "false",
+     "description": "Select all content on click."
+    },
+    {
+     "name": "onKeyDown",
+     "type": "(event: React.KeyboardEvent<HTMLInputElement>) => void",
+     "required": false,
+     "default": "",
+     "description": "Keydown handler for the underlying input."
+    }
+   ]
+  },
+  {
+   "name": "ITLoader",
+   "layer": "atoms",
+   "description": "Loading indicators with multiple animation types: spinner, dots, pulse,\nand bar. Supports configurable size, color (theme semantic or custom),\nand inline/padded rendering.",
+   "example": "<ITLoader variant=\"spinner\" size=\"lg\" color=\"primary\" />",
+   "source": "src/components/atoms/loader/loader.tsx",
+   "props": [
+    {
+     "name": "size",
+     "type": "LoaderSize",
+     "required": false,
+     "default": "",
+     "description": "Loader size: \"sm\" | \"md\" | \"lg\" | \"xl\""
+    },
+    {
+     "name": "variant",
+     "type": "LoaderVariant",
+     "required": false,
+     "default": "",
+     "description": "Animation variant: \"spinner\" | \"dots\" | \"bar\" | \"pulse\""
+    },
+    {
+     "name": "color",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Color value. Can be a theme semantic color key, hex string, rgb string, or CSS class"
+    },
+    {
+     "name": "className",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS classes"
+    }
+   ]
+  },
+  {
+   "name": "ITPopover",
+   "layer": "atoms",
+   "description": "Floating content panel triggered by click on a trigger element, with position control and click-outside dismissal.",
+   "example": "```tsx\n<ITPopover trigger={<ITButton label=\"Options\" />} position=\"bottom\">\n  <ul>\n    <li><button onClick={handleEdit}>Edit</button></li>\n    <li><button onClick={handleDelete}>Delete</button></li>\n  </ul>\n</ITPopover>\n```",
+   "source": "src/components/atoms/popover/popover.tsx",
+   "props": [
+    {
+     "name": "trigger",
+     "type": "React.ReactNode",
+     "required": true,
+     "default": "",
+     "description": "Element that triggers the popover when clicked."
+    },
+    {
+     "name": "children",
+     "type": "React.ReactNode",
+     "required": true,
+     "default": "",
+     "description": "Content rendered inside the popover panel."
+    },
+    {
+     "name": "position",
+     "type": "PopoverPosition",
+     "required": false,
+     "default": "",
+     "description": "Position of the popover relative to the trigger. Options: \"top\", \"bottom\", \"left\", \"right\". Default: \"bottom\"."
+    },
+    {
+     "name": "isOpen",
+     "type": "boolean",
+     "required": false,
+     "default": "",
+     "description": "Controlled open state. When provided, the component acts in controlled mode."
+    },
+    {
+     "name": "onClose",
+     "type": "() => void",
+     "required": false,
+     "default": "",
+     "description": "Callback fired when the popover is closed in controlled mode."
+    },
+    {
+     "name": "className",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS classes for the container."
+    }
+   ]
+  },
+  {
+   "name": "ITProgress",
+   "layer": "atoms",
+   "description": "Progress bar indicator with support for determinate and indeterminate variants, themed colors, and multiple sizes.",
+   "example": "```tsx\n<ITProgress value={75} max={100} color=\"success\" size=\"lg\" />\n<ITProgress variant=\"indeterminate\" color=\"primary\" />\n```",
+   "source": "src/components/atoms/progress/progress.tsx",
+   "props": [
+    {
+     "name": "value",
+     "type": "number",
+     "required": false,
+     "default": "",
+     "description": "Current progress value. Default: 0."
+    },
+    {
+     "name": "max",
+     "type": "number",
+     "required": false,
+     "default": "",
+     "description": "Maximum progress value. Default: 100."
+    },
+    {
+     "name": "variant",
+     "type": "\"determinate\" | \"indeterminate\"",
+     "required": false,
+     "default": "",
+     "description": "Progress variant. \"determinate\" shows a fixed-width fill, \"indeterminate\" shows an animated pulsing bar. Default: \"determinate\"."
+    },
+    {
+     "name": "color",
+     "type": "\"gray\" | \"purple\" | \"info\" | \"success\" | \"warning\" | \"error\" | \"primary\" | \"secondary\" | \"danger\"",
+     "required": false,
+     "default": "",
+     "description": "Semantic color from the theme. Options: primary, secondary, success, danger, warning, info, purple, error, gray. Default: \"primary\"."
+    },
+    {
+     "name": "size",
+     "type": "\"sm\" | \"md\" | \"lg\"",
+     "required": false,
+     "default": "",
+     "description": "Size of the progress bar. Options: \"sm\", \"md\", \"lg\". Default: \"md\"."
+    },
+    {
+     "name": "className",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS classes for the container."
+    },
+    {
+     "name": "style",
+     "type": "React.CSSProperties",
+     "required": false,
+     "default": "",
+     "description": "Inline styles applied to the container."
+    }
+   ]
+  },
+  {
+   "name": "ITRadioGroup",
+   "layer": "atoms",
+   "description": "Radio button group with configurable layout direction and themed selection styling.",
+   "example": "```tsx\n<ITRadioGroup\n  name=\"color\"\n  value={selectedColor}\n  onChange={(value) => setSelectedColor(value)}\n  options={[\n    { value: 'red', label: 'Red' },\n    { value: 'blue', label: 'Blue' },\n    { value: 'green', label: 'Green' },\n  ]}\n  direction=\"row\"\n/>\n```",
+   "source": "src/components/atoms/radio/radio.tsx",
+   "props": [
+    {
+     "name": "name",
+     "type": "string",
+     "required": true,
+     "default": "",
+     "description": "Name attribute for the radio input group. Used for form accessibility."
+    },
+    {
+     "name": "value",
+     "type": "string",
+     "required": true,
+     "default": "",
+     "description": "Currently selected value."
+    },
+    {
+     "name": "onChange",
+     "type": "(value: string) => void",
+     "required": true,
+     "default": "",
+     "description": "Callback fired when a radio option is selected. Receives the selected value."
+    },
+    {
+     "name": "options",
+     "type": "ITRadioOption[]",
+     "required": true,
+     "default": "",
+     "description": "Array of radio options to render."
+    },
+    {
+     "name": "disabled",
+     "type": "boolean",
+     "required": false,
+     "default": "",
+     "description": "Whether the entire radio group is disabled."
+    },
+    {
+     "name": "direction",
+     "type": "\"column\" | \"row\"",
+     "required": false,
+     "default": "",
+     "description": "Layout direction of the radio options. Options: \"row\", \"column\". Default: \"column\"."
+    },
+    {
+     "name": "className",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS classes for the container."
+    }
+   ]
+  },
+  {
+   "name": "ITSegmentedControl",
+   "layer": "atoms",
+   "description": "iOS-style segmented toggle for switching between mutually exclusive options.",
+   "example": "```tsx\n<ITSegmentedControl\n  options={[\n    { value: \"day\", label: \"Day\" },\n    { value: \"week\", label: \"Week\", icon: <FaCalendar /> },\n  ]}\n  value={view}\n  onChange={setView}\n/>\n```",
+   "source": "src/components/atoms/segmented-control/segmented-control.tsx",
+   "props": [
+    {
+     "name": "options",
+     "type": "ISegmentedOption[]",
+     "required": true,
+     "default": "",
+     "description": "Array of mutually exclusive options: { label, value, icon? }."
+    },
+    {
+     "name": "value",
+     "type": "string",
+     "required": true,
+     "default": "",
+     "description": "Currently selected value (controlled)."
+    },
+    {
+     "name": "onChange",
+     "type": "(value: string) => void",
+     "required": true,
+     "default": "",
+     "description": "Callback fired when the user selects a different option. Receives the new value."
+    },
+    {
+     "name": "size",
+     "type": "SegmentedControlSize",
+     "required": false,
+     "default": "",
+     "description": "Control size: \"sm\" | \"md\". Default: \"md\"."
+    },
+    {
+     "name": "className",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS classes on the container."
+    },
+    {
+     "name": "disabled",
+     "type": "boolean",
+     "required": false,
+     "default": "",
+     "description": "Whether the entire control is disabled."
+    }
+   ]
+  },
+  {
+   "name": "ITSkeleton",
+   "layer": "atoms",
+   "description": "Content placeholder loader with pulse animation for text, circles, and rectangles.",
+   "example": "```tsx\n<ITSkeleton variant=\"circular\" width={40} height={40} />\n<ITSkeleton variant=\"text\" count={3} />\n<ITSkeleton variant=\"rectangular\" width=\"100%\" height={200} />\n```",
+   "source": "src/components/atoms/skeleton/skeleton.tsx",
+   "props": [
+    {
+     "name": "variant",
+     "type": "SkeletonVariant",
+     "required": false,
+     "default": "",
+     "description": "Skeleton shape: \"text\" | \"circular\" | \"rectangular\". Default: \"text\"."
+    },
+    {
+     "name": "width",
+     "type": "string | number",
+     "required": false,
+     "default": "",
+     "description": "Explicit width (CSS value or number in px). Text variant defaults to random 60%-90%."
+    },
+    {
+     "name": "height",
+     "type": "string | number",
+     "required": false,
+     "default": "",
+     "description": "Explicit height (CSS value or number in px)."
+    },
+    {
+     "name": "count",
+     "type": "number",
+     "required": false,
+     "default": "",
+     "description": "Number of skeleton items to render. Default: 1."
+    },
+    {
+     "name": "className",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS classes on each skeleton item."
+    },
+    {
+     "name": "style",
+     "type": "React.CSSProperties",
+     "required": false,
+     "default": "",
+     "description": "Inline style object applied to each skeleton item."
+    }
+   ]
+  },
+  {
+   "name": "ITSlider",
+   "layer": "atoms",
+   "description": "Range slider control with min/max/step and optional label displaying the current value.",
+   "example": "```tsx\n<ITSlider\n  label=\"Volume\"\n  value={volume}\n  onChange={setVolume}\n  min={0}\n  max={100}\n  step={5}\n/>\n```",
+   "source": "src/components/atoms/slider/slider.tsx",
+   "props": [
+    {
+     "name": "value",
+     "type": "number",
+     "required": true,
+     "default": "",
+     "description": "Current slider value (controlled)."
+    },
+    {
+     "name": "onChange",
+     "type": "(value: number) => void",
+     "required": true,
+     "default": "",
+     "description": "Callback fired when the value changes. Receives the new numeric value."
+    },
+    {
+     "name": "min",
+     "type": "number",
+     "required": false,
+     "default": "",
+     "description": "Minimum allowed value. Default: 0."
+    },
+    {
+     "name": "max",
+     "type": "number",
+     "required": false,
+     "default": "",
+     "description": "Maximum allowed value. Default: 100."
+    },
+    {
+     "name": "step",
+     "type": "number",
+     "required": false,
+     "default": "",
+     "description": "Step increment. Default: 1."
+    },
+    {
+     "name": "label",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Label displayed above the slider. Also shows the current value."
+    },
+    {
+     "name": "disabled",
+     "type": "boolean",
+     "required": false,
+     "default": "",
+     "description": "Whether the slider is disabled."
+    },
+    {
+     "name": "className",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS classes on the container."
+    }
+   ]
+  },
+  {
+   "name": "ITSlideToggle",
+   "layer": "atoms",
+   "description": "iOS-style toggle switch with theme color support.\nSupports fully controlled (`isOn`) or uncontrolled (`initialState`) modes.",
+   "example": "```tsx\n// Controlled\n<ITSlideToggle isOn={enabled} onToggle={setEnabled} activeColor=\"primary\" />\n\n// Uncontrolled with initial state\n<ITSlideToggle initialState onToggle={(v) => console.log(v)} />\n```",
+   "source": "src/components/atoms/slide/slide.tsx",
+   "props": [
+    {
+     "name": "onToggle",
+     "type": "(value: boolean) => void",
+     "required": false,
+     "default": "",
+     "description": "Callback executed when the switch is toggled. Receives the new boolean state."
+    },
+    {
+     "name": "isOn",
+     "type": "boolean",
+     "required": false,
+     "default": "",
+     "description": "Controlled state. Use this to fully control the component externally."
+    },
+    {
+     "name": "initialState",
+     "type": "boolean",
+     "required": false,
+     "default": "",
+     "description": "Initial state for uncontrolled usage. Default: false."
+    },
+    {
+     "name": "activeColor",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Semantic theme color when activated (e.g. \"primary\", \"success\", \"danger\").\nCan also be a hex value. Default: \"success\"."
+    },
+    {
+     "name": "inactiveColor",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Semantic theme color or hex value when deactivated.\nDefault: '#9ca3af' (gray-400)."
+    },
+    {
+     "name": "disabled",
+     "type": "boolean",
+     "required": false,
+     "default": "",
+     "description": "Whether the switch is disabled."
+    },
+    {
+     "name": "size",
+     "type": "\"sm\" | \"md\" | \"lg\"",
+     "required": false,
+     "default": "",
+     "description": "Size of the switch: \"sm\" | \"md\" | \"lg\". Default: \"md\"."
+    },
+    {
+     "name": "label",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Texto visible del interruptor. Se asocia al control como nombre accesible\n(`aria-label`) cuando no hay un `<label>` externo que lo nombre."
+    },
+    {
+     "name": "ariaLabel",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Nombre accesible cuando la etiqueta visible vive fuera del componente.\nTiene prioridad sobre `label`."
+    },
+    {
+     "name": "className",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS classes on the container."
+    }
+   ]
+  },
+  {
+   "name": "ITStack",
+   "layer": "atoms",
+   "description": "Simplified flex stack with consistent spacing (gap) for arranging children in a row or column.\nSupports an optional divider element between children.",
+   "example": "```tsx\n<ITStack direction=\"row\" spacing={4} alignItems=\"center\">\n  <ITButton>Cancel</ITButton>\n  <ITButton variant=\"primary\">Save</ITButton>\n</ITStack>\n```",
+   "source": "src/components/atoms/stack/stack.tsx",
+   "props": [
+    {
+     "name": "children",
+     "type": "React.ReactNode",
+     "required": false,
+     "default": "",
+     "description": "Stack children elements."
+    },
+    {
+     "name": "direction",
+     "type": "StackDirection",
+     "required": false,
+     "default": "",
+     "description": "Flex direction. Default: \"column\"."
+    },
+    {
+     "name": "spacing",
+     "type": "number",
+     "required": false,
+     "default": "",
+     "description": "Spacing between children in 0.25rem units (0–12). Default: 0."
+    },
+    {
+     "name": "alignItems",
+     "type": "StackAlignment",
+     "required": false,
+     "default": "",
+     "description": "Cross-axis alignment."
+    },
+    {
+     "name": "justifyContent",
+     "type": "StackJustify",
+     "required": false,
+     "default": "",
+     "description": "Main-axis justification."
+    },
+    {
+     "name": "flexWrap",
+     "type": "StackWrap",
+     "required": false,
+     "default": "",
+     "description": "Whether children should wrap."
+    },
+    {
+     "name": "divider",
+     "type": "React.ReactNode",
+     "required": false,
+     "default": "",
+     "description": "Optional divider element inserted between children."
+    },
+    {
+     "name": "className",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS classes on the container."
+    },
+    {
+     "name": "style",
+     "type": "React.CSSProperties",
+     "required": false,
+     "default": "",
+     "description": "Inline styles on the container."
+    },
+    {
+     "name": "as",
+     "type": "React.ElementType",
+     "required": false,
+     "default": "",
+     "description": "HTML element type to render as. Default: \"div\"."
+    }
+   ]
+  },
+  {
+   "name": "ITText",
+   "layer": "atoms",
+   "description": "Semantic typography wrapper that renders any HTML element.\nSupports muted styling via the `muted` prop and passes through all standard HTML attributes.",
+   "example": "<ITText as=\"h1\" className=\"text-2xl font-bold\">Welcome</ITText>",
+   "source": "src/components/atoms/text/text.tsx",
+   "props": [
+    {
+     "name": "children",
+     "type": "React.ReactNode",
+     "required": false,
+     "default": "",
+     "description": "The content rendered inside the element."
+    },
+    {
+     "name": "className",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS classes applied to the element."
+    },
+    {
+     "name": "as",
+     "type": "React.ElementType",
+     "required": false,
+     "default": "",
+     "description": "HTML element type to render (e.g. \"p\", \"span\", \"h1\", \"label\")."
+    },
+    {
+     "name": "muted",
+     "type": "boolean",
+     "required": false,
+     "default": "",
+     "description": "Applies muted text color (--color-text-muted) when true."
+    },
+    {
+     "name": "htmlFor",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Associates a label with a form element (rendered as `htmlFor` when `as` is \"label\")."
+    },
+    {
+     "name": "style",
+     "type": "React.CSSProperties",
+     "required": false,
+     "default": "",
+     "description": ""
+    }
+   ]
+  },
+  {
+   "name": "ITTextarea",
+   "layer": "atoms",
+   "description": "Multi-line text input with optional label, validation error display,\ncharacter limit, and configurable resize behavior.",
+   "example": "<ITTextarea\n  name=\"bio\"\n  label=\"Biography\"\n  value={bio}\n  onChange={setBio}\n  maxLength={500}\n  rows={6}\n  resize=\"vertical\"\n  error={bio.length > 500 ? \"Max 500 characters\" : undefined}\n/>",
+   "source": "src/components/atoms/textarea/textarea.tsx",
+   "props": [
+    {
+     "name": "value",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Controlled value of the textarea."
+    },
+    {
+     "name": "onChange",
+     "type": "(value: string) => void",
+     "required": false,
+     "default": "",
+     "description": "Callback fired when the value changes, receiving the new string."
+    },
+    {
+     "name": "label",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Label text rendered above the textarea."
+    },
+    {
+     "name": "placeholder",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Placeholder text shown when the textarea is empty."
+    },
+    {
+     "name": "rows",
+     "type": "number",
+     "required": false,
+     "default": "",
+     "description": "Number of visible text rows (default 4)."
+    },
+    {
+     "name": "disabled",
+     "type": "boolean",
+     "required": false,
+     "default": "",
+     "description": "Disables the textarea when true."
+    },
+    {
+     "name": "error",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Validation error message displayed below the textarea."
+    },
+    {
+     "name": "className",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS classes for the wrapper."
+    },
+    {
+     "name": "name",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Name attribute for form submission and label association via `htmlFor`."
+    },
+    {
+     "name": "maxLength",
+     "type": "number",
+     "required": false,
+     "default": "",
+     "description": "Maximum number of characters allowed."
+    },
+    {
+     "name": "resize",
+     "type": "\"none\" | \"both\" | \"horizontal\" | \"vertical\"",
+     "required": false,
+     "default": "",
+     "description": "Resize behavior of the textarea: \"none\" | \"vertical\" | \"horizontal\" | \"both\"."
+    }
+   ]
+  },
+  {
+   "name": "ITAccordion",
+   "layer": "molecules",
+   "description": "Collapsible sections for FAQs, settings panels, and long content.\n\nWorks uncontrolled (`defaultOpenIds`) or controlled (`openIds` + `onChange`).\nSupports single-open (default) or multiple-open mode, and animates the body\nwith a CSS grid-rows transition (no JS height measurement).",
+   "example": "<ITAccordion\n  items={[\n    { id: \"a\", title: \"¿Qué es AXZY?\", content: \"Un sistema de componentes.\" },\n    { id: \"b\", title: \"¿Cómo instalo?\", content: \"pnpm add",
+   "source": "src/components/molecules/accordion/accordion.tsx",
+   "props": [
+    {
+     "name": "items",
+     "type": "ITAccordionItem[]",
+     "required": true,
+     "default": "",
+     "description": "Sections to render."
+    },
+    {
+     "name": "allowMultiple",
+     "type": "boolean",
+     "required": false,
+     "default": "false",
+     "description": "Allows more than one section open at the same time."
+    },
+    {
+     "name": "defaultOpenIds",
+     "type": "string[]",
+     "required": false,
+     "default": "",
+     "description": "Ids open on first render (uncontrolled mode)."
+    },
+    {
+     "name": "openIds",
+     "type": "string[]",
+     "required": false,
+     "default": "",
+     "description": "Controlled list of open ids. When provided, the component is controlled."
+    },
+    {
+     "name": "onChange",
+     "type": "(openIds: string[]) => void",
+     "required": false,
+     "default": "",
+     "description": "Fired with the next list of open ids whenever a section toggles."
+    },
+    {
+     "name": "variant",
+     "type": "\"default\" | \"separated\" | \"bordered\"",
+     "required": false,
+     "default": "\"separated\"",
+     "description": "Visual style. Valid values: `\"default\"`, `\"separated\"`, `\"bordered\"`."
+    },
+    {
+     "name": "className",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS classes for the wrapper."
+    },
+    {
+     "name": "itemClassName",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS classes applied to every item."
+    }
+   ]
+  },
+  {
+   "name": "ITAlert",
+   "layer": "molecules",
+   "description": "Dismissible alert banner with 4 visual variants and optional custom icon.",
+   "example": "<ITAlert variant=\"success\" title=\"Success\" dismissible onDismiss={() => {}}>\n  Operation completed successfully.\n</ITAlert>",
+   "source": "src/components/molecules/alert/alert.tsx",
+   "props": [
+    {
+     "name": "variant",
+     "type": "AlertVariant",
+     "required": false,
+     "default": "\"info\"",
+     "description": "Alert visual style. Valid values: `\"info\"`, `\"success\"`, `\"warning\"`, `\"error\"`."
+    },
+    {
+     "name": "title",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Optional bold title text displayed above the message."
+    },
+    {
+     "name": "children",
+     "type": "React.ReactNode",
+     "required": false,
+     "default": "",
+     "description": "Alert message content."
+    },
+    {
+     "name": "dismissible",
+     "type": "boolean",
+     "required": false,
+     "default": "false",
+     "description": "Whether the alert can be dismissed by the user."
+    },
+    {
+     "name": "onDismiss",
+     "type": "() => void",
+     "required": false,
+     "default": "",
+     "description": "Callback fired when the dismiss button is clicked."
+    },
+    {
+     "name": "icon",
+     "type": "React.ReactNode",
+     "required": false,
+     "default": "",
+     "description": "Custom icon element. Overrides the default variant icon."
+    },
+    {
+     "name": "className",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS class names for the alert container."
+    }
+   ]
+  },
+  {
+   "name": "ITBreadcrumbs",
+   "layer": "molecules",
+   "description": "Navigation breadcrumb trail with automatic link/button rendering and custom separator.",
+   "example": "<ITBreadcrumbs\n  items={[\n    { label: \"Home\", href: \"/\" },\n    { label: \"Products\", href: \"/products\" },\n    { label: \"Details\" },\n  ]}\n/>",
+   "source": "src/components/molecules/breadcrumbs/breadcrumbs.tsx",
+   "props": [
+    {
+     "name": "items",
+     "type": "ITBreadcrumbItem[]",
+     "required": true,
+     "default": "",
+     "description": "Ordered array of breadcrumb items. The last item is rendered as plain text (current page)."
+    },
+    {
+     "name": "separator",
+     "type": "React.ReactNode",
+     "required": false,
+     "default": "<FaChevronRight size={10} />",
+     "description": "Custom separator element rendered between items."
+    },
+    {
+     "name": "className",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS class names for the `<nav>` container."
+    }
+   ]
+  },
+  {
+   "name": "ITCalendar",
+   "layer": "molecules",
+   "description": "Full-featured calendar and date picker with week/day/month views, event display, range selection, and drag-to-select.",
+   "example": "<ITCalendar mode=\"month\" onChange={(date) => console.log(date)} variant=\"primary\" />",
+   "source": "src/components/molecules/calendar/calendar.tsx",
+   "props": [
+    {
+     "name": "events",
+     "type": "CalendarEvent[]",
+     "required": false,
+     "default": "",
+     "description": "Array of calendar events to display in the scheduler view."
+    },
+    {
+     "name": "mode",
+     "type": "\"week\" | \"day\" | \"month\"",
+     "required": false,
+     "default": "",
+     "description": "Display mode. Valid values: `\"week\"`, `\"day\"`, `\"month\"`. Auto-detected as `\"month\"` when `onChange` is provided."
+    },
+    {
+     "name": "onEventClick",
+     "type": "(event: CalendarEvent) => void",
+     "required": false,
+     "default": "",
+     "description": "Callback fired when an event is clicked."
+    },
+    {
+     "name": "onSlotClick",
+     "type": "(date: Date) => void",
+     "required": false,
+     "default": "",
+     "description": "Callback fired when an empty time slot is clicked."
+    },
+    {
+     "name": "onSlotHover",
+     "type": "(date: Date) => void",
+     "required": false,
+     "default": "",
+     "description": "Callback fired when the mouse enters a time slot."
+    },
+    {
+     "name": "onSelectRange",
+     "type": "(start: Date, end: Date) => void",
+     "required": false,
+     "default": "",
+     "description": "Callback fired when a time range is selected via drag."
+    },
+    {
+     "name": "value",
+     "type": "Date",
+     "required": false,
+     "default": "",
+     "description": "Currently selected date (date picker mode)."
+    },
+    {
+     "name": "onChange",
+     "type": "(date: Date) => void",
+     "required": false,
+     "default": "",
+     "description": "Callback fired when a date is selected in picker mode."
+    },
+    {
+     "name": "selectionMode",
+     "type": "\"range\" | \"single\"",
+     "required": false,
+     "default": "\"single\"",
+     "description": "Selection mode for the date picker. Valid values: `\"single\"`, `\"range\"`."
+    },
+    {
+     "name": "startDate",
+     "type": "Date",
+     "required": false,
+     "default": "",
+     "description": "Start date for range selection."
+    },
+    {
+     "name": "endDate",
+     "type": "Date",
+     "required": false,
+     "default": "",
+     "description": "End date for range selection."
+    },
+    {
+     "name": "minDate",
+     "type": "Date",
+     "required": false,
+     "default": "",
+     "description": "Minimum selectable date (dates before this are disabled)."
+    },
+    {
+     "name": "maxDate",
+     "type": "Date",
+     "required": false,
+     "default": "",
+     "description": "Maximum selectable date (dates after this are disabled)."
+    },
+    {
+     "name": "className",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS class names for the calendar container."
+    },
+    {
+     "name": "disabled",
+     "type": "boolean",
+     "required": false,
+     "default": "false",
+     "description": "Whether the calendar is in a disabled state."
+    },
+    {
+     "name": "variant",
+     "type": "\"gray\" | \"purple\" | \"info\" | \"success\" | \"warning\" | \"error\" | \"primary\" | \"secondary\" | \"danger\"",
+     "required": false,
+     "default": "\"primary\"",
+     "description": "Accent color theme for selection highlights. Uses semantic color keys."
+    }
+   ]
+  },
+  {
+   "name": "ITCard",
+   "layer": "molecules",
+   "description": "Versatile card container with optional image, title, body content, and action footer. Supports interactive hover states.",
+   "example": "<ITCard title=\"Welcome\" image=\"/hero.jpg\" actions={<ITButton label=\"Learn more\" />}>\n  This is the card content.\n</ITCard>",
+   "source": "src/components/molecules/card/card.tsx",
+   "props": [
+    {
+     "name": "onClick",
+     "type": "() => void",
+     "required": false,
+     "default": "",
+     "description": "Click handler. When provided, the card becomes interactive with hover shadow effect."
+    },
+    {
+     "name": "title",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Card title displayed in the header area."
+    },
+    {
+     "name": "image",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Image source URL displayed at the top of the card."
+    },
+    {
+     "name": "alt",
+     "type": "string",
+     "required": false,
+     "default": "\"Card Image\"",
+     "description": "Alt text for the card image."
+    },
+    {
+     "name": "children",
+     "type": "React.ReactNode",
+     "required": false,
+     "default": "",
+     "description": "Card body content. Rendered below the title."
+    },
+    {
+     "name": "actions",
+     "type": "React.ReactNode",
+     "required": false,
+     "default": "",
+     "description": "Action elements rendered in a footer section separated by a border."
+    },
+    {
+     "name": "className",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS class names for the card container."
+    },
+    {
+     "name": "imageClassName",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS class names for the image element."
+    },
+    {
+     "name": "titleClassName",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS class names for the title element."
+    },
+    {
+     "name": "contentClassName",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS class names for the content wrapper."
+    },
+    {
+     "name": "actionClassName",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS class names for the actions footer."
+    }
+   ]
+  },
+  {
+   "name": "ITChipInput",
+   "layer": "molecules",
+   "description": "Free-text input that turns entered values into removable tags (chips).\n\nCommits a tag on `Enter`/`,` (configurable via `delimiters`), on blur, or on\npaste of delimited text. Supports `maxTags`, dedupe control, and per-tag\nvalidation.",
+   "example": "<ITChipInput\n  label=\"Etiquetas\"\n  value={tags}\n  onChange={setTags}\n  placeholder=\"Agrega una etiqueta...\"\n/>",
+   "source": "src/components/molecules/chip-input/chip-input.tsx",
+   "props": [
+    {
+     "name": "name",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Name attribute for form integrations."
+    },
+    {
+     "name": "label",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Label displayed above the control."
+    },
+    {
+     "name": "placeholder",
+     "type": "string",
+     "required": false,
+     "default": "\"Escribe y presiona Enter\"",
+     "description": "Placeholder for the text input."
+    },
+    {
+     "name": "value",
+     "type": "string[]",
+     "required": true,
+     "default": "",
+     "description": "Current list of tags (controlled)."
+    },
+    {
+     "name": "onChange",
+     "type": "(values: string[]) => void",
+     "required": false,
+     "default": "",
+     "description": "Fired with the next list of tags."
+    },
+    {
+     "name": "onBlur",
+     "type": "(e: React.FocusEvent<HTMLInputElement>) => void",
+     "required": false,
+     "default": "",
+     "description": "Fired when the control loses focus."
+    },
+    {
+     "name": "delimiters",
+     "type": "string[]",
+     "required": false,
+     "default": "[\"Enter\", \",\"]",
+     "description": "Keys that commit the current text as a tag."
+    },
+    {
+     "name": "maxTags",
+     "type": "number",
+     "required": false,
+     "default": "",
+     "description": "Maximum number of tags allowed."
+    },
+    {
+     "name": "allowDuplicates",
+     "type": "boolean",
+     "required": false,
+     "default": "false",
+     "description": "Allows duplicated tags."
+    },
+    {
+     "name": "validate",
+     "type": "(value: string) => string | undefined",
+     "required": false,
+     "default": "",
+     "description": "Returns an error string to reject the tag, or undefined if valid."
+    },
+    {
+     "name": "color",
+     "type": "\"gray\" | \"purple\" | \"info\" | \"success\" | \"warning\" | \"error\" | \"primary\" | \"secondary\" | \"danger\"",
+     "required": false,
+     "default": "\"primary\"",
+     "description": "Color applied to the tag chips."
+    },
+    {
+     "name": "size",
+     "type": "SizesTypes",
+     "required": false,
+     "default": "\"md\"",
+     "description": "Control size. Valid values: `\"sm\"`, `\"md\"`, `\"lg\"`."
+    },
+    {
+     "name": "disabled",
+     "type": "boolean",
+     "required": false,
+     "default": "false",
+     "description": "Disables the control."
+    },
+    {
+     "name": "required",
+     "type": "boolean",
+     "required": false,
+     "default": "false",
+     "description": "Marks the field as required (red asterisk)."
+    },
+    {
+     "name": "touched",
+     "type": "boolean",
+     "required": false,
+     "default": "",
+     "description": "Whether the field has been touched (form validation)."
+    },
+    {
+     "name": "error",
+     "type": "string | boolean",
+     "required": false,
+     "default": "",
+     "description": "Error message or boolean indicating an error state."
+    },
+    {
+     "name": "helpText",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Helper text shown below the control when there is no error."
+    },
+    {
+     "name": "className",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS classes for the container."
+    }
+   ]
+  },
+  {
+   "name": "ITDatePicker",
+   "layer": "molecules",
+   "description": "Date picker component with single-date and date-range modes.\n\nSupports manual text input (DD/MM/YYYY format) and a calendar popover.\nIn range mode the user selects a start date then an end date; the calendar\nhighlights the interval. Position-aware popover flips above the input when\nnear the bottom of the viewport.",
+   "example": "```tsx\n<ITDatePicker\n  name=\"birthDate\"\n  label=\"Date of birth\"\n  value={date}\n  onChange={(e) => setDate(e.target.value)}\n  maxDate={new Date()}\n/>\n```",
+   "source": "src/components/molecules/date-picker/datePicker.tsx",
+   "props": [
+    {
+     "name": "name",
+     "type": "string",
+     "required": true,
+     "default": "",
+     "description": "Unique name attribute for the underlying input element."
+    },
+    {
+     "name": "value",
+     "type": "Date | [Date, Date]",
+     "required": false,
+     "default": "",
+     "description": "Selected date. Accepts a single Date or a tuple `[startDate, endDate]` when `range` is true."
+    },
+    {
+     "name": "onChange",
+     "type": "(event: React.ChangeEvent<HTMLInputElement> | { target: { name: string; value: Date | [Date | null, Date | null]; }; }) => void",
+     "required": true,
+     "default": "",
+     "description": "Called when the selected date changes. The event object carries `name` and `value` in its target."
+    },
+    {
+     "name": "onBlur",
+     "type": "(event: React.FocusEvent<HTMLInputElement> | { target: { name: string; value: Date | [Date | null, Date | null]; }; }) => void",
+     "required": false,
+     "default": "",
+     "description": "Called when the input loses focus."
+    },
+    {
+     "name": "range",
+     "type": "boolean",
+     "required": false,
+     "default": "false",
+     "description": "Enables date-range selection mode. When true, `value` is treated as a start-end tuple."
+    },
+    {
+     "name": "variant",
+     "type": "\"gray\" | \"purple\" | \"info\" | \"success\" | \"warning\" | \"error\" | \"primary\" | \"secondary\" | \"danger\"",
+     "required": false,
+     "default": "\"primary\"",
+     "description": "Color variant matching the design system (ColorsTypes)."
+    },
+    {
+     "name": "size",
+     "type": "SizesTypes",
+     "required": false,
+     "default": "\"md\"",
+     "description": "Size preset: \"sm\" | \"md\" | \"lg\"."
+    },
+    {
+     "name": "className",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS classes for the wrapper element."
+    },
+    {
+     "name": "calendarClassName",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS classes for the calendar popover."
+    },
+    {
+     "name": "disabled",
+     "type": "boolean",
+     "required": false,
+     "default": "false",
+     "description": "Disables the date picker."
+    },
+    {
+     "name": "placeholder",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Placeholder text shown when no date is selected."
+    },
+    {
+     "name": "label",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Accessible label rendered above the input."
+    },
+    {
+     "name": "required",
+     "type": "boolean",
+     "required": false,
+     "default": "",
+     "description": "Marks the field as required."
+    },
+    {
+     "name": "touched",
+     "type": "boolean",
+     "required": false,
+     "default": "",
+     "description": "Visually indicates the field has been interacted with."
+    },
+    {
+     "name": "error",
+     "type": "string | boolean",
+     "required": false,
+     "default": "",
+     "description": "Error state — pass a string message or `true` for default styling."
+    },
+    {
+     "name": "minDate",
+     "type": "Date",
+     "required": false,
+     "default": "",
+     "description": "Earliest selectable date."
+    },
+    {
+     "name": "maxDate",
+     "type": "Date",
+     "required": false,
+     "default": "",
+     "description": "Latest selectable date."
+    }
+   ]
+  },
+  {
+   "name": "ITDropdownMenu",
+   "layer": "molecules",
+   "description": "Action menu with keyboard navigation and ARIA menu semantics.\n\nRenders the menu through a portal so it escapes `overflow: hidden` and\ntransformed ancestors, and flips above the trigger when there is no room\nbelow.",
+   "example": "<ITDropdownMenu\n  items={[\n    { id: \"edit\", label: \"Editar\", icon: <FaEdit />, onClick: edit },\n    { id: \"delete\", label: \"Eliminar\", icon: <FaTrash />, danger: true, divider: true, onClick: remove },\n  ]}\n/>",
+   "source": "src/components/molecules/dropdown-menu/dropdown-menu.tsx",
+   "props": [
+    {
+     "name": "items",
+     "type": "ITDropdownMenuItem[]",
+     "required": true,
+     "default": "",
+     "description": "Menu actions."
+    },
+    {
+     "name": "trigger",
+     "type": "React.ReactNode",
+     "required": false,
+     "default": "",
+     "description": "Custom trigger content. Defaults to a vertical ellipsis icon."
+    },
+    {
+     "name": "triggerLabel",
+     "type": "string",
+     "required": false,
+     "default": "i18n `dropdownMenu.open` (\"Abrir menú\")",
+     "description": "Accessible label for the trigger button."
+    },
+    {
+     "name": "placement",
+     "type": "\"bottom-start\" | \"bottom-end\" | \"top-start\" | \"top-end\"",
+     "required": false,
+     "default": "\"bottom-end\"",
+     "description": "Placement of the menu relative to the trigger. Valid values: `\"bottom-start\"`, `\"bottom-end\"`, `\"top-start\"`, `\"top-end\"`."
+    },
+    {
+     "name": "onSelect",
+     "type": "(id: string, item: ITDropdownMenuItem) => void",
+     "required": false,
+     "default": "",
+     "description": "Fired after an item is activated, with its id and definition."
+    },
+    {
+     "name": "disabled",
+     "type": "boolean",
+     "required": false,
+     "default": "false",
+     "description": "Disables the trigger."
+    },
+    {
+     "name": "className",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS classes for the trigger button."
+    },
+    {
+     "name": "menuClassName",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS classes for the menu panel."
+    }
+   ]
+  },
+  {
+   "name": "ITEmptyState",
+   "layer": "molecules",
+   "description": "Placeholder display for empty data sets.\n\nShows a large icon, a title, an optional description, and an optional\ncall-to-action element (usually a button). Centered vertically and\nhorizontally within its container.",
+   "example": "```tsx\n<ITEmptyState\n  title=\"No results found\"\n  description=\"Try adjusting your search or filters.\"\n  action={<ITButton label=\"Clear filters\" variant=\"outlined\" onClick={clearFilters} />}\n/>\n```",
+   "source": "src/components/molecules/empty-state/empty-state.tsx",
+   "props": [
+    {
+     "name": "icon",
+     "type": "React.ReactNode",
+     "required": false,
+     "default": "<FaInbox size={40} />",
+     "description": "Icon or illustration displayed above the title."
+    },
+    {
+     "name": "title",
+     "type": "string",
+     "required": true,
+     "default": "",
+     "description": "Primary heading text (required)."
+    },
+    {
+     "name": "description",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Secondary explanatory text shown below the title."
+    },
+    {
+     "name": "action",
+     "type": "React.ReactNode",
+     "required": false,
+     "default": "",
+     "description": "Action element (typically a button) rendered below the description."
+    },
+    {
+     "name": "className",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS classes for the wrapper element."
+    }
+   ]
+  },
+  {
+   "name": "ITField",
+   "layer": "molecules",
+   "description": "Form-field wrapper that standardizes label, required marker, helper text,\nand error message around any control.\n\nKeeps spacing and error styling consistent across forms so each control\ndoes not re-implement label/error logic.",
+   "example": "<ITField label=\"Email\" htmlFor=\"email\" required error={errors.email} helpText=\"We never share it.\">\n  <ITInput name=\"email\" value={email} onChange={onChange} />\n</ITField>",
+   "source": "src/components/molecules/field/field.tsx",
+   "props": [
+    {
+     "name": "label",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Label rendered above the control."
+    },
+    {
+     "name": "htmlFor",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "`id` of the control the label points to (`htmlFor`)."
+    },
+    {
+     "name": "required",
+     "type": "boolean",
+     "required": false,
+     "default": "false",
+     "description": "Shows a red asterisk next to the label."
+    },
+    {
+     "name": "error",
+     "type": "string | boolean",
+     "required": false,
+     "default": "",
+     "description": "Validation error. Pass `true` for the generic message or a string for a custom one."
+    },
+    {
+     "name": "helpText",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Helper text shown below the control when there is no error."
+    },
+    {
+     "name": "children",
+     "type": "React.ReactNode",
+     "required": true,
+     "default": "",
+     "description": "The form control (ITInput, ITSelect, ITTextarea, …)."
+    },
+    {
+     "name": "className",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS classes for the wrapper."
+    },
+    {
+     "name": "labelClassName",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS classes for the label."
+    },
+    {
+     "name": "contentClassName",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS classes for the control container."
+    }
+   ]
+  },
+  {
+   "name": "ITFormHeader",
+   "layer": "molecules",
+   "description": "Colored header bar for modals and forms with an optional close button.\nUses the theme's primary color as the background and automatically\ncalculates a contrasting text color for readability.",
+   "example": "<ITFormHeader title=\"Create User\" onClose={() => setOpen(false)} />",
+   "source": "src/components/molecules/form-header/form-header.tsx",
+   "props": [
+    {
+     "name": "title",
+     "type": "string",
+     "required": true,
+     "default": "",
+     "description": "Header title text"
+    },
+    {
+     "name": "onClose",
+     "type": "() => void",
+     "required": false,
+     "default": "",
+     "description": "Optional close button click handler. If omitted, no close button is rendered"
+    },
+    {
+     "name": "className",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS classes"
+    }
+   ]
+  },
+  {
+   "name": "ITLineBarChart",
+   "layer": "molecules",
+   "description": "Barras + línea en SVG puro (sin librería de gráficas). Pensado para comparar\ndos series por periodo —ingresos contra gastos, cobrado contra proyectado—:\nlas barras van al fondo y la línea con su área encima, con tooltip al pasar\nel cursor. El SVG escala con `viewBox`, así que el trazo y el texto no se\ndeforman al cambiar el ancho del contenedor.",
+   "example": "",
+   "source": "src/components/molecules/line-bar-chart/line-bar-chart.tsx",
+   "props": [
+    {
+     "name": "data",
+     "type": "ITLineBarDatum[]",
+     "required": true,
+     "default": "",
+     "description": ""
+    },
+    {
+     "name": "ariaLabel",
+     "type": "string",
+     "required": true,
+     "default": "",
+     "description": "Etiqueta accesible del gráfico."
+    },
+    {
+     "name": "lineLabel",
+     "type": "string",
+     "required": false,
+     "default": "i18n `lineBarChart.lineLabel` (\"Serie A\")",
+     "description": "Nombre de la serie de la línea (leyenda y tooltip)."
+    },
+    {
+     "name": "barLabel",
+     "type": "string",
+     "required": false,
+     "default": "i18n `lineBarChart.barLabel` (\"Serie B\")",
+     "description": "Nombre de la serie de barras (leyenda y tooltip)."
+    },
+    {
+     "name": "lineColor",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Color de la línea (por defecto el verde de la casa)."
+    },
+    {
+     "name": "barColor",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Color de las barras."
+    },
+    {
+     "name": "height",
+     "type": "number",
+     "required": false,
+     "default": "",
+     "description": ""
+    },
+    {
+     "name": "formatValue",
+     "type": "(value: number) => string",
+     "required": false,
+     "default": "",
+     "description": "Formatea los valores del tooltip; por defecto número con separadores."
+    },
+    {
+     "name": "formatAxis",
+     "type": "(value: number) => string",
+     "required": false,
+     "default": "",
+     "description": "Texto del eje Y; por defecto número compacto."
+    },
+    {
+     "name": "className",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": ""
+    }
+   ]
+  },
+  {
+   "name": "ITMaskedInput",
+   "layer": "molecules",
+   "description": "Text input that applies a formatting mask while the user types, exposing only\nthe clean (raw) value through `onChange`.\n\nThe mask is defined by a pattern string. Tokens are filled by the user and\nany other character acts as an auto-inserted literal separator. Empty slots\nare painted with `placeholderChar`, so the mask is always visible.",
+   "example": "```tsx\n<ITMaskedInput\n  name=\"code\"\n  mask=\"xxxx-xxxx-xxxx\"\n  label=\"Código\"\n  onChange={(e) => setCode(e.target.value)}\n/>\n```",
+   "source": "src/components/molecules/masked-input/masked-input.tsx",
+   "props": [
+    {
+     "name": "name",
+     "type": "string",
+     "required": true,
+     "default": "",
+     "description": "Unique name attribute for the underlying input element."
+    },
+    {
+     "name": "mask",
+     "type": "string",
+     "required": true,
+     "default": "",
+     "description": "Mask pattern. Tokens are filled by the user and everything else is an\nauto-inserted literal.\n- `9` — digit\n- `A` — letter (stored uppercase)\n- `a` — letter\n- `x` — alphanumeric\n- `*` — any character\n- any other character ( `-`, `/`, `(`, `)`, ` `, `.` ) is a literal separator"
+    },
+    {
+     "name": "value",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Clean value containing only the useful characters (no separators, no placeholders)."
+    },
+    {
+     "name": "onChange",
+     "type": "(event: { target: { name: string; value: string; }; }) => void",
+     "required": true,
+     "default": "",
+     "description": "Called when the masked value changes. `event.target.value` is the raw value without separators."
+    },
+    {
+     "name": "onBlur",
+     "type": "(event: React.FocusEvent<HTMLInputElement>) => void",
+     "required": false,
+     "default": "",
+     "description": "Called when the input loses focus."
+    },
+    {
+     "name": "onComplete",
+     "type": "(value: string) => void",
+     "required": false,
+     "default": "",
+     "description": "Fired when all token slots are filled with valid characters."
+    },
+    {
+     "name": "pattern",
+     "type": "RegExp",
+     "required": false,
+     "default": "",
+     "description": "Optional regex full-matched against the raw value to validate the field (e.g. `/^\\\\d{16}$/`)."
+    },
+    {
+     "name": "placeholderChar",
+     "type": "string",
+     "required": false,
+     "default": "\"_\"",
+     "description": "Character shown for empty token slots."
+    },
+    {
+     "name": "variant",
+     "type": "\"gray\" | \"purple\" | \"info\" | \"success\" | \"warning\" | \"error\" | \"primary\" | \"secondary\" | \"danger\"",
+     "required": false,
+     "default": "\"primary\"",
+     "description": "Color variant matching the design system (ColorsTypes)."
+    },
+    {
+     "name": "size",
+     "type": "SizesTypes",
+     "required": false,
+     "default": "\"md\"",
+     "description": "Size preset: \"sm\" | \"md\" | \"lg\"."
+    },
+    {
+     "name": "label",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Label displayed above the input."
+    },
+    {
+     "name": "disabled",
+     "type": "boolean",
+     "required": false,
+     "default": "false",
+     "description": "Disables the input."
+    },
+    {
+     "name": "required",
+     "type": "boolean",
+     "required": false,
+     "default": "",
+     "description": "Marks the field as required."
+    },
+    {
+     "name": "touched",
+     "type": "boolean",
+     "required": false,
+     "default": "",
+     "description": "Visually indicates the field has been interacted with."
+    },
+    {
+     "name": "error",
+     "type": "string | boolean",
+     "required": false,
+     "default": "",
+     "description": "Error state — pass a string message or `true` for default styling."
+    },
+    {
+     "name": "className",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS classes for the outer wrapper element."
+    },
+    {
+     "name": "containerClassName",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS classes for the underlying input container."
+    },
+    {
+     "name": "iconLeft",
+     "type": "React.ReactNode",
+     "required": false,
+     "default": "",
+     "description": "Icon element rendered on the left side of the input."
+    },
+    {
+     "name": "iconRight",
+     "type": "React.ReactNode",
+     "required": false,
+     "default": "",
+     "description": "Icon element rendered on the right side of the input."
+    },
+    {
+     "name": "autoFocus",
+     "type": "boolean",
+     "required": false,
+     "default": "false",
+     "description": "Auto-focus the input on mount."
+    }
+   ]
+  },
+  {
+   "name": "ITMultiSelect",
+   "layer": "molecules",
+   "description": "Multi-value select with searchable dropdown, removable chips, and keyboard navigation.\n\nSupports local filtering and remote search (`onSearch`), a collapsed chip\nsummary (`maxVisibleChips`), and custom option templates (`renderOption`).\nThe dropdown is portaled so it is never clipped by cards or overflow ancestors.",
+   "example": "<ITMultiSelect\n  label=\"Skills\"\n  options={skills}\n  value={selected}\n  onChange={(values) => setSelected(values)}\n/>",
+   "source": "src/components/molecules/multi-select/multi-select.tsx",
+   "props": [
+    {
+     "name": "name",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Name attribute for form integrations."
+    },
+    {
+     "name": "label",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Label displayed above the control."
+    },
+    {
+     "name": "placeholder",
+     "type": "string",
+     "required": false,
+     "default": "\"Selecciona opciones\"",
+     "description": "Placeholder shown when no value is selected."
+    },
+    {
+     "name": "options",
+     "type": "ITMultiSelectOption[]",
+     "required": true,
+     "default": "",
+     "description": "Available options."
+    },
+    {
+     "name": "value",
+     "type": "(string | number)[]",
+     "required": true,
+     "default": "",
+     "description": "Selected values (controlled)."
+    },
+    {
+     "name": "onChange",
+     "type": "(values: (string | number)[], options: ITMultiSelectOption[]) => void",
+     "required": false,
+     "default": "",
+     "description": "Fired with the next selected values and their option objects."
+    },
+    {
+     "name": "onBlur",
+     "type": "(e: React.FocusEvent<HTMLInputElement>) => void",
+     "required": false,
+     "default": "",
+     "description": "Fired when the control loses focus."
+    },
+    {
+     "name": "valueField",
+     "type": "string",
+     "required": false,
+     "default": "\"value\"",
+     "description": "Field used as the option value."
+    },
+    {
+     "name": "labelField",
+     "type": "string",
+     "required": false,
+     "default": "\"label\"",
+     "description": "Field used as the option display label."
+    },
+    {
+     "name": "disabled",
+     "type": "boolean",
+     "required": false,
+     "default": "false",
+     "description": "Disables the control."
+    },
+    {
+     "name": "readOnly",
+     "type": "boolean",
+     "required": false,
+     "default": "false",
+     "description": "Read-only mode: chips shown, no editing."
+    },
+    {
+     "name": "required",
+     "type": "boolean",
+     "required": false,
+     "default": "false",
+     "description": "Marks the field as required (red asterisk)."
+    },
+    {
+     "name": "touched",
+     "type": "boolean",
+     "required": false,
+     "default": "",
+     "description": "Whether the field has been touched (form validation)."
+    },
+    {
+     "name": "error",
+     "type": "string | boolean",
+     "required": false,
+     "default": "",
+     "description": "Error message or boolean indicating an error state."
+    },
+    {
+     "name": "size",
+     "type": "SizesTypes",
+     "required": false,
+     "default": "\"md\"",
+     "description": "Control size. Valid values: `\"sm\"`, `\"md\"`, `\"lg\"`."
+    },
+    {
+     "name": "maxVisibleChips",
+     "type": "number",
+     "required": false,
+     "default": "3",
+     "description": "Maximum number of chips shown before collapsing into \"+N\"."
+    },
+    {
+     "name": "clearable",
+     "type": "boolean",
+     "required": false,
+     "default": "true",
+     "description": "Shows a clear-all (X) button."
+    },
+    {
+     "name": "searchable",
+     "type": "boolean",
+     "required": false,
+     "default": "true",
+     "description": "Enables the search input inside the control."
+    },
+    {
+     "name": "onSearch",
+     "type": "(query: string) => void",
+     "required": false,
+     "default": "",
+     "description": "Callback for server-side search. Receives the query string."
+    },
+    {
+     "name": "isLoading",
+     "type": "boolean",
+     "required": false,
+     "default": "false",
+     "description": "Whether options are loading from an external source."
+    },
+    {
+     "name": "noResultsMessage",
+     "type": "string",
+     "required": false,
+     "default": "\"No se encontraron resultados\"",
+     "description": "Message shown when no options match."
+    },
+    {
+     "name": "renderOption",
+     "type": "(option: ITMultiSelectOption, state: { isSelected: boolean; searchTerm: string; }) => React.ReactNode",
+     "required": false,
+     "default": "",
+     "description": "Custom template for each dropdown option."
+    },
+    {
+     "name": "className",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS classes for the container."
+    }
+   ]
+  },
+  {
+   "name": "ITPagination",
+   "layer": "molecules",
+   "description": "Page navigation controls with previous/next buttons, page number display, and optional items-per-page selector.",
+   "example": "```tsx\n<ITPagination\n  currentPage={1}\n  totalPages={10}\n  onPageChange={(page) => setPage(page)}\n  color=\"primary\"\n  itemsPerPageOptions={[10, 25, 50]}\n  itemsPerPage={10}\n  onItemsPerPageChange={(value) => setItemsPerPage(value)}\n  totalItems={95}\n/>\n```",
+   "source": "src/components/molecules/pagination/pagination.tsx",
+   "props": [
+    {
+     "name": "currentPage",
+     "type": "number",
+     "required": true,
+     "default": "",
+     "description": "Current active page (1-indexed)."
+    },
+    {
+     "name": "totalPages",
+     "type": "number",
+     "required": true,
+     "default": "",
+     "description": "Total number of pages available."
+    },
+    {
+     "name": "onPageChange",
+     "type": "(page: number) => void",
+     "required": true,
+     "default": "",
+     "description": "Callback fired when a page is clicked or prev/next is activated. Receives the new page number."
+    },
+    {
+     "name": "siblingCount",
+     "type": "number",
+     "required": false,
+     "default": "",
+     "description": "Number of visible page siblings before and after the current page. Default: 1."
+    },
+    {
+     "name": "color",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Semantic color from the theme. Options: primary, secondary, success, danger, warning, info, purple. Default: \"primary\"."
+    },
+    {
+     "name": "className",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS classes for the container."
+    },
+    {
+     "name": "itemsPerPageOptions",
+     "type": "number[]",
+     "required": false,
+     "default": "",
+     "description": "Available options for the items-per-page selector dropdown."
+    },
+    {
+     "name": "itemsPerPage",
+     "type": "number",
+     "required": false,
+     "default": "",
+     "description": "Current items per page value. Required if `itemsPerPageOptions` is provided."
+    },
+    {
+     "name": "onItemsPerPageChange",
+     "type": "(value: number) => void",
+     "required": false,
+     "default": "",
+     "description": "Callback fired when the items per page value is changed."
+    },
+    {
+     "name": "totalItems",
+     "type": "number",
+     "required": false,
+     "default": "",
+     "description": "Total number of items across all pages. Used to render the \"1-10 of 50\" summary text."
+    }
+   ]
+  },
+  {
+   "name": "ITSearchSelect",
+   "layer": "molecules",
+   "description": "Searchable dropdown select with local client-side filtering and server-side search via API.",
+   "example": "```tsx\n// Static options (Mode 1)\n<ITSearchSelect\n  label=\"Country\"\n  placeholder=\"Select a country\"\n  options={[\n    { value: 'us', label: 'United States' },\n    { value: 'mx', label: 'Mexico' },\n  ]}\n  value={selectedCountry}\n  onChange={(value) => setSelectedCountry(value)}\n/>\n\n// API search (Mode 2)\n<ITSearchSelect\n  label=\"User\"\n  placeholder=\"Search users...\"\n  onSearch={(query) => searchUsers(query)}\n  options={apiResults}\n  isLoading={isSearching}\n  value={selectedUser}\n  onChange={(value) => setSelectedUser(value)}\n/>\n\n// Custom option template + clear button\n<ITSearchSelect\n  label=\"User\"\n  options={users}\n  value={selectedUser}\n  onChange={(value) => setSelectedUser(value)}\n  onClear={() => console.log(\"cleared\")}\n  renderOption={(option, { isSelected }) => (\n    <span className={isSelected ? \"font-bold\" : \"\"}>{option.label}</span>\n  )}\n/>\n```",
+   "source": "src/components/molecules/search-select/search-select.tsx",
+   "props": [
+    {
+     "name": "name",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Name attribute for form integrations."
+    },
+    {
+     "name": "label",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Label displayed above the select input."
+    },
+    {
+     "name": "placeholder",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Placeholder text shown when no value is selected."
+    },
+    {
+     "name": "value",
+     "type": "string | number",
+     "required": false,
+     "default": "",
+     "description": "Currently selected value."
+    },
+    {
+     "name": "options",
+     "type": "ITSearchSelectOption[]",
+     "required": false,
+     "default": "",
+     "description": "Array of options for static mode (Mode 1: local client-side filtering)."
+    },
+    {
+     "name": "valueField",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Field used as the option value. Default: \"value\"."
+    },
+    {
+     "name": "labelField",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Field used as the option display label. Default: \"label\"."
+    },
+    {
+     "name": "onChange",
+     "type": "(value: string | number, option?: ITSearchSelectOption) => void",
+     "required": false,
+     "default": "",
+     "description": "Callback fired when the selected value changes. Receives the value and the full option object."
+    },
+    {
+     "name": "onBlur",
+     "type": "(e: React.FocusEvent<any>) => void",
+     "required": false,
+     "default": "",
+     "description": "Callback fired when the input loses focus."
+    },
+    {
+     "name": "disabled",
+     "type": "boolean",
+     "required": false,
+     "default": "",
+     "description": "Whether the component is disabled."
+    },
+    {
+     "name": "className",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS classes for the container."
+    },
+    {
+     "name": "touched",
+     "type": "boolean",
+     "required": false,
+     "default": "",
+     "description": "Whether the field has been touched (for form validation)."
+    },
+    {
+     "name": "required",
+     "type": "boolean",
+     "required": false,
+     "default": "",
+     "description": "Whether the field is required. Shows a red asterisk on the label."
+    },
+    {
+     "name": "error",
+     "type": "string | boolean",
+     "required": false,
+     "default": "",
+     "description": "Error message or boolean indicating an error state."
+    },
+    {
+     "name": "readOnly",
+     "type": "boolean",
+     "required": false,
+     "default": "",
+     "description": "Whether the field is read-only."
+    },
+    {
+     "name": "size",
+     "type": "SizesTypes",
+     "required": false,
+     "default": "\"md\"",
+     "description": "Size preset: \"sm\" | \"md\" | \"lg\"."
+    },
+    {
+     "name": "onSearch",
+     "type": "(query: string) => void",
+     "required": false,
+     "default": "",
+     "description": "Callback for server-side search (Mode 2: API connection). Receives the search query string."
+    },
+    {
+     "name": "isLoading",
+     "type": "boolean",
+     "required": false,
+     "default": "",
+     "description": "Whether options are being loaded from an external API."
+    },
+    {
+     "name": "noResultsMessage",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Message displayed when no results are found. Default: \"No se encontraron resultados\"."
+    },
+    {
+     "name": "renderOption",
+     "type": "(option: ITSearchSelectOption, state: { isSelected: boolean; searchTerm: string; }) => React.ReactNode",
+     "required": false,
+     "default": "",
+     "description": "Custom template for each option in the dropdown list. Receives the option and its state (`isSelected`, `searchTerm`)."
+    },
+    {
+     "name": "clearable",
+     "type": "boolean",
+     "required": false,
+     "default": "",
+     "description": "Shows a clear (X) button inside the input. Default: true."
+    },
+    {
+     "name": "onClear",
+     "type": "() => void",
+     "required": false,
+     "default": "",
+     "description": "Callback fired when the clear button is pressed."
+    }
+   ]
+  },
+  {
+   "name": "ITSelect",
+   "layer": "molecules",
+   "description": "",
+   "example": "",
+   "source": "src/components/molecules/select/select.tsx",
+   "props": [
+    {
+     "name": "name",
+     "type": "string",
+     "required": true,
+     "default": "",
+     "description": "Name attribute for the underlying `<select>` element."
+    },
+    {
+     "name": "options",
+     "type": "OptionType[]",
+     "required": true,
+     "default": "",
+     "description": "Array of option objects with value/label key-value pairs."
+    },
+    {
+     "name": "valueField",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Key in each option object used as the option value. Default: \"value\"."
+    },
+    {
+     "name": "labelField",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Key in each option object used as the display label. Default: \"label\"."
+    },
+    {
+     "name": "label",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Label text rendered above the select."
+    },
+    {
+     "name": "placeholder",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Placeholder text for the default empty option."
+    },
+    {
+     "name": "value",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Currently selected value (controlled)."
+    },
+    {
+     "name": "onChange",
+     "type": "(event: React.ChangeEvent<HTMLSelectElement>) => void",
+     "required": false,
+     "default": "",
+     "description": "Callback fired on selection change. Receives the native change event."
+    },
+    {
+     "name": "onBlur",
+     "type": "(event: React.FocusEvent<HTMLSelectElement>) => void",
+     "required": false,
+     "default": "",
+     "description": "Callback fired on blur. Receives the native focus event."
+    },
+    {
+     "name": "variant",
+     "type": "\"gray\" | \"purple\" | \"info\" | \"success\" | \"warning\" | \"error\" | \"primary\" | \"secondary\" | \"danger\"",
+     "required": false,
+     "default": "",
+     "description": "Theme color variant (e.g. \"primary\", \"success\", \"danger\")."
+    },
+    {
+     "name": "size",
+     "type": "SizesTypes",
+     "required": false,
+     "default": "",
+     "description": "Control size: \"sm\" | \"md\" | \"lg\"."
+    },
+    {
+     "name": "disabled",
+     "type": "boolean",
+     "required": false,
+     "default": "",
+     "description": "Whether the select is disabled."
+    },
+    {
+     "name": "className",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS classes on the `<select>` element."
+    },
+    {
+     "name": "touched",
+     "type": "boolean",
+     "required": false,
+     "default": "",
+     "description": "Marks the field as touched (for validation display)."
+    },
+    {
+     "name": "error",
+     "type": "string | boolean",
+     "required": false,
+     "default": "",
+     "description": "Error message string or true for a default required error."
+    },
+    {
+     "name": "required",
+     "type": "boolean",
+     "required": false,
+     "default": "",
+     "description": "Whether the field is required. Shows a red asterisk and default error."
+    },
+    {
+     "name": "autoFocus",
+     "type": "boolean",
+     "required": false,
+     "default": "",
+     "description": "Autofocus the select on mount."
+    },
+    {
+     "name": "readOnly",
+     "type": "boolean",
+     "required": false,
+     "default": "",
+     "description": "Read-only mode: shows the current value as a single disabled option."
+    }
+   ]
+  },
+  {
+   "name": "ITStatCard",
+   "layer": "molecules",
+   "description": "A metric card displaying a value with an optional trend indicator and icon.\nAutomatically detects trend direction from the trend string prefix.",
+   "example": "<ITStatCard label=\"Revenue\" value=\"$12,430\" trend=\"+12%\" trendDirection=\"up\" icon={<FaDollarSign />} />",
+   "source": "src/components/molecules/stat-card/stat-card.tsx",
+   "props": [
+    {
+     "name": "label",
+     "type": "string",
+     "required": true,
+     "default": "",
+     "description": "The metric label displayed above the value."
+    },
+    {
+     "name": "value",
+     "type": "string | number",
+     "required": true,
+     "default": "",
+     "description": "The primary numeric or string value shown in the card."
+    },
+    {
+     "name": "trend",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Optional trend indicator text (e.g. \"+12%\", \"-3\")."
+    },
+    {
+     "name": "trendDirection",
+     "type": "\"up\" | \"down\" | \"neutral\"",
+     "required": false,
+     "default": "",
+     "description": "Direction of the trend, used to color the trend badge."
+    },
+    {
+     "name": "icon",
+     "type": "React.ReactNode",
+     "required": false,
+     "default": "",
+     "description": "Icon element rendered next to the label in the top-right corner."
+    },
+    {
+     "name": "color",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Background color class for the card (e.g. \"bg-primary-50 dark:bg-primary-950/20\")."
+    },
+    {
+     "name": "className",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS classes for the outermost wrapper."
+    },
+    {
+     "name": "style",
+     "type": "React.CSSProperties",
+     "required": false,
+     "default": "",
+     "description": "Inline styles applied to the card container."
+    },
+    {
+     "name": "onClick",
+     "type": "() => void",
+     "required": false,
+     "default": "",
+     "description": "Click handler — when provided the card gains button semantics."
+    }
+   ]
+  },
+  {
+   "name": "ITStepper",
+   "layer": "molecules",
+   "description": "A step-by-step wizard / progress indicator with animated content transitions,\nclickable step navigation, and configurable icons.",
+   "example": "<ITStepper\n  steps={[\n    { label: \"Details\", content: <StepOneForm /> },\n    { label: \"Review\", content: <StepTwoReview />, icon: <FaClipboardCheck /> },\n  ]}\n  currentStep={0}\n  onStepChange={setStep}\n  onFinish={() => alert(\"Done!\")}\n/>",
+   "source": "src/components/molecules/stepper/stepper.tsx",
+   "props": [
+    {
+     "name": "steps",
+     "type": "Step[]",
+     "required": true,
+     "default": "",
+     "description": "Array of step objects defining label, content, and optional icon."
+    },
+    {
+     "name": "currentStep",
+     "type": "number",
+     "required": true,
+     "default": "",
+     "description": "Zero-based index of the currently active step."
+    },
+    {
+     "name": "onFinish",
+     "type": "() => void",
+     "required": false,
+     "default": "",
+     "description": "Called when the user clicks \"Finish\" on the last step."
+    },
+    {
+     "name": "onStepChange",
+     "type": "(step: number) => void",
+     "required": false,
+     "default": "",
+     "description": "Called whenever the active step changes, receiving the new index."
+    },
+    {
+     "name": "allowClickToJump",
+     "type": "boolean",
+     "required": false,
+     "default": "",
+     "description": "Whether clicking on completed or current step indicators jumps to that step."
+    },
+    {
+     "name": "useIcons",
+     "type": "boolean",
+     "required": false,
+     "default": "",
+     "description": "When true, renders step icons (if provided) instead of numeric indicators."
+    },
+    {
+     "name": "disableNext",
+     "type": "boolean",
+     "required": false,
+     "default": "",
+     "description": "Disables the \"Next\" / \"Finish\" button."
+    },
+    {
+     "name": "containerClassName",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS classes for the outermost wrapper."
+    },
+    {
+     "name": "stepClassName",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS classes for the content panel."
+    },
+    {
+     "name": "scrollableContent",
+     "type": "boolean",
+     "required": false,
+     "default": "",
+     "description": "Makes the step content area vertically scrollable."
+    },
+    {
+     "name": "maxContentHeight",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Maximum height of the scrollable content area (CSS value, e.g. \"400px\")."
+    },
+    {
+     "name": "color",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Semantic theme color for active steps and buttons.\nDefault: 'primary'"
+    }
+   ]
+  },
+  {
+   "name": "ITTable",
+   "layer": "molecules",
+   "description": "A feature-rich data table with per-column filtering, sortable columns,\npagination, boolean/catalog type support, and currency formatting.",
+   "example": "<ITTable\n  columns={[\n    { key: \"name\", label: \"Name\", type: \"string\", sortable: true },\n    { key: \"active\", label: \"Active\", type: \"boolean\", filter: true },\n    { key: \"actions\", label: \"\", type: \"actions\", actions: (row) => <ITButton>Edit</ITButton> },\n  ]}\n  data={users}\n  title=\"User List\"\n  size=\"sm\"\n/>",
+   "source": "src/components/molecules/table/table.tsx",
+   "props": [
+    {
+     "name": "columns",
+     "type": "Column<T>[]",
+     "required": true,
+     "default": "",
+     "description": "Column definitions: key, label, type, sortable behavior, filters, and custom rendering."
+    },
+    {
+     "name": "containerClassName",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS classes for the outermost container."
+    },
+    {
+     "name": "data",
+     "type": "T[]",
+     "required": true,
+     "default": "",
+     "description": "The data array to render in the table body."
+    },
+    {
+     "name": "variant",
+     "type": "TableVariants",
+     "required": false,
+     "default": "",
+     "description": "Visual variant: \"default\", \"striped\", \"bordered\"."
+    },
+    {
+     "name": "className",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS classes for the root table wrapper."
+    },
+    {
+     "name": "size",
+     "type": "TableSize",
+     "required": false,
+     "default": "",
+     "description": "Row size preset: \"sm\" | \"md\" | \"lg\"."
+    },
+    {
+     "name": "itemsPerPageOptions",
+     "type": "number[]",
+     "required": false,
+     "default": "",
+     "description": "Available options for the per-page selector (e.g. [5, 10, 20])."
+    },
+    {
+     "name": "defaultItemsPerPage",
+     "type": "number",
+     "required": false,
+     "default": "",
+     "description": "Default number of rows shown per page."
+    },
+    {
+     "name": "title",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Optional title rendered above the table in the header section."
+    },
+    {
+     "name": "renderCard",
+     "type": "(row: T) => React.ReactNode",
+     "required": false,
+     "default": "",
+     "description": "Custom card renderer for mobile/tablet responsive view. Receives the row data."
+    },
+    {
+     "name": "defaultView",
+     "type": "\"table\" | \"cards\"",
+     "required": false,
+     "default": "",
+     "description": "Initial view mode. Defaults to \"table\"."
+    },
+    {
+     "name": "showVerticalBorder",
+     "type": "boolean",
+     "required": false,
+     "default": "",
+     "description": "Whether to show vertical borders between columns. Defaults to true."
+    },
+    {
+     "name": "verticalBorderClassname",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Custom class for vertical borders (overrides the default subtle gray)."
+    },
+    {
+     "name": "onRowClick",
+     "type": "(row: T, event: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>) => void",
+     "required": false,
+     "default": "",
+     "description": "Callback fired when a row (table view) or card (cards view) is activated,\nreceiving the row item and the originating event. The event is a\n`MouseEvent` for pointer interaction and a `KeyboardEvent` for Enter/Space\nactivation. Not fired when the interaction starts inside an interactive\nchild (button, link, input, or any `[data-row-click-ignore]` element)."
+    },
+    {
+     "name": "layout",
+     "type": "\"auto\" | \"fixed\"",
+     "required": false,
+     "default": "\"auto\"",
+     "description": "Table layout algorithm. `\"fixed\"` respects column `width` values and drops\nthe `min-w-max` / `min-w-[150px]` floors so content no longer forces\nhorizontal scrolling; `\"auto\"` keeps the content-driven layout."
+    },
+    {
+     "name": "density",
+     "type": "TableDensity",
+     "required": false,
+     "default": "\"normal\"",
+     "description": "Cell padding and row-height preset. Independent of `size`, which only\ncontrols font-size: `\"compact\"` | `\"normal\"` | `\"comfortable\"`."
+    },
+    {
+     "name": "autoCardBreakpoint",
+     "type": "number",
+     "required": false,
+     "default": "0",
+     "description": "Container width (in px) below which the table automatically falls back to\nthe cards view. `0` disables the fallback."
+    },
+    {
+     "name": "virtualized",
+     "type": "boolean",
+     "required": false,
+     "default": "false",
+     "description": "Enables row virtualization for the table view: only the visible window of\nrows is rendered, with spacer rows preserving the full scroll height.\nThe cards view is never virtualized."
+    },
+    {
+     "name": "virtualizedMaxHeight",
+     "type": "number",
+     "required": false,
+     "default": "400",
+     "description": "Max height (px) of the virtualized table's scroll container.\nOnly used when `virtualized` is true."
+    },
+    {
+     "name": "rowHeight",
+     "type": "number",
+     "required": false,
+     "default": "",
+     "description": "Assumed uniform row height (px) used by the virtualizer. Defaults to\n`getRowHeight(size, density)`, which is size-aware: the `size=\"md\"`\nbaseline is 33 / 45 / 53 (compact / normal / comfortable) and `size`\nshifts it by the font-size line box (sm 16px / md 20px / lg 28px).\nOnly used when `virtualized` is true."
+    },
+    {
+     "name": "overscan",
+     "type": "number",
+     "required": false,
+     "default": "5",
+     "description": "Number of extra rows rendered above and below the viewport to avoid blank\ngaps while scrolling. Only used when `virtualized` is true."
+    },
+    {
+     "name": "stickyHeader",
+     "type": "boolean",
+     "required": false,
+     "default": "false",
+     "description": "Makes the header cells sticky while the virtualized body scrolls. Only\neffective when `virtualized` is true."
+    },
+    {
+     "name": "showViewToggle",
+     "type": "boolean",
+     "required": false,
+     "default": "true",
+     "description": "Whether to render the Table|Cards view switcher in the toolbar. Hiding it still honors `defaultView` and `autoCardBreakpoint`."
+    },
+    {
+     "name": "design",
+     "type": "TableDesign",
+     "required": false,
+     "default": "",
+     "description": "Per-region visual overrides (classes + inline styles)."
+    },
+    {
+     "name": "colors",
+     "type": "TableColors",
+     "required": false,
+     "default": "",
+     "description": "Per-instance color overrides for header and rows, beating the global theme."
+    },
+    {
+     "name": "containerStyle",
+     "type": "React.CSSProperties",
+     "required": false,
+     "default": "",
+     "description": "Inline styles for the outermost wrapper."
+    },
+    {
+     "name": "cardClassName",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Extra classes for the card surface (the rounded container)."
+    },
+    {
+     "name": "cardStyle",
+     "type": "React.CSSProperties",
+     "required": false,
+     "default": "",
+     "description": "Inline styles for the card surface."
+    },
+    {
+     "name": "toolbarClassName",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Extra classes for the toolbar strip (title + view toggle)."
+    },
+    {
+     "name": "toolbarStyle",
+     "type": "React.CSSProperties",
+     "required": false,
+     "default": "",
+     "description": "Inline styles for the toolbar strip."
+    },
+    {
+     "name": "headerClassName",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Extra classes for the header row."
+    },
+    {
+     "name": "headerStyle",
+     "type": "React.CSSProperties",
+     "required": false,
+     "default": "",
+     "description": "Inline styles for the header row."
+    },
+    {
+     "name": "headerCellClassName",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Extra classes for every header cell."
+    },
+    {
+     "name": "headerCellStyle",
+     "type": "React.CSSProperties",
+     "required": false,
+     "default": "",
+     "description": "Inline styles for every header cell."
+    },
+    {
+     "name": "rowClassName",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Extra classes for every body row."
+    },
+    {
+     "name": "rowStyle",
+     "type": "React.CSSProperties",
+     "required": false,
+     "default": "",
+     "description": "Inline styles for every body row."
+    },
+    {
+     "name": "cellClassName",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Extra classes for every body cell."
+    },
+    {
+     "name": "cellStyle",
+     "type": "React.CSSProperties",
+     "required": false,
+     "default": "",
+     "description": "Inline styles for every body cell."
+    },
+    {
+     "name": "cardsClassName",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Extra classes for the cards-view scroll wrapper."
+    },
+    {
+     "name": "cardsStyle",
+     "type": "React.CSSProperties",
+     "required": false,
+     "default": "",
+     "description": "Inline styles for the cards-view scroll wrapper."
+    },
+    {
+     "name": "footerClassName",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Extra classes for the pagination footer strip."
+    },
+    {
+     "name": "footerStyle",
+     "type": "React.CSSProperties",
+     "required": false,
+     "default": "",
+     "description": "Inline styles for the pagination footer strip."
+    }
+   ]
+  },
+  {
+   "name": "ITTabs",
+   "layer": "molecules",
+   "description": "Tabbed navigation component with \"line\" and \"pill\" visual variants.\nManages its own active state internally via a defaultActiveId.",
+   "example": "<ITTabs\n  items={[\n    { id: \"tab1\", label: \"General\", content: <GeneralPanel /> },\n    { id: \"tab2\", label: \"Settings\", content: <SettingsPanel />, disabled: true },\n  ]}\n  defaultActiveId=\"tab1\"\n  onChange={(id) => console.log(\"Active tab:\", id)}\n/>",
+   "source": "src/components/molecules/tabs/tabs.tsx",
+   "props": [
+    {
+     "name": "items",
+     "type": "ITTabItem[]",
+     "required": true,
+     "default": "",
+     "description": "Array of tab definitions: id, label, content, icon, and disabled state."
+    },
+    {
+     "name": "defaultActiveId",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "The id of the tab active by default (first item if omitted)."
+    },
+    {
+     "name": "onChange",
+     "type": "(id: string) => void",
+     "required": false,
+     "default": "",
+     "description": "Callback fired when the active tab changes, receiving the new tab id."
+    },
+    {
+     "name": "variant",
+     "type": "\"line\" | \"pill\"",
+     "required": false,
+     "default": "",
+     "description": "Visual variant: \"line\" (underline indicator) or \"pill\" (rounded background)."
+    },
+    {
+     "name": "className",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS classes for the tab header row."
+    },
+    {
+     "name": "containerClassName",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS classes for the outermost wrapper."
+    }
+   ]
+  },
+  {
+   "name": "ITTimePicker",
+   "layer": "molecules",
+   "description": "Time selection input with a dual-column dropdown (hours / minutes).\nSupports manual typing with auto-formatting, validation, and keyboard-friendly picker.",
+   "example": "<ITTimePicker\n  name=\"startTime\"\n  label=\"Start Time\"\n  value={startTime}\n  onChange={(e) => setStartTime(e.target.value)}\n  color=\"primary\"\n/>",
+   "source": "src/components/molecules/time-picker/timePicker.tsx",
+   "props": [
+    {
+     "name": "name",
+     "type": "string",
+     "required": true,
+     "default": "",
+     "description": "Form field name attribute and key for the change event."
+    },
+    {
+     "name": "value",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Controlled time value in \"HH:MM\" format."
+    },
+    {
+     "name": "label",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Label text displayed above the input."
+    },
+    {
+     "name": "placeholder",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Placeholder text when no value is set (default \"HH:MM\")."
+    },
+    {
+     "name": "onChange",
+     "type": "(e: any) => void",
+     "required": true,
+     "default": "",
+     "description": "Callback fired on valid time selection, receives event-like object with `target.name` and `target.value`."
+    },
+    {
+     "name": "onBlur",
+     "type": "(e: any) => void",
+     "required": false,
+     "default": "",
+     "description": "Callback fired when the input loses focus."
+    },
+    {
+     "name": "required",
+     "type": "boolean",
+     "required": false,
+     "default": "",
+     "description": "Marks the field as required."
+    },
+    {
+     "name": "touched",
+     "type": "boolean",
+     "required": false,
+     "default": "",
+     "description": "Whether the input has been touched (interacted with)."
+    },
+    {
+     "name": "error",
+     "type": "string | boolean",
+     "required": false,
+     "default": "",
+     "description": "Validation error message or boolean to show error state."
+    },
+    {
+     "name": "disabled",
+     "type": "boolean",
+     "required": false,
+     "default": "",
+     "description": "Disables the time picker when true."
+    },
+    {
+     "name": "className",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS classes for the wrapper."
+    },
+    {
+     "name": "size",
+     "type": "SizesTypes",
+     "required": false,
+     "default": "\"md\"",
+     "description": "Size preset: \"sm\" | \"md\" | \"lg\"."
+    },
+    {
+     "name": "variant",
+     "type": "\"purple\" | \"info\" | \"success\" | \"warning\" | \"primary\" | \"secondary\" | \"danger\"",
+     "required": false,
+     "default": "",
+     "description": "Style variant for the input: \"primary\" | \"secondary\" | \"danger\" | \"success\" | \"warning\" | \"info\" | \"purple\"."
+    },
+    {
+     "name": "color",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Theme color used for the dropdown highlight and confirm button. Accepts semantic keys or raw hex."
+    }
+   ]
+  },
+  {
+   "name": "ITWysiwyg",
+   "layer": "molecules",
+   "description": "Lightweight WYSIWYG editor (no external rich-text dependency). Provides bold,\nitalic, underline, a yellow marker highlight and ordered/unordered lists.\nFormatting is applied manually over the Selection/Range API (no deprecated\n`document.execCommand`), toggling elements by wrapping/unwrapping text nodes.\n\nThe component is uncontrolled at the DOM level: it renders `value` lazily and\nonly re-syncs it when the editor is not focused (`onChange` reports the HTML).",
+   "example": "<ITWysiwyg\n  label=\"Descripción\"\n  value={content}\n  onChange={setContent}\n  placeholder=\"Escribe aquí...\"\n/>",
+   "source": "src/components/molecules/wysiwyg/wysiwyg.tsx",
+   "props": [
+    {
+     "name": "value",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Controlled HTML value rendered inside the editor. Overrides the visible content only while the editor is not focused (avoids caret jumps)."
+    },
+    {
+     "name": "onChange",
+     "type": "(html: string) => void",
+     "required": false,
+     "default": "",
+     "description": "Callback fired with the editor's HTML whenever the content changes."
+    },
+    {
+     "name": "label",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Label text rendered above the editor."
+    },
+    {
+     "name": "placeholder",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Placeholder text shown when the editor is empty."
+    },
+    {
+     "name": "error",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Validation error message displayed below the editor."
+    },
+    {
+     "name": "disabled",
+     "type": "boolean",
+     "required": false,
+     "default": "false",
+     "description": "Disables the editor and toolbar when true."
+    },
+    {
+     "name": "readOnly",
+     "type": "boolean",
+     "required": false,
+     "default": "false",
+     "description": "Renders content in read-only mode (not editable, toolbar disabled)."
+    },
+    {
+     "name": "name",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Name attribute for form submission and label association via `htmlFor`."
+    },
+    {
+     "name": "size",
+     "type": "SizesTypes",
+     "required": false,
+     "default": "\"md\"",
+     "description": "Editor size: controls padding and font size. Valid values: `\"sm\"`, `\"md\"`, `\"lg\"`."
+    },
+    {
+     "name": "minHeight",
+     "type": "number",
+     "required": false,
+     "default": "128",
+     "description": "Minimum height in pixels of the editable area."
+    },
+    {
+     "name": "highlightColor",
+     "type": "string",
+     "required": false,
+     "default": "\"#fde68a\"",
+     "description": "Background color used by the marker tool (yellow highlight)."
+    },
+    {
+     "name": "toolbar",
+     "type": "ToolbarAction[]",
+     "required": false,
+     "default": "all actions",
+     "description": "Subset of toolbar actions to render."
+    },
+    {
+     "name": "className",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS classes for the wrapper."
+    }
+   ]
+  },
+  {
+   "name": "ITConfirmDialog",
+   "layer": "organisms",
+   "description": "Confirmation modal dialog for destructive or critical actions.\n\nRenders a centered overlay with a warning icon, title, message body, and\nconfirm/cancel buttons. The dialog auto-hides when `isOpen` is false.",
+   "example": "```tsx\n<ITConfirmDialog\n  isOpen={showConfirm}\n  onClose={() => setShowConfirm(false)}\n  onConfirm={handleDelete}\n  title=\"Delete record\"\n  message=\"This action is permanent and cannot be undone.\"\n  variant=\"danger\"\n  loading={isDeleting}\n/>\n```",
+   "source": "src/components/organisms/confirm-dialog/confirm-dialog.tsx",
+   "props": [
+    {
+     "name": "isOpen",
+     "type": "boolean",
+     "required": true,
+     "default": "",
+     "description": "Controls whether the confirmation dialog is visible."
+    },
+    {
+     "name": "onClose",
+     "type": "() => void",
+     "required": true,
+     "default": "",
+     "description": "Callback fired when the user cancels or closes the dialog."
+    },
+    {
+     "name": "onConfirm",
+     "type": "() => void",
+     "required": true,
+     "default": "",
+     "description": "Callback fired when the user confirms the destructive action."
+    },
+    {
+     "name": "title",
+     "type": "string",
+     "required": false,
+     "default": "i18n `confirmDialog.title` (\"Confirmar acción\")",
+     "description": "Heading text displayed at the top of the dialog."
+    },
+    {
+     "name": "message",
+     "type": "React.ReactNode",
+     "required": false,
+     "default": "i18n `confirmDialog.message` (\"¿Estás seguro de que deseas continuar?\")",
+     "description": "Body content — accepts plain strings or React nodes."
+    },
+    {
+     "name": "confirmLabel",
+     "type": "string",
+     "required": false,
+     "default": "i18n `common.confirm` (\"Confirmar\")",
+     "description": "Label for the confirm button."
+    },
+    {
+     "name": "cancelLabel",
+     "type": "string",
+     "required": false,
+     "default": "i18n `common.cancel` (\"Cancelar\")",
+     "description": "Label for the cancel button."
+    },
+    {
+     "name": "variant",
+     "type": "\"gray\" | \"purple\" | \"info\" | \"success\" | \"warning\" | \"error\" | \"primary\" | \"secondary\" | \"danger\"",
+     "required": false,
+     "default": "\"primary\"",
+     "description": "Color variant applied to the confirm button. Accepts any ColorsTypes value (e.g. \"primary\", \"danger\", \"warning\", \"info\")."
+    },
+    {
+     "name": "loading",
+     "type": "boolean",
+     "required": false,
+     "default": "false",
+     "description": "Disables all buttons and signals a loading state."
+    }
+   ]
+  },
+  {
+   "name": "ITDataTable",
+   "layer": "organisms",
+   "description": "Async server-side data table with sorting, filtering, and pagination.\n\nFetches data via the `fetchData` callback whenever pagination, sorting, or\nfilters change. Supports column-level text/catalog/boolean filters, sortable\ncolumns, and a loading overlay. Built on-top of internal table hooks for\nautomatic state coordination.",
+   "example": "```tsx\n<ITDataTable\n  columns={[\n    { key: \"name\", label: \"Name\", sortable: true, filter: true },\n    { key: \"status\", label: \"Status\", type: \"boolean\", filter: true },\n  ]}\n  fetchData={async (params) => api.fetchItems(params)}\n  title=\"Users\"\n  variant=\"bordered\"\n/>\n```",
+   "source": "src/components/organisms/data-table/dataTable.tsx",
+   "props": [
+    {
+     "name": "columns",
+     "type": "Column<T>[]",
+     "required": true,
+     "default": "",
+     "description": "The column configuration array matching ITTable but adapted for Server-Side processing"
+    },
+    {
+     "name": "fetchData",
+     "type": "(params: ITDataTableFetchParams) => Promise<ITDataTableResponse<T>>",
+     "required": true,
+     "default": "",
+     "description": "Async callback that the component will trigger whenever pagination, filtering or sorting changes.\nIt must return a Promise with `data` array and the `total` items matching the query."
+    },
+    {
+     "name": "debounceMs",
+     "type": "number",
+     "required": false,
+     "default": "400",
+     "description": "The amount of milliseconds to wait after internal `filters` state changes\nbefore triggering `fetchData`. Helpful to avoid spamming the backend while typing."
+    },
+    {
+     "name": "externalFilters",
+     "type": "ColumnFilters",
+     "required": false,
+     "default": "",
+     "description": "Filters managed outside of the ITDataTable (e.g. a date range picker).\nThese will be merged with the internal column filters before calling fetchData."
+    },
+    {
+     "name": "loadingIndicator",
+     "type": "React.ReactNode",
+     "required": false,
+     "default": "",
+     "description": "Custom element to display instead of the default spinner while `isLoading` is true."
+    },
+    {
+     "name": "fetchOnMount",
+     "type": "boolean",
+     "required": false,
+     "default": "true",
+     "description": "Re-fetches the table automatically upon mounting."
+    },
+    {
+     "name": "reloadTrigger",
+     "type": "string | number | boolean",
+     "required": false,
+     "default": "",
+     "description": "External hook to force the component to re-fetch the current page.\nExample: trigger after a successful modal form submission."
+    },
+    {
+     "name": "containerClassName",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS classes for the outer wrapper element."
+    },
+    {
+     "name": "className",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS classes applied directly to the `<table>` element."
+    },
+    {
+     "name": "variant",
+     "type": "\"default\" | \"bordered\" | \"striped\" | \"minimal\"",
+     "required": false,
+     "default": "\"default\"",
+     "description": "Visual style variant: \"default\" | \"striped\" | \"bordered\" | \"minimal\"."
+    },
+    {
+     "name": "size",
+     "type": "\"sm\" | \"md\" | \"lg\"",
+     "required": false,
+     "default": "\"md\"",
+     "description": "Row density preset: \"sm\" | \"md\" | \"lg\"."
+    },
+    {
+     "name": "itemsPerPageOptions",
+     "type": "number[]",
+     "required": false,
+     "default": "[5, 10, 20]",
+     "description": "Selectable page-size options for the paginator."
+    },
+    {
+     "name": "defaultItemsPerPage",
+     "type": "number",
+     "required": false,
+     "default": "10",
+     "description": "Initial number of rows per page."
+    },
+    {
+     "name": "title",
+     "type": "React.ReactNode",
+     "required": false,
+     "default": "",
+     "description": "Optional heading displayed above the table."
+    },
+    {
+     "name": "renderCard",
+     "type": "(row: T) => React.ReactNode",
+     "required": false,
+     "default": "",
+     "description": "Custom card renderer for mobile/tablet responsive view. Receives the row data."
+    },
+    {
+     "name": "defaultView",
+     "type": "\"table\" | \"cards\"",
+     "required": false,
+     "default": "",
+     "description": "Initial view mode. Defaults to \"table\"."
+    },
+    {
+     "name": "showVerticalBorder",
+     "type": "boolean",
+     "required": false,
+     "default": "",
+     "description": "Whether to show vertical borders between columns. Defaults to true."
+    },
+    {
+     "name": "verticalBorderClassname",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Custom class for vertical borders (overrides the default subtle gray)."
+    },
+    {
+     "name": "onRowClick",
+     "type": "(row: T, event: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>) => void",
+     "required": false,
+     "default": "",
+     "description": "Callback fired when a row (table view) or card (cards view) is activated,\nreceiving the row item and the originating event. The event is a\n`MouseEvent` for pointer interaction and a `KeyboardEvent` for Enter/Space\nactivation. Not fired when the interaction starts inside an interactive\nchild (button, link, input, or any `[data-row-click-ignore]` element)."
+    },
+    {
+     "name": "layout",
+     "type": "\"auto\" | \"fixed\"",
+     "required": false,
+     "default": "\"auto\"",
+     "description": "Table layout algorithm. `\"fixed\"` respects column `width` values and drops\nthe `min-w-max` / `min-w-[150px]` floors so content no longer forces\nhorizontal scrolling; `\"auto\"` keeps the content-driven layout."
+    },
+    {
+     "name": "density",
+     "type": "TableDensity",
+     "required": false,
+     "default": "\"normal\"",
+     "description": "Cell padding and row-height preset. Independent of `size`, which only\ncontrols font-size: `\"compact\"` | `\"normal\"` | `\"comfortable\"`."
+    },
+    {
+     "name": "autoCardBreakpoint",
+     "type": "number",
+     "required": false,
+     "default": "0",
+     "description": "Container width (in px) below which the table automatically falls back to\nthe cards view. `0` disables the fallback."
+    },
+    {
+     "name": "virtualized",
+     "type": "boolean",
+     "required": false,
+     "default": "false",
+     "description": "Enables row virtualization for the table view: only the visible window of\nrows is rendered, with spacer rows preserving the full scroll height.\nThe cards view is never virtualized."
+    },
+    {
+     "name": "virtualizedMaxHeight",
+     "type": "number",
+     "required": false,
+     "default": "400",
+     "description": "Max height (px) of the virtualized table's scroll container.\nOnly used when `virtualized` is true."
+    },
+    {
+     "name": "rowHeight",
+     "type": "number",
+     "required": false,
+     "default": "",
+     "description": "Assumed uniform row height (px) used by the virtualizer. Defaults to\n`getRowHeight(size, density)`, which is size-aware: the `size=\"md\"`\nbaseline is 33 / 45 / 53 (compact / normal / comfortable) and `size`\nshifts it by the font-size line box (sm 16px / md 20px / lg 28px).\nOnly used when `virtualized` is true."
+    },
+    {
+     "name": "overscan",
+     "type": "number",
+     "required": false,
+     "default": "5",
+     "description": "Number of extra rows rendered above and below the viewport to avoid blank\ngaps while scrolling. Only used when `virtualized` is true."
+    },
+    {
+     "name": "stickyHeader",
+     "type": "boolean",
+     "required": false,
+     "default": "false",
+     "description": "Makes the header cells sticky while the virtualized body scrolls. Only\neffective when `virtualized` is true."
+    },
+    {
+     "name": "showViewToggle",
+     "type": "boolean",
+     "required": false,
+     "default": "true",
+     "description": "Whether to render the Table|Cards view switcher in the toolbar. Hiding it still honors `defaultView` and `autoCardBreakpoint`."
+    },
+    {
+     "name": "design",
+     "type": "TableDesign",
+     "required": false,
+     "default": "",
+     "description": "Per-region visual overrides (classes + inline styles)."
+    },
+    {
+     "name": "colors",
+     "type": "TableColors",
+     "required": false,
+     "default": "",
+     "description": "Per-instance color overrides for header and rows, beating the global theme."
+    },
+    {
+     "name": "containerStyle",
+     "type": "React.CSSProperties",
+     "required": false,
+     "default": "",
+     "description": "Inline styles for the outermost wrapper."
+    },
+    {
+     "name": "cardClassName",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Extra classes for the card surface (the rounded container)."
+    },
+    {
+     "name": "cardStyle",
+     "type": "React.CSSProperties",
+     "required": false,
+     "default": "",
+     "description": "Inline styles for the card surface."
+    },
+    {
+     "name": "toolbarClassName",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Extra classes for the toolbar strip (title + view toggle)."
+    },
+    {
+     "name": "toolbarStyle",
+     "type": "React.CSSProperties",
+     "required": false,
+     "default": "",
+     "description": "Inline styles for the toolbar strip."
+    },
+    {
+     "name": "headerClassName",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Extra classes for the header row."
+    },
+    {
+     "name": "headerStyle",
+     "type": "React.CSSProperties",
+     "required": false,
+     "default": "",
+     "description": "Inline styles for the header row."
+    },
+    {
+     "name": "headerCellClassName",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Extra classes for every header cell."
+    },
+    {
+     "name": "headerCellStyle",
+     "type": "React.CSSProperties",
+     "required": false,
+     "default": "",
+     "description": "Inline styles for every header cell."
+    },
+    {
+     "name": "rowClassName",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Extra classes for every body row."
+    },
+    {
+     "name": "rowStyle",
+     "type": "React.CSSProperties",
+     "required": false,
+     "default": "",
+     "description": "Inline styles for every body row."
+    },
+    {
+     "name": "cellClassName",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Extra classes for every body cell."
+    },
+    {
+     "name": "cellStyle",
+     "type": "React.CSSProperties",
+     "required": false,
+     "default": "",
+     "description": "Inline styles for every body cell."
+    },
+    {
+     "name": "cardsClassName",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Extra classes for the cards-view scroll wrapper."
+    },
+    {
+     "name": "cardsStyle",
+     "type": "React.CSSProperties",
+     "required": false,
+     "default": "",
+     "description": "Inline styles for the cards-view scroll wrapper."
+    },
+    {
+     "name": "footerClassName",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Extra classes for the pagination footer strip."
+    },
+    {
+     "name": "footerStyle",
+     "type": "React.CSSProperties",
+     "required": false,
+     "default": "",
+     "description": "Inline styles for the pagination footer strip."
+    }
+   ]
+  },
+  {
+   "name": "ITDialog",
+   "layer": "organisms",
+   "description": "Modal dialog rendered via React portal with overlay backdrop.\n\nSupports Escape-key dismissal, click-outside-to-close, optional title bar\n(plain or ITFormHeader), and a full-screen variant. Content is portaled to\n`document.body` so it sits above all other page layers.",
+   "example": "```tsx\n<ITDialog\n  isOpen={open}\n  onClose={() => setOpen(false)}\n  title=\"User details\"\n  useFormHeader\n>\n  <UserForm />\n</ITDialog>\n```",
+   "source": "src/components/organisms/dialog/dialog.tsx",
+   "props": [
+    {
+     "name": "isOpen",
+     "type": "boolean",
+     "required": true,
+     "default": "",
+     "description": "Controls whether the dialog is visible."
+    },
+    {
+     "name": "onClose",
+     "type": "() => void",
+     "required": true,
+     "default": "",
+     "description": "Callback fired when the overlay or close button is clicked, or Escape is pressed."
+    },
+    {
+     "name": "children",
+     "type": "React.ReactNode",
+     "required": true,
+     "default": "",
+     "description": "Content rendered inside the dialog body."
+    },
+    {
+     "name": "className",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS classes for the dialog panel."
+    },
+    {
+     "name": "title",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Optional heading displayed at the top of the dialog."
+    },
+    {
+     "name": "useFormHeader",
+     "type": "boolean",
+     "required": false,
+     "default": "false",
+     "description": "When true and `title` is provided, renders an ITFormHeader instead of the default title bar."
+    },
+    {
+     "name": "fullScreen",
+     "type": "boolean",
+     "required": false,
+     "default": "false",
+     "description": "Makes the dialog fill the entire viewport."
+    }
+   ]
+  },
+  {
+   "name": "ITDrawer",
+   "layer": "organisms",
+   "description": "Sliding panel drawer from the left or right screen edge.\n\nRenders an overlay backdrop with a horizontally-anchored panel that slides\nin. Includes an optional title bar with close button and a scrollable body\narea. Uses the `useClickOutside` hook for overlay dismissal.",
+   "example": "```tsx\n<ITDrawer\n  isOpen={menuOpen}\n  onClose={() => setMenuOpen(false)}\n  title=\"Navigation\"\n  position=\"left\"\n  size=\"w-72\"\n>\n  <NavMenu />\n</ITDrawer>\n```",
+   "source": "src/components/organisms/drawer/drawer.tsx",
+   "props": [
+    {
+     "name": "isOpen",
+     "type": "boolean",
+     "required": true,
+     "default": "",
+     "description": "Controls whether the drawer is visible."
+    },
+    {
+     "name": "onClose",
+     "type": "() => void",
+     "required": true,
+     "default": "",
+     "description": "Callback fired when the overlay is clicked or the close button is pressed."
+    },
+    {
+     "name": "position",
+     "type": "DrawerPosition",
+     "required": false,
+     "default": "\"right\"",
+     "description": "Edge the drawer attaches to."
+    },
+    {
+     "name": "size",
+     "type": "string",
+     "required": false,
+     "default": "\"w-80\"",
+     "description": "Tailwind width class (e.g. \"w-80\", \"w-96\")."
+    },
+    {
+     "name": "title",
+     "type": "React.ReactNode",
+     "required": false,
+     "default": "",
+     "description": "Optional heading rendered in the drawer header."
+    },
+    {
+     "name": "children",
+     "type": "React.ReactNode",
+     "required": false,
+     "default": "",
+     "description": "Content displayed in the drawer body."
+    },
+    {
+     "name": "className",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS classes for the drawer panel."
+    },
+    {
+     "name": "style",
+     "type": "React.CSSProperties",
+     "required": false,
+     "default": "",
+     "description": "Inline styles for the drawer panel."
+    }
+   ]
+  },
+  {
+   "name": "ITDropfile",
+   "layer": "organisms",
+   "description": "Drag-and-drop file uploader with preview, status tracking, and confirmation flow.\n\nSupports configurable accepted file types (PDF, Excel, CSV, images), visual\ndrag-active feedback, image previews, and a three-step workflow: select →\nconfirm → upload. Upload status is tracked internally or controlled\nexternally via the `uploadStatus` prop. Re-exports `FileTypeEnum` and\n`UploadStatus` enums for consuming code.",
+   "example": "```tsx\n<ITDropfile\n  onFileSelect={(file) => setSelectedFile(file)}\n  onSubmit={(file) => uploadToServer(file)}\n  acceptedFileTypes={[FileTypeEnum.PDF, FileTypeEnum.XLSX]}\n  showStatusBadge\n/>\n```",
+   "source": "src/components/organisms/dropfile/dropfile.tsx",
+   "props": [
+    {
+     "name": "onFileSelect",
+     "type": "(file: File | null) => void",
+     "required": true,
+     "default": "",
+     "description": "Called when a file is selected or cleared."
+    },
+    {
+     "name": "onCancel",
+     "type": "() => void",
+     "required": false,
+     "default": "",
+     "description": "Called when the user cancels the current selection."
+    },
+    {
+     "name": "onSubmit",
+     "type": "(file: File) => void",
+     "required": false,
+     "default": "",
+     "description": "Called when the user confirms and submits the file."
+    },
+    {
+     "name": "acceptedFileTypes",
+     "type": "FileTypeEnum[]",
+     "required": false,
+     "default": "",
+     "description": "List of accepted MIME types."
+    },
+    {
+     "name": "contentClassName",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional classes for the preview/content area."
+    },
+    {
+     "name": "containerClassName",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional classes for the outermost container."
+    },
+    {
+     "name": "showStatusBadge",
+     "type": "boolean",
+     "required": false,
+     "default": "",
+     "description": "Whether to show the status badge (pending/uploading/uploaded/error)."
+    },
+    {
+     "name": "uploadStatus",
+     "type": "UploadStatus",
+     "required": false,
+     "default": "",
+     "description": "Externally controlled upload status."
+    },
+    {
+     "name": "onStatusChange",
+     "type": "(status: UploadStatus) => void",
+     "required": false,
+     "default": "",
+     "description": "Callback when upload status changes."
+    },
+    {
+     "name": "initialPreviewUrl",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "An initial preview URL to display before any file is selected."
+    },
+    {
+     "name": "view",
+     "type": "\"button\" | \"drop\"",
+     "required": false,
+     "default": "\"drop\"",
+     "description": "Presentation mode. `\"drop\"` renders the dropzone/preview inline (default,\ncurrent behavior, unaffected by anything below). `\"button\"` renders a\ncompact trigger button instead — clicking it opens the same\ndropzone/preview UI inside an `ITDialog`, so callers don't need to build\ntheir own \"open a modal\" button around `ITDropfile`. Meant for repeated\nuploads (e.g. an attachments list): ~900ms after a…"
+    },
+    {
+     "name": "buttonLabel",
+     "type": "string",
+     "required": false,
+     "default": "\"Subir archivo\"",
+     "description": "Label for the trigger button when `view=\"button\"` and no file is selected yet."
+    },
+    {
+     "name": "modalTitle",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Title of the modal opened when `view=\"button\"`. Defaults to `buttonLabel`."
+    }
+   ]
+  },
+  {
+   "name": "ITFormBuilder",
+   "layer": "organisms",
+   "description": "`ITFormBuilder` is a declarative form generator. It renders a responsive\ngrid of inputs from either a legacy V1 `fields` array or the richer V2\n`config` array and wires every rendered input/select/date to the supplied\nFormik-style `handleChange`/`handleBlur`/`setFieldValue` callbacks.\n\n**V2 features (recommended):**\n- Rules engine: `renderWhen`, `dynamicProps`, `dependsOn`.\n- Section grouping with `type: \"section\"`.\n- Custom renderers with `type: \"custom\"`.\n- Async option loaders via `options: () => Promise<...>`.\n- Per-field `onChangeAction` for derived fields and side effects.\n- Nested sections and grids via `fields?: FieldConfigV2[]`.\n\n**V1 (legacy):**\nThe `fields` prop accepts a simpler shape (`text` / `number` / `password` /\n`select` / `date`) without rules, sections, or async options. Kept for\nbackward compatibility.\n\nThe component is fully controlled: it does not own form state. Wrap it in a\nFormik `<Formik>` (or any state holder of your choice) and forward its\n`values`, `handleChange`, `handleBlur`, `touched`, `errors`, and\n`setFieldValue` props.",
+   "example": "Minimal login form (V1)\n```tsx\n<ITFormBuilder\nfields={[\n{ name: \"email\", label: \"Email\", type: \"text\", required: true, column: 12 },\n{ name: \"password\", label: \"Password\", type: \"password\", required: true, column: 12 },\n]}\nvalues={formik.values}\nhandleChange={formik.handleChange}\nhandleBlur={formik.handleBlur}\ntouched={formik.touched}\nerrors={formik.errors}\n/>\n```",
+   "source": "src/components/organisms/form-builder/formBuilder.tsx",
+   "props": [
+    {
+     "name": "fields",
+     "type": "FieldConfig[]",
+     "required": false,
+     "default": "",
+     "description": "Legacy V1 field definitions."
+    },
+    {
+     "name": "config",
+     "type": "FieldConfigV2[]",
+     "required": false,
+     "default": "",
+     "description": "V2 field configuration array. The recommended entry point. Supports the\nrules engine (`renderWhen` / `dynamicProps` / `dependsOn`), nested\n`sections`, custom renderers via `type: \"custom\"`, async option loaders, and\nper-field `validation` / `asyncValidation`.\n\nWhen this prop is supplied it shadows any `fields` prop."
+    },
+    {
+     "name": "columns",
+     "type": "number",
+     "required": false,
+     "default": "12",
+     "description": "Number of grid columns used by the responsive layout. Allowed range is\n1..12; values outside the supported grid map fall back to a 12-column\nlayout."
+    },
+    {
+     "name": "values",
+     "type": "ITFormBuilderValues",
+     "required": true,
+     "default": "",
+     "description": "Current form values keyed by field `name`."
+    },
+    {
+     "name": "handleChange",
+     "type": "(event: ITFormBuilderChangeEvent) => void",
+     "required": true,
+     "default": "",
+     "description": "Change handler invoked by every rendered input/select/textarea. Designed\nto receive the native `event` from a controlled child, so a Formik\n`handleChange` can be passed directly."
+    },
+    {
+     "name": "handleBlur",
+     "type": "(event: ITFormBuilderBlurEvent) => void",
+     "required": true,
+     "default": "",
+     "description": "Blur handler invoked by every rendered input/select/textarea. Designed\nto receive the native `event` from a controlled child, so a Formik\n`handleBlur` can be passed directly."
+    },
+    {
+     "name": "touched",
+     "type": "ITFormBuilderTouched",
+     "required": true,
+     "default": "",
+     "description": "Touch state keyed by field `name`."
+    },
+    {
+     "name": "errors",
+     "type": "ITFormBuilderErrors",
+     "required": true,
+     "default": "",
+     "description": "Validation errors keyed by field `name`."
+    },
+    {
+     "name": "setFieldValue",
+     "type": "(field: string, value: any, shouldValidate?: boolean) => Promise<void | any>",
+     "required": false,
+     "default": "",
+     "description": "Programmatically sets a field value. Mirrors Formik's\n`setFieldValue(field, value, shouldValidate?)` so it can be passed through.\nRequired to enable V2 features such as `onChangeAction` and\n`dynamicProps` side effects. Defaults to a no-op."
+    },
+    {
+     "name": "setFieldTouched",
+     "type": "(field: string, touched?: boolean, shouldValidate?: boolean) => Promise<void | any>",
+     "required": false,
+     "default": "",
+     "description": "Programmatically marks a field as touched. Mirrors Formik's\n`setFieldTouched(field, touched?, shouldValidate?)`. Defaults to a no-op."
+    },
+    {
+     "name": "setFieldError",
+     "type": "(field: string, message: string | undefined) => void",
+     "required": false,
+     "default": "",
+     "description": "Programmatically sets a field-level error message (Formik parity). Defaults\nto a no-op."
+    },
+    {
+     "name": "isSubmitting",
+     "type": "boolean",
+     "required": false,
+     "default": "",
+     "description": "True while the parent form is submitting. Surfaced via the form context."
+    },
+    {
+     "name": "children",
+     "type": "React.ReactNode",
+     "required": false,
+     "default": "",
+     "description": "Optional children rendered **inside** the V2 `ITFormBuilderProvider`,\nafter the field grid. Useful for custom submit buttons or progress\nbadges that read live state via {@link useFormBuilder } /\n`useITFormBuilderContext`. Ignored in the V1 (legacy) path because\nno provider is mounted there."
+    }
+   ]
+  },
+  {
+   "name": "ITNavbar",
+   "layer": "organisms",
+   "description": "Full sidebar navigation shell with collapsible submenus, user menu dropdown, and themed styling.",
+   "example": "```tsx\n<ITNavbar\n  logo={<LogoIcon />}\n  logoText=\"My App\"\n  navigationItems={[\n    { id: 'home', label: 'Home', icon: <FaHome />, isActive: true },\n    {\n      id: 'settings',\n      label: 'Settings',\n      icon: <FaCog />,\n      subitems: [{ id: 'profile', label: 'Profile', action: () => {} }],\n    },\n  ]}\n  userMenu={{\n    userName: 'John Doe',\n    userEmail: 'john@example.com',\n    menuItems: [{ label: 'Logout', onClick: () => {} }],\n  }}\n>\n  <ITPage title=\"Dashboard\">...</ITPage>\n</ITNavbar>\n```",
+   "source": "src/components/organisms/navbar/navbar.tsx",
+   "props": [
+    {
+     "name": "logo",
+     "type": "React.ReactNode",
+     "required": false,
+     "default": "",
+     "description": "Logo element rendered in the sidebar header."
+    },
+    {
+     "name": "logoText",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Text displayed next to the logo."
+    },
+    {
+     "name": "navigationItems",
+     "type": "ITNavigationItem[]",
+     "required": false,
+     "default": "",
+     "description": "Array of navigation items for the main sidebar menu."
+    },
+    {
+     "name": "userMenu",
+     "type": "{ userImage?: string; userName: string; userEmail: string; menuItems: Array<{ label: string; onClick: () => void; }>; }",
+     "required": false,
+     "default": "",
+     "description": "User menu configuration including avatar, name, email, and dropdown items."
+    },
+    {
+     "name": "children",
+     "type": "React.ReactNode",
+     "required": false,
+     "default": "",
+     "description": "Content rendered in the main area next to the sidebar."
+    },
+    {
+     "name": "navItems",
+     "type": "React.ReactNode",
+     "required": false,
+     "default": "",
+     "description": "Legacy navigation items. Use `navigationItems` instead."
+    },
+    {
+     "name": "showSidebar",
+     "type": "boolean",
+     "required": false,
+     "default": "",
+     "description": "Legacy flag to show the sidebar."
+    },
+    {
+     "name": "showSidebarOnMobile",
+     "type": "boolean",
+     "required": false,
+     "default": "",
+     "description": "Legacy flag to show the sidebar on mobile devices."
+    },
+    {
+     "name": "sidebarItems",
+     "type": "React.ReactNode",
+     "required": false,
+     "default": "",
+     "description": "Legacy sidebar items. Use `navigationItems` instead."
+    }
+   ]
+  },
+  {
+   "name": "ITPageHeader",
+   "layer": "organisms",
+   "description": "Page title bar with breadcrumbs, description, back button, and action buttons.",
+   "example": "```tsx\n<ITPageHeader\n  title=\"Users\"\n  description=\"Manage all system users\"\n  breadcrumbs={[{ label: 'Admin', href: '/admin' }, { label: 'Users' }]}\n  backAction={() => history.back()}\n  actions={<ITButton label=\"Add User\" />}\n  icon={<FaUsers />}\n/>\n```",
+   "source": "src/components/organisms/page-header/page-header.tsx",
+   "props": [
+    {
+     "name": "title",
+     "type": "string",
+     "required": true,
+     "default": "",
+     "description": "Page title displayed as the main heading."
+    },
+    {
+     "name": "description",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Optional description text shown below the title."
+    },
+    {
+     "name": "breadcrumbs",
+     "type": "ITBreadcrumbItem[]",
+     "required": false,
+     "default": "",
+     "description": "Array of breadcrumb items for navigation context."
+    },
+    {
+     "name": "actions",
+     "type": "React.ReactNode",
+     "required": false,
+     "default": "",
+     "description": "Action buttons or elements rendered on the right side."
+    },
+    {
+     "name": "backAction",
+     "type": "() => void",
+     "required": false,
+     "default": "",
+     "description": "Callback fired when the back button is clicked."
+    },
+    {
+     "name": "icon",
+     "type": "React.ReactNode",
+     "required": false,
+     "default": "",
+     "description": "Optional icon displayed next to the title."
+    },
+    {
+     "name": "iconColor",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Custom color for the icon. Accepts any valid CSS color value."
+    },
+    {
+     "name": "className",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS classes for the container."
+    }
+   ]
+  },
+  {
+   "name": "ITSearchTable",
+   "layer": "organisms",
+   "description": "Server-side data table with global search, column sorting, inline editing, and pagination.",
+   "example": "```tsx\n<ITSearchTable\n  columns={[\n    { key: \"name\", label: \"Name\", type: \"string\", sortable: true, editable: true },\n    { key: \"status\", label: \"Status\", type: \"string\", filter: true },\n  ]}\n  data={rows}\n  title=\"Users\"\n  pageIndex={0}\n  totalCount={100}\n  totalPages={10}\n  hasPreviousPage={false}\n  hasNextPage={true}\n  onPageChange={(p) => fetchPage(p)}\n  onSortChange={(s) => sortData(s)}\n  onFilterChange={(f) => filterData(f)}\n/>\n```",
+   "source": "src/components/organisms/searchTable/searchTable.tsx",
+   "props": [
+    {
+     "name": "editingRow",
+     "type": "number",
+     "required": false,
+     "default": "",
+     "description": ""
+    },
+    {
+     "name": "searchTermInitial",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": ""
+    },
+    {
+     "name": "onClearSearch",
+     "type": "() => void",
+     "required": false,
+     "default": "",
+     "description": ""
+    },
+    {
+     "name": "onEdit",
+     "type": "(row: T, index: number) => void",
+     "required": false,
+     "default": "",
+     "description": ""
+    },
+    {
+     "name": "onSave",
+     "type": "(row: T, index: number) => void",
+     "required": false,
+     "default": "",
+     "description": ""
+    },
+    {
+     "name": "onCancel",
+     "type": "() => void",
+     "required": false,
+     "default": "",
+     "description": ""
+    },
+    {
+     "name": "sortConfig",
+     "type": "{ key: string; direction: \"asc\" | \"desc\"; }",
+     "required": false,
+     "default": "",
+     "description": ""
+    },
+    {
+     "name": "columns",
+     "type": "SearchColumn<T>[]",
+     "required": true,
+     "default": "",
+     "description": "Column definitions: key, label, type, filter, sortable, editable, etc."
+    },
+    {
+     "name": "containerClassName",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS class for the outer container wrapper."
+    },
+    {
+     "name": "searchInputPlaceholder",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Placeholder text for the global search input field."
+    },
+    {
+     "name": "data",
+     "type": "T[]",
+     "required": true,
+     "default": "",
+     "description": "Array of row data objects (server-side paginated)."
+    },
+    {
+     "name": "variant",
+     "type": "TableVariants",
+     "required": false,
+     "default": "",
+     "description": "Table visual variant: \"default\" | \"striped\" | \"bordered\"."
+    },
+    {
+     "name": "className",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS class applied to the `<table>` element."
+    },
+    {
+     "name": "size",
+     "type": "TableSize",
+     "required": false,
+     "default": "",
+     "description": "Table row size: \"sm\" | \"md\" | \"lg\"."
+    },
+    {
+     "name": "itemsPerPageOptions",
+     "type": "number[]",
+     "required": false,
+     "default": "",
+     "description": "Available page-size options (e.g. [10, 20, 50, 100])."
+    },
+    {
+     "name": "defaultItemsPerPage",
+     "type": "number",
+     "required": false,
+     "default": "",
+     "description": "Initial/default number of rows per page."
+    },
+    {
+     "name": "validationSchema",
+     "type": "ObjectSchema<any, AnyObject, any, \"\">",
+     "required": false,
+     "default": "",
+     "description": "Yup validation schema for inline editing."
+    },
+    {
+     "name": "title",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Title displayed in the table header bar (teal background)."
+    },
+    {
+     "name": "pageIndex",
+     "type": "number",
+     "required": true,
+     "default": "",
+     "description": "Current page index (0-based, server-side)."
+    },
+    {
+     "name": "totalCount",
+     "type": "number",
+     "required": true,
+     "default": "",
+     "description": "Total number of rows across all pages (server-side)."
+    },
+    {
+     "name": "totalPages",
+     "type": "number",
+     "required": true,
+     "default": "",
+     "description": "Total number of available pages."
+    },
+    {
+     "name": "hasPreviousPage",
+     "type": "boolean",
+     "required": true,
+     "default": "",
+     "description": "Whether there is a previous page available."
+    },
+    {
+     "name": "hasNextPage",
+     "type": "boolean",
+     "required": true,
+     "default": "",
+     "description": "Whether there is a next page available."
+    },
+    {
+     "name": "onPageChange",
+     "type": "(page: number) => void",
+     "required": false,
+     "default": "",
+     "description": "Callback when the user navigates to a different page. Receives the new page index."
+    },
+    {
+     "name": "onItemsPerPageChange",
+     "type": "(itemsPerPage: number) => void",
+     "required": false,
+     "default": "",
+     "description": "Callback when the user changes the page-size. Receives the new items-per-page value."
+    },
+    {
+     "name": "onSortChange",
+     "type": "(sortConfig: { key: string; direction: \"asc\" | \"desc\"; }) => void",
+     "required": false,
+     "default": "",
+     "description": "Callback when sorting changes. Receives { key, direction: \"asc\" | \"desc\" }."
+    },
+    {
+     "name": "onFilterChange",
+     "type": "(filters: Record<string, string | boolean | number>) => void",
+     "required": false,
+     "default": "",
+     "description": "Callback when global search/filter text changes. Receives a key-value filters record."
+    }
+   ]
+  },
+  {
+   "name": "ITSidebar",
+   "layer": "organisms",
+   "description": "Vertical navigation sidebar with submenu expand/collapse, hover tooltips in collapsed mode,\nand glassmorphism styling. The collapsed rail expands automatically on pointer hover — there\nis no toggle button; the hover is the only way to expand and collapse it.",
+   "example": "```tsx\n<ITSidebar\n  navigationItems={[\n    { id: \"dashboard\", label: \"Dashboard\", icon: <FaHome />, isActive: true },\n    {\n      id: \"settings\", label: \"Settings\", icon: <FaCog />,\n      subitems: [\n        { id: \"profile\", label: \"Profile\", action: () => navigate(\"/profile\") },\n        { id: \"billing\", label: \"Billing\", isActive: true },\n      ],\n    },\n    { id: \"inbox\", label: \"Inbox\", icon: <FaEnvelope />, badge: 12 },\n  ]}\n  notification={{\n    count: 5,\n    icon: <FaBell />,\n    label: \"Notificaciones\",\n    onClick: () => navigate(\"/notifications\"),\n  }}\n  isCollapsed\n/>\n```",
+   "source": "src/components/organisms/sidebar/sidebar.tsx",
+   "props": [
+    {
+     "name": "navigationItems",
+     "type": "ITNavigationItem[]",
+     "required": true,
+     "default": "",
+     "description": "Navigation structure: top-level items with optional sub-items."
+    },
+    {
+     "name": "isCollapsed",
+     "type": "boolean",
+     "required": false,
+     "default": "",
+     "description": "Whether the sidebar is collapsed to icon-only mode."
+    },
+    {
+     "name": "onToggleCollapse",
+     "type": "() => void",
+     "required": false,
+     "default": "",
+     "description": "Callback that flips `isCollapsed`. `ITLayout` calls it from the top bar's\nmenu button when `expandOnHover` is `false`; the sidebar itself calls it\nwhen a collapsed parent item is clicked, so its submenu can be shown."
+    },
+    {
+     "name": "expandOnHover",
+     "type": "boolean",
+     "required": false,
+     "default": "true",
+     "description": "How the collapsed rail opens. `true`: it expands over the content while\nthe pointer is on it (no button). `false`: it stays an icon-only rail —\nthe item name shows in a tooltip on hover — and it only opens through\n`onToggleCollapse` (the top bar's menu button in `ITLayout`)."
+    },
+    {
+     "name": "visibleOnMobile",
+     "type": "boolean",
+     "required": false,
+     "default": "",
+     "description": "Force sidebar visible on mobile breakpoints."
+    },
+    {
+     "name": "onItemClick",
+     "type": "(item: ITNavigationItem) => void",
+     "required": false,
+     "default": "",
+     "description": "Callback when a top-level navigation item is clicked. Receives the item."
+    },
+    {
+     "name": "onSubItemClick",
+     "type": "(subitem: ITNavigationSubItem) => void",
+     "required": false,
+     "default": "",
+     "description": "Callback when a sub-navigation item is clicked. Receives the sub-item."
+    },
+    {
+     "name": "subitemConnector",
+     "type": "\"none\" | \"dot\" | \"|\"",
+     "required": false,
+     "default": "",
+     "description": "Visual connector style for sub-items: \"dot\" | \"|\" | \"none\". Default: \"dot\"."
+    },
+    {
+     "name": "className",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS classes on the sidebar `<aside>`."
+    },
+    {
+     "name": "header",
+     "type": "React.ReactNode",
+     "required": false,
+     "default": "",
+     "description": "Optional content rendered above the navigation list (e.g. a wordmark).\nHidden while the sidebar is collapsed, so it only shows on hover."
+    },
+    {
+     "name": "notification",
+     "type": "ITSidebarNotification",
+     "required": false,
+     "default": "",
+     "description": "Optional notification entry pinned above the navigation (icon + label +\n`ITBadget` counter). Unlike {@link ITSidebarProps.header} it stays visible\nwhile collapsed, showing just the icon and the counter."
+    },
+    {
+     "name": "brand",
+     "type": "ITSidebarBrand",
+     "required": false,
+     "default": "",
+     "description": "Brand (logo + wordmark) pinned at the very top of the sidebar, in a 64px\nrow that lines up with the top bar. Unlike {@link ITSidebarProps.header}\nthe logo stays visible while collapsed. `ITLayout` fills it from\n`topBar.logo` / `topBar.logoText` when `sidebarFullHeight` is set."
+    }
+   ]
+  },
+  {
+   "name": "ITToast",
+   "layer": "organisms",
+   "description": "ITToast — floating notification with automatic dismiss and severity-based styling.\n\nRenders a positioned alert with an icon, message, and close button.\nSupports \"success\", \"error\", \"warning\", \"info\", \"primary\", and \"danger\" types.\nAuto-dismisses after the configured duration and calls `onClose` on completion.",
+   "example": "// Basic info toast\n<ITToast message=\"Item saved\" type=\"success\" />",
+   "source": "src/components/organisms/toast/toast.tsx",
+   "props": [
+    {
+     "name": "message",
+     "type": "string",
+     "required": true,
+     "default": "",
+     "description": "Toast message text to display."
+    },
+    {
+     "name": "type",
+     "type": "string",
+     "required": false,
+     "default": "\"info\"",
+     "description": "Severity type determining icon and background color. One of \"success\", \"error\", \"warning\", \"info\", \"primary\", or \"danger\"."
+    },
+    {
+     "name": "duration",
+     "type": "number",
+     "required": false,
+     "default": "1500",
+     "description": "Auto-dismiss duration in milliseconds."
+    },
+    {
+     "name": "position",
+     "type": "\"top-right\" | \"top-center\" | \"top-left\" | \"bottom-right\" | \"bottom-center\" | \"bottom-left\"",
+     "required": false,
+     "default": "\"top-right\"",
+     "description": "On-screen placement. One of \"top-right\", \"top-center\", \"top-left\", \"bottom-right\", \"bottom-center\", \"bottom-left\"."
+    },
+    {
+     "name": "onClose",
+     "type": "() => void",
+     "required": false,
+     "default": "",
+     "description": "Callback invoked after the toast finishes its dismiss transition animation."
+    }
+   ]
+  },
+  {
+   "name": "ITTripleFilter",
+   "layer": "organisms",
+   "description": "",
+   "example": "",
+   "source": "src/components/organisms/triple-filter/tripleFilter.tsx",
+   "props": [
+    {
+     "name": "value",
+     "type": "T",
+     "required": true,
+     "default": "",
+     "description": "Currently selected value. Must match one of the option values."
+    },
+    {
+     "name": "onChange",
+     "type": "(value: T) => void",
+     "required": true,
+     "default": "",
+     "description": "Called when the user selects a different option. Receives the new value."
+    },
+    {
+     "name": "options",
+     "type": "ITTripleFilterOption<T>[]",
+     "required": true,
+     "default": "",
+     "description": "Array of filter options to render (typically 2-4 items, e.g. All / Active / Inactive)."
+    },
+    {
+     "name": "color",
+     "type": "\"gray\" | \"purple\" | \"info\" | \"success\" | \"warning\" | \"error\" | \"primary\" | \"secondary\" | \"danger\"",
+     "required": false,
+     "default": "\"primary\"",
+     "description": "Color theme for the active indicator. One of \"primary\", \"secondary\", \"success\", \"danger\", \"warning\", \"info\", \"purple\", \"error\", \"gray\"."
+    },
+    {
+     "name": "className",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS classes applied to the outermost container."
+    }
+   ]
+  },
+  {
+   "name": "ITLayout",
+   "layer": "templates",
+   "description": "Main application shell with sidebar, topbar, and content area.\nProvides a responsive layout with a collapsible desktop sidebar,\na sliding mobile sidebar overlay, and a scrollable main content region.",
+   "example": "<ITLayout\n  topBar={{ title: \"Dashboard\", userMenu: [...] }}\n  sidebar={{ items: [...], activeKey: \"overview\" }}\n>\n  <p>Page content goes here</p>\n</ITLayout>",
+   "source": "src/components/templates/layout/layout.tsx",
+   "props": [
+    {
+     "name": "topBar",
+     "type": "ITTopBarProps",
+     "required": true,
+     "default": "",
+     "description": "Top bar configuration and props"
+    },
+    {
+     "name": "sidebar",
+     "type": "ITSidebarProps",
+     "required": true,
+     "default": "",
+     "description": "Sidebar configuration and props"
+    },
+    {
+     "name": "children",
+     "type": "React.ReactNode",
+     "required": true,
+     "default": "",
+     "description": "Main content rendered in the center area"
+    },
+    {
+     "name": "className",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS classes for the outermost wrapper"
+    },
+    {
+     "name": "contentClassName",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS classes for the content container"
+    },
+    {
+     "name": "sidebarFullHeight",
+     "type": "boolean",
+     "required": false,
+     "default": "false",
+     "description": "App-shell arrangement. `false` (default): the top bar spans the full width\nand the sidebar sits below it. `true`: the sidebar spans the full viewport\nheight and shows the brand (`topBar.logo` + `topBar.logoText`) at its top,\nwhile the top bar covers only the content column and drops the logo from\nthe `lg` breakpoint up. Mobile is unchanged."
+    }
+   ]
+  },
+  {
+   "name": "ITPage",
+   "layer": "templates",
+   "description": "Page template combining a page header and content area with built-in states for loading, error, and empty.",
+   "example": "```tsx\n<ITPage\n  title=\"Dashboard\"\n  description=\"Overview of your account\"\n  breadcrumbs={[{ label: 'Home' }, { label: 'Dashboard' }]}\n  actions={<ITButton label=\"Refresh\" />}\n  loading={isLoading}\n  error={errorMessage}\n  onRetry={fetchData}\n>\n  <ITCard>Dashboard content</ITCard>\n</ITPage>\n```",
+   "source": "src/components/templates/page/page.tsx",
+   "props": [
+    {
+     "name": "title",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Page title passed to the header."
+    },
+    {
+     "name": "description",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Description text shown below the title."
+    },
+    {
+     "name": "breadcrumbs",
+     "type": "ITBreadcrumbItem[]",
+     "required": false,
+     "default": "",
+     "description": "Array of breadcrumb items for navigation context."
+    },
+    {
+     "name": "actions",
+     "type": "React.ReactNode",
+     "required": false,
+     "default": "",
+     "description": "Action buttons rendered in the header."
+    },
+    {
+     "name": "backAction",
+     "type": "() => void",
+     "required": false,
+     "default": "",
+     "description": "Callback fired when the back button is clicked."
+    },
+    {
+     "name": "icon",
+     "type": "React.ReactNode",
+     "required": false,
+     "default": "",
+     "description": "Optional icon displayed next to the title."
+    },
+    {
+     "name": "iconColor",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Custom color for the icon. Accepts any valid CSS color value."
+    },
+    {
+     "name": "loading",
+     "type": "boolean",
+     "required": false,
+     "default": "",
+     "description": "Whether the page is in a loading state. Shows skeleton placeholders when true."
+    },
+    {
+     "name": "error",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Error message to display. Shows an error state with retry button when provided."
+    },
+    {
+     "name": "errorTitle",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Custom title for the error state. Default: i18n `common.error` (\"Error\")."
+    },
+    {
+     "name": "errorActionLabel",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Label for the retry button in the error state. Default: i18n `common.retry` (\"Reintentar\")."
+    },
+    {
+     "name": "onRetry",
+     "type": "() => void",
+     "required": false,
+     "default": "",
+     "description": "Callback fired when the retry button is clicked in the error state."
+    },
+    {
+     "name": "empty",
+     "type": "boolean",
+     "required": false,
+     "default": "",
+     "description": "Whether the page is in an empty state. Shows a placeholder when true."
+    },
+    {
+     "name": "emptyTitle",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Custom title for the empty state. Default: i18n `common.noData` (\"Sin datos\")."
+    },
+    {
+     "name": "emptyDescription",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Custom description for the empty state. Default: i18n `common.empty` (\"No hay información para mostrar\")."
+    },
+    {
+     "name": "emptyAction",
+     "type": "React.ReactNode",
+     "required": false,
+     "default": "",
+     "description": "Custom action element for the empty state."
+    },
+    {
+     "name": "className",
+     "type": "string",
+     "required": false,
+     "default": "",
+     "description": "Additional CSS classes for the page wrapper."
+    },
+    {
+     "name": "children",
+     "type": "React.ReactNode",
+     "required": true,
+     "default": "",
+     "description": "Content rendered inside the page wrapper."
+    },
+    {
+     "name": "maxWidth",
+     "type": "\"2xl\" | \"3xl\" | \"4xl\" | \"5xl\" | \"6xl\" | \"7xl\"",
+     "required": false,
+     "default": "",
+     "description": "Maximum width of the page content. Options: \"2xl\", \"3xl\", \"4xl\", \"5xl\", \"6xl\", \"7xl\". Default: \"7xl\"."
+    },
+    {
+     "name": "noPadding",
+     "type": "boolean",
+     "required": false,
+     "default": "",
+     "description": "Whether to remove default padding from the page wrapper. Overrides `horizontalPadding`."
+    },
+    {
+     "name": "horizontalPadding",
+     "type": "string",
+     "required": false,
+     "default": "\"px-4 sm:px-6 lg:px-8\"",
+     "description": "Tailwind classes for the page wrapper's horizontal padding. Pass `\"px-0\"`\nfor edge-to-edge content, or a responsive scale like `\"px-2 sm:px-4\"`.\n\nMust be written as a literal: Tailwind scans source files, so a value\nassembled at runtime will not be generated into the stylesheet."
+    }
+   ]
+  },
+  {
+   "name": "ITI18nProvider",
+   "layer": "others",
+   "description": "Provee locale y mensajes al árbol de componentes.\n\nSin provider, los componentes usan el catálogo base en español. Con provider,\ncualquier prop de texto explícita de un componente sigue teniendo prioridad\nsobre el catálogo.",
+   "example": "```tsx\n<ITThemeProvider>\n  <ITI18nProvider locale=\"en\">\n    <App />\n  </ITI18nProvider>\n</ITThemeProvider>\n```",
+   "source": "src/i18n/provider.tsx",
+   "props": [
+    {
+     "name": "locale",
+     "type": "string",
+     "required": false,
+     "default": "\"es\"",
+     "description": "Active locale."
+    },
+    {
+     "name": "fallbackLocale",
+     "type": "string",
+     "required": false,
+     "default": "\"es\"",
+     "description": "Fallback locale for missing keys."
+    },
+    {
+     "name": "messages",
+     "type": "ITMessagesByLocale",
+     "required": false,
+     "default": "",
+     "description": "Custom messages merged over the built-in catalog, keyed by locale."
+    },
+    {
+     "name": "children",
+     "type": "React.ReactNode",
+     "required": true,
+     "default": "",
+     "description": "Application tree."
+    }
+   ]
+  },
+  {
+   "name": "ITThemeProvider",
+   "layer": "others",
+   "description": "Root theme context provider that injects CSS custom properties for all components,\nsupports custom color palettes, dark/light mode, and an optional in-app theme designer FAB.",
+   "example": "<ITThemeProvider theme={{ primary: \"#3b82f6\", danger: \"#ef4444\" }}>\n  <App />\n</ITThemeProvider>",
+   "source": "src/components/theme-provider/themeProvider.tsx",
+   "props": [
+    {
+     "name": "theme",
+     "type": "Partial<ITThemePalette>",
+     "required": false,
+     "default": "",
+     "description": "Partial palette overrides merged (deep merge) with the default theme. Supports primary, secondary, ternary, danger, success, info, alert, warning, layout, and table colors. Persisted to `localStorage` under `\"it-theme-palette\"` once the user edits it via the FAB/drawer."
+    },
+    {
+     "name": "children",
+     "type": "React.ReactNode",
+     "required": true,
+     "default": "",
+     "description": "The subtree that receives the theme context and CSS variables. Must wrap your entire app (or the portion that uses AXZY UI System components) once, near the root."
+    },
+    {
+     "name": "showFab",
+     "type": "boolean",
+     "required": false,
+     "default": "true",
+     "description": "Whether to render the floating action button (bottom-right) that opens the live theme-designer drawer, letting end users tweak colors and persist their choice. Set to `false` to hide the FAB in production and only theme via the `theme` prop."
+    },
+    {
+     "name": "density",
+     "type": "number",
+     "required": false,
+     "default": "1",
+     "description": "Global density/compactness factor. Values below 1 shrink the UI's base sizes, above 1 grow them (e.g. `0.8` = 80%: smaller fonts, paddings, gaps, spacing). Applied by scaling the root font-size so every `rem`-based token in Tailwind components compacts together, keeping the layout fluid (no empty margins, unlike CSS zoom). Clamped to `0.5`–`1.5`."
+    },
+    {
+     "name": "radius",
+     "type": "number",
+     "required": false,
+     "default": "0 (no override, Tailwind defaults)",
+     "description": "Global border radius in pixels applied to the entire rounding scale (`rounded-sm/md/lg/xl/2xl/…`). `radius={2}` ⇒ 2px corners (near-square), `8` ⇒ 8px, `0` ⇒ completely square. Every `rounded-*` utility resolves to a `--radius-*` variable, so this reshapes inputs, buttons, cards, dialogs and tables system-wide with no per-component changes."
+    },
+    {
+     "name": "shadow",
+     "type": "number",
+     "required": false,
+     "default": "2 (keeps current default when omitted)",
+     "description": "Global shadow strength level. `0` ⇒ no shadows, `1` ⇒ subtle, `2` ⇒ default current look, `3` ⇒ pronounced. Shadows are injected as `--shadow-*`/`.shadow-*` overrides so cards, dropdowns and dialogs follow the level."
+    },
+    {
+     "name": "appearance",
+     "type": "ITThemeAppearance",
+     "required": false,
+     "default": "\"soft\"",
+     "description": "Visual language of the whole system. `\"soft\"` keeps the current look (floating cards, tinted shadows, glass sidebar/top bar). `\"flat\"` switches the app shell and surfaces to flat ones: hairline borders instead of shadows on `ITCard`, a plain `ITSidebar` (no glow, no accent bar, narrower), a plain `ITTopBar` (no shadow, initials avatar) and a compact `ITPageHeader` without the icon tile. It also s…"
+    }
+   ]
+  }
+ ],
+ "hooks": [
+  {
+   "name": "useClickOutside",
+   "layer": "hooks",
+   "description": "",
+   "signature": "(ref: React.RefObject<HTMLElement>, callback: () => void): void",
+   "source": "src/hooks/useClickOutside.ts",
+   "example": ""
+  },
+  {
+   "name": "useDebouncedSearch",
+   "layer": "hooks",
+   "description": "",
+   "signature": "({ initialValue, debounceMs, onSearch, }: UseDebouncedSearchOptions): UseDebouncedSearchResult",
+   "source": "src/hooks/useDebouncedSearch.ts",
+   "example": ""
+  },
+  {
+   "name": "useEditableRow",
+   "layer": "hooks",
+   "description": "",
+   "signature": "<T>({ row, columns, getNestedValue, validationSchema, }: UseEditableRowOptions<T>): UseEditableRowResult<T>",
+   "source": "src/hooks/useEditableRow.ts",
+   "example": ""
+  },
+  {
+   "name": "useFloatingPanel",
+   "layer": "hooks",
+   "description": "Computes a fixed position for a floating panel anchored to an element.\n\nPositions are relative to the viewport, so the panel must be rendered\nthrough a portal (e.g. into `document.body`) to escape ancestors with\n`overflow: hidden` or `transform`, which otherwise clip or re-anchor it.\nWhen there is not enough room below, the panel flips above and its bottom\nedge is pinned to the anchor's top, so it always stays adjacent regardless\nof its real height. Repositions on scroll, resize, and panel resize.",
+   "signature": "(anchorRef: import(\"/Users/axzy/DEV/AXZY/AXZY_UI_SYSTEM/node_modules/.pnpm/@types+react@19.0.8/node_modules/@types/react/index\").RefObject<HTMLElement | null>, isOpen: boolean, { estimatedHeight, offset, matchWidth, ali…",
+   "source": "src/hooks/useFloatingPanel.ts",
+   "example": ""
+  },
+  {
+   "name": "useTableState",
+   "layer": "hooks",
+   "description": "",
+   "signature": "({ defaultItemsPerPage, initialSort, }?: UseTableStateOptions): UseTableStateResult",
+   "source": "src/hooks/useTableState.ts",
+   "example": ""
+  },
+  {
+   "name": "useITTheme",
+   "layer": "hooks",
+   "description": "",
+   "signature": "(): import(\"/Users/axzy/DEV/AXZY/AXZY_UI_SYSTEM/src/theme/theme-context\").ITThemeContextType",
+   "source": "src/theme/theme-context.ts",
+   "example": ""
+  },
+  {
+   "name": "useITThemeSafe",
+   "layer": "hooks",
+   "description": "Versión segura de useITTheme que retorna undefined\nsi se usa fuera de ITThemeProvider (no lanza error).",
+   "signature": "(): import(\"/Users/axzy/DEV/AXZY/AXZY_UI_SYSTEM/src/theme/theme-context\").ITThemeContextType | undefined",
+   "source": "src/theme/theme-context.ts",
+   "example": ""
+  },
+  {
+   "name": "useITFlatAppearance",
+   "layer": "hooks",
+   "description": "`true` cuando el provider pide el lenguaje visual plano (`appearance=\"flat\"`).\nFuera de un ITThemeProvider devuelve `false` (aspecto por defecto).",
+   "signature": "(): boolean",
+   "source": "src/theme/theme-context.ts",
+   "example": ""
+  },
+  {
+   "name": "useITTranslation",
+   "layer": "hooks",
+   "description": "Devuelve el traductor y los formateadores de la locale activa.\n\nFunciona aunque no exista `ITI18nProvider` (cae al catálogo base en español).",
+   "signature": "(): ITI18nValue",
+   "source": "src/i18n/useITTranslation.ts",
+   "example": "```tsx\nconst { t, formatCurrency } = useITTranslation();\nreturn <ITButton label={t(\"common.cancel\")} onClick={onCancel} />;\n```"
+  }
+ ],
+ "otherExports": [
+  "Column",
+  "ColumnFilterMode",
+  "ColumnFilterValue",
+  "ColumnFilters",
+  "FieldConfig",
+  "FieldConfigV2",
+  "FileTypeEnum",
+  "ITAccordionItem",
+  "ITAccordionProps",
+  "ITAlertProps",
+  "ITAvatarProps",
+  "ITBadgetProps",
+  "ITBreadcrumbItem",
+  "ITBreadcrumbsProps",
+  "ITButtonProps",
+  "ITCalendarProps",
+  "ITCardProps",
+  "ITCheckboxProps",
+  "ITChipInputProps",
+  "ITChipProps",
+  "ITConfirmDialogProps",
+  "ITDataTableFetchParams",
+  "ITDataTableProps",
+  "ITDataTableResponse",
+  "ITDatePickerProps",
+  "ITDialogProps",
+  "ITDividerProps",
+  "ITDrawerProps",
+  "ITDropdownMenuItem",
+  "ITDropdownMenuProps",
+  "ITEmptyStateProps",
+  "ITFieldProps",
+  "ITFlexProps",
+  "ITFormBuilderProps",
+  "ITFormHeaderProps",
+  "ITGridProps",
+  "ITI18nProviderProps",
+  "ITI18nValue",
+  "ITImageProps",
+  "ITInputNumberProps",
+  "ITInputProps",
+  "ITLayoutProps",
+  "ITLineBarChartProps",
+  "ITLineBarDatum",
+  "ITLoaderProps",
+  "ITLocale",
+  "ITMaskedInputProps",
+  "ITMessages",
+  "ITMessagesByLocale",
+  "ITMultiSelectOption",
+  "ITMultiSelectProps",
+  "ITNavbarProps",
+  "ITNavigationItem",
+  "ITNavigationSubItem",
+  "ITNavigationSubItemEntry",
+  "ITNavigationSubItemGroup",
+  "ITPageHeaderProps",
+  "ITPageProps",
+  "ITPaginationProps",
+  "ITPopoverProps",
+  "ITProgressProps",
+  "ITRadioGroupProps",
+  "ITRadioOption",
+  "ITSearchSelectProps",
+  "ITSearchTableProps",
+  "ITSegmentedControlProps",
+  "ITSelectProps",
+  "ITSidebarBrand",
+  "ITSidebarNotification",
+  "ITSidebarProps",
+  "ITSkeletonProps",
+  "ITSlideToggleProps",
+  "ITSliderProps",
+  "ITStackProps",
+  "ITStatCardProps",
+  "ITStepperProps",
+  "ITTabItem",
+  "ITTableProps",
+  "ITTabsProps",
+  "ITTextProps",
+  "ITTextareaProps",
+  "ITThemeAppearance",
+  "ITThemeConfig",
+  "ITThemePalette",
+  "ITThemeProviderProps",
+  "ITTimePickerProps",
+  "ITToastProps",
+  "ITTripleFilterOption",
+  "ITTripleFilterProps",
+  "ITWysiwygProps",
+  "TableColors",
+  "TableDensity",
+  "TableDesign",
+  "TableDesignProps",
+  "TableDesignSlot",
+  "UploadStatus",
+  "UseTableStateOptions",
+  "UseTableStateResult",
+  "createValidationSchema",
+  "enMessages",
+  "esMessages",
+  "getContrastTextColor",
+  "isLightColor",
+  "resolveCssColor"
+ ]
+}

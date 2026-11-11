@@ -179,6 +179,16 @@ export class StudentService {
   }
 
   /** Detalle dentro del alcance; fuera de él responde 404 (no revela existencia). */
+  /**
+   * Expediente del alumno de la sesión (`Mi Perfil`): la cuenta debe tener
+   * expediente propio; el alcance se aplica igual que en `getById`.
+   */
+  async me(user: UserPermissions): Promise<StudentView> {
+    const row = await this.db.student.findUnique({ where: { userId: user.id }, select: { id: true } });
+    if (!row) throw new HttpError(403, "NOT_A_STUDENT");
+    return this.getById(row.id, user);
+  }
+
   async getById(id: string, user: UserPermissions, permission = "students.view"): Promise<StudentView> {
     return toStudentView(await this.loadScoped(id, user, permission));
   }

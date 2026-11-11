@@ -6,7 +6,13 @@
       "charges": "Cargos",
       "payments": "Pagos",
       "concepts": "Conceptos"
-    }
+    },
+    "term": "Ciclo",
+    "allTerms": "Todos los ciclos",
+    "notActiveTerm": "Estás viendo un ciclo que no es el activo.",
+    "allTermsHint": "Viendo todos los ciclos: incluye adeudos anteriores.",
+    "period": "Periodo",
+    "allPeriods": "Todos los periodos"
   },
   "money": {
     "currency": "MXN"
@@ -137,5 +143,13 @@
     "generated": "Generado el {{date}}",
     "noPayments": "Sin pagos"
   },
-  "reasonRequired": "Escribe un motivo (mínimo 3 caracteres)"
+  "reasonRequired": "Escribe un motivo (mínimo 3 caracteres)",
+  "quick": {
+    "pending": "Sin pagar",
+    "overdue": "Vencidos",
+    "paid": "Pagados",
+    "all": "Todos",
+    "active": "Vigentes",
+    "cancelled": "Cancelados"
+  }
 }

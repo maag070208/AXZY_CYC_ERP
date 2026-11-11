@@ -82,12 +82,13 @@ reglas complejas (M07, M08, M09, M16) ≈ 1.5–2 sprints.
 | F8 — Analítica ejecutiva | ✅ Completada (pendiente H8 con el cliente) | M21; unitarias 117, contrato API 211, navegador 72 — todo en verde |
 | F9 — Endurecimiento, despliegue y capacitación | Parcial: M12 ✅ · M13 pendiente | Unitarias 112 (cobertura de reglas 81.8 %), contrato API 203 — todo en verde; faltan los manuales (M13) |
 | F10 — Programas y planes de pago | ✅ Completada | M22; unitarias 110, contrato API 198, navegador 70 — todo en verde |
+| F12 — Inicio del alumno | ✅ Completada | El alumno entra a Inicio y ve su propio ciclo (`GET /dashboard/student`): exámenes por presentar, saldo y mora, horario, promedio y asistencia por materia, expediente y avisos. Cada bloque lo calcula el módulo dueño ([D-056](../../DECISIONES.md)); 7 unitarias, 7 de contrato y 2 de navegador en verde |
 | F11 — Gastos institucionales y tablero de Inicio | ✅ Completada | M23 (`Expense`, CRUD, permisos, `/expenses`) y el tablero de Inicio refundido con filtros por ciclo/nivel/curso/grupo, gastos contra ingresos, alertas y detalle operativo ([D-054](../../DECISIONES.md), [D-055](../../DECISIONES.md)); unitarias 132, contrato API 219, navegador 77 — todo en verde |
 | Refactor a inglés + i18n | ✅ Completado | [D-046](../../DECISIONES.md) y [D-049](../../DECISIONES.md): esquema, DTOs, rutas, códigos, llaves i18n y JSON guardado en inglés; migraciones `roles_english`, `lote1_catalogs_english`, `schema_english` y `english_followup`; las tres suites siguen en verde |
 
 ### 2.1 Lo que falta y en qué orden
 
-Actualizado el 2026-10-09, con F0–F8, F10 y F11 construidas. El orden cambia respecto
+Actualizado el 2026-10-16, con F0–F8, F10, F11 y F12 construidas. El orden cambia respecto
 al original: **el endurecimiento (M12) va antes que la analítica (M21)**, porque
 es requisito para salir a producción y el tablero ejecutivo puede llegar después
 del lanzamiento.
@@ -98,6 +99,7 @@ del lanzamiento.
 | **B** | F8 — Analítica ejecutiva (M21) | Indicadores de deserción, morosidad, ingresos contra proyección, rendimiento, ocupación y tendencia; comparativo con el ciclo anterior; tablero y exportación | ✅ Terminado ([D-052](../../DECISIONES.md)) |
 | **C** | F9b — Capacitación (M13) | Manual por rol, guía rápida de operación y material de capacitación | ⏭️ En curso (es el único módulo sin entregable) |
 | **D** | Pendientes de módulos ya entregados | M20: adaptadores de cursos, grupos, inscripciones, calificaciones, cargos, pagos y asistencia · M19: proveedor real de SMS/WhatsApp ([A-001](../../DECISIONES.md)) · M14: imagen por reactivo · i18n de los catálogos guardados ([D-049](../../DECISIONES.md)) | Depende de decisiones del cliente |
+| **G** | Inicio del alumno | `GET /dashboard/student` con puertos a M16/M09/M06/M18/M19, widget en Inicio para el rol STUDENT, i18n es/en, pruebas de las tres capas y re-corrida de las suites | ✅ Terminado |
 | **E** | Cierre de F11 | Suite de M23 (unitarias + contrato API + navegador), plan y roadmap al día, y las tres suites corridas contra base local: unitarias 132, contrato API 219, navegador 77 | ✅ Terminado |
 
 **No depende de código:** la firma de alcance (H0) y las puertas de aceptación
@@ -111,8 +113,13 @@ la web apuntando a ella:
 ```bash
 # 1) Base de pruebas (se borra al terminar; no toca la de desarrollo)
 docker exec cyc-postgres createdb -U cyc cyc_e2e
-DATABASE_URL=postgresql://cyc:cyc_dev_pwd@localhost:55432/cyc_e2e?schema=public \
-  pnpm --dir api prisma:migrate
+export DATABASE_URL=postgresql://cyc:cyc_dev_pwd@localhost:55432/cyc_e2e?schema=public
+pnpm --dir api prisma:migrate
+# ¡Obligatorio! Sembrar ANTES de arrancar la API: de aquí salen los catálogos base
+# (tipos de documento CURP/Acta, niveles). El seed se salta si la base ya tiene
+# usuarios, por eso va antes del primer arranque; sin él fallan documents.spec,
+# m09 y m11 con "Cannot read properties of null (reading 'id')".
+pnpm --dir api run seed
 
 # 2) API y web de pruebas
 DATABASE_URL=…cyc_e2e… PORT=4000 pnpm --dir api dev

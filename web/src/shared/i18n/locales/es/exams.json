@@ -95,7 +95,7 @@
     "closed": "Examen cerrado",
     "delete": "Eliminar borrador",
     "deleted": "Borrador eliminado",
-    "lockedHint": "El examen ya tiene intentos: solo puedes cambiar instrucciones, cierre y si se muestra el resultado.",
+    "lockedHint": "El examen ya tiene intentos: solo puedes cambiar instrucciones, cierre y si se muestra el resultado (los reactivos quedan congelados).",
     "tabs": {
       "config": "Configuración",
       "questions": "Reactivos",
@@ -113,7 +113,15 @@
       "totalPoints": "Total: {{total}} puntos"
     },
     "time": "Hora",
-    "optionCount": "Opciones"
+    "optionCount": "Opciones",
+    "picker": {
+      "title": "Reactivos del examen",
+      "count": "{{count}} reactivo(s) · {{total}} punto(s)",
+      "hint": "Elige del banco del curso; los puntos se pueden ajustar por examen.",
+      "pickGroup": "Elige primero el grupo para ver sus reactivos.",
+      "bankEmpty": "El curso no tiene reactivos activos: créalos en Reactivos.",
+      "noMatches": "Sin coincidencias."
+    }
   },
   "results": {
     "enrolledCount": "Inscritos",

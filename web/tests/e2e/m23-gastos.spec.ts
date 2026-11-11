@@ -86,7 +86,8 @@ test("TEACHER no tiene acceso a gastos", async ({ page }) => {
 });
 
 test("el tablero de Inicio muestra ingresos contra gastos con datos reales", async ({ page }) => {
-  await signIn(page, E2E.control.username);
+  // Ganancias = dirección (admin): oficina solo ve cobranza.
+  await signIn(page, E2E.admin.username);
   await page.goto(route("/"));
   const board = page.locator("[data-role=dashboard]");
   // La gráfica y su leyenda: ahí viven los rótulos de dinero.

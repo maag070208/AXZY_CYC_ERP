@@ -18,6 +18,11 @@ export class TeacherController {
     res.json(paginatedTable(params, data, total));
   };
 
+  /** `GET /teachers/me`: el expediente de quien tiene la sesión. */
+  me = async (req: Request, res: Response) => {
+    res.json(await this.teachers.me(this.actor(req)));
+  };
+
   getById = async (req: Request, res: Response) => {
     res.json(await this.teachers.getById(req.params.id, this.actor(req)));
   };

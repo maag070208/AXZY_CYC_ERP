@@ -42,6 +42,19 @@ export const createReportRouters = (controller: ReportController) => {
     responses: { 200: { description: "Tablero" } },
   });
   registerPath({
+    method: "get", path: "/dashboard/student", tags: ["Reports"], security: bearer,
+    summary:
+      "Inicio del alumno: perfil, grupos y horario, exámenes por presentar, pagos, avance académico, expediente y avisos " +
+      "(students.view; cada bloque exige su permiso y se omite si falta)",
+    responses: {
+      200: {
+        description:
+          "{ student, groups, exams, payments, academic, documents, notifications }",
+      },
+      403: { description: "NOT_A_STUDENT (la cuenta no tiene expediente de alumno)" },
+    },
+  });
+  registerPath({
     method: "get", path: "/dashboard/executive", tags: ["Reports"], security: bearer,
     summary:
       "Tablero de Inicio: indicadores del ciclo frente al anterior, gastos contra ingresos, cartera, alertas y detalle operativo " +
@@ -63,6 +76,9 @@ export const createReportRouters = (controller: ReportController) => {
   reports.get("/:type", asyncHandler(controller.run));
 
   const dashboard = Router();
+  // El Inicio del alumno va **antes** del guard de `reports.view`: el alumno no
+  // ve reportes, pero sí su propio tablero (su permiso es `students.view`).
+  dashboard.get("/student", authenticate, requiresPermission("students.view"), asyncHandler(controller.student));
   dashboard.use(authenticate, requiresPermission("reports.view"));
   dashboard.get("/", asyncHandler(controller.dashboard));
   dashboard.get("/executive", asyncHandler(controller.executive));

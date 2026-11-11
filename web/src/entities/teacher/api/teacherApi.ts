@@ -5,6 +5,8 @@ import type { Teacher, TeacherInput } from "../model/types";
 export const teacherApi = {
   table: (params: ITDataTableFetchParamsPost) => tableRequest<Teacher>("/teachers/query", params),
   get: (id: string) => api.get<Teacher>(`/teachers/${id}`),
+  /** Expediente de quien tiene la sesión (`Mi Perfil` del profesor). */
+  me: () => api.get<Teacher>("/teachers/me"),
   /** Crea profesor + cuenta TEACHER y encola la invitación. */
   create: (data: TeacherInput) => api.post<Teacher & { invitationQueued: boolean }>("/teachers", data),
   update: (id: string, data: TeacherInput) => api.patch<Teacher>(`/teachers/${id}`, data),

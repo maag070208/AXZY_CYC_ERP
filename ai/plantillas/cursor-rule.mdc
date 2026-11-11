@@ -1,0 +1,17 @@
+---
+description: AXZY UI System — cómo usarlo en este proyecto
+globs: ["src/**/*.tsx", "src/**/*.ts"]
+alwaysApply: true
+---
+
+Usa la librería `@axzydev/axzy_ui_system` (React + TypeScript + Tailwind v4).
+
+- Instalación: `@import "@axzydev/axzy_ui_system/dist/index.css" layer(axzy-ui-system);` en tu CSS,
+  con `@layer theme, base, axzy-ui-system, components, utilities;` declarado antes.
+- Envuelve la app en `<ITThemeProvider>`. Nada de colores ni textos hardcodeados.
+- Antes de usar un componente o prop, **consúltalo en el catálogo** (`ai/catalogo.md`): no inventes props.
+- Textos vía `useITTranslation()` (`t("namespace.key")`); formateo con `formatNumber/formatCurrency/formatDate`.
+- Accesibilidad obligatoria: todo control con `label`/`ariaLabel`, nada de interactivos anidados,
+  contraste AA (acento en `primary-700` claro / `primary-500` oscuro).
+- Patrones de producción (chassis, listados, formularios, tablas con API, toasts): `ai/ejemplos-reales.md`.
+- Guía completa: `ai/AXZY-UI-SYSTEM.md`.

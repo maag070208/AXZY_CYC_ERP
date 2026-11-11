@@ -95,7 +95,7 @@
     "closed": "Exam closed",
     "delete": "Delete draft",
     "deleted": "Draft deleted",
-    "lockedHint": "The exam already has attempts: you can only change instructions, closing date and whether the result is shown.",
+    "lockedHint": "This exam already has attempts: you can only change instructions, closing time and whether the result is shown (questions are frozen).",
     "tabs": {
       "config": "Settings",
       "questions": "Questions",
@@ -113,7 +113,15 @@
       "totalPoints": "Total: {{total}} points"
     },
     "time": "Time",
-    "optionCount": "Options"
+    "optionCount": "Options",
+    "picker": {
+      "title": "Exam questions",
+      "count": "{{count}} question(s) · {{total}} point(s)",
+      "hint": "Pick from the course bank; points can be adjusted per exam.",
+      "pickGroup": "Choose the group first to see its questions.",
+      "bankEmpty": "This course has no active questions yet.",
+      "noMatches": "No matches."
+    }
   },
   "results": {
     "enrolledCount": "Enrolled",

@@ -26,6 +26,11 @@ export class StudentController {
     res.json(await this.students.summary(this.actor(req)));
   };
 
+  /** `GET /students/me`: el expediente de quien tiene la sesión. */
+  me = async (req: Request, res: Response) => {
+    res.json(await this.students.me(this.actor(req)));
+  };
+
   getById = async (req: Request, res: Response) => {
     res.json(await this.students.getById(req.params.id, this.actor(req)));
   };

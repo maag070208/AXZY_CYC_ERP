@@ -17,6 +17,8 @@ assertSafeDatabase();
 const RUN = newRunId();
 const CONTROL = { username: `${E2E_PREFIX}xcontrol_${RUN}`, name: "E2E Control Ejecutivo", roleKey: "SCHOOL_CONTROL" };
 const PUPIL = { username: `${E2E_PREFIX}xpupil_${RUN}`, name: "E2E Alumno Ejecutivo", roleKey: "STUDENT" };
+// Las ganancias y sus reportes son de dirección.
+const ADMIN = { username: `${E2E_PREFIX}xadmin_${RUN}`, name: "E2E Admin Ejecutivo", roleKey: "ADMIN" };
 
 let control: APIRequestContext;
 let prof: APIRequestContext;
@@ -36,6 +38,7 @@ const executive = (api: APIRequestContext, query: Record<string, string> = {}) =
 test.beforeAll(async () => {
   controlId = (await createAuthUser({ ...CONTROL, password: E2E.password })).id;
   await createAuthUser({ ...PUPIL, password: E2E.password });
+  await createAuthUser({ ...ADMIN, password: E2E.password });
   control = (await loginAs(CONTROL.username)).api;
   pupil = (await loginAs(PUPIL.username)).api;
 
@@ -200,8 +203,12 @@ test("exportación: los indicadores salen por el mismo motor de M10 y quedan en 
   expect(xlsx.status()).toBe(200);
   expect(xlsx.headers()["content-type"]).toContain("spreadsheetml");
   expect((await xlsx.body()).length).toBeGreaterThan(1000);
-  const pdf = await report(control, "income-vs-projection", { format: "pdf" });
+  // Los reportes con dinero son de dirección: oficina recibe 403.
+  expect((await report(control, "income-vs-projection", { format: "pdf" })).status()).toBe(403);
+  const { api: admin } = await loginAs(ADMIN.username);
+  const pdf = await report(admin, "income-vs-projection", { format: "pdf" });
   expect(pdf.headers()["content-type"]).toContain("application/pdf");
   expect((await pdf.body()).subarray(0, 4).toString()).toBe("%PDF");
-  await expect.poll(async () => (await lastAudit("REPORT_EXPORTED", controlId))?.entityId).toBe("income-vs-projection");
+  await admin.dispose();
+  await expect.poll(async () => (await lastAudit("REPORT_EXPORTED", controlId))?.entityId).toBe("dropout");
 });

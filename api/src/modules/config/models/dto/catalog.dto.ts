@@ -94,6 +94,10 @@ export const TermSchema = z
     startDate: z.string(),
     endDate: z.string(),
     active: z.boolean(),
+    /** Periodos del calendario (M22) con `current` en el que corre hoy. */
+    periods: z.array(
+      z.object({ name: z.string(), startDate: z.string(), endDate: z.string(), current: z.boolean() })
+    ),
     createdAt: z.string(),
     updatedAt: z.string(),
   })

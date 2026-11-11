@@ -165,6 +165,7 @@ export default function CatalogManager({ resource, canManage }: Props) {
       }
     >
       <ITDataTable
+      showViewToggle={false}
         columns={columns as unknown as Column<Record<string, unknown>>[]}
         fetchData={
           fx.fetchData as unknown as (p: ITDataTableFetchParams) => Promise<ITDataTableResponse<Record<string, unknown>>>

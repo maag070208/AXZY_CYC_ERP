@@ -13,6 +13,8 @@ interface Props {
   isOpen: boolean;
   /** Alumno ya elegido (desde su estado de cuenta). */
   student?: Pick<Student, "id" | "fullName" | "studentNumber"> | null;
+  /** Ciclo de la pantalla: el alta nace en el ciclo que se está cobrando. */
+  defaultTermId?: string;
   onClose: () => void;
   onSaved: (charge: Charge) => void;
 }
@@ -20,7 +22,7 @@ interface Props {
 const pickDay = (value: unknown): string => (value instanceof Date && !Number.isNaN(value.getTime()) ? toDay(value) : "");
 
 /** Cargo individual: alumno, concepto, ciclo, monto/descuento y vencimiento. */
-export default function ChargeFormDialog({ isOpen, student: fixed, onClose, onSaved }: Props) {
+export default function ChargeFormDialog({ isOpen, student: fixed, defaultTermId, onClose, onSaved }: Props) {
   const { t, i18n } = useTranslation(["finance", "courses", "common"]);
   const [student, setStudent] = useState<Pick<Student, "id" | "fullName" | "studentNumber"> | null>(null);
   const [concepts, setConcepts] = useState<FeeConcept[]>([]);
@@ -46,9 +48,9 @@ export default function ChargeFormDialog({ isOpen, student: fixed, onClose, onSa
     feeConceptApi.options().then(setConcepts).catch(() => setConcepts([]));
     termsApi.options().then((list) => {
       setTerms(list);
-      setTermId(list.find((x) => x.active)?.id ?? "");
+      setTermId(defaultTermId || list.find((x) => x.active)?.id || "");
     }).catch(() => setTerms([]));
-  }, [isOpen, fixed]);
+  }, [isOpen, fixed, defaultTermId]);
 
   const concept = concepts.find((c) => c.id === conceptId);
 

@@ -104,6 +104,22 @@ Cada proyecto tiene su `Dockerfile` (`api/Dockerfile`, `web/Dockerfile`) y la
 raíz los orquesta con `docker-compose.yml`. El API aplica `prisma migrate deploy`
 al arrancar; el seed es manual.
 
+### Cuentas para probar
+
+`pnpm --dir api run seed:demo` (idempotente) crea los datos de demostración y
+estas cuentas fijas. **La limpieza de las pruebas (`test:e2e:clean`) borra solo
+lo que lleva prefijo `e2e_`/`E2E`, así que nunca las elimina.**
+
+| Usuario | Contraseña | Rol |
+|---|---|---|
+| `admin` | `admin123` | ADMIN |
+| `aamaro` | `aamaro123` | STUDENT (con expediente, inscripción y adeudo) |
+| `marco` | `marco123` | TEACHER (con grupos) |
+| `karla` | `karla123` | SCHOOL_CONTROL (oficina) |
+| `alumno01`…`alumno50` | `123123` | STUDENT |
+
+Detalle en [`docs/operacion/entornos.md`](docs/operacion/entornos.md).
+
 ## Cómo contribuir
 
 Consulta [`CONTRIBUTING.md`](CONTRIBUTING.md): usa la

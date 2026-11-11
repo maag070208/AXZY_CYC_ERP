@@ -77,6 +77,8 @@ export const createStudentRouter = (controller: StudentController): Router => {
   router.get("/summary", requiresPermission("students.view"), asyncHandler(controller.summary));
   router.post("/export", requiresPermission("students.export"), asyncHandler(controller.export));
   router.post("/", requiresPermission("students.create"), asyncHandler(controller.create));
+  // `/me` va antes de `/:id`: si no, el parámetro se come la ruta.
+  router.get("/me", requiresPermission("students.view"), asyncHandler(controller.me));
   router.get("/:id", requiresPermission("students.view"), asyncHandler(controller.getById));
   router.patch("/:id", requiresPermission("students.edit"), asyncHandler(controller.update));
   router.delete("/:id", requiresPermission("students.delete"), asyncHandler(controller.remove));

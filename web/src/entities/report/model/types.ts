@@ -99,6 +99,11 @@ export interface DashboardAlerts {
  * del ciclo. Los bloques con montos vienen en `null` sin alcance institucional.
  */
 export interface ExecutiveDashboard {
+  /**
+   * Qué dinero incluye la respuesta: `institutional` = ganancias (solo admin),
+   * `collections` = adeudos, cartera y pagos (oficina).
+   */
+  scope: { institutional: boolean; collections: boolean };
   term: { id: string; name: string; startDate: string; endDate: string } | null;
   previousTerm: { id: string; name: string } | null;
   indicators: {
@@ -133,5 +138,79 @@ export interface ExecutiveDashboard {
   recentMovements: RecentRow[];
   groupsByOccupancy: GroupOccupancy[];
   alerts: DashboardAlerts;
+  generatedAt: string;
+}
+
+// --- Inicio del alumno (M21) ---------------------------------------------------
+
+export interface StudentScheduleSlot {
+  day: string;
+  startTime: string;
+  endTime: string;
+}
+
+export interface StudentGroupRow {
+  enrollmentId: string;
+  groupId: string;
+  groupName: string;
+  courseName: string;
+  teacherName: string | null;
+  classroom: string | null;
+  schedule: StudentScheduleSlot[];
+}
+
+export interface StudentExamRow {
+  examId: string;
+  title: string;
+  courseName: string;
+  groupName: string;
+  opensAt: string;
+  closesAt: string;
+  durationMin: number;
+  maxAttempts: number;
+  attemptsUsed: number;
+  state: "NOT_PUBLISHED" | "NOT_OPEN" | "CLOSED" | "OPEN";
+  inProgressAttemptId: string | null;
+  canStart: boolean;
+}
+
+export interface StudentPaymentRow {
+  id: string;
+  concept: string;
+  description: string | null;
+  dueDate: string;
+  total: number;
+  paid: number;
+  balance: number;
+  overdue: boolean;
+}
+
+export interface StudentSubjectRow {
+  courseName: string;
+  groupName: string;
+  finalGrade: number | null;
+  average: number | null;
+  status: "PASSED" | "FAILED" | "IN_PROGRESS" | "WITHDRAWN";
+  attendanceRate: number | null;
+  absences: number;
+  sessions: number;
+}
+
+/** Todo lo que el alumno ve en su Inicio; los bloques sin permiso vienen `null`. */
+export interface StudentDashboard {
+  student: {
+    id: string;
+    studentNumber: string;
+    name: string;
+    status: "ACTIVE" | "WITHDRAWN";
+    enrollmentDate: string;
+    levelName: string | null;
+  };
+  groups: StudentGroupRow[];
+  exams: { toTake: number; open: number; upcoming: number; next: StudentExamRow | null } | null;
+  payments: { paid: number; balance: number; overdue: number; pending: StudentPaymentRow[] } | null;
+  academic: { overallAverage: number | null; attendanceRate: number | null; subjects: StudentSubjectRow[] } | null;
+  documents: { pending: number; missing: Array<{ id: string; name: string }>; requiredCount: number } | null;
+  notifications: { unread: number; latest: Array<{ id: string; subject: string | null; body: string | null; createdAt: string; read: boolean }> } | null;
   generatedAt: string;
 }

@@ -13,6 +13,8 @@ export const studentApi = {
   table: (params: ITDataTableFetchParamsPost) => tableRequest<Student>("/students/query", params),
   summary: () => api.get<StudentSummary>("/students/summary"),
   get: (id: string) => api.get<Student>(`/students/${id}`),
+  /** Expediente de quien tiene la sesión (`Mi Perfil` del alumno). */
+  me: () => api.get<Student>("/students/me"),
   create: (data: StudentInput) => api.post<Student>("/students", data),
   update: (id: string, data: StudentInput) => api.patch<Student>(`/students/${id}`, data),
   /** Excel con los filtros vigentes de la tabla. */

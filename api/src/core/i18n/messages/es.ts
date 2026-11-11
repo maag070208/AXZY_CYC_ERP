@@ -188,6 +188,10 @@ export const es = {
     GENERATION_TARGET_REQUIRED: "Indica el grupo (scope=group) o el ciclo (scope=term)",
     LATE_FEES_DISABLED: "Los recargos por mora están desactivados en la configuración",
 
+    // --- Inicio del alumno (M21) ---
+    NOT_A_TEACHER: "Esta cuenta no tiene expediente de profesor",
+    NOT_A_STUDENT: "Esta cuenta no tiene expediente de alumno",
+
     // --- Gastos (M23) ---
     EXPENSE_NOT_FOUND: "Gasto no encontrado",
     EXPENSE_CANCELLED: "El gasto está cancelado: no admite cambios",

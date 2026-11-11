@@ -58,6 +58,7 @@ export default function CoursesTable({ fx, onAction }: Props) {
 
   return (
     <ITDataTable
+      showViewToggle={false}
       columns={columns as unknown as Column<Record<string, unknown>>[]}
       fetchData={fx.fetchTableData as unknown as (p: ITDataTableFetchParams) => Promise<ITDataTableResponse<Record<string, unknown>>>}
       reloadTrigger={fx.reloadKey}

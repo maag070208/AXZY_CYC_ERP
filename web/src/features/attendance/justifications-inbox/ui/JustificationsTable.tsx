@@ -124,6 +124,7 @@ export default function JustificationsTable({ reloadKey, onTotal, onResolved }: 
   return (
     <>
       <ITDataTable
+      showViewToggle={false}
         columns={columns as unknown as Column<Record<string, unknown>>[]}
         fetchData={fetchData as unknown as (p: ITDataTableFetchParams) => Promise<ITDataTableResponse<Record<string, unknown>>>}
         reloadTrigger={reloadKey}

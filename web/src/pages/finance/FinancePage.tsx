@@ -1,9 +1,10 @@
-import { useState } from "react";
-import { ITButton, ITConfirmDialog, ITFlex, ITPage, ITTabs, ITText } from "@axzydev/axzy_ui_system";
+import { useEffect, useState } from "react";
+import { ITAlert, ITButton, ITConfirmDialog, ITFlex, ITLoader, ITPage, ITSelect, ITTabs, ITText } from "@axzydev/axzy_ui_system";
 import { FaBolt, FaCashRegister, FaLayerGroup, FaPlus } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
 import { errorMessage, useNotify } from "@app/toast/useNotify";
 import { useCan } from "@entities/user";
+import { termsApi, type Term } from "@entities/config";
 import { chargeApi, paymentApi, type Charge, type Payment } from "@entities/finance";
 import { ChargesTable, type ChargeAction } from "@features/finance/charges-list";
 import { PaymentsTable, type PaymentAction } from "@features/finance/payments-list";
@@ -30,7 +31,47 @@ export default function FinancePage() {
   const [paying, setPaying] = useState<Charge | null>(null);
   const [cancellingCharge, setCancellingCharge] = useState<Charge | null>(null);
   const [cancellingPayment, setCancellingPayment] = useState<Payment | null>(null);
+  const [terms, setTerms] = useState<Term[]>([]);
+  const [termId, setTermId] = useState("");
+  const [periodName, setPeriodName] = useState("");
+  // Cobranza trabaja en el ciclo en curso: arranca en el activo ("" = todos).
+  const [activeTermId, setActiveTermId] = useState<string | null>(null);
+  // Hasta saber cuál es el ciclo activo no se consultan las tablas: evita traer
+  // todos los ciclos y corregir después.
+  const [termReady, setTermReady] = useState(false);
   const reload = () => setReloadKey((k) => k + 1);
+
+  // Periodos del ciclo elegido y el rango de vencimientos a filtrar.
+  const periods = terms.find((term) => term.id === termId)?.periods ?? [];
+  const period = periods.find((item) => item.name === periodName) ?? null;
+  // La tabla tipa los rangos con `Date`; el filtro viaja como ISO y la API lo
+  // recorta a día (`AAAA-MM-DD`).
+  const dueRange: [Date, Date] | null = period
+    ? [new Date(`${period.startDate}T00:00:00`), new Date(`${period.endDate}T00:00:00`)]
+    : null;
+  const currentPeriodName = (list: Term["periods"]): string => list.find((item) => item.current)?.name ?? "";
+
+  // Al cambiar de ciclo, el periodo vuelve al que corre en ese ciclo.
+  useEffect(() => {
+    const list = terms.find((term) => term.id === termId)?.periods ?? [];
+    setPeriodName(currentPeriodName(list));
+  }, [termId, terms]);
+
+  useEffect(() => {
+    let stale = false;
+    Promise.all([termsApi.options(), termsApi.active()])
+      .then(([options, active]) => {
+        if (stale) return;
+        setTerms(options);
+        setActiveTermId(active?.id ?? null);
+        setTermId(active?.id ?? "");
+      })
+      .catch(() => undefined)
+      .finally(() => !stale && setTermReady(true));
+    return () => {
+      stale = true;
+    };
+  }, []);
 
   const onChargeAction = (action: ChargeAction, charge: Charge) => (action === "pay" ? setPaying(charge) : setCancellingCharge(charge));
   const onPaymentAction = (action: PaymentAction, payment: Payment) =>
@@ -66,7 +107,30 @@ export default function FinancePage() {
       description={t("page.description")}
       icon={<FaCashRegister size={20} />}
       actions={
-        <ITFlex gap={2}>
+        <ITFlex gap={2} align="end">
+          <div className="w-[190px]">
+            <ITSelect
+              name="termId"
+              size="sm"
+              label={t("page.term")}
+              value={termId}
+              placeholder={t("page.allTerms")}
+              options={terms.map((term) => ({ value: term.id, label: term.name }))}
+              onChange={(e) => setTermId(e.target.value)}
+            />
+          </div>
+          <div className="w-[190px]">
+            <ITSelect
+              name="period"
+              size="sm"
+              label={t("page.period")}
+              value={periodName}
+              disabled={periods.length === 0}
+              placeholder={t("page.allPeriods")}
+              options={periods.map((item) => ({ value: item.name, label: item.name }))}
+              onChange={(e) => setPeriodName(e.target.value)}
+            />
+          </div>
           {canGenerate && (
             <ITButton variant="outlined" color="warning" onClick={() => setLateFees(true)}>
               <ITFlex align="center" gap={1}><FaBolt size={11} /><ITText className="font-bold text-[11px]">{t("charges.lateFees")}</ITText></ITFlex>
@@ -85,16 +149,22 @@ export default function FinancePage() {
         </ITFlex>
       }
     >
+      {activeTermId && termId !== activeTermId && (
+        <div className="mb-3">
+          <ITAlert variant={termId ? "warning" : "info"}>{termId ? t("page.notActiveTerm") : t("page.allTermsHint")}</ITAlert>
+        </div>
+      )}
       <ITTabs
         items={[
-          { id: "charges", label: t("page.tabs.charges"), content: <ChargesTable reloadKey={reloadKey} onAction={onChargeAction} /> },
-          { id: "payments", label: t("page.tabs.payments"), content: <PaymentsTable reloadKey={reloadKey} onAction={onPaymentAction} /> },
+          // `key` por ciclo: al cambiar de ciclo la tabla se rehace y consulta con el filtro nuevo.
+          { id: "charges", label: t("page.tabs.charges"), content: termReady ? <ChargesTable key={`charges-${termId}-${periodName}`} reloadKey={reloadKey} termId={termId} dueRange={dueRange} onAction={onChargeAction} /> : <ITLoader /> },
+          { id: "payments", label: t("page.tabs.payments"), content: termReady ? <PaymentsTable key={`payments-${termId}-${periodName}`} reloadKey={reloadKey} termId={termId} dueRange={dueRange} onAction={onPaymentAction} /> : <ITLoader /> },
           { id: "concepts", label: t("page.tabs.concepts"), content: <FeeConceptsPanel /> },
         ]}
       />
-      <ChargeFormDialog isOpen={creating} onClose={() => setCreating(false)}
+      <ChargeFormDialog isOpen={creating} defaultTermId={termId} onClose={() => setCreating(false)}
         onSaved={() => { setCreating(false); notify.success(t("charges.created")); reload(); }} />
-      <GenerateChargesDialog isOpen={generating} onClose={() => setGenerating(false)}
+      <GenerateChargesDialog isOpen={generating} defaultTermId={termId} onClose={() => setGenerating(false)}
         onDone={(result) => { setGenerating(false); notify.success(t("charges.generated", result)); reload(); }} />
       <RegisterPaymentDialog
         charge={paying}

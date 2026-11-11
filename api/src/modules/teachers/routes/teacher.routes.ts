@@ -61,6 +61,8 @@ export const createTeacherRouter = (controller: TeacherController): Router => {
   router.use(authenticate);
   router.post("/query", requiresPermission("teachers.view"), asyncHandler(controller.table));
   router.post("/", requiresPermission("teachers.create"), asyncHandler(controller.create));
+  // `/me` antes de `/:id`: si no, el parámetro se come la ruta.
+  router.get("/me", requiresPermission("teachers.view"), asyncHandler(controller.me));
   router.get("/:id", requiresPermission("teachers.view"), asyncHandler(controller.getById));
   router.patch("/:id", requiresPermission("teachers.edit"), asyncHandler(controller.update));
   router.post("/:id/deactivate", requiresPermission("teachers.edit"), asyncHandler(controller.deactivate));

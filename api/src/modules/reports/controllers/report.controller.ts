@@ -5,6 +5,7 @@ import { HttpError } from "@core/middlewares/error.middleware";
 import { scopeOf } from "@core/permissions";
 import type { AuditLogger } from "@modules/audit";
 import type { ExecutiveService } from "../services/executive.service";
+import type { StudentDashboardService } from "../services/student-dashboard.service";
 import type { ReportService } from "../services/report.service";
 import { toPdf, toXlsx } from "../services/report-export";
 
@@ -20,7 +21,8 @@ export class ReportController {
     private readonly reports: ReportService,
     private readonly executiveService: ExecutiveService,
     private readonly audit?: AuditLogger,
-    private readonly db: PrismaClient = prismaClient
+    private readonly db: PrismaClient = prismaClient,
+    private readonly studentDashboard?: StudentDashboardService
   ) {}
 
   catalog = async (req: Request, res: Response) => {
@@ -61,6 +63,13 @@ export class ReportController {
 
   dashboard = async (req: Request, res: Response) => {
     res.json(await this.reports.dashboard(actor(req)));
+  };
+
+  /** Inicio del alumno: su ciclo en una sola respuesta. */
+  student = async (req: Request, res: Response) => {
+    const user = actor(req);
+    if (!this.studentDashboard) throw new HttpError(500, "INTERNAL_ERROR");
+    res.json(await this.studentDashboard.dashboard(user, user));
   };
 
   /** Tablero ejecutivo (M21): indicadores del ciclo frente al anterior. */

@@ -53,5 +53,29 @@
     "title": "Reactivar a {{name}}",
     "message": "El profesor y su cuenta vuelven a estar activos.",
     "done": "Profesor reactivado"
+  },
+  "profile": {
+    "title": "Mi Perfil",
+    "description": "Tus datos, tus grupos y tu horario",
+    "data": "Datos",
+    "account": "Cuenta: {{username}}",
+    "groups": "Mis grupos",
+    "groupsHint": "{{count}} grupo(s) · {{courses}} materia(s)",
+    "noGroups": "Aún no tienes grupos asignados.",
+    "enrolled": "{{count}}/{{capacity}} alumnos",
+    "currentTerm": "Ciclo actual",
+    "schedule": "Mi horario",
+    "noSchedule": "Horario por confirmar.",
+    "footer": "Actualizado: {{date}}",
+    "notStaff": "Esta cuenta no tiene perfil de profesor ni de alumno."
+  },
+  "days": {
+    "MONDAY": "Lunes",
+    "TUESDAY": "Martes",
+    "WEDNESDAY": "Miércoles",
+    "THURSDAY": "Jueves",
+    "FRIDAY": "Viernes",
+    "SATURDAY": "Sábado",
+    "SUNDAY": "Domingo"
   }
 }

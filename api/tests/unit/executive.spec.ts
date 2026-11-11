@@ -1,5 +1,15 @@
 import { expect, test } from "@playwright/test";
-import { average, indicator, rate } from "../../src/modules/reports/models/entity/report";
+import {
+  catalogFromRows,
+  loadPermissionsFixture,
+  loadRolePermissionsFixture,
+  matrixFromRows,
+  resetCatalog,
+  resetMatrix,
+  setCatalog,
+  setMatrix,
+} from "../../src/core/permissions";
+import { average, indicator, rate, seesInstitutionalMoney } from "../../src/modules/reports/models/entity/report";
 
 /** Reglas puras de los indicadores ejecutivos (M21). */
 
@@ -34,5 +44,26 @@ test.describe("indicator", () => {
     expect(indicator(4, null)).toEqual({ value: 4, previous: null, delta: null, deltaPercent: null });
     expect(indicator(null, 3)).toEqual({ value: null, previous: 3, delta: null, deltaPercent: null });
     expect(indicator(5, 0)).toEqual({ value: 5, previous: 0, delta: 5, deltaPercent: null });
+  });
+});
+
+test.describe("alcance del dinero en los tableros", () => {
+  /** El alcance sale de la matriz de roles, no del mapa de la sesión. */
+  const conMatriz = (roles: string[]): never =>
+    ({ id: "u", roles, permissions: {} }) as never;
+
+  test("las ganancias exigen reportes institucionales y administrar egresos", () => {
+    // El catálogo también vive en la BD: sin él, `scopeOf` cierra todo (fail-closed).
+    setCatalog(catalogFromRows(loadPermissionsFixture()));
+    setMatrix(matrixFromRows(loadRolePermissionsFixture()));
+    // Dirección: reportes institucionales + egresos.
+    expect(seesInstitutionalMoney(conMatriz(["ADMIN"]))).toBe(true);
+    // Oficina: ve cobranza, no el resultado del ejercicio.
+    expect(seesInstitutionalMoney(conMatriz(["SCHOOL_CONTROL"]))).toBe(false);
+    // Profesor y alumno: ninguna de las dos.
+    expect(seesInstitutionalMoney(conMatriz(["TEACHER"]))).toBe(false);
+    expect(seesInstitutionalMoney(conMatriz(["STUDENT"]))).toBe(false);
+    resetMatrix();
+    resetCatalog();
   });
 });

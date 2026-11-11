@@ -10,6 +10,8 @@ import { formatMoney } from "@shared/lib/money";
 
 interface Props {
   isOpen: boolean;
+  /** Ciclo de la pantalla: la generación nace en el ciclo que se está cobrando. */
+  defaultTermId?: string;
   onClose: () => void;
   onDone: (result: { created: number; skipped: number }) => void;
 }
@@ -21,7 +23,7 @@ const newKey = () => `gen-${crypto.randomUUID()}`;
  * Generación masiva por grupo o ciclo. Cada apertura del diálogo usa su propia
  * `Idempotency-Key`: un doble clic o un reintento no duplican cargos.
  */
-export default function GenerateChargesDialog({ isOpen, onClose, onDone }: Props) {
+export default function GenerateChargesDialog({ isOpen, defaultTermId, onClose, onDone }: Props) {
   const { t, i18n } = useTranslation(["finance", "common"]);
   const [concepts, setConcepts] = useState<FeeConcept[]>([]);
   const [terms, setTerms] = useState<Term[]>([]);
@@ -29,6 +31,7 @@ export default function GenerateChargesDialog({ isOpen, onClose, onDone }: Props
   const [conceptId, setConceptId] = useState("");
   const [scope, setScope] = useState<"group" | "term">("group");
   const [termId, setTermId] = useState("");
+  // Se conserva el ciclo de la pantalla (si no, el activo).
   const [groupId, setGroupId] = useState("");
   const [description, setDescription] = useState("");
   const [dueDate, setDueDate] = useState("");
@@ -47,9 +50,9 @@ export default function GenerateChargesDialog({ isOpen, onClose, onDone }: Props
     feeConceptApi.options().then(setConcepts).catch(() => setConcepts([]));
     termsApi.options().then((list) => {
       setTerms(list);
-      setTermId(list.find((x) => x.active)?.id ?? list[0]?.id ?? "");
+      setTermId(defaultTermId || list.find((x) => x.active)?.id || list[0]?.id || "");
     }).catch(() => setTerms([]));
-  }, [isOpen]);
+  }, [isOpen, defaultTermId]);
 
   useEffect(() => {
     if (!isOpen || !termId) return;

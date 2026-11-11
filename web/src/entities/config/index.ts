@@ -8,5 +8,6 @@ export type {
   Setting,
   SettingKey,
   Term,
+  TermPeriod,
   TermInput,
 } from "./model/types";

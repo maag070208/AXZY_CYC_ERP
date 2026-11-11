@@ -106,6 +106,15 @@ tiene cuenta, el servicio crea el `User` y lo enlaza en la misma transacción.
    son obligatorios.
 9. Reenviar invitación es una acción explícita y auditada; no crea otra cuenta.
 
+### 4.1 El profesor entra a su propio expediente (D-061)
+
+`GET /teachers/me` devuelve el expediente del profesor de la sesión (403
+`NOT_A_TEACHER` si la cuenta no tiene uno) y la web lo usa en **Mi Perfil**
+(`/profile`): datos, grupos con alumnos/cupo, materias y horario. En el menú no
+ve «Personas» —el listado de profesores con su alcance `OWN` solo lo mostraría a
+él mismo—; en su lugar tiene **Mis alumnos**, que es la tabla de alumnos ya
+limitada a sus grupos por el alcance `AREA`.
+
 ## 5. API
 
 Módulo bajo `api/src/modules/teachers/` (`routes/ · controllers/ · services/ ·

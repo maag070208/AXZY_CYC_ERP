@@ -11,6 +11,22 @@ arranque** si faltan las variables requeridas.
 | `test` | Pruebas Playwright | Base local, aislada por prefijo `E2E` |
 | `production` | Operación real | Datos reales, respaldos activos |
 
+## 1.1 Cuentas fijas de demostración
+
+Las crea `pnpm --dir api run seed:demo` (idempotente: reejecutarlo no duplica y
+restablece las contraseñas). **No llevan prefijo `e2e_` ni nombres `E2E`, así que
+`test:e2e:clean` —que borra por prefijo— nunca las toca**: sirven para probar a
+mano en la base de desarrollo.
+
+| Usuario | Contraseña | Rol | Qué trae |
+|---|---|---|---|
+| `admin` | `admin123` | ADMIN | Todo el sistema |
+| `aamaro` | `aamaro123` | STUDENT | Expediente de alumno, inscrito al ciclo activo, con adeudo: su Inicio muestra materias, horario y pagos |
+| `marco` | `marco123` | TEACHER | Expediente de profesor con grupos asignados |
+| `karla` | `karla123` | SCHOOL_CONTROL | Oficina: alumnos, cobranza, calificaciones y reportes (sin montos institucionales) |
+| `martin` | `123123` | TEACHER | Profesor adicional |
+| `alumno01`…`alumno50` | `123123` | STUDENT | Alumnos de demo con expediente |
+
 ## 2. Variables requeridas al arranque
 
 | Variable | Descripción |

@@ -148,6 +148,16 @@ export class TeacherService {
     return toView(await this.load(id, user, "teachers.view"));
   }
 
+  /**
+   * Expediente del profesor de la sesión (`Mi Perfil`): la cuenta debe tener
+   * expediente propio; el alcance se aplica igual que en `getById`.
+   */
+  async me(user: UserPermissions): Promise<TeacherView> {
+    const row = await this.db.teacher.findUnique({ where: { userId: user.id }, select: { id: true } });
+    if (!row) throw new HttpError(403, "NOT_A_TEACHER");
+    return this.getById(row.id, user);
+  }
+
   private async assertEmailFree(email: string, except?: { teacherId?: string; userId?: string | null }): Promise<void> {
     const [teacher, user] = await Promise.all([
       this.db.teacher.findFirst({ where: { email, ...(except?.teacherId ? { NOT: { id: except.teacherId } } : {}) } }),

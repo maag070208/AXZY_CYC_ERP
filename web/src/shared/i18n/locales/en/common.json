@@ -55,7 +55,9 @@
     "adminAccess": "Access",
     "adminData": "Catalogs & settings",
     "adminSystem": "System",
-    "executive": "Executive dashboard"
+    "executive": "Executive dashboard",
+    "myProfile": "My profile",
+    "myStudents": "My students"
   },
   "errors": {
     "network": "Network or server error",
@@ -93,7 +95,9 @@
     "title": "Home",
     "description": "School Management System dashboard",
     "welcome": "Welcome, {{name}}",
-    "manageStudents": "Students"
+    "manageStudents": "Students",
+    "studentTitle": "Hi, {{name}}",
+    "studentDescription": "Your exams, payments, schedule and term progress"
   },
   "toast": {
     "saved": "Changes saved",

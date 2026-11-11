@@ -144,6 +144,7 @@ export default function UsersTable({ fx, roles, currentUserId, onAction }: Props
 
   return (
     <ITDataTable
+      showViewToggle={false}
       columns={columns as unknown as Column<Record<string, unknown>>[]}
       fetchData={
         fx.fetchTableData as unknown as (

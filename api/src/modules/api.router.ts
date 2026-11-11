@@ -59,6 +59,13 @@ finance.charges.setNotifier(notifications.service.notify);
 exams.exams.setNotifier(notifications.service.notify);
 attendance.attendance.setNotifier(notifications.service.notify);
 attendance.justifications.setNotifier(notifications.service.notify);
+// Inicio del alumno (M21): cada bloque lo sirve el módulo dueño de su regla.
+reports.studentDashboard.setExamSource(exams.attempts.available);
+reports.studentDashboard.setStatementSource((studentId, actor) => finance.charges.statement(studentId, actor));
+reports.studentDashboard.setKardexSource((studentId, actor, permission) => documents.kardex.get(studentId, actor, permission));
+reports.studentDashboard.setAttendanceSource((studentId, user) => attendance.attendance.studentSummary(studentId, user));
+reports.studentDashboard.setDocumentsSource((studentId, actor) => documents.documents.list(studentId, actor));
+reports.studentDashboard.setInboxSource((userId, limit) => notifications.service.mine(userId, limit));
 
 // Outbox: drena cada 15 s y busca pagos por vencer una vez por hora.
 if (process.env.NODE_ENV !== "test") {

@@ -6,11 +6,15 @@ import { curpCheckDigit, isValidCurp } from "../src/core/utils/curp";
  * Seed de DEMO (idempotente): usuarios del equipo + 50 alumnos con cuenta.
  * Reejecutar no duplica; restablece las contraseñas a las de demo.
  *
- *   admin   / admin123   (ADMIN)
- *   aamaro  / 123123     (SCHOOL_CONTROL)
- *   marco   / 123123     (TEACHER)
- *   martin  / 123123     (TEACHER)
+ *   admin   / admin123    (ADMIN)
+ *   karla   / karla123    (SCHOOL_CONTROL, "oficina")
+ *   marco   / marco123    (TEACHER, con expediente de profesor)
+ *   martin  / 123123      (TEACHER)
+ *   aamaro  / aamaro123   (STUDENT, con expediente, inscripción y adeudo)
  *   alumno01…alumno50 / 123123 (STUDENT, con expediente)
+ *
+ * Estas cuentas son FIJAS de demostración: no llevan prefijo `e2e_`/`E2E`, así
+ * que la limpieza de las suites (`test:e2e:clean`) nunca las toca.
  *
  * Uso: npm run seed:demo
  */
@@ -27,13 +31,23 @@ interface StaffSeed {
   roleKey: string;
   email: string;
   teacher?: { firstNames: string; surnames: string };
+  /** Cuenta de alumno: exige expediente propio para entrar a su Inicio. */
+  student?: { firstNames: string; paternalSurname: string; maternalSurname: string; birthDate: string; sex: "H" | "M" };
 }
 
 const STAFF: StaffSeed[] = [
   { username: "admin", password: "admin123", name: "Administrador", roleKey: "ADMIN", email: "admin@axzy.dev" },
-  { username: "aamaro", password: DEMO_PASSWORD, name: "A. Amaro", roleKey: "SCHOOL_CONTROL", email: "aamaro@axzy.dev" },
-  { username: "marco", password: DEMO_PASSWORD, name: "Marco Demo", roleKey: "TEACHER", email: "marco@axzy.dev", teacher: { firstNames: "Marco", surnames: "Demo" } },
+  { username: "karla", password: "karla123", name: "Karla Oficina", roleKey: "SCHOOL_CONTROL", email: "karla@axzy.dev" },
+  { username: "marco", password: "marco123", name: "Marco Demo", roleKey: "TEACHER", email: "marco@axzy.dev", teacher: { firstNames: "Marco", surnames: "Demo" } },
   { username: "martin", password: DEMO_PASSWORD, name: "Martín Demo", roleKey: "TEACHER", email: "martin@axzy.dev", teacher: { firstNames: "Martín", surnames: "Demo" } },
+  {
+    username: "aamaro",
+    password: "aamaro123",
+    name: "A. Amaro",
+    roleKey: "STUDENT",
+    email: "aamaro@axzy.dev",
+    student: { firstNames: "A.", paternalSurname: "Amaro", maternalSurname: "Demo", birthDate: "2004-02-10", sex: "H" },
+  },
 ];
 
 // --- utilidades CURP (deterministas y válidas) --------------------------------
@@ -128,11 +142,82 @@ async function main(): Promise<void> {
   for (const seed of STAFF) {
     const userId = await upsertUser(seed);
     if (seed.teacher) {
-      await prisma.teacher.upsert({
+      const teacher = await prisma.teacher.upsert({
         where: { email: seed.email },
         create: { firstNames: seed.teacher.firstNames, surnames: seed.teacher.surnames, email: seed.email, userId },
         update: { firstNames: seed.teacher.firstNames, surnames: seed.teacher.surnames, userId, status: "ACTIVE" },
+        select: { id: true },
       });
+      // Si no tiene grupos, se le asigna uno del ciclo activo para que su cuenta
+      // no entre vacía.
+      const teaching = await prisma.group.count({ where: { teacherId: teacher.id } });
+      if (teaching === 0) {
+        const free = await prisma.group.findFirst({
+          where: { active: true, teacherId: null, term: { active: true } },
+          orderBy: { name: "asc" },
+          select: { id: true },
+        });
+        if (free) await prisma.group.update({ where: { id: free.id }, data: { teacherId: teacher.id } });
+      }
+    }
+    if (seed.student) {
+      const info = seed.student;
+      const curp = buildCurp({
+        firstNames: info.firstNames,
+        paternalSurname: info.paternalSurname,
+        maternalSurname: info.maternalSurname,
+        date: info.birthDate,
+        sex: info.sex,
+        state: "DF",
+        homoclave: "A",
+      });
+      const student = await prisma.student.upsert({
+        where: { curp },
+        create: {
+          studentNumber: `DEMO-${seed.username.toUpperCase()}`.slice(0, 20),
+          firstNames: info.firstNames,
+          paternalSurname: info.paternalSurname,
+          maternalSurname: info.maternalSurname,
+          curp,
+          birthDate: new Date(`${info.birthDate}T00:00:00.000Z`),
+          email: seed.email,
+          enrollmentDate: new Date("2026-08-01T00:00:00.000Z"),
+          userId,
+        },
+        update: { userId, email: seed.email, status: "ACTIVE" },
+        select: { id: true },
+      });
+      // Inscripción al grupo del ciclo activo (una sola vez) para que su Inicio
+      // tenga materias, horario y adeudo con qué probarse.
+      const group = await prisma.group.findFirst({
+        where: { active: true, term: { active: true } },
+        orderBy: { name: "asc" },
+        select: { id: true },
+      });
+      if (group) {
+        const enrolled = await prisma.enrollment.findFirst({ where: { studentId: student.id, groupId: group.id } });
+        if (!enrolled) {
+          await prisma.enrollment.create({ data: { studentId: student.id, groupId: group.id, date: new Date("2026-08-20T00:00:00.000Z") } });
+        }
+        // Se prefiere un concepto con monto; el alta de cargos exige importe > 0.
+        const concept =
+          (await prisma.feeConcept.findFirst({ where: { active: true, amount: { gt: 0 } }, orderBy: { name: "asc" }, select: { id: true, amount: true } })) ??
+          (await prisma.feeConcept.findFirst({ where: { active: true }, orderBy: { name: "asc" }, select: { id: true, amount: true } }));
+        const charge = await prisma.charge.findFirst({ where: { studentId: student.id, conceptId: concept?.id ?? "" } });
+        if (concept && !charge) {
+          await prisma.charge.create({
+            data: {
+              studentId: student.id,
+              conceptId: concept.id,
+              description: `Demo ${seed.username}`,
+              amount: Number(concept.amount) > 0 ? concept.amount : 1200,
+              dueDate: new Date("2026-09-05T00:00:00.000Z"),
+            },
+          });
+        }
+      }
+      console.log(`staff: ${seed.username} (${seed.roleKey}, expediente de alumno)`);
+      continue;
     }
     console.log(`staff: ${seed.username} (${seed.roleKey})`);
   }

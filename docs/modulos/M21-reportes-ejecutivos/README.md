@@ -109,6 +109,16 @@ M18). Para optimizar se agregan, vía migración SQL, **índices de apoyo** y
     (programado o bajo demanda con `reports.export`); el usuario ve la marca de
     actualización.
 
+### 4.1 Dinero en el tablero: ganancias vs. cobranza (D-057)
+
+La respuesta trae `scope: { institutional, collections }` y la web no adivina:
+
+| Bloque | Quién | Qué incluye |
+|---|---|---|
+| **Ganancias** (`institutional`) | `reports.view = ALL` **y** `expenses.view` ≠ NONE (dirección) | Cartera del ciclo, ingresos vs. gastos, ingresos por concepto, gastos por tipo, indicadores de cobrado/proyectado/gastos y los reportes financieros |
+| **Cobranza** (`collections`) | `charges.view` ≠ NONE (oficina) | Adeudo vencido (4.º indicador), morosidad, alumnos con mayor riesgo y pagos recientes |
+| Ninguno | Profesor y alumno | Su cuarto indicador es operativo (grupos en alerta) |
+
 ## 5. API
 
 Módulo bajo `api/src/modules/reports/` (reutiliza servicios de M10)

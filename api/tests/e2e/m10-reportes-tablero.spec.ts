@@ -184,18 +184,33 @@ test("exportación xlsx y pdf con los mismos filtros, auditada; sin reports.expo
 });
 
 test("tablero: KPIs institucionales con alertas; el profesor sin montos y con sus grupos", async () => {
-  const kpis = await (await control.get(`dashboard/executive?termId=${termId}`)).json();
+  // Las ganancias (ingresos, gastos, posición) son de dirección: `admin`.
+  const { api: adminBoard } = await loginAs(ADMIN.username);
+  const kpis = await (await adminBoard.get(`dashboard/executive?termId=${termId}`)).json();
+  await adminBoard.dispose();
   expect(kpis.term.id).toBe(termId);
   // Un cargo vencido con saldo (1000 - 300): el alumno es el único con adeudo.
   expect(kpis.alerts.overdueDebt).toMatchObject({ count: 1, amount: 700 });
   expect(kpis.alerts.overdueDebt.students[0].name).toContain("RepA");
-  // Con alcance ALL el bloque financiero existe (puede estar en cero si el ciclo no es el activo).
+  // Con alcance institucional el bloque financiero existe (puede estar en cero si el ciclo no es el activo).
+  expect(kpis.scope).toEqual({ institutional: true, collections: true });
   expect(kpis.financialPosition).not.toBeNull();
   expect(kpis.incomeVsExpenses).not.toBeNull();
+
+  // Oficina: cobranza sí, ganancias no.
+  const office = await (await control.get(`dashboard/executive?termId=${termId}`)).json();
+  expect(office.scope).toEqual({ institutional: false, collections: true });
+  expect(office.financialPosition).toBeNull();
+  expect(office.incomeVsExpenses).toBeNull();
+  expect(office.expenses).toBeNull();
+  expect(office.indicators.collected).toBeNull();
+  expect(office.alerts.overdueDebt).toMatchObject({ count: 1, amount: 700 });
+  expect(office.recentPayments).toEqual(expect.any(Array));
   expect(kpis.groupsByOccupancy.length).toBeGreaterThan(0);
   expect(kpis.recentMovements).toEqual(expect.any(Array));
 
   const area = await (await prof.get(`dashboard/executive?termId=${termId}`)).json();
+  expect(area.scope).toEqual({ institutional: false, collections: false });
   expect(area).toMatchObject({
     expenses: null,
     financialPosition: null,

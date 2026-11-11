@@ -206,6 +206,33 @@ model Payment {
 10. El estado de cuenta del alumno suma todos los cargos vigentes y sus pagos.
 11. Un cargo cancelado no cuenta para adeudos ni para ingresos.
 
+### 4.1 El ciclo manda en Cobranza (D-058) y el periodo también (D-059)
+
+La pantalla abre en el **ciclo activo** (`GET /terms/active`) con selector para
+cambiar de ciclo o ver «Todos los ciclos» (avisa cuando no es el activo). Las
+altas —cargo individual y generación masiva— nacen en el ciclo que se está
+cobrando; si la vista está en «Todos», usan el activo. El filtro `termId` existe
+en Cargos y en Pagos (por el cargo). **Cobrar no está limitado al ciclo:** un
+cargo con saldo de un ciclo anterior se puede pagar (para eso está el selector).
+
+Además hay **selector de Periodo**, que sale del calendario del ciclo
+(`Term.calendar`, M22) y **abre en el que corre hoy**. El filtro es por
+vencimiento del cargo, aplicado en Cargos y en Pagos; «Todos los periodos» lo
+quita. Un ciclo sin calendario no ofrece periodos.
+
+### 4.2 Filtros rápidos (D-060)
+
+Dentro de la tabla, sin abrir filtros de columna:
+
+| Vista | Filtros rápidos (por defecto en negrita) |
+|---|---|
+| Cargos | **Sin pagar** · Vencidos · Pagados · Todos |
+| Pagos | **Vigentes** · Cancelados · Todos |
+
+«Sin pagar» usa el filtro `pending` de la API (`PENDING`/`PARTIAL`); se combina
+con el ciclo y el periodo de la pantalla. Las tablas de la app van **sin el
+conmutador Tabla|Cards** (`showViewToggle={false}`, UI System 1.6.0).
+
 ## 5. API
 
 Módulo único `api/src/modules/finance/` (conceptos, cargos y pagos)

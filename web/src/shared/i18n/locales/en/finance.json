@@ -6,7 +6,13 @@
       "charges": "Charges",
       "payments": "Payments",
       "concepts": "Concepts"
-    }
+    },
+    "term": "Term",
+    "allTerms": "All terms",
+    "notActiveTerm": "You are viewing a term that is not the current one.",
+    "allTermsHint": "Viewing all terms: includes previous balances.",
+    "period": "Period",
+    "allPeriods": "All periods"
   },
   "money": {
     "currency": "MXN"
@@ -137,5 +143,13 @@
     "generated": "Generated on {{date}}",
     "noPayments": "No payments"
   },
-  "reasonRequired": "Write a reason (at least 3 characters)"
+  "reasonRequired": "Write a reason (at least 3 characters)",
+  "quick": {
+    "pending": "Unpaid",
+    "overdue": "Overdue",
+    "paid": "Paid",
+    "all": "All",
+    "active": "Valid",
+    "cancelled": "Cancelled"
+  }
 }

@@ -47,12 +47,22 @@ export interface CatalogInput {
 }
 
 /** Ciclo escolar; fechas como día del calendario `AAAA-MM-DD`. */
+/** Periodo del calendario del ciclo (M22), con el que corre hoy marcado. */
+export interface TermPeriod {
+  name: string;
+  startDate: string;
+  endDate: string;
+  current: boolean;
+}
+
 export interface Term {
   id: string;
   name: string;
   startDate: string;
   endDate: string;
   active: boolean;
+  /** Calendario del ciclo: cuatrimestres/semestres, en orden. */
+  periods: TermPeriod[];
   createdAt: string;
   updatedAt: string;
 }

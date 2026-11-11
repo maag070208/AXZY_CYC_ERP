@@ -53,5 +53,29 @@
     "title": "Reactivate {{name}}",
     "message": "The teacher and their account become active again.",
     "done": "Teacher reactivated"
+  },
+  "profile": {
+    "title": "My profile",
+    "description": "Your details, your groups and your schedule",
+    "data": "Details",
+    "account": "Account: {{username}}",
+    "groups": "My groups",
+    "groupsHint": "{{count}} group(s) · {{courses}} subject(s)",
+    "noGroups": "You have no groups assigned yet.",
+    "enrolled": "{{count}}/{{capacity}} students",
+    "currentTerm": "Current term",
+    "schedule": "My schedule",
+    "noSchedule": "Schedule to be confirmed.",
+    "footer": "Updated: {{date}}",
+    "notStaff": "This account has no teacher or student profile."
+  },
+  "days": {
+    "MONDAY": "Monday",
+    "TUESDAY": "Tuesday",
+    "WEDNESDAY": "Wednesday",
+    "THURSDAY": "Thursday",
+    "FRIDAY": "Friday",
+    "SATURDAY": "Saturday",
+    "SUNDAY": "Sunday"
   }
 }

@@ -9,6 +9,7 @@ import AuditPage from "@pages/audit/AuditPage";
 import CatalogsPage from "@pages/catalogs/CatalogsPage";
 import SettingsPage from "@pages/settings/SettingsPage";
 import ChangePasswordPage from "@pages/account/ChangePasswordPage";
+import ProfilePage from "@pages/profile/ProfilePage";
 import StudentsListPage from "@pages/students/StudentsListPage";
 import StudentFormPage from "@pages/students/StudentFormPage";
 import StudentDetailPage from "@pages/students/StudentDetailPage";
@@ -48,6 +49,14 @@ export default function App() {
       <Route element={<PrivateRoutes />}>
         <Route path="/" element={<HomePage />} />
 
+        <Route
+          path="/profile"
+          element={
+            <RequiresPermission permission="students.view">
+              <ProfilePage />
+            </RequiresPermission>
+          }
+        />
         <Route
           path="/students"
           element={

@@ -176,6 +176,10 @@ export const en: Messages = {
     GENERATION_TARGET_REQUIRED: "Provide the group (scope=group) or the term (scope=term)",
     LATE_FEES_DISABLED: "Late fees are disabled in the settings",
 
+    // --- Inicio del alumno (M21) ---
+    NOT_A_TEACHER: "This account has no teacher record",
+    NOT_A_STUDENT: "This account has no student record",
+
     // --- Expenses (M23) ---
     EXPENSE_NOT_FOUND: "Expense not found",
     EXPENSE_CANCELLED: "The expense is cancelled: it does not accept changes",

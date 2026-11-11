@@ -1,6 +1,7 @@
 import type { Prisma, PrismaClient } from "@prisma/client";
 import { prismaClient } from "@core/config/database";
 import { HttpError } from "@core/middlewares/error.middleware";
+import { seesInstitutionalMoney } from "../models/entity/report";
 import { scopeOf, type UserPermissions } from "@core/permissions";
 import { t, type MessageKey } from "@core/i18n";
 import { fromDbDay, todayInBusinessZone } from "@core/utils/day";
@@ -103,6 +104,12 @@ export interface DashboardAlerts {
 }
 
 export interface ExecutiveDashboard {
+  /**
+   * Qué dinero trae la respuesta: `institutional` = ganancias (ingresos, gastos,
+   * utilidad; solo `reports.view = ALL`) y `collections` = adeudos, cartera y
+   * pagos (oficina). El profesor recibe ambos en `false`.
+   */
+  scope: { institutional: boolean; collections: boolean };
   term: { id: string; name: string; startDate: string; endDate: string } | null;
   previousTerm: { id: string; name: string } | null;
   indicators: {
@@ -687,7 +694,11 @@ export class ExecutiveService {
    * completo solo existe con alcance institucional (`reports.view = ALL`).
    */
   async dashboard(user: UserPermissions, filters: ReportFilters): Promise<ExecutiveDashboard> {
-    const all = scopeOf(user, "reports.view") === "ALL";
+    // Las ganancias (ingresos, gastos, utilidad) son de dirección: además de
+    // reportes institucionales, hay que administrar egresos.
+    const all = seesInstitutionalMoney(user);
+    // Cobranza: adeudos y pagos. La ve oficina (charges.view) además del admin.
+    const collections = scopeOf(user, "charges.view") !== "NONE";
     const term = await this.term(filters.termId);
     const previousTerm = term ? await this.previousTerm(term) : null;
     const [current, previous, previousExpenses] = await Promise.all([
@@ -736,16 +747,19 @@ export class ExecutiveService {
       .map(([levelId, bucket]) => ({ levelId, levelName: bucket.name, enrolledCount: bucket.enrolledCount, share: rate(bucket.enrolledCount, current.enrolledCount) }))
       .sort((a, b) => b.enrolledCount - a.enrolledCount);
 
-    // Bloque financiero: solo con alcance institucional. `null` para el profesor.
+    // Dos niveles de dinero: **ganancias** (ingresos, gastos, utilidad) solo con
+    // alcance institucional `reports.view = ALL` (admin), y **cobranza** (adeudos,
+    // cartera y pagos) para quien puede ver cargos —oficina—. El profesor no ve
+    // ninguno de los dos.
     const [money, previousMoney, incomeVsProjection, expenses, expenseMonths, incomeByConcept, overdue, payments, enrollmentTrend, recentMovements] = await Promise.all([
-      all ? this.finance(term?.id ?? null) : null,
+      all || collections ? this.finance(term?.id ?? null) : null,
       all && previousTerm ? this.finance(previousTerm.id) : null,
       all ? this.incomeByMonth(term?.id ?? null) : null,
       all ? this.expenseSummary(term?.id ?? null) : null,
       all ? this.expenseSeries(term?.id ?? null) : null,
       all ? this.incomeByConcept(term?.id ?? null) : null,
-      all ? this.overdueAlerts(term?.id ?? null) : null,
-      all ? this.recentPayments(term?.id ?? null) : null,
+      collections ? this.overdueAlerts(term?.id ?? null) : null,
+      collections ? this.recentPayments(term?.id ?? null) : null,
       this.trend(user, filters, term, 6),
       this.recentMovements(term),
     ]);
@@ -773,6 +787,9 @@ export class ExecutiveService {
       (alerts.overdueDebt ? 1 : 0) + (alerts.pendingDocuments ? 1 : 0) + (alerts.fullGroups ? 1 : 0);
 
     return {
+      // Qué dinero incluye esta respuesta: `institutional` = ganancias (admin),
+      // `collections` = adeudos y cobranza (oficina). La web no adivina.
+      scope: { institutional: all, collections },
       term: term && { id: term.id, name: term.name, startDate: fromDbDay(term.startDate), endDate: fromDbDay(term.endDate) },
       previousTerm: previousTerm && { id: previousTerm.id, name: previousTerm.name },
       indicators: {
@@ -784,11 +801,11 @@ export class ExecutiveService {
         occupancy: indicator(current.occupancy, previous?.occupancy ?? null),
         attendanceRate: indicator(attendance, null),
         pendingDocuments: documents.documents > 0 ? indicator(documents.documents, null) : null,
-        delinquencyRate: money && indicator(money.delinquencyRate, previousMoney?.delinquencyRate ?? null),
-        pendingAmount: money && indicator(money.pendingAmount, previousMoney?.pendingAmount ?? null),
-        collected: money && indicator(money.collected, previousMoney?.collected ?? null),
-        projected: money && indicator(money.projected, previousMoney?.projected ?? null),
-        expenses: expenses && indicator(expenses.total, previousExpenses?.total ?? null),
+        delinquencyRate: collections && money ? indicator(money.delinquencyRate, previousMoney?.delinquencyRate ?? null) : null,
+        pendingAmount: collections && money ? indicator(money.pendingAmount, previousMoney?.pendingAmount ?? null) : null,
+        collected: all && money ? indicator(money.collected, previousMoney?.collected ?? null) : null,
+        projected: all && money ? indicator(money.projected, previousMoney?.projected ?? null) : null,
+        expenses: all && expenses ? indicator(expenses.total, previousExpenses?.total ?? null) : null,
       },
       movements,
       enrollmentByLevel,
@@ -796,11 +813,11 @@ export class ExecutiveService {
       incomeVsProjection,
       incomeVsExpenses,
       expenses: expenses && { total: expenses.total, paid: expenses.paid, pending: expenses.pending, count: expenses.count, byType: expenses.byType },
-      financialPosition: money && {
-        collected: money.collected,
-        receivable: money.projected - money.collected,
-        overdue: money.pendingAmount,
-      },
+      // Posición financiera = ganancias: no viaja a quien solo ve cobranza.
+      financialPosition:
+        all && money
+          ? { collected: money.collected, receivable: money.projected - money.collected, overdue: money.pendingAmount }
+          : null,
       incomeByConcept,
       recentPayments: payments,
       recentMovements,

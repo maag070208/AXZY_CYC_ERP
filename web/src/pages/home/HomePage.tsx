@@ -13,6 +13,7 @@ import { useCan } from "@entities/user";
 import { KpiTile } from "@shared/ui/kpi-tile";
 import { PanelCard } from "@shared/ui/panel-card";
 import { DashboardView } from "@widgets/dashboard";
+import { StudentDashboardView } from "@widgets/student-dashboard";
 
 /**
  * `/` — Inicio (M21 ampliado): tablero ejecutivo del ciclo. Los filtros son los
@@ -27,6 +28,9 @@ export default function HomePage() {
   const canLevels = useCan("levels.view");
   const canCourses = useCan("courses.view");
   const canCreateStudents = useCan("students.create");
+  // El alumno se reconoce por sus permisos `OWN` de alumno; el widget confirma
+  // contra la API si la cuenta tiene expediente (`NOT_A_STUDENT`).
+  const isStudent = (user?.roles ?? (user?.role ? [user.role] : [])).includes("STUDENT");
   const [terms, setTerms] = useState<Term[]>([]);
   const [levels, setLevels] = useState<Array<{ id: string; name: string }>>([]);
   const [courses, setCourses] = useState<CourseOption[]>([]);
@@ -113,8 +117,22 @@ export default function HomePage() {
     );
   }
 
-  const permissionCount = Object.keys(user?.permissions ?? {}).length;
-  const roles = (user?.roles ?? (user?.role ? [user.role] : [])).join(", ");
+  // Inicio del alumno: sus exámenes, pagos, horario, avance y avisos. Sin el
+  // resumen de sesión (rol y permisos): eso no le dice nada y su expediente vive
+  // en «Mi Perfil».
+  if (isStudent) {
+    return (
+      <ITPage
+        className="m-0! px-4! max-w-screen!"
+        noPadding
+        title={t("home.studentTitle", { name: (user?.name ?? "").split(" ")[0] })}
+        description={t("home.studentDescription")}
+        icon={<FaHouseUser size={20} />}
+      >
+        <StudentDashboardView />
+      </ITPage>
+    );
+  }
 
   return (
     <ITPage
@@ -124,6 +142,20 @@ export default function HomePage() {
       description={t("home.description")}
       icon={<FaHouseUser size={20} />}
     >
+      <SessionSummary />
+    </ITPage>
+  );
+}
+
+/** Resumen de la propia sesión (roles y permisos) para quien no tiene tablero. */
+function SessionSummary() {
+  const { t } = useTranslation(["common"]);
+  const user = useSelector((s: RootState) => s.auth.user);
+  const permissionCount = Object.keys(user?.permissions ?? {}).length;
+  const roles = (user?.roles ?? (user?.role ? [user.role] : [])).join(", ");
+
+  return (
+    <>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <KpiTile
           label={t("home.title")}
@@ -141,6 +173,6 @@ export default function HomePage() {
           <p className="text-[12px] text-slate-600">{t("home.welcome", { name: user?.name ?? "" })}</p>
         </PanelCard>
       </div>
-    </ITPage>
+    </>
   );
 }

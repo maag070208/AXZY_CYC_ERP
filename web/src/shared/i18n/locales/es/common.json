@@ -55,7 +55,9 @@
     "adminAccess": "Accesos",
     "adminData": "Catálogos y configuración",
     "adminSystem": "Sistema",
-    "executive": "Tablero ejecutivo"
+    "executive": "Tablero ejecutivo",
+    "myProfile": "Mi Perfil",
+    "myStudents": "Mis alumnos"
   },
   "errors": {
     "network": "Error de red o del servidor",
@@ -93,7 +95,9 @@
     "title": "Inicio",
     "description": "Panel del Sistema de Gestión Escolar",
     "welcome": "Bienvenido, {{name}}",
-    "manageStudents": "Alumnos"
+    "manageStudents": "Alumnos",
+    "studentTitle": "Hola, {{name}}",
+    "studentDescription": "Tus exámenes, pagos, horario y avance del ciclo"
   },
   "toast": {
     "saved": "Cambios guardados",

@@ -1,5 +1,5 @@
-import { useCallback } from "react";
-import { ITBadget, ITButton, ITDataTable, ITFlex, ITText } from "@axzydev/axzy_ui_system";
+import { useCallback, useState } from "react";
+import { ITBadget, ITButton, ITDataTable, ITFlex, ITSegmentedControl, ITText } from "@axzydev/axzy_ui_system";
 import type { Column, ITDataTableFetchParams, ITDataTableResponse } from "@axzydev/axzy_ui_system";
 import { FaBan, FaReceipt } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
@@ -10,20 +10,42 @@ import { formatMoney } from "@shared/lib/money";
 
 export type PaymentAction = "receipt" | "cancel";
 
+/** Filtros rápidos del historial: vigentes por defecto (los cancelados estorban). */
+type QuickKey = "quick.active" | "quick.cancelled" | "quick.all";
+
+const QUICK: Array<{ value: string; key: QuickKey; filters: Record<string, unknown> }> = [
+  { value: "active", key: "quick.active", filters: { cancelled: false } },
+  { value: "cancelled", key: "quick.cancelled", filters: { cancelled: true } },
+  { value: "all", key: "quick.all", filters: {} },
+];
+
 interface Props {
   reloadKey: number;
+  /** Ciclo en curso de la pantalla ("" = todos). */
+  termId: string;
+  /** Rango de vencimientos del periodo elegido (`null` = todos). */
+  dueRange: [Date, Date] | null;
   onAction: (action: PaymentAction, payment: Payment) => void;
 }
 
 /** Pagos server-side (`POST /payments/query`) con recibo y cancelación. */
-export default function PaymentsTable({ reloadKey, onAction }: Props) {
+export default function PaymentsTable({ reloadKey, termId, dueRange, onAction }: Props) {
   const { t, i18n } = useTranslation(["finance", "common"]);
+  const [quick, setQuick] = useState(QUICK[0]);
+  const [quickTick, setQuickTick] = useState(0);
   const canCancel = useCan("payments.cancel");
 
   const fetchData = useCallback(async (params: ITDataTableFetchParams) => {
-    const res = await paymentApi.table({ page: params.page, limit: params.limit, filters: params.filters, sort: params.sort });
+    // Ciclo y periodo de la pantalla mandan sobre los filtros de columna.
+    const filters = {
+      ...(params.filters ?? {}),
+      ...(termId ? { termId } : {}),
+      ...(dueRange ? { dueDate: dueRange } : {}),
+      ...quick.filters,
+    };
+    const res = await paymentApi.table({ page: params.page, limit: params.limit, filters, sort: params.sort });
     return { data: res.data as unknown as Record<string, unknown>[], total: res.total };
-  }, []);
+  }, [termId, dueRange, quick]);
 
   const columns: Column<Payment>[] = [
     {
@@ -85,10 +107,23 @@ export default function PaymentsTable({ reloadKey, onAction }: Props) {
   ];
 
   return (
+    <div className="flex flex-col gap-3">
+      <ITSegmentedControl
+        size="sm"
+        value={quick.value}
+        onChange={(value) => {
+          const next = QUICK.find((item) => item.value === value);
+          if (!next) return;
+          setQuick(next);
+          setQuickTick((n) => n + 1);
+        }}
+        options={QUICK.map((item) => ({ value: item.value, label: t(item.key) }))}
+      />
     <ITDataTable
+      showViewToggle={false}
       columns={columns as unknown as Column<Record<string, unknown>>[]}
       fetchData={fetchData as unknown as (p: ITDataTableFetchParams) => Promise<ITDataTableResponse<Record<string, unknown>>>}
-      reloadTrigger={reloadKey}
+      reloadTrigger={reloadKey + quickTick}
       defaultItemsPerPage={25}
       itemsPerPageOptions={[25, 50, 100]}
       layout="fixed"
@@ -97,5 +132,6 @@ export default function PaymentsTable({ reloadKey, onAction }: Props) {
       virtualizedMaxHeight={400}
       rowHeight={50}
     />
+    </div>
   );
 }

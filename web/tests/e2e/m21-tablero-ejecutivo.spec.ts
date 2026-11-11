@@ -33,10 +33,12 @@ test("SCHOOL_CONTROL ve el tablero de Inicio con indicadores, alertas y filtros"
   for (const label of ["Alumnos inscritos", "Ocupación de grupos", "Promedio general"]) {
     await expect(kpis.getByText(label, { exact: true })).toBeVisible();
   }
-  // Con alcance institucional aparece el bloque financiero y el indicador de dinero.
+  // Oficina ve cobranza (adeudo y morosos) pero **no** las ganancias: eso es de dirección.
   const finance = page.locator("[data-role=dashboard-finance]");
-  await expect(finance.getByText("Ingresos vs. gastos")).toBeVisible();
   await expect(kpis.getByText("Adeudo vencido", { exact: true })).toBeVisible();
+  await expect(finance.getByText("Ingresos vs. gastos")).toHaveCount(0);
+  await expect(page.getByText("Cartera del ciclo", { exact: true })).toHaveCount(0);
+  await expect(page.getByText("Gastos por tipo", { exact: true })).toHaveCount(0);
   // Los paneles están siempre; las gráficas pintan cuando el ciclo tiene datos.
   await expect(finance.getByText("Alumnos por nivel")).toBeVisible();
   await expect(board.getByText("Rendimiento académico por grupo")).toBeVisible();

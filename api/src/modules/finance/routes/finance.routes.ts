@@ -72,7 +72,7 @@ export const createFeeConceptRouter = (c: FinanceController): Router => {
 };
 
 export const createChargeRouter = (c: FinanceController): Router => {
-  doc("post", "/charges/query", "Tabla de cargos (charges.view; OWN = sus cargos)", {
+  doc("post", "/charges/query", "Tabla de cargos (charges.view; OWN = sus cargos). Filtros: status, pending (con saldo / pagado), overdue, conceptType, termId, dueDate, alumno", {
     request: { body: { required: true, content: json(TableQuerySchema) } },
     responses: { 200: { description: "Página", content: json(ChargeTableResponseSchema) } },
   });

@@ -129,7 +129,10 @@ export default function DashboardView({ filters }: { filters: ExecutiveFilters }
   };
 
   const { indicators, alerts } = data;
-  const finance = indicators.collected !== null;
+  // Ganancias (ingresos, gastos, utilidad): solo alcance institucional (admin).
+  // Cobranza (adeudos, cartera, pagos): oficina. El profesor no ve ninguna.
+  const institutional = data.scope?.institutional ?? indicators.collected !== null;
+  const collections = data.scope?.collections ?? indicators.pendingAmount !== null;
 
   const incomeExpenses = (data.incomeVsExpenses ?? []).map((row) => ({
     label: monthName(row.month, locale),
@@ -221,8 +224,8 @@ export default function DashboardView({ filters }: { filters: ExecutiveFilters }
       delta: versus(indicators.averageGrade, "grade"),
       hint: t("home.attendanceHintValue", { value: value(indicators.attendanceRate, "percent") }),
     },
-    // Sin alcance institucional el cuarto indicador es operativo, no de dinero.
-    finance
+    // Con cobranza el cuarto indicador es el adeudo; sin ella, uno operativo.
+    collections
       ? {
           label: t("home.overdue"),
           value: value(indicators.pendingAmount, "money"),
@@ -263,7 +266,7 @@ export default function DashboardView({ filters }: { filters: ExecutiveFilters }
 
       {/* 2. Gráficas centrales: ingresos vs. gastos, distribución y rendimiento */}
       <div className="grid grid-cols-1 gap-3 xl:grid-cols-3" data-role="dashboard-finance">
-        {finance && (
+        {institutional && (
           <div className="xl:col-span-2">
             <PanelCard title={t("home.incomeVsExpenses")} description={data.term.name}>
               {incomeExpenses.length === 0 ? (
@@ -339,8 +342,8 @@ export default function DashboardView({ filters }: { filters: ExecutiveFilters }
         </div>
       </div>
 
-      {/* 3. Finanzas de detalle (cada tarjeta con su total al pie) */}
-      {finance && (
+      {/* 3. Finanzas de detalle: ganancias, solo institucional */}
+      {institutional && (
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
           {position && (
             <PanelCard
@@ -433,7 +436,7 @@ export default function DashboardView({ filters }: { filters: ExecutiveFilters }
 
       {/* 4. Operación escolar: cobros, movimientos y grupos */}
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
-        {finance && (
+        {collections && (
           <PanelCard
             title={t("home.recentPayments")}
             actions={canFinance ? <SeeAll label={t("home.seeAll")} onClick={() => navigate("/finance")} /> : undefined}

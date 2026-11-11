@@ -12,6 +12,7 @@ import {
 } from "@core/utils/table";
 import type { AuditLogger } from "@modules/audit";
 import type { TermCreateInput, TermUpdateInput } from "../models/dto/catalog.dto";
+import { parsePeriods } from "../models/entity/term-rules";
 
 /** `AAAA-MM-DD` ↔ `@db.Date` (medianoche UTC, sin corrimiento de zona). */
 const toDay = (value: string): Date => new Date(`${value}T00:00:00.000Z`);
@@ -23,6 +24,8 @@ const toView = (row: Term) => ({
   startDate: fromDay(row.startDate),
   endDate: fromDay(row.endDate),
   active: row.active,
+  /** Periodos del calendario del ciclo, con el de hoy marcado. */
+  periods: parsePeriods(row.calendar, fromDay(new Date())),
   createdAt: row.createdAt.toISOString(),
   updatedAt: row.updatedAt.toISOString(),
 });

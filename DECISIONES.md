@@ -445,6 +445,86 @@ Plantilla:
 | Permisos por rol/acción | RBAC dinámico + ABAC + alcances (D-009) |
 | Paginación `?page=&limit=` | Contrato server-side `POST …/query` (D-010) |
 
+### D-056 — Inicio del alumno: un tablero propio, servido por los módulos dueños
+
+- **Fecha:** 2026-10-16
+- **Estado:** aceptada
+- **Contexto:** el alumno entraba a Inicio y veía un resumen de su sesión (nombre, rol y cuántos permisos tiene), que no le dice nada de su ciclo. Necesita lo mismo que el personal pero sobre sí mismo: qué exámenes tiene por presentar, cuánto debe y cuándo vence, su horario, cómo va en cada materia, qué documentos le faltan y qué avisos tiene.
+- **Decisión:**
+  - **Un solo endpoint, `GET /dashboard/student`**, que resuelve al alumno **desde la sesión** (`Student.userId`), nunca por un id de la URL: no existe forma de pedir el tablero de otro. Si la cuenta no tiene expediente responde `403 NOT_A_STUDENT` y la pantalla cae al resumen de sesión.
+  - **Cada bloque lo calcula el módulo dueño de la regla**, conectado por puerto en `api.router.ts`: exámenes por presentar de M16 (`attempts.available`), saldo y mora de M09 (`charges.statement`), promedio por materia de M06 (`kardex.get`), asistencia de M18 (`studentSummary`), expediente de M06 (`documents.list`) y avisos de M19 (`mine`). El servicio solo orquesta y recorta lo que se expone.
+  - **Los bloques son opcionales:** si falta el permiso que gobierna un bloque, viaja `null` y la pantalla simplemente no lo pinta (mismo criterio que el bloque financiero del tablero ejecutivo).
+  - **El menú del alumno no repite el del staff.** El catálogo de pantallas gana `hiddenForRoles` (regla aditiva) para ocultarle «Personas»; en su lugar ve **«Mi Perfil»** (`/profile`), que resuelve su expediente con `GET /students/me` y reutiliza la pantalla de expediente del personal. Ocultar la pantalla **no** bloquea la ruta: las rutas se guardan con `RequiresPermission`.
+- **El alumno no entra por el guard de reportes.** Su ruta se declara antes del `requiresPermission("reports.view")` del router de tableros y exige `students.view`; el widget se pinta en Inicio cuando la sesión trae el rol `STUDENT`.
+  - **El promedio del ciclo prefiere los cierres** (kardex) y, si aún no hay, promedia lo capturado por materia: la misma regla que el tablero ejecutivo, para que el alumno no vea «—» con calificaciones ya capturadas.
+  - **Nada del estado de cuenta se reexpone tal cual:** los cargos se mapean campo por campo (`pendingCharges`), porque el endpoint de cobranza trae datos internos que el alumno no necesita.
+- **Alternativas descartadas:** que el frontend juntara los seis endpoints (más viajes, la regla de negocio en el navegador y el `studentId` en la URL, que abre la puerta a pedir el de otro); y darle `reports.view` al alumno (le abriría reportes institucionales completos).
+- **Consecuencias / impacto:** el alumno tiene un Inicio útil y el personal conserva el suyo; los bloques se pueden encender por permiso sin tocar la pantalla. Pruebas: 7 unitarias de las reglas puras (`parseSchedule`, `pendingCharges`), 7 de contrato (incluido el aislamiento entre dos alumnos y la cuenta sin expediente) y 2 de navegador.
+
+### D-057 — El dinero del tablero se parte en dos: ganancias (dirección) y cobranza (oficina)
+
+- **Fecha:** 2026-10-16
+- **Estado:** aceptada
+- **Contexto:** con `reports.view = ALL`, oficina (SCHOOL_CONTROL) veía el bloque financiero completo del tablero: ingresos cobrados, gastos, utilidad e ingresos por concepto — y también los reportes de dinero. Eso es información de dirección, no de ventanilla; su trabajo es cobrar y perseguir adeudos.
+- **Decisión:**
+  - **Dos alcances de dinero, explícitos en el contrato.** El tablero responde `scope: { institutional, collections }` y la web no adivina qué pintar.
+  - **Ganancias (`institutional`) = `reports.view = ALL` **y** `expenses.view` distinto de NONE.** Se expresa con la regla pura `seesInstitutionalMoney(user)` (módulo de reportes): quien administra egresos es quien ve el resultado. Cubre posición/cartera, ingresos vs. gastos, ingresos por concepto, gastos por tipo y los indicadores de cobrado/proyectado/gastos. Con el mismo criterio, el catálogo de reportes oculta los financieros (`payments-period`, `debts`, `delinquency`, `income-vs-projection`) a quien no la cumple.
+  - **Cobranza (`collections`) = `charges.view` distinto de NONE.** Oficina conserva adeudo vencido (4.º indicador), tasa de morosidad, lista de alumnos con mayor riesgo y pagos recientes.
+  - **El profesor no ve ninguna de las dos** (`scope` en `false`) y su cuarto indicador es operativo (grupos en alerta).
+- **Alternativas descartadas:** bajar el `reports.view` de oficina de `ALL` a `AREA` (le quitaría también la cobranza y no dice nada de egresos); crear un permiso nuevo (`finances.view`) para algo que la matriz ya expresa con `expenses.view`.
+- **Consecuencias / impacto:** ninguna migración de datos: la matriz se interpreta distinto. Si algún día otro rol debe ver ganancias, se le da `expenses.view` y listo. Pruebas: unitaria de la regla con la matriz real, contrato de M10/M21 actualizado (admin ve ganancias, oficina no) y navegador (oficina sin gráficas de dinero, con cobranza).
+
+### D-058 — Cobranza trabaja en el ciclo en curso
+
+- **Fecha:** 2026-10-16
+- **Estado:** aceptada
+- **Contexto:** Cargos y Pagos mostraban **todos los ciclos mezclados** (646 cargos y 163 pagos de varios periodos): al cobrar no se sabía qué correspondía al ciclo vigente, y el filtro por ciclo solo existía en Cargos.
+- **Decisión:**
+  - **Cobranza abre en el ciclo activo.** `GET /terms/active` define el ciclo de la pantalla; el selector (Ciclo) permite cambiar a otro ciclo o a «Todos los ciclos», y avisa cuando no se está en el activo. Las tablas no consultan hasta resolver el ciclo, para no traer todos y corregir después.
+  - **Pagos gana el filtro `termId`** (por el cargo), que antes no tenía: la API filtra por `charge.termId`. Cargos ya lo soportaba.
+  - **Los altas nacen en el ciclo que se está cobrando**: «Nuevo cargo» y «Generar cargos» reciben el ciclo de la pantalla (si es «Todos», usan el activo).
+  - **Se puede cobrar cualquier cargo con saldo**, incluso de ciclos anteriores: el ciclo filtra la vista, no limita el cobro.
+- **Consecuencias / impacto:** un cargo sin ciclo (dato viejo o mal capturado) no aparece en la vista del ciclo activo; se ve en «Todos los ciclos». Pruebas: contrato de M09 y navegador ya cubren el alta y el cobro dentro del ciclo activo.
+
+### D-059 — La cobranza también se filtra por periodo, y abre en el que corre hoy
+
+- **Fecha:** 2026-10-16
+- **Estado:** aceptada
+- **Contexto:** el ciclo ya guarda su calendario (`Term.calendar`, M22: `[{ name, startDate, endDate }]` —cuatrimestres o semestres—) pero **nadie lo leía**: la cobranza solo distinguía el ciclo completo, así que no se podía ver «lo que toca cobrar este cuatrimestre».
+- **Decisión:**
+  - **Los periodos viajan en el ciclo.** `TermView` gana `periods: [{ name, startDate, endDate, current }]`, parseado con `parsePeriods(calendar, hoy)` (regla pura, tolerante a JSON viejo) y con `current` marcando el periodo que contiene hoy. Sirve `terms`, `terms/options` y `terms/active`, así que la web no recalcula fechas.
+  - **Cobranza abre en el periodo en curso** del ciclo activo, con selector para cambiar de periodo o ver «Todos los periodos». Al cambiar de ciclo, el periodo vuelve al que corre en ese ciclo (fuera de todo periodo, «Todos»).
+  - **El filtro es por vencimiento del cargo:** Cargos ya aceptaba un rango en `dueDate`; **Pagos lo gana** aplicado a `charge.dueDate`. El rango viaja como día (`AAAA-MM-DD`).
+  - **Un ciclo sin calendario** simplemente no ofrece periodos (el selector queda deshabilitado) en vez de inventar cortes.
+- **Consecuencias / impacto:** se puede cobrar por cuatrimestre sin perder de vista el ciclo; los cargos sin ciclo o fuera de todo periodo siguen apareciendo en «Todos». Pruebas: 5 unitarias del parseo y del periodo en curso (extremos, fuera de rango, JSON inválido) y verificación contra la base real (215 cargos en Cuatrimestre 1 de 645 del ciclo).
+
+### D-060 — Tablas sin conmutador Tabla|Cards y filtros rápidos en Cobranza
+
+- **Fecha:** 2026-10-16
+- **Estado:** aceptada
+- **Contexto:** cada tabla traía el conmutador Table|Cards en su barra; en un sistema de gestión nadie lo usa y estorba junto a los filtros. Y en Cobranza había que abrir el filtro de columna para lo más común: ver lo que falta por cobrar.
+- **Decisión:**
+  - **Todas las tablas van sin conmutador**: las 22 vistas (44 usos) pasan `showViewToggle={false}`. Se apoya en el UI System **1.6.0**, que es donde existe la prop (la 1.4.7 no la tenía).
+  - **Filtros rápidos con `ITSegmentedControl` dentro de la tabla**, no escondidos en los filtros de columna:
+    - **Cargos:** Sin pagar (**por defecto**) · Vencidos · Pagados · Todos. «Sin pagar» es el nuevo filtro `pending` de la API (`PENDING`/`PARTIAL`); «Pagados» es `PAID`.
+    - **Pagos:** Vigentes (**por defecto**) · Cancelados · Todos.
+  - El filtro rápido se suma al ciclo y al periodo de la pantalla, y el control visible dice siempre qué se está viendo.
+- **Alternativas descartadas:** esconder el conmutador por CSS (frágil: no hay clase estable en 1.4.7); dejar «Todos» por defecto (en cobranza lo útil es lo pendiente).
+- **Consecuencias / impacto:** la app depende de `@axzydev/axzy_ui_system@^1.6.0` (publicada) y el lockfile se regeneró. Se pierde la vista de tarjetas, que solo tenía sentido en móvil y ahí sigue disponible con `autoCardBreakpoint`. Verificado contra la base real: Cuatrimestre 1 tiene 215 cargos, 76 sin pagar, 30 vencidos y 139 pagados.
+
+### D-061 — Menú del profesor: su perfil, sus alumnos y solo lo suyo
+
+- **Fecha:** 2026-10-16
+- **Estado:** aceptada
+- **Contexto:** el profesor veía «Personas → Alumnos y Profesores». Profesores era inútil —su permiso es `teachers.view = OWN`, así que solo se veía a sí mismo— y «Alumnos» no decía que eran **los suyos**.
+- **Decisión:**
+  - **Fuera «Personas» para alumno y profesor** (regla `hiddenForRoles`, aditiva). El alumno ya tenía «Mi Perfil»; el profesor gana **«Mi Perfil»** y **«Mis alumnos»**.
+  - **«Mi Perfil» sirve a los dos roles** (`fixedRoles`): el alumno sigue yendo a su expediente de alumno (`GET /students/me`); el profesor ve su ficha en la propia pantalla —no hay ruta de detalle de profesor— con sus datos, sus grupos (alumnos/cupo y ciclo), sus materias y su horario, desde `GET /teachers/me` (nuevo) y sus grupos por `teacherId`.
+  - **«Mis alumnos» es la misma tabla de alumnos**: como el alcance del profesor es `AREA`, ya viene limitada a sus grupos (verificado: 30 suyos vs 51 del admin). Sin pantalla nueva ni permisos nuevos.
+  - **Lo demás queda como estaba**: carreras, cursos, grupos, reactivos, exámenes, asistencia, reportes (de sus grupos) y notificaciones. **No existe una pantalla de «Calificaciones»**: se captura desde Grupos → el grupo.
+- **Alternativas descartadas:** crear una ruta `/teachers/:id` solo para esto (pantalla nueva para un caso); ocultar «Alumnos» sin darle sustituto (el profesor necesita ver a sus alumnos).
+- **Consecuencias / impacto:** el profesor entra a `/profile` (alumno y profesor comparten ruta y la pantalla decide según el rol). Si otra cuenta entra sin expediente, ve un aviso, no un error. Pruebas: verificado en el navegador con `marco` (menú, perfil con grupos y horario, 30 alumnos) y `karla` recibe `403 NOT_A_TEACHER` en `/teachers/me`.
+
 ---
 
 ## Decisiones abiertas (pendientes de definir)
@@ -464,7 +544,7 @@ Plantilla:
 
 ## Cómo registrar una nueva decisión
 
-1. Elige el siguiente `D-###` libre (hoy: `D-056`).
+1. Elige el siguiente `D-###` libre (hoy: `D-062`).
 2. Copia la plantilla de arriba y llénala.
 3. Enlaza al documento/módulo afectado.
 4. Si reemplaza a otra, actualiza el estado de la anterior.

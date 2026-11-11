@@ -8,6 +8,7 @@ import { enrollmentScope, groupScope } from "@modules/courses";
 import { fullName } from "@modules/students/services/student.service";
 import { balanceOf, chargeTotal, daysBetween, money, sumOf } from "@modules/finance/models/entity/money";
 import {
+  seesInstitutionalMoney,
   FINANCIAL_REPORTS,
   REPORT_TYPES,
   isReportType,
@@ -60,7 +61,7 @@ export class ReportService {
 
   /** Catálogo de reportes que la persona puede ejecutar. */
   catalog(user: UserPermissions): Array<{ type: ReportType; title: string; financial: boolean }> {
-    const all = scopeOf(user, "reports.view") === "ALL";
+    const all = seesInstitutionalMoney(user);
     return REPORT_TYPES.filter((type) => all || !FINANCIAL_REPORTS.includes(type)).map((type) => ({
       type,
       title: t(`reports.titles.${type}` as MessageKey),
@@ -380,7 +381,7 @@ export class ReportService {
 
   /** KPIs del tablero (M10 §5), calculados en vivo con el alcance de la persona. */
   async dashboard(user: UserPermissions): Promise<Dashboard> {
-    const all = scopeOf(user, "reports.view") === "ALL";
+    const all = seesInstitutionalMoney(user);
     const scopedStudents = await this.studentScope(user);
     const studentWhere = (status: "ACTIVE" | "WITHDRAWN") => ({ AND: [{ status }, ...(scopedStudents ? [scopedStudents] : [])] });
     const [activeStudents, inactiveStudents, { term, groups }] = await Promise.all([

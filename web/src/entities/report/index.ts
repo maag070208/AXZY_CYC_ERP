@@ -12,4 +12,10 @@ export type {
   ReportFilters,
   ReportResult,
   ReportType,
+  StudentDashboard,
+  StudentExamRow,
+  StudentGroupRow,
+  StudentPaymentRow,
+  StudentScheduleSlot,
+  StudentSubjectRow,
 } from "./model/types";

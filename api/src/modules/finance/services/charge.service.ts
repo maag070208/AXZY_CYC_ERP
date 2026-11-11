@@ -103,6 +103,9 @@ export class ChargeService {
     }
     const status = filterEnum(filters, "status", CHARGE_STATUSES);
     if (status) and.push({ status });
+    // Filtro rápido de cobranza: con saldo (PENDING/PARTIAL) o ya pagado.
+    const pending = filterBool(filters, "pending");
+    if (pending !== undefined) and.push({ status: pending ? { in: ["PENDING", "PARTIAL"] } : "PAID" });
     const type = filterEnum(filters, "conceptType", FEE_CONCEPT_TYPES);
     if (type) and.push({ concept: { type } });
     const studentNumber = filterText(filters, "studentNumber");

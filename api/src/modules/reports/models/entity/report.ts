@@ -1,3 +1,4 @@
+import { scopeOf, type UserPermissions } from "@core/permissions";
 /**
  * Contrato de un reporte (M10): columnas tipadas, filas planas y totales.
  * Lo mismo alimenta JSON, XLSX y PDF (M10 §4.7: mismos filtros, mismo dato).
@@ -109,3 +110,12 @@ export const indicator = (value: number | null, previous: number | null): Indica
     deltaPercent: comparable && previous !== 0 ? Math.round(((value - previous) / Math.abs(previous)) * 1000) / 10 : null,
   };
 };
+
+/**
+ * ¿Esta sesión ve las **ganancias** institucionales (ingresos, gastos,
+ * utilidad)? Además de los reportes institucionales hay que administrar
+ * egresos: eso distingue a dirección de oficina, que ve cobranza pero no el
+ * resultado del ejercicio. **Pura.**
+ */
+export const seesInstitutionalMoney = (user: UserPermissions): boolean =>
+  scopeOf(user, "reports.view") === "ALL" && scopeOf(user, "expenses.view") !== "NONE";

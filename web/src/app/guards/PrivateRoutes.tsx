@@ -4,7 +4,7 @@ import {
   type ITSidebarProps,
 } from "@axzydev/axzy_ui_system";
 import { useCallback, useEffect, type ReactNode } from "react";
-import { FaBook, FaCashRegister, FaChalkboardTeacher, FaChartBar, FaClipboardCheck, FaCog, FaFileSignature, FaQuestionCircle, FaHistory, FaHouseUser, FaLayerGroup, FaListUl, FaUserGraduate, FaUserShield, FaUsers, FaWallet, FaUserCheck, FaBell, FaDatabase, FaUserFriends, FaGraduationCap, FaSlidersH, FaStream } from "react-icons/fa";
+import { FaBook, FaCashRegister, FaChalkboardTeacher, FaChartBar, FaClipboardCheck, FaCog, FaFileSignature, FaQuestionCircle, FaHistory, FaHouseUser, FaIdCard, FaLayerGroup, FaListUl, FaUserGraduate, FaUserShield, FaUsers, FaWallet, FaUserCheck, FaBell, FaDatabase, FaUserFriends, FaGraduationCap, FaSlidersH, FaStream } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -20,6 +20,8 @@ const NAV_ICONS: Record<string, ReactNode> = {
   academic: <FaGraduationCap size={14} />,
   admin: <FaCog size={14} />,
   students: <FaUserGraduate size={14} />,
+  myProfile: <FaIdCard size={14} />,
+  myStudents: <FaUserFriends size={14} />,
   teachers: <FaChalkboardTeacher size={14} />,
   courses: <FaBook size={14} />,
   programs: <FaStream size={14} />,

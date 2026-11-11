@@ -141,6 +141,15 @@ en `online_exam_questions`.
 11. Editar preguntas/fechas de un examen sin intentos reinicia la consistencia
     (recalcular total de puntos).
 
+### 4.1 Reactivos desde el diálogo del examen
+
+El diálogo de alta **y el de edición** permiten elegir reactivos del banco del
+curso, ajustar sus puntos y quitarlos; al guardar se reemplaza el conjunto del
+examen (`POST /online-exams/:id/questions`). Con intentos registrados el bloque
+desaparece —la API no permite cambiar reactivos después— y el aviso del diálogo
+lo explica. La pestaña **Reactivos** del detalle sigue siendo el lugar para
+ordenarlos con más espacio.
+
 ## 5. API
 
 Módulo en `api/src/modules/exams/` (`exam.service.ts`; rutas bajo `/online-exams`)

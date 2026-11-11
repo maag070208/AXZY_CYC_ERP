@@ -120,6 +120,12 @@ export class PaymentService {
     if (chargeId) and.push({ chargeId });
     const studentId = filterId(filters, "studentId");
     if (studentId) and.push({ charge: { studentId } });
+    // Cobranza trabaja dentro de un ciclo (la pantalla arranca en el activo).
+    const termId = filterId(filters, "termId");
+    if (termId) and.push({ charge: { termId } });
+    // Y dentro de un periodo del ciclo: el del vencimiento del cargo cobrado.
+    const dueDate = filterDayRange(filters, "dueDate");
+    if (dueDate) and.push({ charge: { dueDate } });
     const receiptNumber = filterText(filters, "receiptNumber");
     if (receiptNumber) and.push({ receiptNumber: receiptNumber });
     const method = filterEnum(filters, "method", PAYMENT_METHODS);

@@ -1,5 +1,13 @@
 import { api } from "@shared/api/client";
-import type { ExecutiveDashboard, ExecutiveFilters, ReportCatalogItem, ReportFilters, ReportResult, ReportType } from "../model/types";
+import type {
+  ExecutiveDashboard,
+  ExecutiveFilters,
+  ReportCatalogItem,
+  ReportFilters,
+  ReportResult,
+  ReportType,
+  StudentDashboard,
+} from "../model/types";
 
 const clean = (filters: ReportFilters) =>
   Object.fromEntries(Object.entries(filters).filter(([, v]) => v !== undefined && v !== ""));
@@ -15,4 +23,6 @@ export const reportApi = {
    * gastos, cartera, alertas y detalle operativo, con el alcance de la persona.
    */
   dashboard: (filters: ExecutiveFilters) => api.get<ExecutiveDashboard>("/dashboard/executive", { params: clean(filters) }),
+  /** Inicio del alumno: su ciclo (exámenes, pagos, horario, avance, avisos). */
+  studentDashboard: () => api.get<StudentDashboard>("/dashboard/student"),
 };

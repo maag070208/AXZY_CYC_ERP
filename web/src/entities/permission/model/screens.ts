@@ -34,6 +34,8 @@ export type NavLabelKey =
   | "nav.adminAccess"
   | "nav.adminData"
   | "nav.adminSystem"
+  | "nav.myProfile"
+  | "nav.myStudents"
   | "nav.students"
   | "nav.teachers"
   | "nav.courses"
@@ -61,6 +63,10 @@ export interface AppScreen {
   readonly requirement?: ScreenRequirement;
   /** Regla fija: solo este rol la ve, sin importar permisos. */
   readonly fixedRole?: UserRole;
+  /** Varios roles fijos (p. ej. «Mi Perfil» para alumno y profesor). */
+  readonly fixedRoles?: readonly UserRole[];
+  /** Roles que **no** ven esta pantalla (el menú del alumno no repite el staff). */
+  readonly hiddenForRoles?: readonly UserRole[];
   /** Hijos (sección con título o grupo de primer nivel). */
   readonly children?: readonly AppScreen[];
 }
@@ -73,8 +79,25 @@ export const APP_SCREENS: readonly AppScreen[] = [
     match: "exact",
   },
   {
+    id: "myProfile",
+    labelKey: "nav.myProfile",
+    path: "/profile",
+    // El alumno y el profesor entran a su propio expediente, no al listado.
+    fixedRoles: ["STUDENT", "TEACHER"],
+  },
+  {
+    id: "myStudents",
+    labelKey: "nav.myStudents",
+    path: "/students",
+    // Misma pantalla que el listado, pero su alcance AREA la limita a sus grupos.
+    fixedRole: "TEACHER",
+  },
+  {
     id: "people",
     labelKey: "nav.people",
+    // Ni el alumno ni el profesor administran personas: cada uno tiene su
+    // perfil y, el profesor, «Mis alumnos».
+    hiddenForRoles: ["STUDENT", "TEACHER"],
     children: [
       {
         id: "students",
@@ -264,7 +287,9 @@ export const isScreenVisible = (
   screen: AppScreen,
   role?: string
 ): boolean => {
+  if (screen.hiddenForRoles?.includes((role ?? "") as UserRole)) return false;
   if (screen.fixedRole) return role === screen.fixedRole;
+  if (screen.fixedRoles) return screen.fixedRoles.includes((role ?? "") as UserRole);
   if (screen.requirement) {
     if ("allOf" in screen.requirement) {
       return screen.requirement.allOf.every((key) => screenHasPermission(permissions, key));
